@@ -1,0 +1,318 @@
+\chapter{Introduction}\label{introduction}
+
+The C programming language allows programmers to use pointers directly.
+A pointer is an address of a location in memory. Programs may do
+arithmetic on pointers, dereference them to read memory, or assign
+through them to modify memory. The ability to use pointers directly
+makes C well-suited for low-level systems programming that is ``close to
+the hardware'' and allows programmers to write efficient programs. C
+also unifies pointer types and array types. They can usually be used
+interchangeably and array subscripting is a synonym for equivalent
+pointer operations.
+
+Pointers and the unification of arrays and pointers are one of the
+strengths of the C programming language, allowing programmers to write
+concise, efficient programs. At the same time, they are one of the main
+sources of reliability and security problems in modern software. This is
+because pointers and array indices are not bounds checked in C and
+related languages such as C++. Bounds checking checks that a pointer or
+array index is in bounds before it is used to read or write memory. A
+pointer to an array object is in bounds if it points to an element of
+the array object. An array index is in bounds if the index is greater
+than or equal to zero and less than the size of the array.
+
+Between 2010 and 2015, buffer overflows accounted for between 10-16\% of
+publicly reported security vulnerabilities in the U.S. National
+Vulnerability Database each year . The vulnerabilities have affected
+software implemented in C and C++ that is widely used, including the
+Windows and Linux operating systems, the Internet Explorer, Chrome, and
+Safari web browsers, the Apache web server, the OpenSSL security
+library, scripting language implementations for Bash, Ruby, and PHP, and
+media playback software such as QuickTime.
+
+Because pointers and array indices are not bounds checked in C, a
+programming error involving them may corrupt memory locations used by
+the program. The memory locations may hold data that is important to the
+computations being done by the program or data that is essential to the
+control-flow of the program, such as return address locations and
+function pointers. Memory corruption can lead to a program producing
+incorrect results or, in the hands of a malicious adversary, the
+complete malfunctioning of the program and the takeover of a running
+process by the adversary.
+
+This design note describes Checked C, an extension to C that provides
+bounds checking for pointers and arrays. There are two obstacles to
+adding bounds checking to C. First, it is not clear where to put the
+bounds information at runtime. Second, it is not clear how to make the
+bounds checking efficient for programs where performance matters. The
+solution of changing the representation of all C pointer types and
+arrays to carry bounds information is not sufficient in practice. C may
+be used at the base of systems where hardware or standards dictate data
+layout and data layout cannot be changed. C programs must also
+interoperate with existing operating systems and software that require
+specific data layouts.
+
+Checked C addresses the bounds checking problem for C by:
+
+\begin{itemize}
+\item
+  Introducing different pointer types to capture the different ways in
+  which pointers are used. The unsafe C pointer type \texttt{*} is kept
+  and three new pointer types are added: one for pointers that are never
+  used in pointer arithmetic (\ptr), one for \emph{array pointer
+  types} (\arrayptr) that are involved in pointer arithmetic,
+  and one for pointer types that carry their dynamic bounds with them
+  (\arrayview ).
+\item
+  For array pointer types (\arrayptr), bounds checking is
+  placed under programmer control. This differs from languages like
+  Java, where bounds checking is completely automatic. A programmer
+  declares \emph{bounds}, where the bounds for an \arrayptr\
+  variable are given by non-modifying C expressions. These are a subset
+  of C expressions that do not modify variables or memory. They include
+  local variables, parameters, constant expressions, casts, and
+  operators such as addition, subtraction, and address-of (\texttt{\&})
+  operators. Static checking ensures that programs declare and maintain
+  bounds information properly. The bounds are used at runtime to enforce
+  bounds safety, if necessary.
+\item
+  Introducing different array types to distinguish between arrays whose
+  accesses are bounds-checked and existing C arrays whose accesses are
+  not bounds-checked. A programmer places the modifier \keyword{checked}
+  before the declaration of the bound(s) of the array: \texttt{int x
+  checked[5][5]} declares a 2-dimensional array for which all
+  accesses will be bounds-checked.
+\item
+  For structure types with \arrayptr -typed members, a
+  programmer declares \emph{member bounds} for those members. A member
+  bounds declares the bounds for a member in terms of members in the
+  structure type. Member bounds can be suspended temporarily for
+  specific variables and objects. Static checking ensures that updates
+  to members maintain the member bounds of the members.
+\item
+  Introducing bounds-safe interfaces to address the problem of
+  interoperation between safe code and unsafe code. A bounds-safe
+  interface describes the safe interface to unsafe code by declaring
+  bounds for unsafe pointers in function signatures and data structures.
+  Because it describes a boundary, it has to be ``safe'' and ``unsafe''
+  at the same time, depending on what kind of code is using it. The
+  interface is trusted in safe code (code that uses safe pointer types).
+  Proper usage is enforced via checking at compile time and runtime. For
+  unsafe code, the interface is merely descriptive and not enforced by
+  language checking. This provides a way to upgrade existing code to
+  provide a safe interface without breaking existing users of the code.
+\item
+  Introducing checked program scopes, where bounds checking is the
+  default behavior. In a checked program scope, definitions of variables
+  and functions can use safe pointer types and cannot use unsafe pointer
+  types. Declarations involving unsafe pointer types must provide
+  bounds-safe interfaces. Checked program scopes avoid problems with
+  subtle misuse of bounds-safe interfaces.
+\item
+  Reasoning about the correctness of programs with declared bounds
+  sometimes requires reasoning about simple aspects of program behavior.
+  To support this, lightweight invariants are added to C. A lightweight
+  invariant declares a relation between a variable and a simple
+  expression using a relational operator. An example would be the
+  statement \texttt{x < y + 5}. Lightweight invariants can be
+  declared at variable declarations, at assignment statements, for
+  parameters, and for return values. C is extended with rules for
+  checking these lightweight invariants. Just as type checking rules are
+  defined by the programming language, so are rules for checking
+  lightweight invariants. The checking of the correctness of
+  programmer-declared bounds is integrated with the checking of
+  invariants.
+\item
+  For the cases where static checking reaches it limits, a programmer
+  can introduce dynamic checks that are runtime errors if they fail.
+  Dynamic checks use the syntax \keyword{check} \var{e}, where \var{e} is an
+  integer-valued expression. A check is similar to an assert, except
+  that it is never removed from the program (unless the compiler proves
+  it is redundant). It cannot be removed because the integrity of the
+  program depends upon it.
+\end{itemize}
+
+For an existing C program to be correct, there has to be an
+understanding on the part of the programmer as to why pointers and array
+indices stay in range. The goals of the design are to let the programmer
+write this knowledge down, to formalize existing practices, such as
+array pointer parameters being paired with length parameters, and to
+check this information.
+
+To simplify bounds and reasoning about bounds, for \arrayview\
+and \arrayptr\ types, pointer arithmetic overflow for these
+types is considered a runtime error. Pointer arithmetic involving a null
+pointer for these types is also a runtime error.
+
+Efficiency is addressed by extending the static checking so that it can
+guarantee that specific bounds checks will always succeed at runtime for
+\arrayptr\ and \arrayview\ types. The static checking
+supports the scenario of simple control-flow enclosing the bounds check
+guaranteeing that the bounds check will succeed. For example, a for-loop
+may iterate only over values within the declared bounds for an
+\arrayptr\ pointer variable.
+
+A problem with incorporating static checking into a programming language
+is that static checking needs to be something that compilers can do
+quickly and deterministically. Static checking can become very expensive
+to do, depending on the language of invariants and the inference that
+the compiler is expected to do. For example, Presburger arithmetic is
+integer arithmetic restricted only to addition and less than or equal
+operations. It is NP-complete to determine whether a formula in the
+first-order logic for quantifier-free Presburger arithmetic is
+satisfiable (true or false). Even statically checking properties of
+simple fragments of real programs can be computationally intractable.
+
+We address this problem two ways. First, the language of invariants is
+restricted. The language of invariants does not allow disjunctive
+invariants (invariants involving \verb+||+. For example, one
+cannot write an invariant that says that variable x has a pointer to a 5
+or 7 element array, depending on the value of some Boolean variable b.
+The combination of disjunction with conjunction leads to an exponential
+size increase when invariants are put into a normal form to check that
+two invariants are the same, so it is avoided.
+
+Second, the inference that compilers are expected to do is limited also.
+A compiler acts as a \emph{checker} for invariants. It checks that
+declared invariants follow from other \emph{declared} invariants, the
+program control-flow, intervening assignments, and simple axioms about
+invariants, such as transitivity of relational operators. The compiler
+does not try to devise invariants or prove the correctness of
+invariants; it applies simple local reasoning to check them. The
+programmer has to call out the relevant facts. If a programmer declares
+an invariant \texttt{x == y} but neglects to declare the invariant
+\texttt{y == z}, the checker may not be able to reason several
+statements later that \texttt{x == z}, even though it may be true at
+that point in the program. This is taking advantage of the fact that
+checking a proof is usually much easier than creating the proof.
+
+One question for the design is how usable it is with these restrictions.
+We plan to evaluate the limitation on the language of invariants
+empirically by examining code and looking for code that requires
+disjunctive invariants about bounds. We will also see how many
+invariants need to be explicitly declared for the compiler.
+
+Another problem with static checking is that static checking has
+theoretical and practical limits. A program logic may be incomplete: a
+fact that is true about a program may not be provable in the logic. Even
+when a program logic can prove a fact, the proof may require deep
+knowledge of an area or the properties of the program. A programmer may
+not have the time or expertise to construct the proof that the fact is
+true. For example, code may be relying on properties of modular
+arithmetic for correctness. For these situations, programs can
+dynamically check facts that are believed to be true, but not provable
+via the static checking in the language.
+
+Establishing the safety of pointer operations is just the first step in
+establishing type safety for C programs. There are other ways which C
+programs may fail. C programs may incorrectly deallocate memory that is
+still in use, do incorrect unsafe pointer casts, or have concurrency
+races that tear data structures. Addressing these problems is beyond the
+scope of this design document. For now, we assume that programs are
+correct in these other aspects.
+
+The rest of this document is organized as follows. Section 2 describes
+the principles that will be applied to extending C. Section 3 describes
+the new pointer types and the new array types, including syntax,
+semantics, and error conditions. It also covers other extensions to C
+semantics. One extension is the introduction of safe program scopes to
+prevent inadvertent use of unsafe types. Another extension is a
+refinement of C's notion of undefined behavior. We wish to maintain
+bounds safety even in the face of integer overflow, which is a
+widespread possibility in C programs. This requires a more nuanced
+requirement on the result of overflow than ``the result is undefined.''
+
+Sections 4 through 9 present the extensions to C for declaring bounds
+for \arrayptr\ values stored in variables and structures and
+checking the consistency of those declared bounds. The extensions are
+organized by C language feature, moving from simple language features to
+more complicated language features. This allows a reader to understand
+concepts one at time.
+
+Section 4 describes how programmers declare the bounds for
+\arrayptr\ variables and the meaning of bounds declarations.
+Bounds can be declared at variable declarations. They can also be
+declared for automatic (local) variables at assignments. If the only
+bounds declaration for a variable is at the declaration of the variable,
+the bounds declaration is an invariant bounds declaration. An invariant
+bounds declaration must be true for the lifetime of the variable. If
+there are bounds declarations for the variable at assignments or other
+declarations, all bounds declarations for the variable are
+dataflow-sensitive. Dataflow-sensitive bounds declarations extend via
+dataflow to uses of the variable.
+
+Invariant bounds declarations must usually be valid after every
+statement and declaration in the scope of a variable. Sometime multiple
+statements are needed to update the set of a variables used in an
+invariant bounds declaration. To support this, expression statements and
+declarations can be \emph{bundled}, in which case bounds declarations
+must be valid only at the end of the bundle. Within the bundled block,
+the variables may be inconsistent with respect to bounds declarations
+that use them. The variable can be updated so that consistency is
+re-established at the end of the bundled block.
+
+Section 5 describes rules that the compiler uses to check the validity
+of bounds declarations. It covers inferring bounds for expressions.
+Because expression may have assignments embedded within them, it also
+covers inferring effects of an expression on the bounds of variables.
+This inferred information is then used to validate that declarations and
+statements correctly declare bounds and maintain the bounds information.
+
+Section 6 covers interoperation between safe and unsafe code. It covers
+conversions between safe and unsafe pointers, as well as the new kinds
+of pointers. It pins down the notion of safe code and unsafe code.
+Finally, it covers bounds-safe interfaces in depth.
+
+Section 7 extends these ideas from variables to data structures by
+introducing member bounds, which are type-level invariants about members
+of structure types. For now, it assumes that the programmer has done
+concurrency control around shared data properly and ignores the fact
+that data structures may be modified in racy ways such that invariants
+are violated.
+
+Section 9 extends these ideas to pointers to structures.
+
+Section 10 extends the checking of bounds to incorporate simple
+reasoning about bounds and program behavior. It includes a set of rules
+for deducing facts that are true about a program at a specific point in
+the program (for example, given an assignment \texttt{x = y;} the fact
+that x == y is true after the assignment). Facts can also be deduced
+from program control-flow. There are additional rules for reasoning
+about whether one fact is true given a set of other facts (for example,
+given x == y and the statement \texttt{z = y;} z == x is true after that
+statement). These rules and facts can be used to deduce the correctness
+of bounds declarations that differ from those inferred directly by the
+checking described in Sections 0 through 9. For example, a programmer
+may wish to narrow the memory that is accessible via an
+\arrayptr\ variable by declaring bounds that are a subrange of
+the bounds inferred by the checking. A programmer may wish to update the
+bounds for an \arrayptr\ variable after an assignment \texttt{x
+= y}, substituting x for y.
+
+The same static checking that is used for bounds can be used to reason
+about the ranges of variables at specific points in a program. From
+there, it is a short step to deducing at compile-time that bounds are
+always satisfied at a particular memory access in a program. For
+example, a fact can be that the range of an integer variable \texttt{i}
+is always between 0 and 10. This can be used to deduce that an array
+access in a crucial inner loop is always in bounds.
+
+Section 11 addresses pointers to \arrayptr\ variables and
+address-taken variables.
+
+Section 12 describes prior work on extending C for safety and some
+lessons that we drew from that work. We are heavily influenced by the
+CCured and Deputy systems.
+
+Section 13 evaluates the design by describing our experience modifying
+an existing C open-source code base by hand to use the Checked C
+extensions. We chose to modify OpenSSL, an important widely-used
+open-source code base. The static and dynamic checking is not
+implemented in a compiler yet, so we cannot be sure of the correctness
+of the modifications or understand the practical benefits of checking.
+Still, this gives some idea about the usefulness and applicability of
+the design.
+
+Section 14 summarizes the open problems uncovered by Section 13 or
+unaddressed by the design. It also describes next steps for implementing
+this in a C compiler.

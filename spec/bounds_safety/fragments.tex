@@ -1,0 +1,68 @@
+
+
+\chapter{Random Fragments}\label{appendix-b-random-fragments}
+
+Here are some fragments of ideas that need to be more fully developed.
+
+\texttt{Incompleteness of static checking}
+
+The invariant checking algorithm is not complete, in that there may be
+invariants about the program that are true, but which the invariant
+checker does not report as true. First, the invariant checker only uses
+declared invariants. An invariant may be true after a particular
+statement, but if it is not declared, the invariant checker may not be
+able to use it for subsequent statements. If a programmer declares an
+invariant x \textless{} y but neglects to declare the invariant y
+\textless{} z, the checker will not be able to reason several statements
+later that x \textless{} z, even though it may be true about the
+program. This is a consequence of the compiler being a checker, not a
+theorem prover. Second, the underlying logic used by the checker is not
+complete: the invariants require first-order Presburger arithmetic,
+complete with disjunction (or) because of the presence of min and max.
+The logic used by the checker does not include axioms for disjunction or
+min/max.
+
+\texttt{Partial correctness}
+
+We are pursuing a strategy of being able to prove partial correctness
+when these undefined behaviors are possible. Specifically, we would
+assume that some undefined behaviors do not occur in some parts of code.
+We would be able to prove given this assumption that other undefined
+behaviors do not occur in other parts of the program. For example, we
+might assume memory allocation and type casts are in fact correct. We
+might also assume that unsafe code never reads or writes through
+out-of-bounds pointers. We would then be able to provide that safe code
+is guaranteed to never read or write through out-of-bounds pointers.
+
+To arrive at more complete correctness guarantees about systems, we will
+use the approaches of narrowing the amount of code about which
+assumptions have to be made and narrowing the types of assumptions that
+have to be made (that type casts are correct and memory allocation is
+correct). For example, we will narrow the amount of unsafe code so that
+assumptions are needed about less and less code.
+
+\texttt{Discussion of facts involving members}
+
+\var{fact: }
+
+\begin{quote}
+\var{bounds}
+
+\var{var-member-path relop range-exp}
+
+\var{range-exp relop var-member-path}
+\end{quote}
+
+\texttt{Loop invariants and dataflow-sensitive bounds declarations}
+
+\texttt{Array\_ptr} variables with dataflow-sensitive bounds declarations also
+need loop invariants if the variables are updated in a loop. Those
+invariants must be declared before the loop and cannot occur cannot
+occur only within the loop, unless the loop is completely unreachable
+from the beginning of the function, in which case it is dead code.
+
+To understand why, suppose the bounds declaration only occurs in the
+loop body at or after the read of a variable. There will be a path from
+the beginning of the function to the read of the variable. From
+condition 2 of consistency, that path must also have a bounds
+declaration, which is a contradiction.

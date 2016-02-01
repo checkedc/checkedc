@@ -1,0 +1,1145 @@
+
+\chapter{New types and other extensions to C semantics}
+\label{new-types-and-other-extensions-to-c-semantics}
+
+\section{New kinds of pointer types}
+\label{new-kinds-of-pointer-types}
+Three new safe pointer types are added to C. Each pointer type can be
+used in place of `*'
+
+\begin{enumerate}
+\item
+  \ptrT: this points to
+  a value of type \textit{T}. Pointer arithmetic is not allowed on these
+  kinds of pointers. The expectation is that that many pointers are not
+  involved in pointer arithmetic and will be given this type. When
+  values of this pointer type are used to read or write memory, they
+  must be non-null. The non-nullness is checked at runtime if necessary.
+\item
+  \arrayptrT: this is
+  a pointer to an element of an array of type \var{T} values. A
+  variable of type \arrayptr\ that is used to access memory
+  must have an associated declaration of the valid bounds for the
+  variable. When values of this pointer type are used to read or write
+  memory, they must be non-null and in bounds. The non-nullness and
+  bounds are checked at runtime if necessary. Pointer arithmetic can be
+  done on these pointer types. The resulting pointers do not need to be
+  in bounds.
+\item
+  \arrayviewT: this
+  is a pointer that dynamically carries its bounds information with it.
+  These pointers follow the same rules as
+  \arrayptrT .
+\end{enumerate}
+
+Unsafe C pointer types that use \texttt{*} and are unchecked in their
+ranges continue to exist. Pointer arithmetic is not forbidden on unsafe
+pointer types because it would break existing C code. C compilers will
+have an error or warning mode that flags unexpected uses of `*'.
+
+The name \ptr\ is chosen for pointers that can only be read or
+written because those are expected to be the most common type of pointer
+in C code. It is a short succinct name.
+
+The same syntax as C++ template instantiations is used for building
+instances of these types because this syntax is well-known and
+understood. The parameter to these type constructors must be a type.
+
+\begin{quote}
+\emph{Note that using C++ template instantiation syntax interacts poorly
+with mixed C declarators. In the syntax of C declarators, `*' is used as
+a prefix to an identifier to modify the type of an identifier. A mixed
+declarator is a declarator where different identifiers have different
+types because of different modifiers. An example of a mixed declarator
+is the declaration int i, *pi; The C++ template instantiation produces a
+type, so ``mixed'' declarators} \emph{must be broken across multiple
+lines instead. The resulting declarations would be} int i;
+\ptrint\ pi;\emph{. On the other hand, non-mixed
+declarators are fine: int *pj, *pi; is given the syntax
+\ptrint\ pi, pj.}
+
+\emph{Instead of using the C template instantiation syntax, we
+considered allowing the new pointer names to be used in place of *, for
+example,} int i, ptr pi;\emph{. However, in our opinion, that made code
+less readable. The use of a symbol can be recognized visually more
+quickly than the use of an identifier. This is apparent for type names
+that consist of several words:} const unsigned int ptr g \emph{is more
+difficult to parse quickly than} \ptrinst{\texttt{const unsigned
+int}} g\emph{.}
+\end{quote}
+
+\section{New kinds of array types}\label{new-kinds-of-array-types}
+
+A new safe array type is added to C. Just as there are safe pointer
+types, there are safe array types. They are declared by placing the
+modifier \keyword{checked} before the declaration of the bound of the
+array\footnote{We can just as easily adopt the syntax that the checked
+annotation is postfix and propagates from the inner most array to the
+ outermost array. We have chosen the prefix syntax because the notation
+ can be read easily from left to right ``this is a checked array of
+ 10x10 elements''.}:
+\begin{verbatim}
+int a checked[10];
+\end{verbatim}
+
+All array references to checked array types are bounds checked. C has
+the rule that an ``array of \var{T}'' is converted implicitly to a
+``pointer to \var{T}'' in a number of situations. This rule is extended
+to convert a ``checked array of \var{T}'' to an ``\arrayptr\ 
+to \var{T}''.
+
+In C, array types may be complete or incomplete. A complete array type
+specifies the bound of each dimension of the array using constant
+expressions. An incomplete array type does not specify the bound of the
+first dimension of the array. Examples of complete array types are
+\texttt{int[10]} and \texttt{int[10][10]}. Examples of
+incomplete array types are \texttt{int[]} and \texttt{int[][10]}.
+
+If a checked array type is incomplete, there must be an associated
+declaration of the valid bounds for the first dimension of the array.
+For a complete array type, the bounds declared by the type are used to
+bounds check array references. For example, given a declaration
+\texttt{int a[10]} and a use \texttt{a[i]}, the bounds check is
+that \texttt{i >= 0} and \texttt{i < 10}.
+
+Array references to multi-dimensional arrays must be uniformly bounds
+checked or not bounds checked. If any dimension is bounds checked, all
+dimensions must be checked. A programmer can simply declare the
+\emph{``checked''}-ness for the outer dimension. It will be propagated
+to the inner dimensions:
+
+\begin{verbatim}
+int b checked[10][10];
+\end{verbatim}
+
+More specifically, in C, multidimensional arrays are arrays of arrays,
+where the nested array types have known dimensions at compile-time. A
+2-dimensional array is an array of array of T, a 3-dimensional array is
+an array of array of array of T. The checked-ness is propagated from the
+outer array to the nested array types.
+
+The propagation works as follows. In C, a declaration of a variable has
+the form T D, where T is a type and D is a declarator. The declarator
+can be as simple as an identifier \texttt{x}:
+\begin{verbatim}
+int x;
+\end{verbatim}
+
+It can be a more complex form that declares an identifier and modifies T
+to produce a new type for the identifier. An example is \texttt{x[5]}:
+
+\begin{verbatim}
+int x[5];
+\end{verbatim}
+
+Given a C declaration \var{T} \var{D}, if \var{D} is an array
+declarator, it will have the form
+\texttt{\var{D1}[\var{constant-expression\textsubscript{opt}}]},
+where \var{D1} is another declarator. The type of the identifier in the
+declaration \var{T D1} will be determined first. The type can be some
+constructed type of the form \var{type-modifier} of \var{T}, where
+\var{type-modifier} is a sequence of array, checked array, or pointer
+type modifiers. If the first element in the \var{type-modifier}
+sequence is an array or pointer, the type of the identifier will be
+\var{type-modifier} array of T. If the first element in the
+\var{type-modifier} sequence is checked array, the type of the
+identifier will be \var{type-modifier} checked array of T.
+
+For example, in parsing the declaration of \texttt{b} above, \var{D1}
+will be \texttt{int b checked[10]}. The type of \texttt{b} in
+\var{D1} is ``checked array of int''. The type of \texttt{b} in
+\texttt{int b checked[10][10]} will be ``checked array of
+checked array of int''.
+
+\subsection{An example}
+\label{an-example}
+
+It is easy to convert a function that operates only on complete array
+types to one where array accesses are bounds checked: just add the
+checked keyword to the declarations of the variables with complete array
+types. Consider a method that adds 2x2 integer arrays \texttt{a} and
+\texttt{b} so that \texttt{a} = \texttt{a} + \texttt{b}:
+
+\begin{verbatim}
+void add(int a checked[2][2], int b checked[2][2])
+{
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            a[i][j] += b[i][j];
+        }
+    }
+}
+\end{verbatim}
+
+\section{Operations involving pointer types}\label{operations-involving-pointer-types}
+
+The following operations involving pointer-typed values are allowed:
+
+\begin{itemize}
+\item
+  Indirection: the \texttt{*} operator can be applied to a value of type
+  \var{T} \texttt{*},
+  \ptrT,
+  \arrayptrT, or
+  \arrayviewT. It
+  produces a value of type \var{T}.
+\item
+  Array reference: the \texttt{[]} operator can be applied to a
+  value of type \var{T} \texttt{*}, \arrayptrT, or \arrayviewT. It
+  cannot be applied to a value of type \ptrT.
+  \texttt{\var{e1}[\var{e2}]} is equivalent to
+  \texttt{*(\var{e1} + \var{e2})}
+\item
+  Assignment: two pointers of the same type can be assigned.
+\item
+  Adding or subtracting a pointer type and an integer. This is allowed
+  for \var{T} \texttt{*}, \arrayptrT, and \arrayviewT types.
+\item
+  Pointers to objects of the same type can be compared for equality or
+  inequality. The pointers do not have to be the same kind of pointer.
+  To support reasoning about program behavior, the result of comparing
+  pointers to different objects must be defined.
+\item
+  Pointers to objects of the same type can be compared relationally,
+  except for \ptr\ types. Relational comparisons are the
+  \verb|<|, \verb|<=|, \verb|>|, \verb|>=| operators. The pointers do not have to be
+  the same kind of pointer. Given a type \var{T}, a \var{T}
+  \texttt{*}, \arrayptrT\ or   \arrayviewT, can be compared to a \var{T} \texttt{*},
+  \arrayptrT , or \arrayviewT. For example, an \arrayviewT can be compared with an
+  \arrayptrT . To support bounds checking and reasoning about program behavior, the
+  result of comparing pointers to different objects must be defined.
+  Section 3.7 describes this requirement in detail.
+\item
+  Pointers to objects of the same type can be subtracted, except for
+  \ptr\ types. The pointers do not have to be the same kind of
+  pointer. The result of subtracting pointers to different objects of
+  the same type must be defined. Section 3.7 describes this requirement
+  in detail.
+\end{itemize}
+
+A value of one pointer type may be converted to a value of another
+pointer type. For casts to or from safe pointer types where
+bounds-safety can be checked at compile-time, a cast operator can be
+used. If bounds safety cannot be checked at compile-time, bounds cast
+operators must be used. There are two kinds of bounds cast operators:
+\keyword{dynamic\_bounds\_cast}, which does runtime checks of any
+conditions required to enforce bounds safety and
+\texttt{unchecked\_bounds\_cast}, which does no runtime checking and
+trusts the programmer. The rules for pointer casting and the bounds cast
+operators are described in in Section 6.
+
+\subsection{Rules for the address-of operator}\label{rules-for-the-address-of-operator}
+
+If an address-of operator (\texttt{\&}) applied to an lvalue expression
+of type \var{T}, the following rules apply:
+
+\begin{itemize}
+\item
+  If the operator occurs in a checked block, the address-of operator
+  produces a value of type
+  \ptrT
+\item
+  Otherwise, the address-of operator produces a value of type \var{T}
+  \texttt{*}.
+\end{itemize}
+
+If the \& operator is applied to an lvalue expression that is a
+dereference of a pointer or an array that has bounds checking, the
+bounds check will be done when the address is taken. This guarantees
+that it is valid to dereference the pointer that results from the
+address-of operator. For example, in the following code, bounds checks
+will be done at \texttt{\&a[i]} and \texttt{\&b[0]}.
+
+\begin{verbatim}
+int a checked[10];
+array_ptr<int> b;
+int i;
+...
+ptr<int> y = &a[i];
+ptr<int> z = &b[0];
+\end{verbatim}
+
+\subsection{Rules for conversion of checked array types to pointer types}\label{rules-for-conversion-of-checked-array-types-to-pointer-types}
+
+If the type of an expression or a subexpression is ``checked array of
+\var{T}'', the type of the expression is altered to be
+\arrayptrT .
+
+Following existing C language rules, this alteration does not happen if
+the expression is an operand of an address-of operator, \texttt{++},
+\texttt{--}, \texttt{sizeof}, or the left operand of an assignment
+operator or the `\texttt{.}' operator. The prohibition against this
+conversion occurring for operands of the address-of operator gives the
+results of the operator a more precise type. For sizeof, it also results
+in a more precise answer. The prohibitions against it for ++, and --
+operands and the left operand of an assignment operato keeps array
+variables from being modifiable.
+
+\subsection{\texttt{Array\_view<}\textit{T}\texttt{>} specific operations}\label{arrayux5fviewt-specific-operations}
+
+An \arrayviewT
+pointer carries three values with it: the memory location that will be
+accessed by dereferencing the
+\arrayviewT, a lower
+bound on the memory that can be accessed via the current pointer value,
+and an upper bound on accessible memory. Those values can be accessed
+using the \texttt{.} operator combined with the special field names
+\texttt{current}, \texttt{lower\_bound}, and \texttt{upper\_bound}. The
+resulting values have the type
+\arrayptrT . The
+special field names can only be read and cannot be modified by
+assignments.
+
+\begin{verbatim}
+array_view<int> p = …
+array_ptr<int> low = p.lower_bound;
+array_ptr<int> high = p.upper_bound;
+array_ptr<int> current = p.current;
+\end{verbatim}
+
+An \arrayviewT value
+is created by casting a value of another pointer type to the
+\arrayviewT type. A
+value of another pointer type may be converted to an
+\arrayviewT in
+situations where an
+\arrayviewT value is
+expected, the referent type of the other pointer type is \var{T}, and
+the bounds of the value can be determined automatically.
+
+For example, a variable of array type can be converted automatically to
+an \arrayview\ . First, the array type will be converted to a
+pointer type of either \var{T} \texttt{*} or
+\arrayptrT , depending
+on whether the array type is checked or unchecked. This pointer type
+will then be converted to an
+\arrayviewT. The
+bounds of a variable of array type are easily determined at compile
+time, so the pointer type will then be converted to an
+\arrayviewT:
+
+\begin{verbatim}
+int x[10]
+array_view<int> p = x; 
+// p.current = x; p.lower_bound = x; p.upper_bound = x + 10;
+
+\end{verbatim}
+
+Similarly, an \arrayptr\ value with declared bounds can be
+converted to an \arrayview\ value:
+
+\begin{verbatim}
+array_ptr<int> src = …
+array_view<int> p = src;
+\end{verbatim}
+
+The full rules for casting to an \arrayview\ type are covered
+in Section 6.1.
+
+\section{Pointer arithmetic error conditions}\label{pointer-arithmetic-error-conditions}
+
+For existing unsafe C pointers, the definition of pointer arithmetic is
+described in terms of addresses of elements of an array object. The C
+Standard states, that given a pointer p that points to some element i of
+an array object, p + j points to the (i+j)th element of that object.
+Pointer arithmetic is defined only for pointers to elements of the array
+object or one past the last element of the array object.
+
+We take an alternative approach to defining the meaning of pointer
+arithmetic and the error conditions for pointer arithmetic. Pointer
+arithmetic is allowed to go out-of-bounds and has a well-defined
+semantics. Section 3.4.1 defines the semantics of the new pointer types
+directly in terms of byte addresses, instead of with respect to
+addresses of elements of an array. Pointer arithmetic that overflows or
+involves a null pointer is defined to produce a runtime error.
+
+The new pointer types allow pointer arithmetic that produces
+out-of-bounds values. The C definition leaves pointer arithmetic that
+produces out-of-bounds values undefined because it is not clear what the
+meaning of should be when the pointers are dereferenced. The new pointer
+types prevent out-of-bounds pointers from being dereferenced, and solve
+this problem another way. In addition, in practice C implementations
+often allow pointer arithmetic to produce out-of-bounds values and C
+programs end up relying on this implementation-specific behavior. There
+is no reason to cause existing code that computes out-of-bounds pointers
+but does not dereference them to break when it is converted to use the
+new pointer types.
+
+When pointer arithmetic overflows or involves a null pointer, the
+resulting value of the expression cannot be used and program execution
+stops. If a system provides for error handling, an error handling
+mechanism may be invoked to redirect program execution to a new point of
+execution that does not use the value of the expression.
+
+Defining pointer arithmetic this way simplifies reasoning about the new
+pointer types. Expected Identities such as \texttt{p + 1 \textgreater{}
+p} now hold because, if \texttt{p + 1} overflows, the value cannot be
+used. This allows programmers to narrow the bounds for
+\arrayptr\ values by incrementing the lower bound or
+decrementing the upper bound, even in situations where the bounds are at
+the ends of the address space. Later sections describe places where
+allowing an undefined value to be used would complicate reasoning about
+programs.
+
+If a compiler cannot prove that a new pointer type value is non-null
+before a pointer arithmetic operation, it must insert a check.
+Similarly, if a compiler cannot prove that a pointer arithmetic
+expression for a new pointer type cannot overflow, it must insert a
+check. This may slow a typical program down by a slight amount.
+
+\subsection{Semantics of pointer arithmetic for new pointer types}\label{semantics-of-pointer-arithmetic-for-new-pointer-types}
+
+This section defines the semantics of pointer arithmetic and explains
+when overflow occurs in pointer arithmetic. It is assumed that memory is
+addressable at the byte level. The order of bits within a byte is not
+specified. The order of bytes within built-in types larger than a byte,
+such as integers and floating-point numbers, is also not specified.
+Pointers shall be treated as addresses of locations of bytes in memory.
+The addresses shall be unsigned integers with a defined range of 0 to
+\texttt{UINTPTR\_MAX}. The maximum value of a signed integer that can be
+added to an address shall be given by \texttt{INTPTR\_MAX} and the
+minimum value of a signed integer that can be added to an address shall
+be given by \texttt{INTPTR\_MIN}.
+
+For the new
+\arrayptrT\ pointer
+types, there are distinct operations for addition and subtraction of
+pointers by signed and unsigned integers. The operations behave
+similarly, but have different overflow conditions for scaling because
+the ranges of signed integers and unsigned integers are different.
+
+\begin{itemize}
+\item
+  First scaling an integer by \sizeof{\var{T}} is
+  defined. To scale an integer \var{i}, \var{i} shall be multiplied by
+  \sizeof{\var{T}}, producing an integer \var{j}. If
+  \var{i} is a signed integer, the scaled result shall be treated as a
+  signed integer. If \var{i} is an unsigned integer, the scaled result
+  shall be treated as an unsigned integer. For a signed integer, the
+  minimum and maximum range for j shall be \texttt{INTPTR\_MIN} and
+  \texttt{INTPTR\_MAX} For an unsigned integer, the minimum and maximum
+  range for j shall be 0 and UINTPTR\texttt{\_MAX}. If \var{j} is
+  outside its valid range, the operation doing the scaling operation
+  shall produce a runtime error.
+\item
+  \var{p} \texttt{+} \var{i}, where p is an
+  \arrayptrT\ pointer
+  and \var{i} is an integer. The integer \var{i} shall be scaled by
+  \sizeof{\var{T}}, producing an integer \var{j}. The
+  pointer p will be interpreted as an unsigned integer. The mathematical
+  value \var{p} + \var{j} shall be the result of the operation. If
+  \var{p} + \var{j} is out of range for a pointer, the operation shall
+  produce a runtime error.
+\item
+  \var{i} \texttt{+} \var{p}, where \var{p} is an
+  \arrayptrT\ pointer
+  and \var{i} is an integer, shall be defined as \var{p} \texttt{+}
+  \var{i}.
+\item
+  \var{p} \texttt{--} \var{i}, where \var{p} is an
+  \arrayptrT\ pointer
+  and \var{i} is an integer. The integer \var{i} shall be scaled by
+  \sizeof{\var{T}}, producing an integer \var{j}. The
+  pointer \var{p} will be interpreted as an unsigned integer. The
+  mathematical value \var{p} - \var{j} shall be the result of the
+  operation. If \var{p -} \var{j} is out of range for a pointer, the
+  operation shall produce a runtime error.
+\item
+  \var{p} \texttt{--} \var{q}, where \var{p} and \var{q} are
+  \arrayptrT
+  pointers. The two pointers will be interpreted as unsigned integers
+  and the mathematical value \var{p} -- \var{q} shall be computed,
+  producing an integer \var{j}. If \var{j} is out of range for signed
+  integer that can be added to an address, the operation shall produce a
+  runtime error. If \var{j} is a multiple of
+  \sizeof{\var{T}}, the result shall be
+  \var{j}/\sizeof{\var{T}}. If \var{j} is not a
+  multiple of \sizeof{\var{T}}, then the value shall
+  be determined as follows:
+
+  \begin{itemize}
+  \item
+    If \var{j} is non-negative,
+    \var{j}/\sizeof{\var{T}} shall round toward 0.
+  \item
+    If \var{j} is negative, it shall be implementation-defined whether
+    \var{j}/\sizeof{\var{T}} rounds toward 0 or away
+    from 0.
+  \end{itemize}
+\end{itemize}
+
+An important implication of these definitions is that they put a maximum
+limit on the number of elements in an array of type \var{T}. It is
+\texttt{UINTPTR\_MAX}/\sizeof{\var{T}}. They also put
+maximum limits on the number of elements that can be accessed in an
+array by a signed integer or an unsigned integer. That leads to limits
+on the size of arrays that can be described by some bounds. A signed
+integer that must be non-negative can describe an array of
+\texttt{INTPTR\_MAX/\sizeof{\var{T}}} elements.
+
+\subsection{Expressing pointer arithmetic as integer arithmetic}\label{expressing-pointer-arithmetic-as-integer-arithmetic}
+
+During static checking, pointer arithmetic operations will be converted
+to use integer arithmetic. This is necessary in C because at times
+programmers do explicit size computations that follow the same rules as
+pointer arithmetic.
+
+To support this expansion, integer arithmetic operators are extended
+with the operators \texttt{+\textsubscript{ovf}},
+\texttt{-\textsubscript{ovf}} , and\texttt{*\textsubscript{ovf}}. The
+operators interpet pointers as unsigned integers in some range 0 to
+\texttt{UINTPTR\_MAX}. An operator produces a runtime error if the value
+of its result cannot be represented by the result type:
+
+\begin{itemize}
+\item
+  \texttt{+\textsubscript{ovf}} takes an unsigned integer i and an
+  integer j and produces an unsigned integer in the range 0 to
+  \texttt{UINTPTR\_MAX}. Its result is the mathemetical value i + j.
+\item
+  For subtraction, there are two forms:
+
+  \begin{itemize}
+  \item
+    \texttt{-\textsubscript{ovf}} takes an unsigned integer i and an
+    integer j as an argument and computes i - j, producing an unsigned
+    integer in the range 0 to \texttt{UINTPTR\_MAX}. Its result is the
+    mathematical value i - j.
+  \item
+    \texttt{-\textsubscript{ovf\_diff }}takes two unsigned integers i
+    and j and computes i - j, producing a signed integer of type
+    \texttt{ptrdiff\_t}. Its result is the mathemetical value i - j.
+  \end{itemize}
+\item
+  \texttt{*\textsubscript{ovf }}takes two integers i and j (both either
+  signed or unsigned) as arguments. It produces an integer whose type is
+  the same as the input argument types. Its result is the mathematical
+  value i * j.
+\end{itemize}
+
+Given an expression \texttt{e1} with a pointer type and an expression
+\texttt{e2} with an integer type, the expansion of \texttt{e1 + e2} from
+pointer arithmetic to integer arithmetic depends on the type of
+\texttt{e2}. The number of bytes to added must be the same kind of
+signed or unsigned integer as \texttt{e2}.
+
+\begin{itemize}
+\item
+  If \texttt{e2} is an unsigned integer, \texttt{e1 + e2} expands to
+  \texttt{e1 +\textsubscript{ovf} \sizeof{\var{T}} *\textsubscript{ovf} e2}
+\item
+  If \texttt{e2} is a signed integer, the expansion of \texttt{e1 + e2}
+  must cast \sizeof{\var{T}} to a signed integer. We introduce a
+  signed integer type \texttt{signed\_size\_t} that is large enough for
+  this cast. \texttt{e1 + e2} expands to \texttt{e1 +\textsubscript{ovf}
+  ((signed\_size\_t) \sizeof{\var{T}} *\textsubscript{ovf} e2}. This cast is
+  necessary because in C, multiplying a signed integer by an unsigned
+  integer implicitly converts the signed integer to be an unsigned
+  integer.
+\end{itemize}
+
+\subsection{Runtime performance implications}\label{runtime-performance-implications}
+
+There will be concerns about the effect of overflow checks on the speed
+of pointer arithmetic using the new pointer types. These concerns are an
+empirical question to be settled after implementing and using the new
+pointer types. It is unclear what the actual cost will be. First, there
+will be sometimes be additional conditions on expressions used in
+pointer arithmetic that prevent overflow from occurring. Second,
+compiler optimizations often can remove the checks. Third, programmers
+can use lightweight invariants to show statically that checks are not
+necessary.
+
+In our experience working on an operating system written in managed code
+that required these checks, the slowdown was a few percent, even when
+\emph{all} arithmetic instructions were checked for overflow too. The
+cost of checks was low because it is often the case that checks are
+redundant or can be combined into adjacent machine instructions. For
+example, in the code \texttt{t = *p; p += 1;} the first dereference of
+\texttt{p} implies that \texttt{p} is non-null before the increment.
+Otherwise, in a typical C environment, the program would fault at
+\texttt{*p}. In the code \texttt{if (p \textless{} hi) \{ p += 1; \}}
+the check \texttt{p \textless{} hi} implies that the increment cannot
+overflow. The checks are also inexpensive on superscalar processors:
+they can be placed so that they are statically predicted by the
+processor to never fail.
+
+\section{Relative alignment of \arrayptr\ and \arrayview\ values}\label{relative-alignment-of-arrayux5fptr-and-arrayux5fview-values}
+
+\arrayptrT\ and \arrayviewT pointers provide safe
+pointer arithmetic on arrays. The bounds for these pointers usually
+describe a range of memory that is exactly the size of some array of T.
+The pointers point to an element of the array. In other words, the lower
+bound, the upper bound, and pointer are relatively aligned to the type
+\var{T}. Given a lower bound \var{lb}, an upper bound \var{ub}, and a
+pointer \var{p}, there should exist some integer \var{count} such that
+\var{ub} = \var{lb} + \var{count}. In addition, there is either some
+integer \var{index} such that \var{p} = \var{lb} + \var{index},
+where addition is C pointer arithmetic, or p is null.
+
+The type to which a pointer and its bounds are relatively aligned is
+called the relative alignment type. By default, the relative alignment
+type for a pointer and its bounds is the referent type. However, the
+relative alignment type can be overridden by specifying it explicitly as
+part of the bounds. This is useful when describing bounds for the
+results of pointers casts. It is necessary when describing bounds for
+\arrayptrvoid\ and \arrayviewvoid pointers. The type
+\texttt{void} has no defined size, so the default relative alignment is
+undefined for \texttt{void}.
+
+When pointers and their bounds are not relatively aligned to the
+referent type, the cost of bounds checking increases. We considered
+removing the entire concept of relative alignment from the design. We
+decided against that because it increases the cost of bounds checking.
+Section 15.1 describes proposals that were considered but not chosen.
+
+\section{Program scopes for safe pointer types}\label{program-scopes-for-safe-pointer-types}
+
+To improve program reliability and to simplify understanding programs,
+it is desirable to limit code to using only safe pointers. To support
+this, we introduce ``checked'' program scopes. The ``checked'' keyword
+can be attached to blocks and function definitions. In checked program
+scopes, definitions can use only safe pointer types and checked array
+types; they cannot use unsafe pointer types and unsafe arrays. On the
+other hand, declarations can use unsafe pointer types and unsafe arrays,
+provided that the declarations provide a bounds-safe interface.
+
+A new pragma directive BOUNDS\_CHECKED is introduced to control whether
+the top-level scope is a checked scope:
+\begin{alltt}
+#pragma BOUNDS_CHECKED \textit{on-off-switch}
+\end{alltt}
+
+Where \texttt{\textit{on-off-switch}} is one of \verb|ON OFF DEFAULT|
+
+By default, function definitions are not checked. A block inherits the
+checking properties of its parent. This preserves the meaning of
+existing C code.
+
+A checked block is introduced by placing the checked keyword before a
+compound block:
+\begin{verbatim}
+checked 
+{
+    int a = 5;
+    ptr<int> pa = &a;
+
+    int b checked[5][5];
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            // all references are bounds checked
+            b[i][j] = -1;
+        }
+    }
+}
+\end{verbatim}
+
+It is rarer for a programmer to need to introduce an unchecked scope. It
+is usually needed to allow the use of unsafe pointers within a checked
+block. The ``unchecked'' keyword can be used in all the places where the
+checked keyword can be used. This example shows the use of an unchecked
+block:
+
+\begin{verbatim}
+checked 
+{
+    int a = 5;
+    unchecked 
+    {
+        int *upa = &a;	
+        int b[5][5];
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                // not bounds checked
+                b[i][j] = -1;
+            }
+        }     
+    }
+ ...
+}
+\end{verbatim}
+
+In a checked function definition, the body of the function is a checked
+block. A checked function definition is declared by placing the checked
+keyword before the definition. Here are examples of checked and
+unchecked function definitions:
+
+\begin{verbatim}
+// checked at the function level: no unsafe pointers can appear in argument
+// types, the return type, or the body of the function.
+checked int f(ptr<int> p) 
+{
+    int a = 5;
+    ptr<int> pa = &a;
+…
+}
+
+// unchecked at the function level: Safe and unsafe pointer types can occur 
+// in argument types, the return type, or the body of the function
+unchecked int f(int *p, ptr<int> r)
+{
+    int a = 5;
+    int *pa = &a;
+    ...
+}
+
+// f is unchecked by default
+int f(int *p, ptr<int> r)
+{
+    int a = 5;
+    int *pa = &a;
+    ...
+}
+\end{verbatim}
+
+When a function call occurs in a checked block, the function being
+called does not have to be declared as checked. The notion of whether a
+scope is checked or not checked is lexical and the function definition
+is a separate lexical scope.
+
+As we add different notions of checking to C programs, we will use the
+checked and unchecked keywords for all the different notions of
+checking. We may introduce additional keywords to control specific kinds
+of checking.
+
+\section{Programmer-inserted dynamic checks}\label{programmer-inserted-dynamic-checks}
+
+A bounds check generates a runtime error if it fails. The ability to
+generate a runtime error is not limited to the C implementation. A
+programmer can check a Boolean condition and generate a runtime error
+using the expression \texttt{dynamic\_check(}\var{e1}\texttt{)}, where
+\var{e1} is an integral valued expression. At runtime, \var{e1} is
+evaluated. If the result is \texttt{0} (false), a runtime error occurs.
+If the result is non-zero (true), no runtime error occurs. Just as with
+a bounds check, if a runtime error occurs and a C implementation
+provides an error-handling facility, the error-handling facility may be
+invoked.
+
+The \texttt{dynamic\_check} expression is similar to an assertion, but
+unlike an assertion, it is expected to be used in production or release
+versions of software. The \texttt{dynamic\_check} expression is useful
+for these reasons:
+
+\begin{itemize}
+\item
+  It provides an escape hatch for limits of static checking. If a
+  programmer knows a condition is true at runtime, yet the static
+  checking cannot prove the fact, the programmer can use
+  \texttt{dynamic\_check} to show that the condition is true.
+\item
+  It maintains programmer control: programmers can use unsafe ponters
+  and \texttt{dynamic\_check} to write the same code that the compiler
+  would generate for safe pointers.
+\item
+  It gives programmers more control over bounds checks. A programmer can
+  place a pre-condition before a loop that ensures that the loop is free
+  from dynamic bounds checks, without having to restructure the
+  control-flow of the program.
+\end{itemize}
+
+The following example illustrates why having an escape hatch from static
+checking is useful. Suppose a decoder from a compressed representation
+to an uncompressed representation is being converted to use safe
+pointers. This example is based on code patterns seen in the Abstract
+Syntax Notation (ASN1) parsing code of OpenSSL .
+
+\begin{verbatim}
+void decode(char *output_buffer, char *input_buffer, size_t input_len)
+{
+    char *src = input_buffer;
+    char *src_bound = src + input_len;
+    char *dst = out_buffer;
+
+    while (src < bound) {
+        switch (*current++) {
+            case UNCOMPRESSED_BYTES: { 
+                // just copy bytes; compression wasn’t useful here.
+                size_t len = src[0] + src[1]*256;
+                src += 2;
+                memcpy(dst, src, len);
+                src += len;
+                dst += len;
+                break;
+            }
+            case COMPRESSED_INT64: {
+                ...
+                break;
+            }
+        ...
+    }
+}
+\end{verbatim}
+
+The caller knows that the destination buffer will be large enough and
+that the contents of the source buffer are well-formed. However, these
+invariants cannot be expressed using lightweight invariants. These are
+complicated high-level invariants that require the use of techniques for
+proving functional correctness.
+
+To use safe pointers, the size of the destination buffer must be passed
+in and there must be a check before the memcpy that the destination
+buffer and source buffer have enough room. We ignore the details of how
+the bounds are described for now.
+
+\begin{verbatim}
+void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
+            size_t input_len, size_t output_len)
+{
+    array_ptr<char> src = input_buffer;
+    array_ptr<char> src_bound = src + input_len;
+    array_ptr<char> dst = out_buffer;
+    array_ptr<char> dst_bound = out_buffer + output_len;
+
+
+    while (src < bound) {
+        switch (*current++) {
+            case UNCOMPRESSED_BYTES: { 
+                size_t len = src[0] + src[1]*256;
+                src += 2;
+                // need check that dst and src have at least len bytes of
+                // space
+                memcpy(dst, src, len);
+                src += len;
+                dst += len;                
+                break;
+            }
+            case COMPRESSED_INT64: {
+                ...
+                break;
+            }
+        ...
+    }
+}
+\end{verbatim}
+
+How should that check be written? One approach is to change the
+control-flow by inserting if-statements into the program. Something must
+be done if the check fails, though. One possibility is to just ignore a
+failure. This is bad programming practice because now the program might
+fail silently:
+
+\begin{verbatim}
+void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
+            size_t input_len, size_t output_len)
+{
+      ...
+            case UNCOMPRESSED_BYTES: { 
+                size_t len = src[0] + src[1]*256;
+                src += 2;
+                // check that dst and src have at least len bytes of
+                // space
+                if (dst + len >= dst_bound || src + len >= src_bound) {
+                    goto failure;
+                }
+                memcpy(dst, src, len);
+                src += len;
+                dst += len;                
+                break;
+            }
+   ...
+   failure: 
+      return;
+}
+\end{verbatim}
+
+This could be fixed by having \texttt{decode} return a status code
+indicating success or failure. That just pushes the problem upward to
+the caller and leaves a testing problem. The program should never fail,
+so there is no way to test the path.
+
+\begin{verbatim}
+int decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
+            size_t input_len, size_t output_len)
+{
+   ...
+   failure: 
+      return 1;
+}
+\end{verbatim}
+
+The problems with requiring functions that validate buffer lengths to
+return status codes for errors are analyzed by . Annex K of the C
+Standard introduced a new set of standard library functions to replace
+functions that provide no way to validate their arguments. These
+functions return status codes to indicate success or failure A classic
+example of a function prone to misuse is \texttt{strcpy(char *dst, const
+char *src)}. It copies all bytes in \texttt{src} to \texttt{dst} until
+it hits a null byte. If \texttt{src} is missing the null byte or
+\texttt{dst} is too small, this causes a buffer overrunn. The new
+function \texttt{strcpy\_s} takes an additional size parameter for
+\texttt{dst} and has the signature \texttt{errno\_t strcpy\_s(char *dst,
+size\_t dest\_len, const char *src)}. O'Donell and Sebor explain how
+using these functions is awkward, leading to more complicated and less
+efficient code.
+
+In contrast, \texttt{dynamic\_check} allows the checking to be localized
+and not propagate upward in the call chain. If the programmer is
+correct, the check never fails. If the programmer is incorrect, the
+check might fail and invoke error-handling code:
+
+\begin{verbatim}
+void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
+            size_t input_len, size_t output_len)
+{
+      ...
+            case UNCOMPRESSED_BYTES: { 
+                size_t len = src[0] + src[1]*256;
+                src += 2;
+                dynamic_check(dst + len < dst_bound && src + len < src_bound);
+                memcpy(dst, src, len);
+                src += len;
+                dst += len;                
+                break;
+            }
+   ...
+}
+\end{verbatim}
+
+One can argue that it is a problem to have a dynamic point of failure
+that leads to error-handling code being invoked. This is the same way
+systems treat null pointer dereferences, though, which are a possibility
+throughout C code. The alternative of having a program with undefined
+behavior is worse.
+
+The following example uses \texttt{dynamic\_check} to eliminate bounds
+checks in a loop. It is based on experience hand-optimizing C\# and Java
+programs. This kind of example is typically found during a performance
+tuning phase of program development. In the example, 
+the \verb|: count(|\var{exp}\verb|)| notation indicates that \var{exp} is the
+length of the buffer.
+
+\begin{verbatim}
+void append(array_ptr<char> dst : count(dst_count),
+            array_ptr<char> src : count(src_count), 
+            size_t dst_count, size_t src_count)
+{ 
+    for (size_t i = 0; i < src_count; i++) {
+        if (src[i] == marker) {
+           break;
+        }
+        dst[i] = src[i];
+    }
+}
+\end{verbatim}
+
+The highlighted expressions are bounds checked:
+\begin{verbatim}
+void append(array_ptr<char> dst: count(dest_count), 
+            array_ptr<char> src : count(src_count), 
+            size_t dst_count, size_t src_count)
+{ 
+    for (size_t i = 0; i < src_count; i++) {
+        if (src[i] == marker) {
+           break;
+        }
+        dst[i] = src[i];
+    }
+}
+\end{verbatim}
+
+It is clear that the accesses to \texttt{src} are in-bounds based on
+just information from the for-loop, so a compiler will eliminate those
+bounds checks. It is not clear that assignments through \texttt{dst} are
+always in bounds, so the check there must remain. It can be eliminated
+by adding a \texttt{dynamic\_check}:
+
+\begin{verbatim}
+void append(array_ptr<char> dst: count(dest_count), 
+            array_ptr<char> src : count(src_count), 
+            size_t dst_count, size_t src_count)
+{ 
+    dynamic_check(src_count <= dst_count);
+    for (size_t i = 0; i < src_count; i++) {
+        if (src[i] == marker) {
+            break;
+        }
+        dst[i] = src[i];
+    }
+}
+\end{verbatim}
+
+The compiler now knows that \texttt{i \textless{} src\_count
+\textless{}= dst\_count}, so it can eliminate the check.
+
+A compiler would not introduce this dynamic\_check because it would
+alter the behavior of \texttt{append}. The bounds check on \texttt{dst}
+in the original code is done only if a marker is not found in
+\texttt{src} and \texttt{src\_count \textgreater{} 0}. A compiler could
+try to deduce a precondition for the bounds check failing, but this is
+not possible because the precondition depends on the contents of
+\texttt{src}. A compiler would have to clone code to maintain the same
+behavior. This increase code size, so production compilers do not this
+sort of transformation or do it sparingly. Programmer control produces
+better results.
+
+\begin{verbatim}
+void append(array_ptr<char> dst: count(dest_count), 
+            array_ptr<char> src : count(src_count), 
+            size_t dst_count, size_t src_count)
+{ 
+    if (src_count <= dst_count) {
+        for (size_t i = 0; i < src_count; i++) {
+            if (src[i] == marker) {
+                break;
+            }
+            dst[i] = src[i];  // no bounds check needed
+        }   
+    else {
+        for (size_t i = 0; i < src_count; i++) {
+            if (src[i] == marker) {
+                break;
+            }
+            dst[i] = src[i];  // bounds check needed
+        }   
+
+    }
+}
+\end{verbatim}
+
+\section{Changes to undefined behavior}\label{changes-to-undefined-behavior}
+
+C has situations where an expression has undefined behavior or the
+meaning of an expression is undefined:
+
+\begin{enumerate}
+\item
+  Unsafe pointer arithmetic only has defined behavior when the resulting
+  pointer points to the same object as the original pointer, or one
+  element past the object.
+\item
+  Unsafe pointer comparison only has defined behavior when comparing
+  pointers to the same object (where one or both pointers may point one
+  element past the same object).
+\item
+  Unsafe pointer subtraction only has defined behavior when subtracting
+  pointers to the same object (where one or both pointers may point one
+  element past the object).
+\item
+  Arithmetic expression behavior is undefined on signed integer overflow
+  and integer division by 0.
+\item
+  Expressions may have nested assignments within them. The evaluation
+  order of side-effects in subexpressions is defined only in specific
+  circumstances; otherwise it is undefined. This leads to expressions
+  with undefined meaning. There can be multiple assignments to the same
+  variable that have no defined evaluation order with respect to each
+  other or an assignment and a use of a variable that have no defined
+  evaluation order.
+\item
+  Initializers may have nested assignments within them. These can have
+  undefined meanings as well for the same reasons as expressions.
+\end{enumerate}
+
+Undefined behavior is different from unspecified behavior, where one of
+a number of choices may be made. Unspecified behavior in C includes:
+
+\begin{itemize}
+\item
+  The order of evaluation of side-effects in expressions (so long as the
+  expression does not have undefined behavior).
+\item
+  The order of evaluation of side-effects in initializers.
+\end{itemize}
+
+C also has implementation-defined behavior, which includes:
+
+\begin{itemize}
+\item
+  The ranges of values for integer, floating-point, and pointer types.
+\item
+  Data layout, including the sizes of types, padding, and alignment of
+  data.
+\item
+  Some aspects of pointer conversion.
+\end{itemize}
+
+It is difficult to reason about the correctness of programs that have
+expressions with undefined behavior. One has to make sure that a program
+never arrives at a point where behavior is undefined. In practice, this
+would mean proving that signed integer overflow can never occur, for
+example. For unspecified behavior, one has to reason about all possible
+behaviors, such as all possible orders of evaluation. For
+implementation-defined behavior, one has to reason about the
+implementation-specific behavior or have reasoning that is independent
+of the details.
+
+A careful reading of the rules for unsafe pointer comparison implies
+that it is impossible to detect an out-of-bounds unsafe pointer in C,
+for example. If an unsafe pointer p is not in the valid range for an
+object, the pointer comparison is undefined.
+
+To provide for pointer bounds safety, we require that C implementations
+provide defined behaviors for unsafe pointer arithmetic operations and
+signed integer overflow:
+
+\begin{itemize}
+\item
+  Unsafe pointers shall be treated as addresses of locations in memory,
+  just as safe pointers are treated as addressses. The addresses shall
+  be unsigned integers with a defined range of 0 to
+  \texttt{UINTPTR\_MAX}:
+
+  \begin{itemize}
+  \item
+    Comparison of pointers for all different kinds of pointers shall be
+    defined as the corresponding integer comparison.
+  \item
+    Subtraction p - r of two pointers p and r of type T where one
+    pointer is a safe pointer and the other is an unsafe pointer shall
+    be done following the rules for subtraction of safe pointers,
+    treating the unsafe pointer as a safe pointer in those rules.
+  \end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item
+  To be able to maintain pointer bounds safety, it is important that
+  signed integer overflow produce a defined value. When a signed integer
+  expression produces an out-of-range value, either (1) the operation
+  must convert that value to an in-range integer value or (2) the
+  expression shall produce a runtime error. The conversion must be a
+  function of only the input values of the expression.
+\item
+  Integer division by 0 shall also produce a runtime error or produce a
+  defined value.
+\end{itemize}
+
+In the case of a runtime error, program execution cannot continue in a
+way the uses the value of the expression that produced the error.
+
+For programs with expressions and initializers with undefined meanings,
+those programs must be rejected at translation-time. Section 5.11
+describes this in detail.
+
+Of course, there are other ways in which C expressions may have
+undefined behavior:
+
+\begin{enumerate}
+\item
+  By reading or writing memory through an out-of-bounds pointer.
+\item
+  By storing a value of one type and accessing the value as a different
+  type later, when the value is not valid for the different type. A
+  program might write bit patterns that do not correspond to valid
+  values for a type or write an integer and use it as a pointer later,
+  even though the pointer is not within the range of memory for a valid
+  object.
+\item
+  By accessing memory that has been deallocated.
+\item
+  By using variables or functions with inconsistent declarations across
+  different translation units. This can cause the type of a variable or
+  a function to be different at the definition and the use. This can be
+  addressed with suitable link-time checking.
+\end{enumerate}
+
+The aim is to be able to show partial correctness of programs for the
+1\textsuperscript{st} item (avoiding out-of-bounds pointer accesses). A
+partial correctness guarantee has the form ``assuming X holds, then Y is
+true''. Informally, one might say ``assuming that memory allocation and
+type casts are correct and that unsafe code never reads or write though
+out-of-bounds pointers, then safe code never reads or writes through
+out-of-bounds pointers.'' These assumptions can be turned into formal
+statements about program behavior at runtime. Given those assumptions,
+we might then prove that at runtime safe code never reads or writes
+through out-of-bounds pointers.

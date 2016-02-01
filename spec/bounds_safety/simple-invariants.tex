@@ -1,0 +1,431 @@
+\chapter{Reasoning about bounds and simple program invariants}
+
+Programmers and compilers will need to reason about bounds as variables
+are modified. In doing so, they will also need to reason about simple
+program invariants. This section introduces extensions to C to support
+reasoning about program invariants.
+
+There are a variety of reasons why programmers and compilers may need to
+reason about bounds:
+
+\begin{itemize}
+\item
+  A programmer may wish to narrow the area of memory that can be
+  accessed via an array pointer by modifying the bounds of the pointer.
+\item
+  A programmer may introduce a temporary variable and may wish to
+  re-express existing bounds in terms of that new variable.
+\item
+  A programmer may write a loop that depends on a variable with bounds
+  and also modifies one or more variables used in those bounds. Some
+  simple reasoning may be needed to show that the loop body preserves
+  the bounds.
+\item
+  A programmer may do a dynamic check to ensure that a bounds can be
+  satisfied.
+\item
+  A compiler may need to check that the arguments to a function call
+  satisfy the bounds requirements of the function parameters.
+\item
+  A programmer may want to write performance-critical code that is free
+  of dynamic bounds checks. The programmer may introduce checks outside
+  the performance-critical code that guarantee no dynamic checks are
+  needed. The compiler may need to check that the bounds are statically
+  satisfied in the performance-critical code.
+\end{itemize}
+
+We incorporate reasoning about bounds into the language because checking
+the correctness of bounds statically is often the only practical choice.
+If we were to ignore the correctness of the reasoning about bounds, we
+would have to track the bounds for all pointer values dynamically to
+ensure correct operation of programs. C programs often operate at such a
+low level in the system that there may be no practical way to do this.
+
+Because the reasoning about bounds is part of the language, compilers
+will check the correctness of the reasoning, just as they check the
+correctness of types. They must do so predictably and efficiently. Two
+compilers for C with these extensions should always produce the same
+answer. Compile times should be relatively unaffected and checking
+should scale to code bases with millions of lines of code. This rules
+out incorporating program verification techniques that are
+heuristic-based or computationally expensive.
+
+The computational limits for production compilers are severe. For
+production compilers, compiler developers aim for algorithms that are
+O(N) or (N lg N) time in terms of the size of a method or a program.
+Compilers may encounter methods may have hundreds of thousands of lines
+of code and whole programs that have millions of lines of code.
+Production compiler developers use O(N\textsuperscript{2}) time
+algorithms for individual functions only with great care, typically
+including code to disable an algorithm, reduce precision, or switch to
+an alternate algorithm that has better behavior at the expense of
+producing worse code.
+
+To handle the computational limits of compilers, we view the compiler's
+job as one of proof checking. The compiler will check that individual
+steps in a proof are correct. It will do limited inference in the
+process of checking those steps. It will not try to infer which of the
+many possible facts about a large method are relevant; the programmer
+will need to state the relevant facts to use in inference.
+
+\section{Facts about program points}
+
+We start with facts about program points that a programmer may use to
+reason about bounds. A fact is a bounds declaration or a relational
+statement about a variable and a non-modifying expression:
+
+\var{fact: }
+
+\begin{quote}
+\var{bounds}
+
+\var{var relop non-modifying-exp}
+
+\var{range-exp relop var}
+\end{quote}
+
+where \var{relop} is one of \textless{}, \textless{}=, ==, !=,
+\textgreater{}=, \textgreater{}. Recall that range-expressions are a
+subset of C expressions restricted to variables, constant expressions,
+and addition, subtraction, and address-of operations. The variable and
+non-modifying expression in a fact must have pointer types or integral
+types.
+
+Facts may be declared at expression statements or in parameter lists
+using \keyword{where} clauses. For expression statements, the compiler
+will check that the where clause is true using the facts true before the
+expression statement and the effect of the expression. For a parameter,
+the where clause becomes a precondition that must be true at the call
+site. The compiler will check this precondition at the call sites. The
+grammar for where clauses is generalized to:
+
+\var{expression-statement}:
+
+\begin{quote}
+\var{expression\textsubscript{opt}}\texttt{;}
+
+\var{expression\textsubscript{opt} where-clause}\texttt{;}
+\end{quote}
+
+\var{where-clause}:
+
+\begin{quote}
+\keyword{where} \var{facts}
+\end{quote}
+
+\var{facts}:
+
+\begin{quote}
+\var{fact}
+\end{quote}
+
+\var{act} \texttt{\&\&} \var{facts}
+
+The expression can be omitted, in which case a where clause may stand on
+its own as a set of invariants and bounds declarations:
+\begin{verbatim}
+where x>=0 && x<=10;
+\end{verbatim}
+
+Facts are automatically inferred for the clauses of if-statements and
+the cases of switch statements. For if-statements, the test has to have
+the form of a fact. For a switch statement, the fact is deduced from the
+switch expression and the case statement:
+
+Here are some simple examples where the fact created by a control-flow
+statement is explicitly declared using a (redundant) where clause:
+
+\begin{verbatim}
+if (x < 5) {
+    where x < 5;
+}
+else {
+    where x >= 5;
+} 
+
+switch (x) {
+    case 0: {
+        where x == 0;
+        break;
+    }
+    case 1: {
+        where x == 1;
+        break;
+     }   
+    default: {
+        where x != 0 && x != 1;
+        break;
+    }
+}
+\end{verbatim}
+
+Here is a simple example that introduces a fact that i is always
+\textgreater{}= 0:
+
+\begin{verbatim}
+int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+    int sum = 0;
+    int i = 0
+    where i >= 0;
+    while (i<10) {
+        sum += buf[i];
+        i = i + 1
+        where i >= 0;
+    }
+}
+\end{verbatim}
+
+From this fact, it can be deduced that the access to buf is always in
+range. A where clause can be used double check this:
+
+\begin{verbatim}
+int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+    int sum = 0;
+    int i = 0
+    where i >= 0;
+    while (i<10) {
+        where (i>= 0 && i<10);
+        sum += buf[i];
+        i = i + 1
+        where i >= 0;
+    }
+}
+\end{verbatim}
+
+\section{Checking facts}
+
+The compiler checks facts in a \keyword{where} clause by gathering known
+facts before an assignment statement and checking that the facts
+declared in the \keyword{where} clause can be inferred (easily) from
+known facts and the effect of the assignment statement. The compiler
+finds known facts by examining each path from the beginning of the
+function to the statement and identifying facts that are true along all
+paths. Facts are introduced by where clauses and control-flow
+statements. Facts are removed by assignments to any variable in a fact.
+
+A programmer can find the facts that are available before an assignment
+statement by looking at assignments that precede the statement. The
+programmer usually only has to look at assignments to variables in the
+where clause for the assignment statement. The programmer can then check
+the facts along all paths from those assignments to the statement.
+
+This analysis of facts available before a statement is similar to the
+``available expression'' analysis done by optimizing compilers for
+common-subexpression elimination. For common-subexpression elimination,
+a compiler looks at all expressions. For analyzing available facts, a
+compiler only looks at expressions in where clauses or inferred from
+control-flow statements.
+
+\subsection{Algorithm for checking correctness of facts}\label{algorithm-for-checking-correctness-of-facts}
+
+To infer whether a fact is true in a where clause, the compiler first
+computes the set of facts that are true after the expression statement.
+We describe the common case where the expression is an assignment of the
+form x:= e1.
+
+\begin{enumerate}
+\item
+  If e1 is invertible and must have a well-defined value (cannot
+  overflow or fails on overflow), the compiler takes the facts true
+  before the statement and substitutes the inverse expression of e1 for
+  any occurrences of x in the facts.
+\item
+  If e1 is not invertible or may not have a well-defined value, the
+  compiler takes the facts before the statement and removes any facts
+  where x occurs.
+\item
+  If e1 is a valid non-modifying expression, the compiler adds the fact
+  x == e1 to the set of facts.
+\end{enumerate}
+
+For variables that are declared to be equal, the compiler chooses one of
+them as the representative variable and substitutes it for all the other
+variables. That is, given x == y and y == z, the compiler chooses one of
+the variables (say, x) and substitutes it for y and z. The compiler
+applies this substitution to both the set of facts and the fact that is
+being checked.
+
+The compiler then reduces the set of relational operators to the set
+\textless{}, \textless{}=, ==, and != by swapping operands and replacing
+\textgreater{} and \textgreater{}= with \textless{}= and \textless{}
+instead.
+
+The compiler then puts each bounds declaration into a normal form so
+that syntactic identity can be used to compare facts. For example,
+operands for addition operations are commuted so that constant operands
+appear first, followed by the remaining subexpressions in lexicographic
+order. Integer subtraction a -- b is turned into a + (-b). Additions
+with only constant operands are simplified and algebraic identities for
+addition and subtraction such as x + 0 are applied
+
+The compiler next checks if the fact being checked is in the set of
+facts. If it is not, it applies transitivity rules involving
+\textless{}, \textless{}=, and ==. It also checks to see if \textless{}
+implies != is true, and if \textless{}= and \textgreater{}= imply ==.
+
+\subsection{Bounds declarations and facts}\label{bounds-declarations-and-facts}
+
+Bounds declarations are treated the same way as other facts. During the
+checking process, the same simplifications that are applied to other
+facts are applied to the right-hand side bounds expressions: the
+compiler chooses representative variables and puts the non-modifying
+expressions that make up a bounds expression into normal forms.
+
+The rules for checking bounds declarations include rules for
+transitivity. For x : bounds(e1, e2), if e1 \textless{}= e3, then e3 can
+be substituted for e1. If e4 \textless{}= e2, e4 can be substituted in
+e2. For x : count(e1), if e2 \textless{}= e1, e2 can be substituted for
+e1.
+
+\subsection{Pointer arithmetic and facts}\label{pointer-arithmetic-and-facts}
+
+The rules used to check facts include the identities x \textless{} x + k
+for positive k and x + k \textless{} x for negative k, where k is a
+constant and x is a new pointer type (\ptr\,
+\arrayview, or \arrayptr). These identities are true
+because pointer arithmetic overflow is defined as a runtime error for
+these pointer types. This guarantees that adding x and k produces either
+an in-range value or a runtime error (no value).
+
+\subsection{Integer arithmetic and overflow}\label{integer-arithmetic-and-overflow}
+
+Integral arithmetic may overflow. This consequence of that is that the
+rules used to check facts do not include the identities x \textless{} x
++ k for positive k and x + k \textless{} x for negative k, where k is a
+constant and x has an integral type. These identities are not true in C
+because the computation x + k may overflow. According to C language
+rules, program behavior is undefined in that case.
+
+To use these identities for integers, the compiler needs to prove for
+positive k that x + k \textless{}= MAXINT and for negative k that MININT
+\textless{}= x + k. There are four rules that can be used to prove this:
+
+\begin{itemize}
+\item
+  Given an integer c and a positive integer k, if x \textless{}= c and c
+  + k \textless{}= MAXINT, then x + c \textless{}= MAXINT.
+\item
+  Conversely, given an integer c and a negative integer k, if c
+  \textless{}= x and c + k \textgreater{}= MININT, then x +
+  k\textgreater{}= MININT
+\item
+  Given x \textless{} y, where y is any variable, then x + 1
+  \textless{}= MAXINT
+\item
+  Conversely, given x\textgreater{}y, where y is any variable, then x-1
+  \textgreater{}= MININT
+\end{itemize}
+
+To determine whether an expression e is invertible, the compiler uses
+the facts that are true before the expression to prove that MININT
+\textless{}= e and e \textless{}= MAXINT.
+
+Note that to invert an integer expression, the compiler also needs to
+prove that it cannot overflow.
+
+\subsection{Checking function calls}\label{checking-function-calls}
+
+A function call is checked by substituting the actual parameters for the
+formal parameters and checking that the where clauses are true, given
+the facts true before the call. For the where clause for the returned
+value, the actual parameters are substituted for the formal parameters.
+The facts in the clause are then added to the set of facts true after
+the call. The programmer still has to declare any interesting facts.
+
+\subsection{Avoiding bounds checks at runtime}\label{avoiding-bounds-checks-at-runtime}
+
+It can be important to avoid dynamic bounds checks at runtime. The
+built-in method in\_bounds(e1) can be used to do this. It can be applied
+to expression of type \arrayptr. At compile time, the compiler
+checks that the bounds expressions for e1 are always true given the
+facts true before the evaluation of e1. At runtime, in\_bounds(e1)
+simply returns the value of e1. Compilers generate code for
+*in\_bounds(e1) with no dynamic bounds checks. The prior example can be
+written as:
+
+\begin{verbatim}
+int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+    int sum = 0;
+    int i = 0
+    where i >= 0;
+    while (i<10) {
+        sum += *in_bounds(buf + i);
+        i = i + 1
+        where i >= 0;
+    }
+}
+\end{verbatim}
+
+\section{Examples}
+
+Here is a simple example of capturing the lower bounds of an
+\arrayptr\ variable using another variable:
+
+\begin{verbatim}
+int sum(array_ptr<int> buf : bounds(buf, end), 
+         array_ptr<int> end) {
+    array_ptr<int> tmp = buf;
+    where buf : bounds(tmp, end); // substitute tmp for buf
+    int sum = 0;
+    while (buf < end) {
+        sum += *buf;   
+        buf = buf + 1; // buf bounds do not change, do not need to be redeclared
+    }
+    return sum;
+}
+\end{verbatim}
+
+Here is a more complicated example where \texttt{buf} is incremented
+\emph{and} \texttt{buf} is the lower bound:
+
+\begin{verbatim}
+int sum(array_ptr<int> buf : bounds(buf, end), 
+        array_ptr<int> end) {
+    int sum = 0;
+    while (buf < end) {
+        sum += *buf;   
+        buf = buf + 1
+        where buf : bounds(buf, end);
+    }
+    return sum;
+}
+\end{verbatim}
+
+Here are the steps that the compiler goes through, illustrated using a
+where statements. First, the compiler computes the facts true after
+\texttt{buf = buf + 1}. The compiler computes the inverse expression for
+\texttt{buf + 1}, which is \texttt{buf - 1}. It substitutes it into the
+bounds expression that is true before the increment, producing the set
+of facts after the increment of \texttt{buf : bounds(buf -- 1, end)}:
+
+\begin{verbatim}
+int sum(array_ptr<int> buf : bounds(buf, end), 
+        array_ptr<int> end) {
+    int sum = 0;
+    while (buf < end) {
+        sum += *buf;   
+        buf = buf + 1
+        where buf : bounds(buf - 1, end); 
+    }
+    return sum;
+}
+\end{verbatim}
+
+The next step is for the compiler to show that that \texttt{buf :
+bounds(buf - 1, end)} implies \texttt{buf : bounds(buf, end)}. The
+transitivity rule for bounds expressions implies that the compiler must
+show buf -- 1 \textless{}= buf. This follows from the identity x -- k
+\textless{} x, completing the validation of the bounds expression:
+
+\begin{verbatim}
+int sum(array_ptr<int> buf where bounds(buf) == (buf, end), 
+        array_ptr<int> end) {
+    int sum = 0;
+    while (buf < end) {
+        sum += *buf;   
+        buf = buf + 1
+        where bounds(buf) == (buf, end) 
+    }
+    return sum;
+}
+\end{verbatim}

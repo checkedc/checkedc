@@ -1,0 +1,373 @@
+
+
+
+\chapter{Lessons from Existing Research}\label{lessons-from-existing-research}
+
+There has been substantial research on showing the correctness or type
+safety of C programs with pointer arithmetic. The research is a
+combination of applied type theory, program logics, program
+verification, and dynamic techniques that can be used when static
+checking becomes too complicated. The research has not been productized
+by industry, even though flaws in C and C++ programs have caused
+widespread, costly security problems \emph{(to do: citation).} What
+lessons can we learn from existing research?
+
+CCured uses whole-program static analysis to identify different uses of
+pointers in C programs. It identifies pointers that are used to read or
+write values only (safe pointers), pointers that are used in pointer
+arithmetic also (sequence pointers), and pointers that are involved in
+possibly non-type safe casts (wild pointers). It uses a multi-machine
+word representation for sequence pointers and wild pointers. It also
+changes the representation of data pointed to by wild pointers. This
+changes data layouts and causes interoperation problems. The CCured
+results clear show that many pointers are never used with pointer
+arithmetic. It suggests that new types of pointers should be introduced
+into C for pointers that have different safety requirements. This would
+be an easy and low-risk way to improve the safety of C programs.
+
+Deputy uses dependent types to avoid runtime layout changes in pointers
+involved in pointer arithmetic. The dependent types allow the bounds of
+the pointers to be specified as part of the types of the pointers and
+the bounds to depend on runtime values. Deputy requires programmers to
+annotate function parameters, data structures, and global parameters
+with dependent types. It then infers dependent type annotations for
+local variables and adds runtime checks to make the dependently-typed
+program type check. The runtime checks enforce that pointer values stay
+in bounds. The checks apply to pointer arithmetic and pointer
+dereferencing.
+
+Havoc goes beyond Deputy and allows types to be combined with program
+verification. It allows a programmer to specify program invariants that
+imply type safety and can verify these invariants statically. It can
+handle unsafe code such as using a pointer to a field to access a prior
+field in a data structure.
+
+There are some high-level conclusions that we can draw from these
+systems. First, it is not feasible in practice to require widespread
+data layout changes, as CCured did. Second, this means that use of
+program invariants and/or runtime system support will be required to
+establish that pointer uses are in bounds. Third, it can be arbitrarily
+hard to show the type safety statically of unsafe low-level systems
+code. The code may be safe at runtime. A programmer may intuitively know
+that it is safe and be able to argue informally for correctness.
+However, writing down the invariants may be hard and may require deep
+knowledge of program verification techniques. It may also lead to
+invariants that are longer and more complicated than the original code.
+It may be better for a programmer to just rewrite the code to be type
+safe.
+
+Extensions for safe pointer operations will require a trade-off between
+dynamic techniques for checking pointer bounds (which are easy to reason
+about and understand, but require data layout changes) and static
+techniques (which may not be easy to reason about and understand, but do
+not require data layout changes).
+
+We can draw the following chart of principles versus techniques:
+
+\begin{longtable}[c]{@{}lll@{}}
+\toprule
+& Dynamic techniques & Static techniques\tabularnewline
+\midrule
+\endhead
+Minimal & \texttt{Yes} & \texttt{No}\tabularnewline
+Succinct and clear & \texttt{Yes} & \texttt{Sometimes}\tabularnewline
+Incremental & \texttt{No} & \texttt{Yes}\tabularnewline
+\bottomrule
+\end{longtable}
+
+One concern about the work is that the more applied work, such as
+CCured, Deputy, and SAL, has not been adopted by programmers
+enthusiastically. SAL is widely used within Microsoft because it is a
+mandated part of the software development process, not because
+programmers are enthusiastic about it. It has not been adopted widely
+outside of Microsoft. It is unclear why these approaches have not been
+adopted. There are many plausible possible reasons, including inertia,
+lack of a product-quality toolchain, lack of perceived benefit relative
+to the effort, and perhaps being difficult to use. It is important to
+aim for something that programmers like. When we are facing design
+choices, we recommend using user studies of programmers to evaluate the
+choices, instead of relying on hunches or opinions.
+
+\section{Using dependent types to enforce checking of pointer bounds}\label{using-dependent-types-to-enforce-checking-of-pointer-bounds}
+
+Deputy adds dependent types to C to specify and track pointer bounds. A
+dependent type is a type that may depend on a value at runtime.
+Dependent types are built using type constructors that are applied to
+types and values. The type constructors capture specific properties of
+runtime values. For example, Deputy introduces a type constructor
+\verb|Array| that can be applied to an integer value (the length of the
+array) and an element type. \verb|Array 5 int| describes the type of
+integer arrays with 5 elements. The \verb|Array| type constructor can be
+applied to a program variable or an expression, so the type can depend
+on a runtime value. For example, \verb|Array n int| describes the type
+of integer arrays with n elements.
+
+The following example illustrates the use of dependent types in Deputy.
+It is adapted from Figure 3 of the Deputy OSDI paper , which in turn was
+adapted from the Deputy version of the Linux e1000 network card driver.
+
+The example has an annotation on the \texttt{buffer\_info} field of
+\texttt{e1000\_tx\_ring}. The annotation means that
+\texttt{buffer\_info} points at an array element and that at least
+\texttt{info\_count} elements are valid (specifically, it is valid to
+access memory between \texttt{buffer\_info} and \texttt{buffer\_info +
+info\_count -- 1}). This information is part of the type of
+\texttt{buffer\_info}.
+
+The type checking rule for adding a pointer of \verb|Array| type with an
+integer requires that the integer value be in bounds for the array. To
+type check \texttt{tx\_ring-\textgreater{}buffer\_info[i]}, the type
+checker must show at compile time that \texttt{i \textgreater{}= 0} and
+\texttt{i \textless{}= tx\_ring-\textgreater{}count}. In general, taking
+an arbitrary program and establishing equality between runtime values at
+compile time is undecidable, which means that type checking would be
+undecidable. To make type checking decidable, Deputy examines statements
+whose type checking rules require establishing facts at compile-time
+that involve runtime values. Deputy systematically inserts run time
+checks that establish the relationships are true before the statements.
+If a relationship between runtime values is not true, the checks cause
+the program to fail at run time. Of course, these runtime checks can be
+eliminated by later optimization. In this specific case, the compiler
+injects a runtime check \verb|assert(0 <= i && i < tx\_ring->info\_count);| into the program. 
+In the example, the runtime checks are italicized assert statements.
+
+\begin{alltt}
+struct e1000_tx_ring \{
+    ...
+    unsigned int info_count;
+    struct e1000_buffer * count(info_count)
+        buffer_info;
+    ...
+\};
+
+static boolean t
+e1000_clean_tx_irq(
+    struct e1000_adapter *adapter,
+    struct e1000_tx_ring *tx_ring)
+\{
+    ...
+    \textit{assert(tx_ring != NULL);}
+    spin lock(&tx_ring->tx_lock);
+    ...
+    i = tx_ring->next_to_clean;
+    \textit{assert(0 <= i && i < tx_ring->info_count);}
+    eop = tx_ring->buffer_info[i]
+    .next to watch;
+    ...
+
+    spin unlock(&tx_ring->tx_lock);
+\}
+\end{alltt}
+
+\section{Problems with making c function bodies dependently type }\label{problems-with-making-c-function-bodies-dependently-typed}
+
+C function bodies need to be rewritten to use dependent types and to be
+properly typed according to dependent typing rules. Local pointer
+variables must be modified to be dependently-typed. As explained
+earlier, this means that runtime checks must be added to the code.
+Dependently-typing local pointer variables also requires the addition of
+computations to track array bounds and local variables to hold the
+results of those computations.
+
+Deputy proposes the use of an inference and rewriting step for C
+function bodies automatically during compilation to make C function
+bodies dependently-typed. Deputy takes a C program, does inference, and
+rewrites the programs so that local variables are properly
+dependently-typed. Deputy is able to do this automatically given
+programs where method parameters, data structures, and global variables
+are annotated with dependent types. Deputy introduces local variables
+and computations to track missing dependent information. It also
+introduces runtime assertions that check that pointers remain within
+range. It is an impressive technical feat that this can be done
+automatically.
+
+The rewriting step, however, breaks the principle of preserving the
+efficiency and control of C. It introduces computations into the program
+that may have significant cost and that are not under programmer
+control. For C, it is highly desirable that programmers control the
+computations that are added to programs to enforce bounds checking. The
+rewriting step also potentially violates the principle of clarity
+because understanding program failures may require understanding these
+computations.
+
+The following code example from Figure 1 of the Deputy ESOP paper shows
+this. Here is the original code:
+\begin{verbatim}
+int sum (int * buf, int * end) {
+    int sum = 0;
+    while (buf < end) {
+        sum += * buf;
+        buf = buf + 1;
+    }
+    return sum;
+}
+\end{verbatim}
+
+Here is the Deputy-generated code, assuming that the function parameters
+are annotated with dependent types. The new code inserted by Deputy has
+been italicized:
+
+\begin{alltt}
+int sum (int * count(end - buf) buf, int * end) \{
+    int sum = 0;
+    while (buf < end) \{
+        \textit{assert(0 < end - buf);}
+        sum += * buf;
+        int tmplen = (end - buf) - 1;
+        \textit{assert(0 <= 1 <= end - buf);}
+        int * count(tmplen) tmp = buf + 1;
+        \textit{assert(0 <= end - tmp <= tmplen);  // how to explain this failure??}
+        buf = tmp;
+    \}
+    return sum;
+\}
+\end{alltt}
+
+The program now has computations of \texttt{end -- buf} and \texttt{end
+-- tmp} that track the bounds of the array \texttt{buf}. A C programmer
+would not expect instructions for these computations to be injected into
+the program. This makes the program less efficient and these
+instructions are also not introduced under programmer control. In
+addition it might be difficult for a programmer to understand a bounds
+failure in this program at runtime when the failure involves a
+synthesized expression such as \verb|end - tmp <= tmplen| that did not
+exist in the original source code.
+
+The conclusion is that the automatic inference and rewriting during
+compilation that Deputy does is not appropriate for C. We will not do
+this in Autobahn.
+
+\section{Problems with dependently-typed C}\label{problems-with-dependently-typed-c}
+
+We have ruled out using an automatic inference and rewriting step during
+compilation. If we want to use dependent types to enforce bounds
+checking in C, this means that programmers will have to write code
+directly in a variant of C that is dependently-typed. It would be
+possible to use a Deputy-like to automatically rewrite existing C
+programs into this dependently-typed C, provided that dependent-type
+annotations have been provided for parameters, global variables, and
+data structures. Code could be converted and then programmers could
+continue developing their software in a dependently-typed C.
+
+There are several problems with using a dependently-typed variant of C
+directly for programming. First, dependent types are a big change to the
+C type system and C type checking. Dependent types are a rather abstract
+concept that may be hard for many programmers to understand. Even if
+programmers can understand dependent types, type checking now becomes a
+complicated exercise: to type check a dependently-typed statement, the
+type checker must prove that certain runtime invariants are true before
+the statement. To illustrate this, consider the type checking rule for
+variable assignment from the Deputy paper (\emph{add citation)}. This
+rule requires that the type checker prove that certain invariants must
+be true at runtime before the statement. Type checking becomes entangled
+in general reasoning about program invariants.
+
+Second, dependent types do not interact nicely with imperative
+programming. The program always has to be well-typed according to
+dependent-typing rules. To address this, Deputy introduced a programming
+operator that may seem odd to a C programmer: a new parallel assignment
+operator.
+
+Consider a structure with a pointer field whose size depends on another
+field:
+\begin{verbatim}
+struct S {
+   int * count(len) arr;
+   int len;
+}
+\end{verbatim}
+
+If there is a local variable of type S, neither field of the variable
+can be updated independently of the other field:
+
+\begin{verbatim}
+S y;
+int * count(5) tmp = malloc(sizeof(int) 5);
+y.arr = tmp;
+y.len = 5;
+\end{verbatim}
+
+The assignment to y.arr will fail to type check because y.len is
+out-of-date. Reversing the order of assignments does not help. The
+solution in Deputy was to introduce a parallel assignment operator. This
+is just a specific instance of the problem of initializing a data
+structure that satisfies an invariant. In an imperative language,
+programmers expect to be able to initialize a data structure using
+several assignments and only assert an invariant at the end of
+initialization.
+
+Finally, using dependent types makes programs too verbose: explicit
+checks to enforce safety have to be inserted all over the code. To our
+knowledge, there are no widely-used languages with array-bounds checking
+that requires this level of verbosity. In Java and C\#, the checks are
+implicitly done. This was the case in older languages such as FORTRAN
+and Pascal, as well.
+
+The conclusion is that dependently-typed C is not a good idea. Given
+that dependent typing is just one way of enforcing program invariants,
+it suggests that we should explore other ways to enforce program
+invariants necessary for bounds safety for C.
+
+\section{Tracking pointer bounds dynamically}\label{tracking-pointer-bounds-dynamically}
+
+A requirement that local variable array bounds be tracked by program
+invariants could lead to many invariants. The Deputy authors observe
+that the Deputy inference algorithm for local variables produces a
+result similar to fat pointers: ``Deputy introduces a fat representation
+for locals, whereas for data structures, function parameters, and global
+parameters, the programmer must specify how to compute the metadata from
+data already existing in the program.'' The bounds for a pointer are
+tracked explicitly using other local variables. This suggests that fat
+pointers could be used as an alternative to program invariants for local
+variables, in cases where using program invariants makes code too
+verbose and there is not a constraint on data layout.
+
+Suppose there is a \arrayview\ type constructor where
+\arrayview\ is a struct that has a pointer field and lower and
+upper bounds on the valid range of memory associated with a pointer.
+\arrayview\ values can be used where pointer values can be
+used, with safety checks added for various operations. Consider the
+original example in Section 12.2. Here is the code for the method using
+\arrayview .
+
+\begin{verbatim}
+int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
+    array_view<int> buf = new array_view(tmpbuf, tmpbuf, end);
+    int sum = 0;
+    while (buf < end) {
+        sum += *buf;   // checks that buf is in  bounds before dereferencing it        
+        buf = buf + 1; // new struct with updated pointer, same bounds
+    }
+    return sum;
+}
+\end{verbatim}
+
+Appendix A illustrates how optimizing compilers can make using local
+variables of type \arrayview\ efficient.
+
+\section{Summary of lessons}\label{summary-of-lessons}
+
+It is clear from the CCured results that many C pointers are never used
+with pointer arithmetic. This suggests strongly that new types of
+pointers should be introduced into C for pointers that have different
+safety requirements. This would be an easy and low-risk improvement to
+the safety of C programs.
+
+For pointers where pointer arithmetic is allowed, a combination of
+dynamic and static techniques will be needed to ensure safe pointer
+operations. Dynamic techniques that change pointer representations allow
+succinct and clear code, at the expense of changing data layout and
+causing problems with interoperation and likely efficiency. Static
+annotations allow programmers to express bounds information for existing
+data structures and parameters and support interoperation. The use of
+static annotations for local variables is not required: automatic
+inference and insertion of computations to maintain bounds information
+and check bounds can be done instead. However, the inference and
+automatic insertion of computation compromises the control, efficiency,
+and clarity desired by C programmers. This suggests that this approach
+should not be used. A more suitable approach for C seems to be to embed
+the bounds information for local variables directly into programs.
+
+Static annotations that introduce the complex notion of dependent types
+into C programs are problematic. We should explore other formulations of
+programs invariants may fit better with C.

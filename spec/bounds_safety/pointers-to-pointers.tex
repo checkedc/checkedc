@@ -1,0 +1,23 @@
+\chapter{Bounds for pointer referents that are \arrayptr\ types}
+\label{bounds-for-pointer-referents-that-are-arrayux5fptr-types}
+
+\emph{\texttt{Under construction -- do not bother reading this yet.}}
+
+A program may have pointers to \arrayptr s. These pointers will be the
+addresses of locations that contain \arrayptr\ s. The \arrayptr\ values
+stored in those location must have bounds declared in order to be used
+to access memory.
+
+Here are some examples of variable declarations of pointers to
+\arrayptr s:
+\begin{verbatim}
+array_ptr<array_ptr<int>> x;
+ptr<array_ptr<int>> y;
+\end{verbatim}
+
+The \arrayptr\ values stored at that location must have bounds
+declared in order to be used to access to memory. The pointer itself may
+be a \ptr\ or an \arrayptr.
+
+We will use the terminology `pointer referent' to describe the value
+stored at an address given a pointer.

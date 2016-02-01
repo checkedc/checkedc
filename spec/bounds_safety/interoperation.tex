@@ -1,0 +1,742 @@
+
+ \chapter{Interoperation between safe and unsafe code}\label{interoperation-between-safe-and-unsafe-code}
+
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
+  \item ~
+    \subsection{\texorpdfstring{\protect\hypertarget{ux5fToc422906963}{}{\protect\hypertarget{ux5fToc424307687}{}{\protect\hypertarget{ux5fToc426641110}{}{\protect\hypertarget{ux5fToc435434969}{}{\protect\hypertarget{ux5fToc437460796}{}{\protect\hypertarget{ux5fRef438042394}{}{\protect\hypertarget{ux5fToc440445477}{}{\protect\hypertarget{ux5fToc440449259}{}{\protect\hypertarget{ux5fToc440551909}{}{}}}}}}}}}Conversions
+    between pointers to objects of different
+    types}{Conversions between pointers to objects of different types}}\label{conversions-between-pointers-to-objects-of-different-types}
+  \end{enumerate}
+
+Conversions from a pointer to one type to a pointer to a different type
+introduce two issues. First, there is type safety. Given a pointer to S
+that has been converted to be a pointer to T, is it valid to treat the
+memory pointed to by the ponter as being an object of type T instead of
+type S? Second, there is bounds safety. Given the pointer, what range of
+memory can be accessed validly using that pointer? This section focus on
+bounds safety.
+
+Type safety is not addressed by this design note. Of course, violating
+type safety can lead to violations of bounds safety. This can happen
+when there is a conversion between a safe pointer to an object of
+structure type that contains a bounds-checked member and a safe pointer
+to an object of another type. A programmer can use the pointer to the
+other type to modify the bounds-checked member or its bounds in an
+inconsistent fashion. For now, it is the programmer's responsibility to
+update bounds-checked members and their bounds properly when using a
+safe pointer that results from such a conversion. Conversions between
+safe pointers to integral types, floating-point types, or structure that
+contain only integral types or floating-point types cannot lead to
+violations of bounds safety by themselves.
+
+Three new operators are introduced for converting between the different
+kinds of pointer types:
+\textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}},
+\textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}},
+and \textbf{assume\_bounds\_cast\textless{}}T\textbf{\textgreater{}}.
+The syntax of the operators is similar to the syntax of C++ type
+conversion operators. \emph{T} is the destination type to which a source
+value is being converted. The new operators take one to three arguments,
+where the first argument is the pointer being converted and additional
+arguments describe the desired new bounds.
+
+The meanings of the operators when T is a complete type are described
+first.
+
+\begin{quote}
+\emph{Here are the rules for when a cast operator (T) can be applied to
+an expression e with type S:}
+\end{quote}
+
+\begin{itemize}
+\item
+  \emph{T is an array\_ptr: always. The bounds are inferred from the
+  expression following the rules in Section . Note that the result may
+  be an array\_ptr with bounds(none).}
+\item
+  \emph{T is a ptr: sometimes. The bounds are inferred as well. The
+  resulting bounds must be large enough to hold at least a single
+  element of type T. This implies the bounds cannot be bounds(none).}
+\item
+  \emph{T is an unsafe ptr and S is safe pointer: sometimes. Like ptr, }
+
+  \begin{itemize}
+  \item
+    \emph{If S is ptr type and size of the of the referent }
+
+    \begin{enumerate}
+    \def\labelenumi{\arabic{enumi}.}
+    \item ~
+      \subsubsection{\texorpdfstring{\protect\hypertarget{ux5fToc437460797}{}{\protect\hypertarget{ux5fToc440445478}{}{\protect\hypertarget{ux5fToc440449260}{}{\protect\hypertarget{ux5fToc440551910}{}{}}}}Dynamic
+      checking using
+      bounds\_cast\textless{}\emph{T}\textgreater{}}{Dynamic checking using bounds\_cast\textless{}T\textgreater{}}}\label{dynamic-checking-using-boundsux5fcastt}
+    \end{enumerate}
+  \end{itemize}
+\end{itemize}
+
+\textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}} uses
+dynamic checks to enforce the preservation of bounds safety. \emph{T}
+must be a pointer type and is the desired destination type. The operator
+takes 1 to 3 arguments, depending on the kind of conversion being done:
+
+\begin{itemize}
+\item
+  \textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1},
+  \emph{e2}\textbf{)} converts \emph{e1} to an \textbf{array\_ptr} or
+  \textbf{array\_view} type with bounds
+  \textbf{count(}\emph{e2}\textbf{)}.
+\item
+  \textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{,}
+  \emph{e2}\textbf{,} \emph{e3}\textbf{)} converts \emph{e1} to an
+  \textbf{array\_ptr} or \textbf{array\_view} type with bounds
+  \textbf{bounds(}\emph{e2}\textbf{,} \emph{e3}\textbf{)}.
+\item
+  \textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{)}
+  converts \emph{e1} to either a \textbf{ptr} or * type.
+\end{itemize}
+
+It is a compile-time error if the bounds of e1 are
+\textbf{bounds(none)}. No runtime checks are done if the bounds of e1
+are \textbf{bounds(any)}. If the bounds of e1 are
+\textbf{bounds(}\emph{lb}\textbf{,} \emph{ub}\textbf{)}, the following
+runtime checks are done:
+
+\begin{itemize}
+\item
+  \textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1},
+  \emph{e2}\textbf{)}: if \emph{e1} \textbf{!= 0}, check that \emph{lb}
+  \textbf{\textless{}=} \emph{e1} \textbf{\&\&} \emph{e1} \textbf{+
+  sizeof(referent-type(}\emph{T}\textbf{)) *} e2 \textbf{\textless{}=}
+  \emph{ub}.
+\item
+  \textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{,}
+  \emph{e2}\textbf{,} \emph{e3}\textbf{)}: if \emph{e1} \textbf{!= 0},
+  check that \emph{lb} \textbf{\textless{}=} \emph{e2} \textbf{\&\&}
+  \emph{e3} \textbf{\textless{}=} \emph{ub}. Also check that relative
+  alignment constraints for \emph{e1}, \emph{e2}, and \emph{e3} are met.
+\item
+  \textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{)}:
+  check that there is room for least one element of \emph{T}. This is
+  the same as doing the check for
+  \textbf{bounds\_cast\textless{}}T\textbf{\textgreater{}(}e1,
+  1\textbf{)}: if \emph{e1} \textbf{!=} \textbf{0}, check that \emph{lb}
+  \textbf{\textless{}=} \emph{e1} \textbf{\&\&} \emph{e1} \textbf{+}
+  \textbf{sizeof(referent-type(}\emph{T}\textbf{) \textless{}=}
+  \emph{ub}.
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \item ~
+    \subsubsection{\texorpdfstring{\protect\hypertarget{ux5fToc437460798}{}{\protect\hypertarget{ux5fToc440445479}{}{\protect\hypertarget{ux5fToc440449261}{}{\protect\hypertarget{ux5fToc440551911}{}{}}}}Correctness
+    of bounds\_cast\textless{}\emph{T}\textgreater{}
+    conversions}{Correctness of bounds\_cast\textless{}T\textgreater{} conversions}}\label{correctness-of-boundsux5fcastt-conversions}
+  \end{enumerate}
+\end{itemize}
+
+In this section, the correctness of the bounds\_cast conversions is
+discussed. Readers interested in just using the operations may safely
+skip this discussion.
+
+We discuss only
+\textbf{bounds\_cast\textless{}T\textgreater{}(}\emph{e1}\textbf{,}
+\emph{e2}\textbf{,} \emph{e3)} because the other forms are special cases
+of this operation. From Section 4, recall the meaning of a bounds
+expression \textbf{bounds(}\emph{lb}\textbf{,} \emph{ub}\textbf{)} for
+an expression \emph{e1} at runtime. Let the runtime values of \emph{e1},
+\emph{lb}, and \emph{ub} be \emph{e1v}, \emph{lbv}, and \emph{ubv},
+respectively. The value \emph{e1v} will be \textbf{0} or have been
+derived via a sequence of operations from a pointer to some object
+\emph{obj} with \textbf{bounds(}\emph{low}\textbf{,}
+\emph{high}\textbf{)}. The following statement will be true: \emph{e1v}
+\textbf{== 0 \textbar{}\textbar{} (}\emph{low} \textbf{\textless{}=}
+\emph{lbv} \textbf{\&\&} ubv \textbf{\textless{}=}
+\emph{high}\textbf{)}.
+
+To ensure \textbf{bounds(}\emph{e2}\textbf{,} \emph{e3}\textbf{)} is
+valid for \emph{e1}, we need to show the following:
+
+\begin{quote}
+Let \emph{e2v} and \emph{e3v} be the runtime values for \emph{e2} and
+\emph{e3} respectively. Then \emph{e1v} \textbf{== NULL
+\textbar{}\textbar{} (}\emph{low} \textbf{\textless{}=} \emph{e2v}
+\textbf{\&\&} e3v \textbf{\textless{}=} \emph{high}\textbf{)}.
+\end{quote}
+
+Given \emph{e1v} \textbf{== 0 \textbar{}\textbar{} (}\emph{low}
+\textbf{\textless{}=} \emph{lbv} \textbf{\&\&} ubv \textbf{\textless{}=}
+\emph{high}\textbf{)}, the runtime check that if \emph{e1v} \textbf{!=}
+\emph{0}, \emph{lbv} \textbf{\textless{}=} \emph{e2v} \textbf{\&\&}
+e\emph{3v} \textbf{\textless{}=} \emph{ubv} implies \emph{e1v}
+\textbf{== 0 \textbar{}\textbar{} (}\emph{low} \textbf{\textless{}=}
+\emph{e2v} \textbf{\&\&} e3v \textbf{\textless{}=}
+\emph{high}\textbf{).}
+
+\subsubsection{\texorpdfstring{\protect\hypertarget{ux5fToc437460799}{}{\protect\hypertarget{ux5fToc440445480}{}{\protect\hypertarget{ux5fToc440449262}{}{\protect\hypertarget{ux5fToc440551912}{}{}}}}Static
+checking use
+core\_bounds\_cast\textless{}\emph{T}\textgreater{}}{Static checking use core\_bounds\_cast\textless{}T\textgreater{}}}\label{static-checking-use-coreux5fboundsux5fcastt}
+
+\textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}}
+uses static checking to enforce the preservation of bounds safety:
+
+\begin{itemize}
+\item
+  \textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1},
+  \emph{e2}\textbf{)} converts \emph{e1} to an \textbf{array\_ptr} or
+  \textbf{array\_view} type with bounds
+  \textbf{count(}\emph{e2}\textbf{)}.
+\item
+  \textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{,}
+  \emph{e2}\textbf{,} \emph{e3}\textbf{)} converts \emph{e1} to an
+  \textbf{array\_ptr} or \textbf{array\_view} type with bounds
+  \textbf{bounds(}\emph{e2}\textbf{,} \emph{e3}\textbf{)}.
+\item
+  \textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{)}
+  converts \emph{e1} to either a \textbf{ptr} or * type.
+\end{itemize}
+
+Like \textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}}, it
+is a compile-time error if the bounds of e1 are \textbf{bounds(none)}.
+There is no static checking if the bounds of e1 are
+\textbf{bounds(any)}. If the bounds are \textbf{bounds(}lb\textbf{,}
+ub\textbf{)}, the following must be provable via static checking:
+
+\begin{itemize}
+\item
+  \textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1},
+  \emph{e2}\textbf{)}: under the assumption that \emph{e1} != 0, lb
+  \textless{}= \emph{e1} \&\& \emph{e1} + sizeof(referent-type(T)) * e2
+  \textless{}= ub.
+\item
+  \textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{,}
+  \emph{e2}\textbf{,} \emph{e3}\textbf{)}: under the assumption that
+  \emph{e1} \textbf{!= 0}, \emph{lb} \textbf{\textless{}=} \emph{e2}
+  \textbf{\&\&} \emph{e3} \textbf{\textless{}=} \emph{ub}. Also show the
+  relative alignment constraints for \emph{e1}, \emph{e2}, and \emph{e3}
+  are met: \textbf{(}e3 \textbf{--} \emph{e2}\textbf{) \%
+  sizeof(referent-type(}\emph{T}\textbf{)) == 0 \&\& (e2 -- e1) \%
+  sizeof(referent-type(}\emph{T}\textbf{)}), where arithmetic is done in
+  bytes.
+\item
+  \textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{)}
+  converts \emph{e1} to either a \textbf{ptr} or * type. For this, check
+  that
+  \textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1},
+  \emph{1}\textbf{)} holds.
+\end{itemize}
+
+\textbf{core\_bounds\_cast} can be used when programmers do not want to
+introduce the possibility of dynamic runtime failures due to bounds
+casts. It is recommended for conversions between pointers to
+constant-length arrays, which succeed at runtime using
+\textbf{core\_bounds\_cast} if and only if they succeed at run-time
+using \textbf{bounds\_cast}. For example, converting an array\_ptr of 12
+characters to an array\_ptr of 4 32-bit integers should always succeed
+at compile-time.
+
+\subsubsection{\texorpdfstring{\protect\hypertarget{ux5fToc437460800}{}{\protect\hypertarget{ux5fToc440445481}{}{\protect\hypertarget{ux5fToc440449263}{}{\protect\hypertarget{ux5fToc440551913}{}{}}}}Conversions
+without checking using
+assume\_bounds\_cast\textless{}\emph{T}\textgreater{}}{Conversions without checking using assume\_bounds\_cast\textless{}T\textgreater{}}}\label{conversions-without-checking-using-assumeux5fboundsux5fcastt}
+
+\textbf{assume\_bounds\_cast\textless{}}T\textbf{\textgreater{}}
+converts unsafe pointers to safe pointers. The declared bounds are
+trusted without verification, although relative alignment is checked if
+necessary. The source expression must have an unsafe pointer type.
+
+\begin{itemize}
+\item
+  \textbf{assume\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1},
+  \emph{e2}\textbf{)} converts \emph{e1} to an \textbf{array\_ptr} or
+  \textbf{array\_view} type with count(e2)
+\item
+  \textbf{assume\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{,}
+  \emph{e2}\textbf{,} \emph{e3}\textbf{)} converts \emph{e1} to an
+  \textbf{array\_ptr} or \textbf{array\_view} type with bounds(e2, e3).
+  There is a runtime check that the relative alignment requirements for
+  T are satisfied by \emph{e1,} \emph{e2} and \emph{e3}. \emph{e2} and
+  \emph{e3} can have pointer type.
+\item
+  \textbf{assume\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}(}\emph{e1}\textbf{)}
+  converts \emph{e1} to a \textbf{ptr} type or T \textbf{*}.
+\end{itemize}
+
+A subtle point about
+\textbf{bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}} and
+\textbf{core\_bounds\_cast\textless{}}\emph{T}\textbf{\textgreater{}}
+are that they allow \emph{\emph{bounds-safe casts}} of an expression
+\emph{e} of unsafe pointer type to an \textbf{array\_view} or
+\textbf{array\_ptr} type. This is provided that the bounds for \emph{e}
+can be determined. Only a few kinds of expressions with unsafe pointer
+types have bounds that can be determined: address-of expressions
+involving variables and uses of array variables, where the array
+variable is converted to a pointer type.
+
+\subsubsection{\texorpdfstring{\protect\hypertarget{ux5fToc437460801}{}{\protect\hypertarget{ux5fToc440445482}{}{\protect\hypertarget{ux5fToc440449264}{}{\protect\hypertarget{ux5fToc440551914}{}{}}}}Summary
+of conversion
+operators}{Summary of conversion operators}}\label{summary-of-conversion-operators}
+
+The following table summarizes the operations for converting between
+pointers to objects of different types, provided that S and T are
+complete types:
+
+\begin{longtable}[c]{@{}lllll@{}}
+\toprule
+To
+
+From & array\_ptr\textless{}T\textgreater{} &
+array\_view\textless{}T\textgreater{} & ptr\textless{}T\textgreater{} &
+T *\tabularnewline
+\midrule
+\endhead
+array\_ptr\textless{}S\textgreater{} &
+bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2)
+
+bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3)
+
+core\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2)
+
+core\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3) &
+bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2)
+
+bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3)
+
+core\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2)
+
+core\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3) &
+bounds\_cast\textless{}ptr\textless{}T\textgreater{}\textgreater{}(e1)
+
+core\_bounds\_cast\textless{}ptr\textless{}T\textgreater{}\textgreater{}(e1)
+& bounds\_cast\textless{}T *\textgreater{}(e1)
+
+If S==T, \&e1{[}i{]} can be used too.
+
+assume\_bounds\_cast\textless{}T *\textgreater{}(e1)\tabularnewline
+array\_view\textless{}S\textgreater{} & Same as above & Same as above &
+Same as above & Same as above.\tabularnewline
+ptr\textless{}S\textgreater{} & Same as above & Same as above. & Same as
+above.
+
+For bounds\_cast, it is a compile-time error if sizeof(S) \textless{}
+sizeof(T). This is guaranteed to fail at runtime. &
+bounds\_cast\textless{}T *\textgreater{}(e1)
+
+assume\_bounds\_cast\textless{}T *\textgreater{}(e1)\tabularnewline
+S * & If e1 has known bounds, same as above.
+
+Otherwise:
+
+assume\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2)
+
+assume\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3) & If e1 has known bounds, same as above.
+
+Otherwise:
+
+assume\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2)
+
+assume\_bound\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3). & If e1 has known bounds, same as above.
+
+Otherwise:
+
+assume\_bounds\_cast\textless{}T\textgreater{}(e1), & C cast operation
+of the form (T *) e1\tabularnewline
+\bottomrule
+\end{longtable}
+
+\protect\hypertarget{ux5fToc424307715}{}{}
+
+\subsection{\texorpdfstring{\protect\hypertarget{ux5fToc437460802}{}{\protect\hypertarget{ux5fToc440445483}{}{\protect\hypertarget{ux5fToc440449265}{}{\protect\hypertarget{ux5fToc440551915}{}{\protect\hypertarget{ux5fToc426641112}{}{\protect\hypertarget{ux5fToc435434971}{}{}}}}}}Bounds-safe
+conversions for pointers to incomplete types, including pointers to
+void}{Bounds-safe conversions for pointers to incomplete types, including pointers to void}}\label{bounds-safe-conversions-for-pointers-to-incomplete-types-including-pointers-to-void}
+
+The prior section , the source and destination pointer types in a
+bounds\_cast or core\_bounds\_cast operation must be complete types or
+have a referent type of void. However, there is one important exception:
+ptr\textless{}T\textgreater{} can always be safely converted to T *,
+even if T is incomplete. This follows from treating sizeof(T) as a
+symbolic constant in the rules for computing bounds and the runtime
+checking rules for bounds\_cast and core\_bounds\_cast.
+
+This exception is useful when converting code incrementally from unsafe
+pointer types to safe pointers. One may have converted the body of a
+function to use safe pointers, but not yet have converted some functions
+that it calls.
+
+C allows pointer types to be freely converted to void * types and void *
+types to be freely converted back to pointer types. For safe pointer
+types, any kind of safe pointer type can be freely converted to the same
+kind of pointer type with a referent type of void. However, explicit
+casts must be used when converting from any kind of safe pointer type
+with a referent type of void:
+
+\begin{longtable}[c]{@{}lllll@{}}
+\toprule
+To From & T * & ptr\textless{}T\textgreater{} &
+array\_view\textless{}T\textgreater{} &
+array\_ptr\textless{}T\textgreater{}\tabularnewline
+\midrule
+\endhead
+void * & Follow existing C rules & ptr\_cast\textless{}T\textgreater{},
+if bounds are known.
+
+assume\_ptr\_cast\textless{}T\textgreater{}, otherwise &
+bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{},
+if bounds are known:
+
+- check relative alignment
+
+assume\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2): e2 is length. No relative alignment check needed
+
+assume\_bound\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3). e2/e3 are lower/upper bounds.
+
+- check relative alignment &
+bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
+- has bounds(none) if bounds are unknown.
+
+- check relative alignment if bounds are known.
+
+assume\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2): e2 is length, no relative alignment check needed
+
+assume\_bound\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
+e2, e3): e2/e3 are lower/upper bounds
+
+- check relative alignment\tabularnewline
+ptr\textless{}void\textgreater{} & Only the following unsafe operator is
+available.
+
+assume\_unsafe\_ptr\_cast: no check &
+ptr\_cast\textless{}T\textgreater{}
+
+\emph{\textbf{TODO: need unsafe operator}} & Not allowed & Not
+allowed\tabularnewline
+view\textless{}void\textgreater{} & unsafe\_ptr\_cast: check that memory
+accessible by pointer dereference is in bounds
+
+assume\_unsafe\_ptr\_cast: no check &
+ptr\_cast\textless{}T\textgreater{}
+
+check that memory accessible by pointer dereference is in bounds &
+bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}:
+
+- check relative alignment &
+bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
+
+- check relative alignment\tabularnewline
+array\_ptr\textless{}void\textgreater{} & unsafe\_ptr\_cast: check that
+memory accessible by pointer dereference is in bounds
+
+assume\_unsafe\_ptr\_cast: no check &
+ptr\_cast\textless{}T\textgreater{}
+
+check that memory accessible by pointer dereference is in bounds &
+bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}:
+
+- check relative alignment &
+bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
+
+- check relative alignment\tabularnewline
+\bottomrule
+\end{longtable}
+
+\subsection{\texorpdfstring{\protect\hypertarget{ux5fToc426641113}{}{\protect\hypertarget{ux5fToc435434972}{}{\protect\hypertarget{ux5fToc437460803}{}{\protect\hypertarget{ux5fRef437611522}{}{\protect\hypertarget{ux5fToc440445484}{}{\protect\hypertarget{ux5fToc440449266}{}{\protect\hypertarget{ux5fToc440551916}{}{}}}}}}}Bounds-safe
+interfaces to existing unsafe
+functions}{Bounds-safe interfaces to existing unsafe functions}}\label{bounds-safe-interfaces-to-existing-unsafe-functions}
+
+The new pointer types capture specific properties of pointers. One would
+like to update existing C code to use these new pointer types. However,
+this will not be possible when backward compatibility requirements
+exist. Consider C runtime functions or OS APIs. It may be feasible to
+modify the header files for the runtime function or OS API. It may be
+impossible to require all uses of these functions or APIs be updated.
+Code written by 3\textsuperscript{rd} parties may use these APIs and it
+is not reasonable for an existing shipping OS to require all
+3\textsuperscript{rd} parties update their existing code to use the new
+types.
+
+Consider what would happen if the signature for memcpy were updated to
+use \textbf{array\_ptr}. The function
+
+void *memcpy(void *dest, const void *src, size\_t count);
+
+becomes
+
+void *memcpy(array\_ptr\textless{}void\textgreater{} dest,
+array\_ptr\textless{}const void\textgreater{} src, size\_t count);
+
+This, of course, breaks every piece of existing code that uses memcpy.
+The code will no longer compile. C does not have method overloading, so
+one cannot simply define multiple overloaded versions of memcpy. That
+would also be duplicative and potentially increase program sizes.
+
+The reverse problem also exists: suppose the signature for memcpy is not
+updated. Then every ``safe'' method that calls memcpy would need to cast
+the arguments to unsafe pointer types!
+
+Given that we may not be able to change the pointer types of existing
+APIs, we need to adopt an approach that supports backwards
+compatibility, enables new safe code to be written easily, and maintains
+the safety of new code.
+
+We address this by:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Allowing programmers to declare bounds-safe interfaces to code and
+  data structures that use unsafe pointers. A bounds-safe interface for
+  a function, for example, describes bounds for unsafe pointer
+  parameters.
+\item
+  In checked scopes, where only safe pointers are allowed, unsafe
+  pointer types in bounds-safe interfaces are reinterpreted as safe
+  pointer types. This makes the code in those scopes straightforward to
+  understand: only safe pointers are used, all memory accesses are
+  bounds checked or in bounds, and bounds-safe interfaces are trusted
+  and respected.
+\item
+  In unchecked scopes, where safe and unsafe pointer types are allowed,
+  we separate type checking concerns from bounds checking concerns. We
+  allow implicit coercions at uses of bounds-safe interfaces between
+  safe pointer types and unsafe pointer types. We also allow implicit
+  coercions from unsafe pointer types to safe pointer types, subject to
+  the limitation the bounds checking must also succeed.
+\end{enumerate}
+
+Functions that have parameters with unsafe pointer types or that return
+values with unsafe pointer types can have bounds declared for the unsafe
+pointer parameters or the unsafe pointer return value. Bounds must be
+declared for all parameters with unsafe pointer types and the return
+value, if it has an unsafe pointer type. In the case where a parameter
+has \textbf{ptr} type, this can be declared specially.
+
+Here is the bounds-safe interface for memcpy:
+
+void *memcpy(void *dest : count(len), const void *src : count(len),
+size\_t len)
+
+where return\_value : bounds(dest, dest + count)
+
+The correctness of bounds information is enforced at compile-time when
+memcpy is passed safe pointer arguments. It is not enforced when memcpy
+is passed unsafe pointer arguments.
+
+Similarly, for data structures, members with unsafe pointer types can
+have bounds declared. If bounds are declared for one member of a
+structure with an unsafe pointer type, they must be declared for all
+members with unsafe pointer types.
+
+Here are the bounds for a structure that is a counted buffer of
+characters.
+
+struct S \{
+
+char *arr : count(len);
+
+int len;
+
+\}
+
+We may have a method that takes a counted buffer of characters and
+counts the number of instances of a specific character. The \textbf{ptr}
+declaration can be used to declare an unsafe pointer to a singleton
+object of a type:
+
+int count\_char(S *str where ptr, char arg);
+
+It is very important to understand that the \emph{semantics of unsafe
+pointers does not change even when bounds are declared for the
+pointers}. The declared bounds are used only when checking safe code
+that calls unsafe functions or uses unsafe data structures. Unsafe
+pointer dereferences do not have bounds checks added to them. A method
+that declares a bounds-safe interface and whose body consists of only
+unsafe code is compiled as though the bounds-safe interface has been
+stripped from its source code.
+
+\subsection{\texorpdfstring{\protect\hypertarget{ux5fRef424639711}{}{\protect\hypertarget{ux5fToc426641114}{}{\protect\hypertarget{ux5fToc435434973}{}{\protect\hypertarget{ux5fToc437460804}{}{\protect\hypertarget{ux5fToc440445485}{}{\protect\hypertarget{ux5fToc440449267}{}{\protect\hypertarget{ux5fToc440551917}{}{}}}}}}}implicit
+conversions}{implicit conversions}}\label{implicit-conversions}
+
+In unchecked scopes, we allow implicit coercions from safe pointer types
+to the corresponding unsafe pointer types in the following cases. In
+each case, one or more types is reinterpreted and type checking proceeds
+with the reinterpreted types:
+
+\begin{itemize}
+\item
+  Function call:
+
+  \begin{itemize}
+  \item
+    If the function being called has a bounds-safe interface for unsafe
+    pointer type arguments and an argument expression has a safe pointer
+    type, then the type of each argument of a safe pointer type will be
+    reinterpreted as the corresponding unsafe pointer type.
+  \end{itemize}
+\item
+  Field assignment: if the left hand side has an unsafe pointer type,
+  the right-hand side has a safe pointer type, and the left-hand side is
+  a member of a type with a bounds-safe interface, then the right-hand
+  side type will be reinterpreted as the corresponding unsafe pointer
+  type.
+\end{itemize}
+
+We allow coercions from unsafe pointer types to the corresponding safe
+pointer types in the following cases:
+
+\begin{itemize}
+\item
+  Function call:
+
+  \begin{itemize}
+  \item
+    If a function being called has a parameter of a safe pointer type
+    and the type of an argument is an unsafe pointer, then the type of
+    the argument will be reinterpreted as the corresponding safe pointer
+    type.
+  \end{itemize}
+\item
+  Assignment: if the left hand side has a safe pointer type to T, the
+  right-hand side has an unsafe pointer type to T, then the right-hand
+  side type will be reinterpreted as the corresponding safe pointer
+  type.
+\end{itemize}
+
+The rules for checking bounds are applied separately. These rules are
+extended to deal with bounds-safe interface functions as follows.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Respecting bounds interfaces:
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii}.}
+  \item
+    If function call has arguments with safe pointer types that are
+    converted implicitly to unsafe pointer types, then the bounds for
+    the arguments must satisfy the bounds requirements for the unsafe
+    pointer parameters. In addition,
+
+    \begin{enumerate}
+    \def\labelenumiii{\roman{enumiii}.}
+    \item
+      If an argument corresponds to a parameter that has a bounds
+      declaration, the argument will be checked to see if it is in
+      bounds following the bounds declaration.
+    \item
+      If an argument corresponds to a parameter that has \textbf{ptr}
+      declaration, the argument will be checked to see if it is in
+      bounds of its computed bounds.
+    \end{enumerate}
+  \item
+    TBD: field assignment to a member of a type with a bound-safe
+    interface (the issue is that we never infer when a bounds is valid).
+  \end{enumerate}
+\item
+  Trusting bounds interfaces:
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii}.}
+  \item
+    If a function call returns an unsafe pointer and the function has a
+    bounds-safe interface, the bounds for the return value will be
+    computed the same as if the function returned an \textbf{array\_ptr}
+    type.
+  \item
+    If a member access returns an unsafe pointer and the member access
+    is to a type with a bounds-safe interface, the member access will
+    have the bounds declared for it by the member bounds declared in the
+    type.
+  \end{enumerate}
+\end{enumerate}
+
+Here are some examples:
+
+void f()
+
+\{
+
+int a;
+
+// the type of \&a will be int *. This will be implicitly converted to
+
+// ptr\textless{}int\textgreater{}.
+
+ptr\textless{}int\textgreater{} pa : bounds(\&a, \&a + 1) = \&a;
+
+int arr{[}5{]}{[}5{]};
+
+// the type of arr will be int{[}5{]} *. This will be implicitly
+converted to
+
+// ptr\textless{}int{[}5{]}\textgreater{}
+
+ptr\textless{}int{[}5{]}\textgreater{} parr : bounds(arr, arr + 1) =
+arr;
+
+...
+
+\}
+
+void copy(array\_ptr\textless{}int\textgreater{} dest : count(len),
+
+array\_ptr\textless{}int\textgreater{} src : count(len), int len)
+
+\{
+
+// dest, src will be converted to a void *
+
+// The checking of bounds information succeeds at compile time.
+
+// The runtime bounds checks that dest and src are in range are
+
+// guaranteed to succeed
+
+memcpy(dest, src, len);
+
+\}
+
+f(S s)
+
+\{
+
+int len = s.len;
+
+array\_ptr\textless{}char\textgreater{} sp : count(len) = s.arr;
+
+\ldots{}
+
+if (len \textgreater{} 0) \{
+
+sp{[}0{]} = `a';
+
+\}
+
+\}
+
+The following example will fail at compile time. The bounds for sp will
+be computed as \textbf{bounds(none)}, which clearly does not match
+\textbf{count(sp, sp + 1)}.
+
+char *random();
+
+f() \{
+
+array\_ptr\textless{}char\textgreater{} sp : count(1) = random();
+
+\}
+ 
+ 

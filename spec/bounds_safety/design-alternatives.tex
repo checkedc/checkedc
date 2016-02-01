@@ -1,0 +1,418 @@
+\chapter{Design choices considered but not chosen}\label{design-choices-considered-but-not-chosen}
+
+\section{Support for \arrayptr\ and \arrayview\ pointers that are not relatively aligned}\label{support-for-arrayux5fptr-and-arrayux5fview-pointers-that-are-not-relatively-aligned}
+
+We considered supporting the case of \arrayptr\ or
+\arrayview\ pointers where pointers and their bounds are not
+guaranteed to be relatively aligned. A programmer might use such
+pointers in coding patterns where code strides through an array of bytes
+interpreted as an array of integers or structures. Typically, the code
+checks that it has not gone too far before accessing memory. For
+example, given an array of bytes, a programmer may wish to replace byte
+operations with aligned 32-bit operations because they are more
+efficient. Extra bytes at the beginning or end of an array would be
+handled using special-case code.
+
+When bounds and pointers are not relatively aligned, the bounds checks
+against the upper bound for a pointer requires extra instructions. Given
+a pointer p, *p accesses the memory from p to p + sizeof(T) -- 1. Given
+an upper bound \var{ub}, the upper bounds check for \var{p} becomes p
++ sizeof(T) -- 1 \textless{} ub. Note that the computation of p +
+sizeof(T) -- 1 would also need an overflow check, so it would typically
+result in several extra instructions, not just an extra addition.
+
+The upper bounds check would be harder to optimize. Most programmers
+would write code that strides through an array using comparison that
+\var{p} \textless{} \var{ub}. The comparison \var{p} \textless{}
+\var{ub} does not imply \var{p} + sizeof(T) -- 1 \textless{}
+\var{ub}, so it would not be sufficient for a compiler to optimize away
+the upper bounds check. A compiler would have to know that the pointer
+and bounds are relatively aligned in order to eliminate the upper bounds
+check. It would be hard for a compiler to prove this because that would
+require interprocedural or whole-program analysis.
+
+If all \arrayptr\ operations with bounds checks used the more
+general bounds check in order to support pointers that are not
+relatively aligned, there would be significantly more bounds checks in
+optimized code and the checks would also be more costly.
+
+We considered the alternative of introducing a new pointer modifier,
+such as ``ragged'', that could be used with \arrayptr\
+or \arrayview\ types to indicate that pointers and bounds may
+not be relatively aligned. A type with the ragged modifier would have
+the more costly upper bounds check. Because ragged and regular
+\arrayptr\ pointers would have different bounds checking
+sequences, casting away the unaligned modifier would compromise the
+integrity of bounds checking. It would be illegal to cast a ragged
+\arrayptr\ or \arrayview\ pointer to an
+\arrayptr\ or \arrayview\ with no ragged modifier.
+
+We chose not to add the ragged modifier to the language because it would
+be adding a new type modifier to support a relatively rare situation.
+This would add language complexity for little-to-no benefit in practice.
+For example, code that would use this feature typically also has logic
+to detect or handle leftover bytes. This logic can be adapted to compute
+bounds that are properly relatively aligned.
+
+\section{Allowing pointer variables to be assigned values with no relationship to their bounds}\label{allowing-pointer-variables-to-be-assigned-values-with-no-relationship-to-their-bounds}
+
+We considered allowing pointer variables to be assigned pointer values
+not derived in some way from the object with which their bounds are
+associated. The idea would be to avoid unnecessary restrictions on
+operations involving pointers and give pointers more leeway to encode
+information by modifying bits in pointers.
+
+In this approach, the meaning of a bounds expression would be defined
+differently than that given in Section 4 . The meaning would be th
+following. Given an expression \var{e} with a bounds expression
+\texttt{bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)}, let the runtime
+values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
+and \var{ubv}, respectively. If \var{ev} is not null, there will
+always exist some object at runtime with the bounds (\var{low},
+\var{high}) such that \var{low} \texttt{\textless{}=} \var{lbv} \&\&
+\var{ubv} \texttt{\textless{}=} \var{high}. In other words, the
+requirement is that expression bounds are always a subrange of the range
+of memory for some valid object. This is provided that the value of the
+expression with which those bounds are associated is non-null.
+
+The problem with this approach is that it has unexpected consequences
+for the bounds that are allowed to be declared for pointer variables.
+Any valid pointer bounds could be declared for a variable because there
+is no longer a requirement that a pointer stored in the variable is
+derived from a pointer to the object associated with the bounds. The
+following example would be valid:
+
+\begin{verbatim}
+array_ptr<int> x : count(5) = malloc(sizeof(int) * 5);
+array_ptr<int> y : bounds(x, x + 5) = malloc(sizeof(int) * 2);
+\end{verbatim}
+
+Because the bounds are disassociated from the actual pointer values,
+there is much more potential for errors to be made by programmers that
+are only detected at runtime. This approach was not pursued further for
+this reason.
+
+\section{Address-of and array-to-pointer conversion always produce safe pointer types}\label{address-of-and-array-to-pointer-conversion-always-produce-safe-pointer-types}
+
+We considered a designed where the address-of operator (\&) and
+array-to-pointer type conversion always produced safe pointers. To
+preserve compatibility with existing C code, we introduce implicit
+conversions from safe pointers to unsafe pointers. We found that we were
+not able to preserve backwards compatibility for the address-of operator
+and that implicit array-to-pointer conversions required bounds checking.
+
+\subsection{Proposed rules for an address-of operator that produces safe pointer type.}\label{proposed-rules-for-an-address-of-operator-that-produces-safe-pointer-type.}
+
+The address-of operator (\texttt{\&}) applied to an lvalue expression of
+type \var{T} would produce a value of type
+\ptrT.
+
+Existing C code expects the address-of operator to produce a \var{T} *.
+To allow most code to compile without changes, we add an implicit cast
+rule: \ptrT can be cast
+implicitly to a \var{T} * in those situations where a \var{T}
+\texttt{*} type is expected, except for pointer arithmetic operators
+that add or subtract a pointer and an integer. Those situations include
+pointer assignment, arguments to function calls, return statements, and
+conditional expressions. In all these situations a \var{T} \texttt{*}
+type must have been declared explicitly in the code already, so this
+implicit cast does not introduce unsafe pointer types where none existed
+before.
+
+Pointer arithmetic operators are excluded to avoid the silent
+introduction of unsafe pointer types and to preserve the value of having
+the \ptrT type. If
+there were always an implicit cast from \ptrT to \var{T} \texttt{*},
+then any expression that uses pointer arithmetic could do pointer
+arithmetic on \ptrT
+values.
+
+Code takes the address of an array element and immediately does pointer
+arithmetic will still fail to type check, introducing a potential
+backward compatibility issue:
+\begin{verbatim}
+f()
+{
+    int a[10];
+    int *x = &a[0] + 5; // &a[0] has type ptr<T>.  Pointer arithmetic is not allowed
+    ...
+}
+\end{verbatim}
+
+We expect this kind of code to be rare because the succinct style is to
+use \texttt{a} instead of \texttt{\&a[0]}, but is nonetheless a
+possibility, so this proposal still violates the principle of not
+changing the meaning of existing C code.
+
+\begin{verbatim}
+f()
+{
+    int a[10];
+    int *x = ((int *) &a[0]) + 5; // redundant but OK under old rule
+    …
+}
+\end{verbatim}
+
+\subsection{Proposed rules for conversion of array types to pointer types}\label{proposed-rules-for-conversion-of-array-types-to-pointer-types}
+
+Array types may be complete or incomplete. A complete array type
+specifies the number of elements in the array using a constant
+expression. In incomplete array type does not specify the number of
+elements in the array. Examples of complete array types are int[10]
+and int[10][10]. Examples of incomplete array types are
+int[] and int[][10].
+
+If the type of an expression or a subexpression is an ``array of
+\var{T}'', the following rules would apply. If the array is a complete
+type, the type of the expression is altered to
+\arrayptrT . If it is
+an incomplete type, the type of the expression is altered to \var{T} *.
+This alteration does not happen if the expression is an operand of an
+address-of operator, \texttt{++}, \texttt{-\/-}, \texttt{sizeof}, or the
+left operand of an assignment operator or the `\texttt{.}' operator.
+
+These rules would have an interesting effect for arrays of complete
+types: all array references involving those arrays would be bounds
+checked. Any address computations involving those arrays will be checked
+for overflow also. Because the existing C language definition leaves
+out-of-bounds access of arrays of complete type undefined, as well as
+the meaning of overflowing address computations undefined, this is
+compatible with the existing C language definition.
+
+However, these rules by themselves are problematic for existing C code.
+It is common in C code to use array types interchangeably with pointer
+types. The rule that complete array types are converted to
+\arrayptr\ types could cause problems for such code
+
+\begin{verbatim}
+f(int *arg, int len)
+{ 
+   ...
+}
+
+g() {
+   int x[10];
+   f(x, 10);
+}
+
+h() {
+   int x[10];
+   int *ptr = x;
+   f(ptr, 10);
+}
+\end{verbatim}
+
+To allow existing code to continue to compile unchanged, we adopt the
+rule that an \arrayptrT\ can be
+implicitly cast to a \var{T} * in situations where a T * type is
+expected. Those situations may include pointer assignment, arguments to
+function calls, return statements, and conditional expressions. For
+conditional, expressions of the form exp1 \texttt{?} exp2 \texttt{:}
+exp3, the implicit coercion occurs when exp2 or exp3 has type T * and
+the other expression has type
+\arrayptrT. These situations do not
+include array references and adding or subtracting a pointer type and an
+integer. \arrayptrT\ is an acceptable
+type for those operations and a coercion to T * is not needed.
+
+We allow \arrayptr\ values to not be within bounds. Because of
+this, any implicit conversion of an \arrayptr\ value with a
+bounds to an unsafe pointer type must be bounds checked. Otherwise, it
+is easy to write ``safe'' code that creates undetected buffer overruns:
+
+\begin{verbatim}
+// f looks safe, but does something bad that is undetected before calling unsafe code
+f(array_ptr<int> p where bounds(p) == (p, p + 10))
+{
+    // first argument implicitly converted to int *
+    poke(p + random_large_value(), 31415);  
+}
+
+void poke(int *p, int val)
+{
+    *p val
+}
+\end{verbatim}
+
+The silent introduction of a bounds check at a call to a method violates
+the design principles of control and clarity. The implicit conversion
+introduces an invisible failure point in a program where one does not
+otherwise exist. Pointer arithmetic is not normally bounds checked, so
+it is not expected fail.
+
+\section{Alternate definitions of the semantics of bounds declarations}\label{alternate-definitions-of-the-semantics-of-bounds-declarations}
+
+There are a variety of different possible definitions of the semantics
+of bounds declarations. A bounds declaration has the form:
+
+\var{bounds-decl:}
+
+\begin{quote}
+\var{x} \texttt{:} \var{bounds-exp}
+\end{quote}
+
+\var{bounds-exp:}
+
+\begin{quote}
+\texttt{count(}\var{non-modifying-exp}\texttt{)}
+
+\texttt{bounds(}\var{non-modifying-exp}\texttt{,}
+\var{non-modifying-exp}\texttt{)}
+
+\boundsany
+
+\boundsnone
+\end{quote}
+
+It may be attached to declarators or an assignment statement:
+
+\var{init-declarator} :
+
+\begin{quote}
+\var{declarator inline-bounds-specifier\textsubscript{opt}
+where-clause\textsubscript{opt}}
+
+\var{declarator inline-bounds-specifier\textsubscript{opt}
+where-clause\textsubscript{opt}} \texttt{=} \var{initializer
+where-clause\textsubscript{opt}}
+
+\ldots{}
+\end{quote}
+
+\var{parameter-declaration} :
+
+\begin{quote}
+\var{declaration-specifiers declarator}
+\var{inline-bounds-specifier\textsubscript{opt}
+where-clause\textsubscript{opt}}
+\end{quote}
+
+\var{inline-bounds-specifier:}
+
+\begin{quote}
+\texttt{:} \var{bounds-exp}
+\end{quote}
+
+\var{where-clause}:
+
+\begin{quote}
+\keyword{where} \var{facts}
+\end{quote}
+
+\var{expression-statement}:
+
+\begin{quote}
+\var{expression\textsubscript{opt}
+where-clause\textsubscript{opt}}\texttt{;}
+\end{quote}
+
+The information in the bounds declaration is used at pointer
+dereferences involving either (1) the variable or (2) pointers
+constructed from the value of the variable.
+
+One question is when the values of the bounds expressions in a bounds
+declaration are computed. One possibility is to compute them eagerly at
+the point of the bounds declaration. This make sense in that expressions
+are evaluated at the point where they occur in C programs. However, a
+problem with evaluating bounds expressions early is that they may fault,
+even though their value is not needed.
+
+Consider code that calls malloc, which returns null if memory cannot be
+allocated. The code checks that malloc succeeded before using the
+result.
+\begin{verbatim}
+array_ptr<int> result = malloc(size) where result : bounds (result, result + size)
+if (result != NULL) {
+      ... *result = ...
+}
+\end{verbatim}
+
+In this case, the bounds expression result + size will fault when null
+is returned. One way to think about the problem is that it is acceptable
+for null pointers to have meaningless bounds expressions. They cannot be
+used to access memory, after all. Of course, this is a problem if the
+bounds expression causes a runtime fault. Another way to think about
+this is that the problem is that the bounds expression is being
+evaluated whether it is needed or not. The evaluation should be deferred
+until it is definitely required.
+
+There are currently several different definitions of extent under
+consideration. The definitions differ on two axes:
+
+\begin{enumerate}
+\item
+  The set of program points to which a declaration applies. The
+  possibilities include:
+
+  \begin{enumerate}
+  \item
+    The set of statements up to the first assignment to any variable
+    used in the bounds declaration. We will name this set of statements
+    the ``direct'' set
+  \item
+    All statements after the declaration where the variables involved in
+    the declaration in scope and a new declaration has not superseded
+    this definition. We will name this set the ``always'' set.
+  \item
+    Various sets of program points in between the two extremes of (a)
+    and (b). For the sake of discussion, we will name this set the
+    ``intermediate'' set.
+
+    \begin{enumerate}
+    \item
+      The set of statements up to the first non-invertible assignment to
+      any variable used in the declaration (an assignment is
+      non-invertible if the old value of the variable cannot be
+      calculated from the new variable).
+    \item
+      The set of statements up to the first assignment to any variables
+      used in the bounds expressions in the declaration.
+    \item
+      The set of statements up to the first assignment where the bounds
+      declaration can no longer be proved to be true (where the
+      right-hand side of the bounds declaration may no longer be a valid
+      range.
+    \end{enumerate}
+  \end{enumerate}
+\item
+  When the bounds expressions in a bounds declaration are evaluated. The
+  possibilities being considered are:
+
+  \begin{enumerate}
+  \item
+    By-value (eagerly at the point of declaration)
+  \item
+    By-reference (at the point of use of the variable with the variable
+    declaration).
+  \end{enumerate}
+\end{enumerate}
+
+Here is the matrix of different permutations:
+
+\begin{longtable}[c]{@{}llll@{}}
+\toprule
+Set of program points & By-value & By-reference & General
+comments\tabularnewline
+\midrule
+\endhead
+Direct & & & By-value and by-reference evaluation is indistinguishable.
+Because there are no assignments, both produce the same
+result\tabularnewline
+Always & Introduces hidden temporary variables that hold bounds value.
+May lead to runtime failures if the lhs variable is assigned a pointer
+to an object outside of the declared bounds & Modification of variables
+used in bounds expressions requires declaring a new bounds for the lhs
+for variable. &\tabularnewline
+Intermediate & Introduces hidden temporary variables that hold bounds
+value.
+
+May lead to runtime failures if the lhs variable is assigned a pointer
+to an object outside of the declared bounds. & &\tabularnewline
+General comments & We would need to check that all pointer variables in
+bounded expressions are non-null before evaluating bounds at
+declaration.
+
+Otherwise evaluation may fail at runtime if a variable on the right-hand
+side is null. & &\tabularnewline
+\bottomrule
+\end{longtable}

@@ -1,0 +1,359 @@
+\chapter{Open issues}\label{open-issues}
+
+\section{Language and library features to be addressed}\label{language-and-library-features-to-be-addressed}
+
+\begin{itemize}
+\item
+  Decide what to about null terminated arrays. Do we have special rules
+  for them?
+\item
+  Old-style function declarations where argument list length or
+  parameter/argument types could be mismatched at compile time, leading
+  to undefined behavior.
+\item
+  Function pointers: the where clauses must become part of the signature
+  of the pointer type.
+\item
+  Variable arguments
+\item
+  Pointer casts that produce incorrectly aligned pointers have undefined
+  behavior, according to the C11 standard. This hole should be filled in
+  for safe pointer types. For safe pointer types, we should specify
+  either (1) dereferencing an incorrectly aligned pointer shall cause a
+  runtime error or (2) the cast itself shall check any alignment
+  requirements. For case 1, note that safe pointer arithmetic is already
+  defined to preserve misalignment.
+\end{itemize}
+
+\section{Bounds and null values}\label{bounds-and-null-values}
+
+It is troublesome that the current meaning of bounds expressions is
+conditional on values not being null. From Section 4:
+
+\begin{quote}
+The meaning of a bounds expression can be defined more precisely. At
+runtime, given an expression \var{e} with a bounds expression
+\texttt{bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)}, let the runtime
+values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
+and \var{ubv}, respectively. The value ev will be \texttt{NULL} or have
+been derived via a sequence of operations from a pointer to some object
+\var{obj} with \texttt{bounds(}\var{low}\texttt{,}
+\var{high}\texttt{)}. The following statement will be true at runtime:
+\var{ev} \texttt{== 0 \textbar{}\textbar{} (}\var{low}
+\texttt{\textless{}=} \var{lbv} \texttt{\&\&} ubv \texttt{\textless{}=}
+\var{high}\texttt{)}. In other words, if \var{ev} is null, the bounds
+may or may not be valid. If \var{ev} is non-null, the bounds must be
+valid. This implies that any access to memory where \var{ev} \texttt{!=
+0 \&\&} lbv \texttt{\textless{}=} \var{ev} \texttt{\&\&} \var{ev}
+\texttt{\textless{}} \var{ubv} will be within the bounds of \var{obj}.
+\end{quote}
+
+The problem with this is that it means that e: bounds(lb, ub) does not
+imply e + 4 : bounds(lb, ub). The counter-example is the runtime value
+of e being 0. Let ev be the runtime value of e and ev == 0. For the
+first expression, ev == 0 \textbar{}\textbar{} (low \textless{}= lbv
+\&\& ubv \textless{}= high) must be true. For the second expression ev +
+4 == 0 \textbar{}\textbar{} (low \textless{}= lbv \&\& ubv \textless{}=
+high) must be true. This means the first expression must imply that (low
+\textless{}= lbv \&\& ubv \textless{}= high) is true. It does not: (A
+\textbar{}\textbar{} B) being true does not imply B.
+
+We handle this by forbidding pointer arithmetic involving null pointers,
+which requires runtime checking. However, this breaks down in the
+presence of casts between integers and pointer and bitwise manipulation
+of pointers. Given a variable \arrayptrint\ x,
+the following two expressions should be equivalent:
+
+\texttt{x + 1} and \texttt{(\arrayptrint) (((size\_t) x) + sizeof(int))}
+
+When x is \texttt{0}, the first expression results in a runtime failure,
+while the second does not.
+
+This suggests that we have defined the meaning of bounds in a way such
+that a ``core'' property is not captured. An alternate ``core''
+definition of bounds would be:
+
+\begin{quote}
+The meaning of a bounds expression can be defined more precisely. At
+runtime, given an expression \var{e} with a bounds expression
+\texttt{object\_bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)}, let the
+runtime values of \var{e}, \var{lb}, and \var{ub} be \var{ev},
+\var{lbv}, and \var{ubv}, respectively. The value ev have been derived
+via a sequence of operations from a pointer to some object \var{obj}
+with \texttt{object\_bounds(}\var{low}\texttt{,} \var{high}\texttt{)}.
+The following statement will be true at runtime: \var{low}
+\texttt{\textless{}=} \var{lbv} \texttt{\&\&} ubv \texttt{\textless{}=}
+\var{high}. In other words, the bounds are always valid. This implies
+that any access to memory where lbv \texttt{\textless{}=} \var{ev}
+\texttt{\&\&} \var{ev} \texttt{\textless{}} \var{ubv} will be within
+the bounds of \var{obj}.
+\end{quote}
+
+Then, given \texttt{object\_bounds(}\var{lb}\texttt{,}
+\var{ub}\texttt{)}, we would define the meaning of \var{e} :
+\texttt{bounds(}\var{lb},\var{ub}\texttt{)} as \var{e} \texttt{== 0
+\textbar{}\textbar{}} \texttt{object\_bounds(}\var{lb},
+\var{ub}\texttt{)}.
+
+If we go down the path of using the introduction of
+\texttt{object\_bounds} to eliminate the need to check for null pointer
+arithmetic, it seems likely we will run into serious problems. It seems
+like \texttt{bounds(}lb, ub\texttt{)} becomes hard (impossible?) to use
+for functions that take in null pointer or a pointer to a valid object:
+
+Consider:
+\begin{verbatim}
+f(array_ptr<int> x : bounds(x, x + 5) {
+    array_ptr<int> y = x + 1;
+    ...
+}
+\end{verbatim}
+
+Let us suppose we want to declare bounds for \texttt{y}. The following
+is now incorrect because \texttt{x + 1} does not fault when x is
+\texttt{0} (null):
+
+\begin{verbatim}
+f(array_ptr<int> x : bounds(x, x + 5) {
+    array_ptr<int> y : bounds(x, x + 5) = x + 1;
+    ...
+}
+\end{verbatim}
+
+To see why, suppose the runtime value of \texttt{x == 0}. The bounds
+expression for x is valid at runtime: \texttt{x == 0
+\textbar{}\textbar{} object\_bounds(0, 5)}. However, the bounds
+expression for y is not valid. Its meaning is \texttt{1 == 0
+\textbar{}\textbar{} object\_bounds(0, 5)} The first condition is false,
+so the second condition \texttt{object\_bounds(0, 5)} must be true.
+However, no object bounds(0, 5) has ever existed. y has not been derived
+via a sequence of operations from a pointer to some object with
+bounds(0, 5).
+
+It is easier to see the problem by expanding the definition of bounds:
+
+\begin{verbatim}
+f(array_ptr<int> x : x == 0 || object_bounds(x, x + 5) {
+    array_ptr<int> y : y == 0 || object_bounds(x, x + 5) = x + 1;
+    ...
+}
+\end{verbatim}
+
+There is another direction that seems promising, though:
+
+\begin{itemize}
+\item
+  Still make safe pointer arithmetic that involving a runtime failure.
+\item
+  Introduce the notion of object\_bounds to handle the case where the
+  bounds are known to represent bounds for a real object. This can be
+  deduced from \var{e} : bounds(lb, ub) when \var{e} is non-null.
+\item
+  Once an expression has object\_bounds, any operation can be applied to
+  the value of that expression and the resulting value still has the
+  same object\_bounds annotation. We would need to have a version of
+  bound expressions where relative alignment is not guaranteed.
+\item
+  Conversely, given \var{e} : object\_bounds(\var{lb}, \var{ub}),
+  this can be used to deduce bounds(\var{lb}, \var{ub}) always.
+\end{itemize}
+
+This can be used in code that modifies bits of pointers, provided that
+the pointers are non-null to start through. In general, it could be used
+to track bounds through unsafe code. We could allow a pointer with
+actual bounds to be converted to an integer, modified, and stored back
+in a variable.
+
+Suppose we add a modifier that allowed us to declare the
+relative\_alignment that a pointer and its bounds satisfies. It could
+either take a type or the keyword none. For example,
+relative\_aligment(int) or relative\_alignment(none).
+
+We could have code of the form:
+
+\begin{verbatim}
+array_ptr<int> x : bounds(x, x + 5) relative_alignment(none) = malloc(sizeof(int) * 5);
+if (x ! = null) {
+    array_ptr<int> y : object_bounds(x, x + 5) relative_alignment(none)  = x;
+    size_t bit_pattern : object_bounds(y, y + 5) relative_alignment(none) = (size_t) x;
+    bit_pattern |= 0xabcd;
+    y = (array_ptr<int>) bit_pattern;
+    ... *y ...  // checks that *y does not access outside of the bounds (x, x + 5);
+}
+\end{verbatim}
+
+Suppose a clever programmer knows the lowest 2 bits of a pointer are
+always 0 and wants to use them encode additional information about an
+object:
+\begin{verbatim}
+struct S {
+    array_ptr<int> m where m : count(10);
+}
+\end{verbatim}
+
+Here is how the programmer can do this:
+\begin{verbatim}
+struct S  {
+     array_ptr<int> m where m : bounds(m & ~0x3, m & ~0x3 + 10);
+}
+
+S set(S s) 
+{
+  array_ptr<int> a : bounds(a & ~0x3, a & ~0x3) relative_align(none) = s.m;
+  if (a != NULL) {
+    // legal because a != NULL
+    where a : object_bounds(a & ~0x3, a & ~0x3) relative_align(none);
+    size_t y : object_bounds(a & ~0x3, a & ~0x3) relative_align(none) = ((size_t) a) | 1;
+    dynamic_assert(y & ~0x3 == a & ~0x3); // always true
+    // legal by substitution of y & 0x3 for a & ~0x3
+    where y : object_bounds(y & ~0x3, y & ~0x3) relative_align(none);
+    // exp : object_bounds(a,b) implies exp : bounds(a,b), no matter what
+    // the value of exp
+    where y : bounds(y ~0x3, y & ~0x3);
+    // satifies member bounds requirements
+    s.m = (array_ptr<int>) y;
+   }
+}
+\end{verbatim}
+
+This could be condensed to:
+\begin{verbatim}
+S set(S s) 
+{
+   array_ptr<int> a : bounds(a & ~0x3, a & ~0x3) = s.m;
+   if (a != NULL) {
+       size_t y : object_bounds(a & ~0x3, a & ~0x3) relative_align(none) = ((size_t) a) | 1;
+       dynamic_assert(y & ~0x3 == a & ~0x3);
+       where y : object_bounds(y & ~0x3, y & ~0x3) relative_align(none);
+       s.m = (array_ptr<int>) y;
+   }
+} 
+\end{verbatim}
+
+\section{Conditional bounds or disjunction}\label{conditional-bounds-or-disjunction}
+
+We have omitted disjunction for the language of bounds expressions. We
+believe that it will be needed for coding patterns that appear in
+practice. Here is an example of a coding patterns:
+
+\begin{verbatim}
+    //the return buffer has bounds count(len) when *success == SUCCESS.
+    int* ValidIfSuccess(int *success, int len); 
+\end{verbatim}
+
+This bounds on the return value might be written as:
+\begin{verbatim}
+    where return_value : *success ? bounds(none) : count(len)
+\end{verbatim}
+
+This is syntactic sugar for the expression:
+
+\begin{verbatim}
+    (*success && return_value : bounds(none)) || (!(*success) && return_value : count(len))
+\end{verbatim}
+
+It is unclear what effect allowing disjunction in logical expressions
+would have on the cost of the static checking required by the system. It
+is clear that allowing arbitrary sized expressions with conjunction and
+disjunction would be problematic. To even check that two expressions are
+equivalent, they have to be put in a normal form, either disjunctive
+normal form or conjunction normal form. For some expressions, this
+conversion to a normal form can lead to an exponential increase in the
+number of terms.
+
+For example, the current expressions used by the system are implicitly
+in conjunctive normal form
+
+\begin{verbatim}
+exp1 && exp2 && exp3
+\end{verbatim}
+
+If we want to put a logical expression of the form
+\begin{verbatim}
+(x && y) || e
+\end{verbatim}
+
+into conjunctive normal form, we end up with
+
+\begin{verbatim}
+(x || e) && (y || e)
+\end{verbatim}
+
+which duplicates the expression e. A simple approach to that problem
+would be to limit the size of expressions that are arguments to a
+disjunction operator. We could require that disjunction only be applied
+to subexpressions of size k, where k is relatively small (say 5). Size
+is measured by the number of interior nodes in the expression.
+
+ \section{Concrete syntax}\label{concrete-syntax}
+
+\subsection{Post-condition syntax}\label{post-condition-syntax}
+
+The current syntax for describing post-conditions places a where clause
+after the function parameter list declaration:
+
+\begin{verbatim}
+f( …)
+where cond1 ...
+\end{verbatim}
+
+This syntax might lead to confusion. We might want to adopt an alternate
+syntax that makes this clearer. At the design discussion on 7/29/2015,
+it was discovered that the group did not understand that the where
+clause after the function parameter list applied to post-conditions.
+
+Some suggestions are the keywords \texttt{on\_return} or \texttt{after}:
+
+\begin{verbatim}
+f( …)
+where cond1 ...
+
+f( …)
+after cond1 ...
+\end{verbatim}
+
+\section{Discussion of optimizing bounds check and overflow}\label{discussion-of-optimizing-bounds-check-and-overflow}
+
+We had the following discussion in Section 4.10 that distracted from the
+main point of the section. It's also confusing the overflow check for x
++ c is omitted. The point of the example below is that we can make code
+efficient. That deserves a fuller discussion and should be buttressed by
+empirical data.
+
+Consider as an example, z = *(x+5); where x : bounds(x, x + c). The
+compiler will produce code of the form
+
+\begin{quote}
+\begin{verbatim}
+assert(x != null);
+t1 = x + 5;
+check x + 5 for overflow
+assert(t1 != null && x <= t1 && t1 < x + c);
+z = *t1;
+\end{verbatim}
+\end{quote}
+
+This simplifies to:
+
+\begin{quote}
+\begin{verbatim}
+assert(x != null);
+t1 = x + 5;
+check for overflow x + 5
+assert(x <= t1 && t1 < x+c);
+z = *t1;
+\end{verbatim}
+\end{quote}
+
+This compiler can recognize that x \textless{}= t1 is always true,
+leading to:-
+
+\begin{quote}
+\begin{verbatim}
+assert(x != null);
+t1 = x + 5;
+check for overflow of x + 5
+assert(t1 < x + c);
+z = *t1;
+\end{verbatim}
+\end{quote}

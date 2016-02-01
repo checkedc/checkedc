@@ -1,0 +1,206 @@
+
+\chapter{Generating efficient code for local variables of type \arrayview}\label{appendix-a-generating-efficient-code-for-local-variables-of-type-arrayux5fview}
+
+This appendix gives an example of how a compiler can generate efficient
+code when \arrayview\ is used in place of \arrayptr\
+for local variables. The compiler can do this by applying well-known
+optimizations: inlining operations for \arrayview , replacing
+struct members with local variables, copy propagation, reverse copy
+propagation, and eliminating identity assignments.
+
+Here is a possible implementation of \arrayviewT (in C++). It
+uses the proposed extensions to C. The italicized assert in
+\texttt{Deref} represents code that is injected by the compiler to check
+the bounds at run time.
+
+\begin{verbatim}
+struct array_view<T>
+{
+    array_ptr<T> current;
+    where bounds(current) == (low, high);
+
+    array_ptr<T> low;
+    array_ptr<T> high;
+      
+    array_view<T>(array_ptr<T> ptrVal 
+                  where bounds(ptrVal) == (lowerBound, upperBound),
+                  array_ptr<T> lowerBound, array_ptr<T> upperBound)
+    {
+        current = ptrVal;
+        low = lowerBound;
+        high = upperBound
+        where bounds(current) == (low, high);
+    }
+
+    T Deref(array_view<T> av) 
+    {
+        array_ptr<T> tmp = av.current;
+        assert(tmp>= av.low && tmp < av.high);
+        return *tmp;
+    }
+
+    array_view<T> Add(array_view<T> av, int delta) 
+    {
+        array_view<T> tmp = av;
+        tmp.current = tmp.current + delta;
+        return tmp;
+    }
+}
+\end{verbatim}
+
+Here is a version of the sum routine where the local variable buf has
+type \arrayview. This means that no bounds need to be declared
+for buf.
+
+\begin{verbatim}
+int sum(array_ptr<int> argbuf where bounds(argbuf) == (argbuf, end), 
+        array_ptr<int> end) {
+    array_view<int> buf = new array_view(argbuf, argbuf, end);
+    int sum = 0;
+    while (buf < end) {
+        sum += *buf;   // checks that buf is in  bounds before dereferencing it        
+        tmp = buf + 1; // new struct with updated pointer, same bounds
+        buf = tmp;
+    }
+    return sum;
+}
+\end{verbatim}
+
+The compiler can inline the code for the \arrayview\ struct operations
+and place struct members in local variables:
+\begin{verbatim}
+int sum (array_ptr<int> argbuf where bounds(argbuf) == (argbuf, end),
+         array_ptr<int> end) {
+    // buf = new array_view(argbuf, argbuf, end);
+    array_ptr<int> buf_ptr = argbuf; 
+    array_ptr<int> buf_lo = argbuf;
+    array_ptr<int> buf_hi = end
+    where bounds(buf_ptr) == (buf_lo, buf_hi);
+    int sum = 0;
+    while (buf_ptr < end) {
+        array_ptr<int> tmp1 = buf_ptr
+        assert(tmp1 >= buf_lo && tmp1 < buf_hi);
+        sum += *tmp1;
+        // array_view<int> tmp = buf + 1;
+        array_ptr<int> tmp_ptr = buf_ptr + 1;
+        array_ptr<int> tmp_lo = buf_lo;
+        array_ptr<int> tmp_hi = buf_hi
+        where bounds(tmp_ptr) == (tmp_lo, tmp_hi)
+        buf_ptr = tmp_ptr;
+        buf_lo = tmp_lo;
+        buf_hi = tmp_hi
+        where bounds(buf_ptr) == (buf_lo, buf_hi);
+    }
+    return sum;
+}
+\end{verbatim}
+
+The compiler can then apply copy propagation and reverse copy
+propagation:
+
+\begin{verbatim}
+int sum (array_ptr<int> argbuf where bounds(argbuf) == (argbuf, end), 
+         array_ptr<int> end) {
+    // buf = new array_view(argbuf, argbuf, end);
+    array_ptr<int> buf_ptr = argbuf; 
+    array_ptr<int> buf_lo = argbuf;
+    array_ptr<int> buf_hi = end
+    where bounds(buf_ptr) == (buf_lo, buf_hi);
+    int sum = 0;
+    while (buf_ptr < end) {
+        assert(buf_ptr >= buf_lo && buf_ptr < buf_hi);
+        sum += *buf_ptr;
+        // array_view<int> tmp = buf + 1;
+        buf_ptr = buf_ptr + 1;  // result of reverse copy prop
+        buf_lo = buf_lo;
+        buf_hi = buf_hi;
+        where bound(buf_ptr) = (buf_lo, buf_hi);
+    }
+    return sum;
+
+}
+\end{verbatim}
+
+It can then eliminate eliminating identity assignments:
+
+\begin{verbatim}
+int sum (array_ptr<int> argbuf where bounds(argbuf) == (argbuf, end), 
+         array_ptr<int> end) {
+    // buf = new array_view(argbuf, argbuf, end);
+    array_ptr<int> buf_ptr = argbuf; 
+    array_ptr<int> buf_lo = argbuf;
+    array_ptr<int> buf_hi = end
+    where bounds(buf_ptr) == (buf_lo, buf_hi);
+    int sum = 0;
+    while (buf_ptr < end) {
+        assert(buf_ptr >= buf_lo && buf_ptr < buf_hi);
+        sum += *buf_ptr;
+        // array_view<int> tmp = buf + 1;
+        buf_ptr = buf_ptr + 1
+        where bound(buf_ptr) == (buf_lo, buf_hi)
+    }
+    return sum;
+}
+\end{verbatim}
+
+It can do another round of copy propagation and dead-code elimination,
+producing:
+
+\begin{verbatim}
+int sum(array_ptr<int> argbuf where bounds(argbuf) == (argbuf, end), 
+        array_ptr<int> end) {
+    // buf = new array_view(argbuf, argbuf, end);
+    buf_ptr = argbuf;
+    where bounds(buf_ptr) == (argbuf, end);
+    int sum = 0;
+    while (buf_ptr < end) {
+        assert(buf_ptr >= argbuf && buf_ptr < end);
+        sum += *buf_ptr;
+        // array_view<int> tmp = buf + 1;
+        buf_ptr = buf_ptr + 1
+        where bound(buf_ptr) == (argbuf, end);
+    }
+    return sum;
+}
+\end{verbatim}
+
+Finally, the compiler can analyze this code and realize that the assert
+statement is redundant. The condition \texttt{(buf\_ptr \textless{}
+end)} is redundant with the while condition. The variable
+\texttt{buf\_ptr} always monotonically increases and is not subject to
+overflow:
+\begin{verbatim}
+int sum(array_ptr<int> argbuf where bounds(argbuf) == (argbuf, end), 
+        array_ptr<int> end) {
+    // buf = new array_view(argbuf, argbuf, end);
+    buf_ptr = argbuf;
+    where bounds(buf_ptr) == (argbuf, end);
+    int sum = 0;
+    while (buf_ptr < end) {
+        sum += *buf_ptr;
+        // array_view<int> tmp = buf + 1;
+        buf_ptr = buf_ptr + 1
+        where bound(buf_ptr) == (argbuf, end);
+    }
+    return sum;
+}
+\end{verbatim}
+
+The \keyword{where} clauses are static only and the compiler can erase
+them from the final code:
+
+\begin{verbatim}
+int sum(array_ptr<int> argbuf where bounds(argbuf) == (argbuf, end), 
+        array_ptr<int> end) {
+    // buf = new array_view(argbuf, argbuf, end);
+    buf_ptr = argbuf;
+    int sum = 0;
+    while (buf_ptr < end) {
+        sum += *buf_ptr;
+        // array_view<int> tmp = buf + 1;
+
+        buf_ptr = buf_ptr + 1
+    }
+    return sum;
+}
+\end{verbatim}
