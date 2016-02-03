@@ -213,8 +213,9 @@ races that tear data structures. Addressing these problems is beyond the
 scope of this design document. For now, we assume that programs are
 correct in these other aspects.
 
-The rest of this document is organized as follows. Section 2 describes
-the principles that will be applied to extending C. Section 3 describes
+The rest of this document is organized as follows. Chapter~\ref{chapter:principles}
+describes the principles that will be applied to extending C.  
+Chapter~\ref{chapter:core-extensions} describes
 the new pointer types and the new array types, including syntax,
 semantics, and error conditions. It also covers other extensions to C
 semantics. One extension is the introduction of safe program scopes to
@@ -224,14 +225,15 @@ bounds safety even in the face of integer overflow, which is a
 widespread possibility in C programs. This requires a more nuanced
 requirement on the result of overflow than ``the result is undefined.''
 
-Sections 4 through 9 present the extensions to C for declaring bounds
+Chapters~\ref{chapter:tracking-bounds} through \ref{chapter:aliased-members}
+present the extensions to C for declaring bounds
 for \arrayptr\ values stored in variables and structures and
 checking the consistency of those declared bounds. The extensions are
 organized by C language feature, moving from simple language features to
 more complicated language features. This allows a reader to understand
 concepts one at time.
 
-Section 4 describes how programmers declare the bounds for
+Chapter~\ref{chapter:tracking-bounds} describes how programmers declare the bounds for
 \arrayptr\ variables and the meaning of bounds declarations.
 Bounds can be declared at variable declarations. They can also be
 declared for automatic (local) variables at assignments. If the only
@@ -253,28 +255,33 @@ the variables may be inconsistent with respect to bounds declarations
 that use them. The variable can be updated so that consistency is
 re-established at the end of the bundled block.
 
-Section 5 describes rules that the compiler uses to check the validity
+Chapter~\ref{chapter:checking-bounds} describes rules that the compiler uses to check the validity
 of bounds declarations. It covers inferring bounds for expressions.
 Because expression may have assignments embedded within them, it also
 covers inferring effects of an expression on the bounds of variables.
 This inferred information is then used to validate that declarations and
 statements correctly declare bounds and maintain the bounds information.
 
-Section 6 covers interoperation between safe and unsafe code. It covers
+Chapter~\ref{chapter:interoperation} covers interoperation between 
+safe and unsafe code. It covers
 conversions between safe and unsafe pointers, as well as the new kinds
 of pointers. It pins down the notion of safe code and unsafe code.
 Finally, it covers bounds-safe interfaces in depth.
 
-Section 7 extends these ideas from variables to data structures by
+Chapter~\ref{chapter:structure-bounds} extends these ideas from variables to data 
+structures by
 introducing member bounds, which are type-level invariants about members
 of structure types. For now, it assumes that the programmer has done
 concurrency control around shared data properly and ignores the fact
 that data structures may be modified in racy ways such that invariants
-are violated.
+are violated.  Chapter~\ref{chapter:checking-structure-bounds} describes
+the rules that the compiler uses to check programs with member bounds.
 
-Section 9 extends these ideas to pointers to structures.
+Chapter~\ref{chapter:aliased-members} extends these ideas to pointers 
+to structures.
 
-Section 10 extends the checking of bounds to incorporate simple
+Chapter~\ref{chapter:simple-invariants}
+extends the checking of bounds to incorporate simple
 reasoning about bounds and program behavior. It includes a set of rules
 for deducing facts that are true about a program at a specific point in
 the program (for example, given an assignment \texttt{x = y;} the fact
@@ -284,7 +291,7 @@ about whether one fact is true given a set of other facts (for example,
 given x == y and the statement \texttt{z = y;} z == x is true after that
 statement). These rules and facts can be used to deduce the correctness
 of bounds declarations that differ from those inferred directly by the
-checking described in Sections 0 through 9. For example, a programmer
+checking described in Chapters~\ref{chapter:checking-bounds} and~\ref{chapter:checking-structure-bounds}. For example, a programmer
 may wish to narrow the memory that is accessible via an
 \arrayptr\ variable by declaring bounds that are a subrange of
 the bounds inferred by the checking. A programmer may wish to update the
@@ -299,14 +306,15 @@ example, a fact can be that the range of an integer variable \texttt{i}
 is always between 0 and 10. This can be used to deduce that an array
 access in a crucial inner loop is always in bounds.
 
-Section 11 addresses pointers to \arrayptr\ variables and
+Chapter~\ref{chapter:pointers-to-pointers}
+addresses pointers to \arrayptr\ variables and
 address-taken variables.
 
-Section 12 describes prior work on extending C for safety and some
+Chapter~\ref{chapter:lessons} describes prior work on extending C for safety and some
 lessons that we drew from that work. We are heavily influenced by the
 CCured and Deputy systems.
 
-Section 13 evaluates the design by describing our experience modifying
+Chapter~\ref{chapter:eval} evaluates the design by describing our experience modifying
 an existing C open-source code base by hand to use the Checked C
 extensions. We chose to modify OpenSSL, an important widely-used
 open-source code base. The static and dynamic checking is not
@@ -315,6 +323,11 @@ of the modifications or understand the practical benefits of checking.
 Still, this gives some idea about the usefulness and applicability of
 the design.
 
-Section 14 summarizes the open problems uncovered by Section 13 or
+Chapter~\ref{chapter:open-issues} summarizes the open problems uncovered by 
+Chapter~\ref{chapter:eval} or
 unaddressed by the design. It also describes next steps for implementing
 this in a C compiler.
+
+Chapter~\ref{chapter:design-alternatives} discusses design alternatives
+that were considered and not chosen.  It explains why those alternatives were
+not chosen.
