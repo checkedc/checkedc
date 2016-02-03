@@ -58,7 +58,7 @@ For example, code that would use this feature typically also has logic
 to detect or handle leftover bytes. This logic can be adapted to compute
 bounds that are properly relatively aligned.
 
-\section{Allowing pointer variables to be assigned values with no relationship to their bounds}\label{allowing-pointer-variables-to-be-assigned-values-with-no-relationship-to-their-bounds}
+\section{Allowing pointer variables to be assigned values with no relationship to their bounds}
 
 We considered allowing pointer variables to be assigned pointer values
 not derived in some way from the object with which their bounds are
@@ -97,7 +97,7 @@ there is much more potential for errors to be made by programmers that
 are only detected at runtime. This approach was not pursued further for
 this reason.
 
-\section{Address-of and array-to-pointer conversion always produce safe pointer types}\label{address-of-and-array-to-pointer-conversion-always-produce-safe-pointer-types}
+\section{Address-of and array-to-pointer conversion always produce safe pointer types}
 
 We considered a designed where the address-of operator (\&) and
 array-to-pointer type conversion always produced safe pointers. To
@@ -106,7 +106,7 @@ conversions from safe pointers to unsafe pointers. We found that we were
 not able to preserve backwards compatibility for the address-of operator
 and that implicit array-to-pointer conversions required bounds checking.
 
-\subsection{Proposed rules for an address-of operator that produces safe pointer type.}\label{proposed-rules-for-an-address-of-operator-that-produces-safe-pointer-type.}
+\subsection{Proposed rules for an address-of operator that produces safe pointer type.}
 
 The address-of operator (\texttt{\&}) applied to an lvalue expression of
 type \var{T} would produce a value of type
@@ -158,7 +158,7 @@ f()
 }
 \end{verbatim}
 
-\subsection{Proposed rules for conversion of array types to pointer types}\label{proposed-rules-for-conversion-of-array-types-to-pointer-types}
+\subsection{Proposed rules for conversion of array types to pointer types}
 
 Array types may be complete or incomplete. A complete array type
 specifies the number of elements in the array using a constant
@@ -245,7 +245,7 @@ introduces an invisible failure point in a program where one does not
 otherwise exist. Pointer arithmetic is not normally bounds checked, so
 it is not expected fail.
 
-\section{Alternate definitions of the semantics of bounds declarations}\label{alternate-definitions-of-the-semantics-of-bounds-declarations}
+\section{Alternate definitions of the semantics of bounds declarations}
 
 There are a variety of different possible definitions of the semantics
 of bounds declarations. A bounds declaration has the form:

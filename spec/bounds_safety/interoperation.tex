@@ -63,7 +63,6 @@ an expression e with type S:}
 \end{itemize}
 
 \subsection{Dynamic checking using bounds\_cast\textless{}T\textgreater{}}
-\label{dynamic-checking-using-boundsux5fcastt}
 
 \texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}} uses
 dynamic checks to enforce the preservation of bounds safety. \var{T}
@@ -117,7 +116,6 @@ runtime checks are done:
 \end{itemize}
 
 \subsection{Correctness of bounds\_cast\textless{}T\textgreater{} conversions}
-\label{correctness-of-boundsux5fcastt-conversions}
 
 In this section, the correctness of the bounds\_cast conversions is
 discussed. Readers interested in just using the operations may safely
@@ -159,7 +157,6 @@ e\var{3v} \texttt{\textless{}=} \var{ubv} implies \var{e1v}
 \var{high}\texttt{).}
 
 \subsection{Static checking use core\_bounds\_cast\textless{}T\textgreater{}}
-\label{static-checking-use-coreux5fboundsux5fcastt}
 
 \texttt{core\_bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}}
 uses static checking to enforce the preservation of bounds safety:
@@ -220,7 +217,6 @@ characters to an array\_ptr of 4 32-bit integers should always succeed
 at compile-time.
 
 \subsection{Conversions without checking using assume\_bounds\_cast\textless{}T\textgreater{}}
-\label{conversions-without-checking-using-assumeux5fboundsux5fcastt}
 
 \texttt{assume\_bounds\_cast\textless{}}T\texttt{\textgreater{}}
 converts unsafe pointers to safe pointers. The declared bounds are
@@ -256,7 +252,6 @@ involving variables and uses of array variables, where the array
 variable is converted to a pointer type.
 
 \subsection{Summary of conversion operators}
-\label{summary-of-conversion-operators}
 
 The following table summarizes the operations for converting between
 pointers to objects of different types, provided that S and T are
@@ -337,7 +332,7 @@ of the form (T *) e1\tabularnewline
 \bottomrule
 \end{longtable}
 
-\section{Bounds-safe conversions for pointers to incomplete types, including pointers to void}\label{bounds-safe-conversions-for-pointers-to-incomplete-types-including-pointers-to-void}
+\section{Bounds-safe conversions for pointers to incomplete types, including pointers to void}
 
 In the prior section, the source and destination pointer types in a
 bounds\_cast or core\_bounds\_cast operation must be complete types or
@@ -432,7 +427,7 @@ bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
 \end{longtable}
 
 \section{Bounds-safe interfaces to existing unsafe functions}
-\label{section:bounds-safe-interfaces}
+\label{section:function-bounds-safe-interfaces}
 
 The new pointer types capture specific properties of pointers. One would
 like to update existing C code to use these new pointer types. However,
@@ -545,7 +540,6 @@ unsafe code is compiled as though the bounds-safe interface has been
 stripped from its source code.
 
 \section{Implicit conversions}
-\label{implicit-conversions}
 
 In unchecked scopes, we allow implicit coercions from safe pointer types
 to the corresponding unsafe pointer types in the following cases. In

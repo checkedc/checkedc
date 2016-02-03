@@ -43,7 +43,7 @@ indirection operator (\texttt{*}). This is different than discussing the
 bounds of the values \emph{returned} or \emph{stored} through the
 indirection operator.
 
-\section{Reducing the number of syntactic cases}\label{reducing-the-number-of-syntactic-cases}
+\section{Reducing the number of syntactic cases}
 
 To simplify checking, in-line return bounds expressions are replaced
 with the form that uses a name for the return value. The form
@@ -70,7 +70,8 @@ In the rules below, we sometimes use shorter syntactic forms for
 brevity. The shorter forms should be replaced to the full forms before
 using the rules.
 
-\section{Inferring valid bounds for expressions without nested assignment expressions}\label{section:inferring-expression-bounds}
+\section{Inferring valid bounds for expressions without nested assignment expressions}
+\label{section:inferring-expression-bounds}
 
 We first discuss determining valid bounds for expressions that do not
 have assignment expressions nested within them. The bounds for an
@@ -99,7 +100,6 @@ counter the change. Bookkeeping rules for making this adjustment will be
 described in sections that treat expressions with subexpressions.
 
 \subsection{Null pointers}
-\label{null-pointers}
 
 The bounds for 0 is the \texttt{any} bounds:
 
@@ -134,7 +134,7 @@ Suppose there is a use of some variable \var{x}.
 \end{itemize}
 
 
-\subsection{Addresses of variables}\label{addresses-of-variables}
+\subsection{Addresses of variables}
 
 A variable with type \var{T} whose address is taken is considered to be
 an array of one element:
@@ -142,7 +142,7 @@ an array of one element:
 \boundsinfer{\texttt{\&var{x}}} 
             {\boundsrel{\texttt{\&\var{x}}}{\texttt{\& \var{x} + 1}}{\var{T}}}.
 
-\subsection{Function calls}\label{function-calls}
+\subsection{Function calls}
 
 Let \var{f} be the name of a function that returns an
 \arrayptr\ value (pointers to functions will be handled later).
@@ -299,7 +299,7 @@ substituted for return\_value, producing:
                          rel_align(int)
 \end{verbatim}
 
-\subsection{Pointer arithmetic}\label{pointer-arithmetic}
+\subsection{Pointer arithmetic}
 
 The range of memory accessible through pointer arithmetic expressions
 remains unchanged from the underlying pointer. In other words, for
@@ -355,7 +355,6 @@ then \boundsinfer{\var{e4 op e1}}
 \end{quote}
 
 \subsubsection{Bounds for unsafe pointer arithmetic}
-\label{bounds-for-unsafe-pointer-arithmetic}
 
 Pointer arithmetic involving an \arrayptr\ value checks that
 the value is non-null and generates a runtime error if it is. This check
@@ -385,8 +384,7 @@ provides a general framework for checking side-conditions as
 part of checking bounds declarations.
 
 \subsubsection{Treatment of expr\_current\_value variable in bounds for
-pointer arithmetic
-expressions}\label{treatment-of-exprux5fcurrentux5fvalue-variable-in-bounds-for-pointer-arithmetic-expressions}
+pointer arithmetic expressions}
 
 If the special variable \texttt{expr\_current\_value} occurs in
 \bounds{\var{e2}}{\var{e3}}, then
@@ -471,7 +469,7 @@ the bounds to what would be desired when extra padding is inserted:
                                          expr_current_value + size)
 \end{verbatim}
 
-\subsection{Cast expressions}\label{cast-expressions}
+\subsection{Cast expressions}
 
 Given a cast expression of the form \texttt{(\var{T})} \var{e},
 the bounds for \var{e} are determined. The bounds for
@@ -490,7 +488,7 @@ bounds for \var{e},
   Otherwise, the bounds of \var{e} are  altered to \boundsnone.
 \end{itemize}
   
-\subsection{Conditional expressions}\label{conditional-expressions}
+\subsection{Conditional expressions}
 
 Given an expression of the form \var{e1} \texttt{?} \var{e2}
 \texttt{:} \var{e3}, the bounds for \var{e2} and \var{e3} are
@@ -510,7 +508,7 @@ that use e1 such as (e1 ? lower-bound(e2) : lower-bound(e3), e1 ?
 upper-bound(e2) : upper-bound(e3). For now, we defer discussion of both
 alternatives. }
 
-\subsection{Comma expressions}\label{comma-expressions}
+\subsection{Comma expressions}
 
 Given an expression of the form \var{e1} \texttt{,} \var{e2}, the
 bounds for \var{e2} are determined. The bounds for \var{e2} are used
@@ -601,7 +599,7 @@ expression whose bounds is being determined. Because the value of
 \var{e} has been assigned to \var{x}, \var{x} is substituted for
 \texttt{expr\_current\_value} in the bounds for x.
 
-\subsection{Invertibility}\label{invertibility}
+\subsection{Invertibility}
 
 The following examples illustrate invertibility and updating bounds. For
 the first example, suppose there is a declaration of an
@@ -665,8 +663,7 @@ expression, we can only substitute \var{e2} for \var{e1} as the lower
 bound if \var{e2} \textgreater{}= \var{e1}. The identity \texttt{p
 \textgreater{} p -- 1} holds only if overflow is a runtime error.
 
-\subsection{Invertible expressions}\label{invertible-expressions}
-
+\subsection{Invertible expressions}
 An expression is invertible with respect to a variable x if:
 
 \begin{enumerate}
@@ -855,8 +852,7 @@ expression holds if:
   \end{itemize}
 \end{itemize}
 
- \subsection{Canonicalization of expressions in bounds expressions}\label{canonicalization-of-expressions-in-bounds-expressions}
-
+\subsection{Canonicalization of expressions in bounds expressions}
 
 Most readers can skip this section safely and come back to it as
 necessary. This section is for compiler implementers and for programmers
@@ -1115,7 +1111,7 @@ increasing size exponentially. Implementations may have a reasonable
 limit on the size of canonicalized expressions. A minimum required limit
 will be determined based on an empirical evaluation of C programs.
 
-\subsection{An example of canonicalization}\label{an-example-of-canonicalization}
+\subsection{An example of canonicalization}
 
 Here is how bounds for following statement will be checked:
 \begin{verbatim}
@@ -1254,7 +1250,6 @@ general techniques from Chapter~\ref{chapter:simple-invariants} are needed to sh
 bounds imply the expected bounds.
 
 \subsection{Extending canonicalization to two's complement signed integer arithmetic}
-\label{extending-canonicalization-to-twos-complement-signed-integer-arithmetic}
 
 In some widely-used C compilers, however signed arithmetic implemented
 as two's complement arithmetic is available under a compiler flag. In
@@ -1444,7 +1439,7 @@ parameters,
   \end{itemize}
 \end{itemize}
 
- \section{Checking return statements}\label{checking-return-statements}
+ \section{Checking return statements}
 
 A return statement has the form \texttt{return} \var{e}, where \var{e}
 is optional. The bounds for \var{e} are computed. If the special
@@ -1454,7 +1449,7 @@ place. It is then checked that the updated bounds for \var{e} imply the
 return bounds for the function using the rules in 
 Section~\ref{section:checking-expression-statements}
 
-\section{Checking other statements}\label{checking-other-statements}
+\section{Checking other statements}
 
 There are a variety of other statements in C. These statements are built
 from zero or more expressions, statements, and declarations:

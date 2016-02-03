@@ -1,7 +1,7 @@
 \chapter{Open issues}
 \label{chapter:open-issues}
 
-\section{Language and library features to be addressed}\label{language-and-library-features-to-be-addressed}
+\section{Language and library features to be addressed}
 
 \begin{itemize}
 \item
@@ -26,7 +26,7 @@
   defined to preserve misalignment.
 \end{itemize}
 
-\section{Bounds and null values}\label{bounds-and-null-values}
+\section{Bounds and null values}
 
 It is troublesome that the current meaning of bounds expressions is
 conditional on values not being null. 
@@ -232,7 +232,7 @@ S set(S s)
 } 
 \end{verbatim}
 
-\section{Conditional bounds or disjunction}\label{conditional-bounds-or-disjunction}
+\section{Conditional bounds or disjunction}
 
 We have omitted disjunction for the language of bounds expressions. We
 believe that it will be needed for coding patterns that appear in
@@ -287,10 +287,9 @@ disjunction operator. We could require that disjunction only be applied
 to subexpressions of size k, where k is relatively small (say 5). Size
 is measured by the number of interior nodes in the expression.
 
- \section{Concrete syntax}\label{concrete-syntax}
+ \section{Concrete syntax}
 
-\subsection{Post-condition syntax}\label{post-condition-syntax}
-
+\subsection{Post-condition syntax}
 The current syntax for describing post-conditions places a where clause
 after the function parameter list declaration:
 
@@ -314,7 +313,7 @@ f( …)
 after cond1 ...
 \end{verbatim}
 
-\section{Discussion of optimizing bounds check and overflow}\label{discussion-of-optimizing-bounds-check-and-overflow}
+\section{Discussion of optimizing bounds check and overflow}
 
 We had the following discussion in Section~{section:bounds-checking-at-indirections}
 that distracted from the

@@ -85,7 +85,8 @@ We assume for now that the address of a field in a structure type that
 is used in a member bounds cannot be taken. If it could be taken, it
 would be trivial to break the member bounds.
 
-\section{Avoiding aliased accesses to object members with suspended bounds}\label{section:avoiding-aliased-accesses}
+\section{Avoiding aliased accesses to object members with suspended bounds}
+\label{section:avoiding-aliased-accesses}
 
 To allow efficient compilation, it is important to require only local
 analyses of aliasing behavior and to avoid requiring whole-program
@@ -212,6 +213,6 @@ The following kinds of assignments invalidate these types of facts:
   could be an alias for the address-taken variable.
 \end{itemize}
 
-\section{Examples}\label{examples-1}
+\section{Examples}
 \section{Loosening restrictions with better alias information}
 \label{section:better-alias-information}

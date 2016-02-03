@@ -133,7 +133,7 @@ left-hand side of bounds-declarations have their addresses taken. It is
 assumed also that the values of variables or members of variables whose
 addresses are taken are not used in bounds expressions.
 
-\section{Declaring bounds for structure members}\label{declaring-bounds-for-structure-members}
+\section{Declaring bounds for structure members}
 
 Member bounds declarations have the form:
 
@@ -261,7 +261,7 @@ explaining concepts. Sometimes concepts will be explained using member
 bounds that use only immediate members and then generalized to handle
 nested members.
 
-\section{Bounds declarations for variables with structure types}\label{bounds-declarations-for-variables-with-structure-types}
+\section{Bounds declarations for variables with structure types}
 
 To describe facts about members of specific variables, the left-hand
 sides of bound declarations are generalized to allow members of
@@ -288,7 +288,7 @@ describe a member path for the structure type that has an
 associated member bounds. Inline bounds declarations are still
 restricted to variables.
 
-\section{Declaring the state of member bounds for variables}\label{declaring-the-state-of-member-bounds-for-variables}
+\section{Declaring the state of member bounds for variables}
 
 Programmers may declare the state of a member bounds for a variable
 using two kinds of facts:
@@ -313,7 +313,7 @@ As a convenient short-hand notation, the \var{var-member-path} can have
 a structure type. In that case, the declaration applies to all member
 bounds for the structure type and child members of the structure type.
 
-\subsection{Parameters and return values}\label{parameters-and-return-values}
+\subsection{Parameters and return values}
 
 The state of members bounds can be declared for parameters and return
 values using suspends and holds as well. By default, the state is
@@ -354,7 +354,7 @@ useful to describe a function that sets one of the members of a
 structure type and does not affect the state of other members.}
 \end{quote}
 
-\subsection{Extent of declarations of member bounds state for variables}\label{extent-of-declarations-of-member-bounds-state-for-variables}
+\subsection{Extent of declarations of member bounds state for variables}
 
 Declarations of the state of member bounds are dataflow-sensitive and
 follow rules similar to flow-sensitive bounds declarations.
@@ -457,7 +457,7 @@ void f(int len) {
 }
 \end{verbatim}
 
-\section{Integration of member bounds and bounds for variables}\label{integration-of-member-bounds-and-bounds-for-variables}
+\section{Integration of member bounds and bounds for variables}
 
 A member of a structure variable may be covered by its member bounds
 declaration and a bounds declaration at the same time. This coexistence
@@ -502,7 +502,7 @@ When a member path \var{mp} of a variable \var{x} is used and
   \boundsnone.
 \end{itemize}
 
-\subsection{Suspends declarations and bounds for variables.}\label{suspends-declarations-and-bounds-for-variables.}
+\subsection{Suspends declarations and bounds for variables.}
 
 When the member bounds \var{m}b for a variable member is suspended by a
 statement of the form:
@@ -564,7 +564,7 @@ f(S arg where suspends(arg))
 
 does not have an implicit bounds declaration of the form \verb|arg.data :count(arg.len)|.
 
-\subsection{Holds declarations and bounds for variables}\label{holds-declarations-and-bounds-for-variables}
+\subsection{Holds declarations and bounds for variables}\
 
 At a holds declaration for a member path mp of a structure variable x,
 the bounds declarations that are true about members of x, as well as any
@@ -583,7 +583,8 @@ leads to a lot of verbosity in programs. We should reconsider whether
 these must be explicitly declared by the programmer.}
 \end{quote}
 
-\section{Bounds-safe interfaces}\label{bounds-safe-interfaces}
+\section{Bounds-safe interfaces}
+\label{section:structure-bounds-safe-interfaces}
 
 Just as existing functions can have bounds-safe interfaces declared for
 them, existing structure types can have bounds-safe interfaces declared
@@ -629,7 +630,7 @@ when converting unsafe pointers data structures, and when reading safe
 pointers from the data structure unsafe functions or uses unsafe data
 structures.
 
-\section{Bounds for pointers with information stored in unused bits}\label{bounds-for-pointers-with-information-stored-in-unused-bits}
+\section{Bounds for pointers with information stored in unused bits}
 
 C programs sometimes store information in unused bits of pointers. This
 is typically done to save space in data structure. For example, a
@@ -671,7 +672,7 @@ null pointer could result in a non-null pointer with bounds that are not
 valid. This non-null pointer could be used to incorrectly access memory.
 
 \subsection{Extending bounds checking rules to integral
-expressions}\label{extending-bounds-checking-rules-to-integral-expressions}
+expressions}
 
 C programs modify bits in pointers by converting pointers to integers,
 operating on integers, and converting the integers back to pointers. The
@@ -720,7 +721,7 @@ through integral expressions:
   \end{itemize}
 \end{itemize}
 
-\subsection{An example}\label{an-example-1}
+\subsection{An example}
 
 The following code shows a tag of 1 can be set in a non-null pointer:
 

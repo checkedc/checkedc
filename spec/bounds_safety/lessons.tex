@@ -88,7 +88,7 @@ aim for something that programmers like. When we are facing design
 choices, we recommend using user studies of programmers to evaluate the
 choices, instead of relying on hunches or opinions.
 
-\section{Using dependent types to enforce checking of pointer bounds}\label{using-dependent-types-to-enforce-checking-of-pointer-bounds}
+\section{Using dependent types to enforce checking of pointer bounds}
 
 Deputy adds dependent types to C to specify and track pointer bounds. A
 dependent type is a type that may depend on a value at runtime.
@@ -159,7 +159,7 @@ e1000_clean_tx_irq(
 \}
 \end{alltt}
 
-\section{Problems with making {C} function bodies dependently type }
+\section{Problems with making {C} function bodies dependently typed}
 \label{section:dependent-typing-issues}
 
 C function bodies need to be rewritten to use dependent types and to be
@@ -238,7 +238,7 @@ The conclusion is that the automatic inference and rewriting during
 compilation that Deputy does is not appropriate for C. We will not do
 this in Autobahn.
 
-\section{Problems with dependently-typed C}\label{problems-with-dependently-typed-c}
+\section{Problems with dependently-typed {C}}
 
 We have ruled out using an automatic inference and rewriting step during
 compilation. If we want to use dependent types to enforce bounds
@@ -309,7 +309,7 @@ that dependent typing is just one way of enforcing program invariants,
 it suggests that we should explore other ways to enforce program
 invariants necessary for bounds safety for C.
 
-\section{Tracking pointer bounds dynamically}\label{tracking-pointer-bounds-dynamically}
+\section{Tracking pointer bounds dynamically}
 
 A requirement that local variable array bounds be tracked by program
 invariants could lead to many invariants. The Deputy authors observe
@@ -347,7 +347,7 @@ int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
 Appendix A illustrates how optimizing compilers can make using local
 variables of type \arrayview\ efficient.
 
-\section{Summary of lessons}\label{summary-of-lessons}
+\section{Summary of lessons}
 
 It is clear from the CCured results that many C pointers are never used
 with pointer arithmetic. This suggests strongly that new types of

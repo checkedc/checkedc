@@ -219,7 +219,7 @@ a compiler looks at all expressions. For analyzing available facts, a
 compiler only looks at expressions in where clauses or inferred from
 control-flow statements.
 
-\subsection{Algorithm for checking correctness of facts}\label{algorithm-for-checking-correctness-of-facts}
+\subsection{Algorithm for checking correctness of facts}
 
 To infer whether a fact is true in a where clause, the compiler first
 computes the set of facts that are true after the expression statement.
@@ -266,7 +266,7 @@ facts. If it is not, it applies transitivity rules involving
 \textless{}, \textless{}=, and ==. It also checks to see if \textless{}
 implies != is true, and if \textless{}= and \textgreater{}= imply ==.
 
-\subsection{Bounds declarations and facts}\label{bounds-declarations-and-facts}
+\subsection{Bounds declarations and facts}
 
 Bounds declarations are treated the same way as other facts. During the
 checking process, the same simplifications that are applied to other
@@ -280,7 +280,7 @@ be substituted for e1. If e4 \textless{}= e2, e4 can be substituted in
 e2. For x : count(e1), if e2 \textless{}= e1, e2 can be substituted for
 e1.
 
-\subsection{Pointer arithmetic and facts}\label{pointer-arithmetic-and-facts}
+\subsection{Pointer arithmetic and facts}
 
 The rules used to check facts include the identities x \textless{} x + k
 for positive k and x + k \textless{} x for negative k, where k is a
@@ -290,7 +290,7 @@ because pointer arithmetic overflow is defined as a runtime error for
 these pointer types. This guarantees that adding x and k produces either
 an in-range value or a runtime error (no value).
 
-\subsection{Integer arithmetic and overflow}\label{integer-arithmetic-and-overflow}
+\subsection{Integer arithmetic and overflow}
 
 Integral arithmetic may overflow. This consequence of that is that the
 rules used to check facts do not include the identities x \textless{} x
@@ -326,7 +326,7 @@ the facts that are true before the expression to prove that MININT
 Note that to invert an integer expression, the compiler also needs to
 prove that it cannot overflow.
 
-\subsection{Checking function calls}\label{checking-function-calls}
+\subsection{Checking function calls}
 
 A function call is checked by substituting the actual parameters for the
 formal parameters and checking that the where clauses are true, given

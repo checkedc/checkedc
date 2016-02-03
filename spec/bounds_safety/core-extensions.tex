@@ -1,9 +1,9 @@
+% !Tex root = checkedc.tex
 
 \chapter{New types and other extensions to C semantics}
 \label{chapter:core-extensions}
 
 \section{New kinds of pointer types}
-\label{new-kinds-of-pointer-types}
 Three new safe pointer types are added to C. Each pointer type can be
 used in place of `*'
 
@@ -68,7 +68,7 @@ difficult to parse quickly than} \ptrinst{\texttt{const unsigned
 int}} g\emph{.}
 \end{quote}
 
-\section{New kinds of array types}\label{new-kinds-of-array-types}
+\section{New kinds of array types}
 
 A new safe array type is added to C. Just as there are safe pointer
 types, there are safe array types. They are declared by placing the
@@ -152,7 +152,6 @@ will be \texttt{int b checked[10]}. The type of \texttt{b} in
 checked array of int''.
 
 \subsection{An example}
-\label{an-example}
 
 It is easy to convert a function that operates only on complete array
 types to one where array accesses are bounds checked: just add the
@@ -171,7 +170,7 @@ void add(int a checked[2][2], int b checked[2][2])
 }
 \end{verbatim}
 
-\section{Operations involving pointer types}\label{operations-involving-pointer-types}
+\section{Operations involving pointer types}
 
 The following operations involving pointer-typed values are allowed:
 
@@ -228,7 +227,7 @@ conditions required to enforce bounds safety and
 trusts the programmer. The rules for pointer casting and the bounds cast
 operators are described in Section~\ref{section:pointer-casting}.
 
-\subsection{Rules for the address-of operator}\label{rules-for-the-address-of-operator}
+\subsection{Rules for the address-of operator}
 
 If an address-of operator (\texttt{\&}) applied to an lvalue expression
 of type \var{T}, the following rules apply:
@@ -259,7 +258,7 @@ ptr<int> y = &a[i];
 ptr<int> z = &b[0];
 \end{verbatim}
 
-\subsection{Rules for conversion of checked array types to pointer types}\label{rules-for-conversion-of-checked-array-types-to-pointer-types}
+\subsection{Rules for conversion of checked array types to pointer types}
 
 If the type of an expression or a subexpression is ``checked array of
 \var{T}'', the type of the expression is altered to be
@@ -275,7 +274,7 @@ in a more precise answer. The prohibitions against it for ++, and --
 operands and the left operand of an assignment operato keeps array
 variables from being modifiable.
 
-\subsection{\texttt{Array\_view<}\textit{T}\texttt{>} specific operations}\label{arrayux5fviewt-specific-operations}
+\subsection{\texttt{Array\_view<}\textit{T}\texttt{>} specific operations}
 
 An \arrayviewT
 pointer carries three values with it: the memory location that will be
@@ -336,7 +335,7 @@ array_view<int> p = src;
 The full rules for casting to an \arrayview\ type are covered
 in Section~\ref{section:pointer-casting}.
 
-\section{Pointer arithmetic error conditions}\label{pointer-arithmetic-error-conditions}
+\section{Pointer arithmetic error conditions}
 
 For existing unsafe C pointers, the definition of pointer arithmetic is
 described in terms of addresses of elements of an array object. The C
@@ -541,7 +540,7 @@ signed or unsigned integer as \texttt{e2}.
   integer.
 \end{itemize}
 
-\subsection{Runtime performance implications}\label{runtime-performance-implications}
+\subsection{Runtime performance implications}
 
 There will be concerns about the effect of overflow checks on the speed
 of pointer arithmetic using the new pointer types. These concerns are an
@@ -567,7 +566,7 @@ overflow. The checks are also inexpensive on superscalar processors:
 they can be placed so that they are statically predicted by the
 processor to never fail.
 
-\section{Relative alignment of \arrayptr\ and \arrayview\ values}\label{relative-alignment-of-arrayux5fptr-and-arrayux5fview-values}
+\section{Relative alignment of \arrayptr\ and \arrayview\ values}
 
 \arrayptrT\ and \arrayviewT pointers provide safe
 pointer arithmetic on arrays. The bounds for these pointers usually
@@ -597,7 +596,7 @@ decided against that because it increases the cost of bounds checking.
 Section~\ref{section:design-alternatives:always-unaligned} describes 
 proposals that were considered but not chosen.
 
-\section{Program scopes for safe pointer types}\label{program-scopes-for-safe-pointer-types}
+\section{Program scopes for safe pointer types}
 
 To improve program reliability and to simplify understanding programs,
 it is desirable to limit code to using only safe pointers. To support
@@ -706,7 +705,7 @@ checked and unchecked keywords for all the different notions of
 checking. We may introduce additional keywords to control specific kinds
 of checking.
 
-\section{Programmer-inserted dynamic checks}\label{programmer-inserted-dynamic-checks}
+\section{Programmer-inserted dynamic checks}
 
 A bounds check generates a runtime error if it fails. The ability to
 generate a runtime error is not limited to the C implementation. A

@@ -175,7 +175,7 @@ Chapter~\ref{chapter:pointers-to-pointers}
 handles pointers to \arrayptr\ types and bounds expressions
 that dereference address-taken variables.
 
-\subsection{Using bounds declarations}\label{using-bounds-declarations}
+\subsection{Using bounds declarations}
 
 Bounds declarations may be added to declarations and statements using
 \keyword{where} clauses. They also may be placed inline at a declaration
@@ -400,7 +400,7 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 }
 \end{verbatim}
 
-\subsubsection{Bounds declarations for return values}\label{bounds-declarations-for-return-values}
+\subsubsection{Bounds declarations for return values}
 
 Bounds may be declared for the value returned by a function. The
 parameter list can be followed by either \texttt{:} \var{bounds-exp} or
@@ -442,7 +442,7 @@ Here is the declaration of a function that allocates memory:
 array_ptr<char> alloc(size_t size) : count(size);
 \end{verbatim}
 
-\subsection{Invariant bounds declarations}\label{invariant-bounds-declarations}
+\subsection{Invariant bounds declarations}
 
 Variables that only have bounds declared for them at their definition
 have bounds that are invariants. Any assignments to the variable
@@ -453,7 +453,7 @@ Because externally-scoped \arrayptr variables can have bounds declared
 for them only at their definitions, by definition their bounds are
 always invariants.
 
-\subsection{Lexical hiding of variables}\label{lexical-hiding-of-variables}
+\subsection{Lexical hiding of variables}
 
 A nested lexical scope is not allowed to hide a variable used in a
 bounds declaration within the extent of the bounds declaration. This
@@ -472,7 +472,7 @@ void bad(int i)
 }
 \end{verbatim}
 
-\subsection{Storage class-related requirements}\label{storage-class-related-requirements}
+\subsection{Storage class-related requirements}
 
 Local variables with static storage class or thread storage class can
 have only bounds declarations with bounds expressions that use variables
@@ -489,7 +489,7 @@ function calls, unless the variables with external linkage are declared
 \texttt{const}. This is because the function calls may modify the
 variables with external linkage.
 
-\section{Variables at external scope}\label{variables-at-external-scope}
+\section{Variables at external scope}
 
 If there are multiple declarations of a variable with external scope in
 a translation unit, the bounds declaration and/or where clauses for the
@@ -545,8 +545,7 @@ non-external variables with initializers between the initial declaration
 and the initial declarations of other variables used in the
 \keyword{where} clause.
 
-\section{Syntax changes}\label{syntax-changes}
-
+\section{Syntax changes}
 The grammar from the ``C Programming Language'' \cite{Ritchie1988} is extended to include
 in-line bounds declarations and \keyword{where} clauses for declarations:
 
@@ -704,7 +703,7 @@ they may be fully re-evaluated at every bounds check involving the
 bounds expression. More complicated bounds expressions are allowed
 because programmers might find them useful.
 
-\section{Bounds declarations for results of casts between \arrayptr\ types}\label{bounds-declarations-for-results-of-casts-between-arrayux5fptr-types}
+\section{Bounds declarations for results of casts between \arrayptr\ types}
 
 Typically \arrayptr\ pointers and their bounds are relatively
 aligned. Together, they represent a view of an array of \var{T}, where
@@ -822,7 +821,7 @@ constant expression.
 The relative alignment clause \relalign{\var{type}}
 is just short-hand for \relalignval{\texttt{sizeof(\var{type})}}.
 
-\subsection{Examples of uses of bounds declarations that specify relative alignment}\label{examples-of-uses-of-bounds-declarations-that-specify-relative-alignment}
+\subsection{Examples of uses of bounds declarations that specify relative alignment}
 
 Here are examples of the use of relative alignment clauses in
 conjunction with pointer casts. In the first example, there is an
@@ -926,7 +925,7 @@ void copy(array_ptr<char> dest : bounds(dest, dest + num),
 
 Of course, the \texttt{rel\_align(int)} is redundant and can be omitted.
 
-\subsection{Relative alignment and constant counts}\label{relative-alignment-and-constant-counts}
+\subsection{Relative alignment and constant counts}
 
 When an \arrayptr\ with a constant count is cast to another
 \arrayptr\ type, all the facts about relative alignment are
@@ -972,7 +971,7 @@ of \var{e1} must be an integral type. This bounds declaration is a synonym for
 
 The standard C library functions for malloc, memcmp, and memcpy will be
 given bounds-safe interfaces to avoid breaking existing code as
-described in Section~\ref{section:bounds-safe-interfaces}. 
+described in Section~\ref{section:function-bounds-safe-interfaces}. 
 However, if they were to return safe pointer
 types, their bounds declarations would be:
 
@@ -1082,7 +1081,7 @@ Otherwise,
   The bounds declaration applies.
 \end{enumerate}
 
- \subsection{Consistency}\label{consistency}
+ \subsection{Consistency}
 
 These conditions ensure the consistency of bounds declarations:
 
@@ -1101,7 +1100,8 @@ These conditions ensure the consistency of bounds declarations:
   declaration for the variable along each path.
 \end{enumerate}
 
-\subsection{Examples}\label{examples:consistency}
+\subsection{Examples}
+\label{examples:consistency}
 
 In the following example, a function modifies a variable \texttt{end}
 used in the bounds expression for the variable \texttt{start} and then
@@ -1198,7 +1198,7 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
 }
 \end{verbatim}
 
-\subsection{Computing the extent of flow-sensitive bounds declarations}\label{computing-the-extent-of-flow-sensitive-bounds-declarations}
+\subsection{Computing the extent of flow-sensitive bounds declarations}
 
 This section is primarily for compiler implementers. Those readers
 primarily interested in the language may skip it safely. It describes
@@ -1246,7 +1246,7 @@ control-flow join points, the lattice values are unioned (moving upward
 in the lattice). If the lattice values for an \arrayptr\
 variable are not the same, the resulting value is \texttt{Top}.
 
-\section{Bounds declarations and loops}\label{bounds-declarations-and-loops}
+\section{Bounds declarations and loops}
 
 Loops often operate on variables declared outside of loops. They may
 read the variables and then update the variables. When these variables
@@ -1319,7 +1319,7 @@ int compare(array_ptr<int> x : bounds(x, x_end),
 }
 \end{verbatim}
 
-\section{Bundling statements and declarations}\label{bundling-statements-and-declarations}
+\section{Bundling statements and declarations}
 
 Invariant bounds declarations must be valid at the end of every
 statement. The effect of the statement must preserve the validity of the
@@ -1504,7 +1504,7 @@ given \verb|x[5]| where \verb|x : bounds(x, x + c)|, the
 compiler inserts runtime checks that \verb|x <= x + 5 < x + c|. 
 The runtime checks simplify to \verb|5 < c|.
 
-\subsection{Evaluation of bounds at bounds checks}\label{evaluation-of-bounds-at-bounds-checks}
+\subsection{Evaluation of bounds at bounds checks}
 
 The preceding example raises a subtle point, which is when bounds
 expressions are evaluated. Consider the following code:
@@ -1521,7 +1521,8 @@ a null pointer arithmetic failure immediately. To avoid this problem,
 the evaluation of a bounds expression in a bounds declaration is
 deferred until a bounds check uses the bounds expression.
 
-\section{Size computations for memory allocation and integer overflow or wraparound}\label{section:integer-overflow-informal}
+\section{Size computations for memory allocation and integer overflow or wraparound}
+\label{section:integer-overflow-informal}
 
 When objects are allocated dynamically in C, programmers have to compute
 the amount of memory to allocate for the objects. It is well-known 
