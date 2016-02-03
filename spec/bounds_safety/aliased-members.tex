@@ -74,8 +74,10 @@ using an \arrayptr\ field in an inconsistent fashion.
 To prevent this, restrictions are placed on what code can do while a
 member bounds is suspended. The restrictions make conservative
 assumptions about the possible aliases of exp. In practice, member
-bounds should only be suspended for brief pieces of code. Section 9.1
-describes the rules that enforce these restrictions. Section 9.3
+bounds should only be suspended for brief pieces of code.
+Section~\ref{section:avoiding-aliased-accesses}
+describes the rules that enforce these restrictions. 
+Section~\ref{section:better-alias-information}
 contains proposals for loosening these restrictions by relying on
 additional information about pointer aliasing.
 
@@ -83,9 +85,7 @@ We assume for now that the address of a field in a structure type that
 is used in a member bounds cannot be taken. If it could be taken, it
 would be trivial to break the member bounds.
 
-\section{\texorpdfstring{\protect\hypertarget{ux5fRef419201770}{}{\protect\hypertarget{ux5fRef420578671}{}{\protect\hypertarget{ux5fToc420589208}{}{\protect\hypertarget{ux5fToc422906999}{}{\protect\hypertarget{ux5fToc424307728}{}{\protect\hypertarget{ux5fToc426641105}{}{\protect\hypertarget{ux5fToc435434987}{}{\protect\hypertarget{ux5fToc437460820}{}{\protect\hypertarget{ux5fToc440445501}{}{\protect\hypertarget{ux5fToc440449283}{}{\protect\hypertarget{ux5fToc440551933}{}{}}}}}}}}}}}avoiding
-aliased accesses to object members with member boundss suspended via a
-pointer}{avoiding aliased accesses to object members with member boundss suspended via a pointer}}\label{avoiding-aliased-accesses-to-object-members-with-member-boundss-suspended-via-a-pointer}
+\section{Avoiding aliased accesses to object members with suspended bounds}\label{section:avoiding-aliased-accesses}
 
 To allow efficient compilation, it is important to require only local
 analyses of aliasing behavior and to avoid requiring whole-program
@@ -213,4 +213,5 @@ The following kinds of assignments invalidate these types of facts:
 \end{itemize}
 
 \section{Examples}\label{examples-1}
-\section{Loosening restrictions with better alias information}\label{loosening-restrictions-with-better-alias-information}
+\section{Loosening restrictions with better alias information}
+\label{section:better-alias-information}

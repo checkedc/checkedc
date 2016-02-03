@@ -12,13 +12,14 @@ appear as the operand to an address (\&) operator on the right-hand side
 of a bound expression.
 
 This lets us avoid complicating the explanation with the subtleties of
-handling aliasing of variables. Section 11 will discuss address-taken
-variables.
+handling aliasing of variables. Chapter~\ref{chapter:pointers-to-pointers}
+will discuss address-taken variables.
 
 \section{Bounds for expressions without assignments}\label{bounds-for-expressions-without-assignments}
 
 This section discusses expressions without assignments. It generalizes
-Section 5.1 to handle variables of structure type. Generally, this
+Section~\ref{section:inferring-expression-bounds}
+to handle variables of structure type. Generally, this
 consists of allowing variable member paths to occur where variables
 could occur. Variable member paths are a syntactic generalization of
 variables: they consist of a variable or a variable with a sequence of
@@ -26,15 +27,17 @@ member access.
 
 \subsection{Variable member paths}\label{variable-member-paths}
 
-If the variable member path is simply a variable, the rules in Section
-5.2.2 still apply. Otherwise, it is member path of the form
+If the variable member path is simply a variable, the rules in
+Section~\ref{section:checking-variables}
+ still apply. Otherwise, it is member path of the form
 x.\var{path}, where x is a variable and \var{path} is a sequence of
 one or more members separated by `.' operators.
 
 \subsubsection{Paths with type \arrayptr}\label{paths-with-type-arrayux5fptr}
 
 If \var{x.path} has the type \arrayptr, the bounds information for
-\var{x.path} is determined using Section 7.4.1. If the resulting bounds
+\var{x.path} is determined using 
+Section~\ref{section:determining-variable-member-bounds}. If the resulting bounds
 information is a bounds expression, it is used directly.
 
 If the result is a member bounds, the result must be translated to a

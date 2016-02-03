@@ -120,11 +120,14 @@ for specific objects while they are being initialized or modified.
 
 The bounds declarations for variables with structure types and the
 suspend and hold declarations will be checked statically for validity.
-Section 8 extends the rules from Section 0 to variables with structure
+Chapter~\ref{chapter:checking-structure-bounds} extends the rules 
+from Chapter~\ref{chapter:checking-bounds}
+to variables with structure
 types and to suspends and holds declarations.
 
 In the rest of this section, to simplify the description, assumptions
-about address-taken variables similar to those in Section 3.7 are made.
+about address-taken variables similar to those in
+Section~\ref{section:bounds-declarations} are made.
 It is assumed that none of the variables or members of variables on the
 left-hand side of bounds-declarations have their addresses taken. It is
 assumed also that the values of variables or members of variables whose
@@ -152,7 +155,8 @@ member accesses for the structure type. The common case of using a
 member of the structure type is simply a member path of length 1.
 
 Member bounds expressions are similar to the bounds expressions
-described in Section 4.1, except that members of the structure type are
+described in Section~\ref{section:bounds-declarations}, 
+except that members of the structure type are
 used in place of variables in the non-modifying expressions. In
 addition, pointer indirection and indirect member references are
 excluded.
@@ -476,7 +480,8 @@ void f(int len) {
 After the assignment \texttt{y.num = len}, the member bounds holds for
 y.data and so does the bounds \texttt{y.data : count(y.num)}.
 
-\subsection{Determining bounds for a use of an \arrayptr\ member of a variable}\label{determining-bounds-for-a-use-of-an-arrayux5fptr-member-of-a-variable}
+\subsection{Determining bounds for a use of an \arrayptr\ member of a variable}
+\label{section:determining-variable-member-bounds}
 
 When a member path \var{mp} of a variable \var{x} is used and
 \var{x}\texttt{.}\var{mp} has type \arrayptr, the bounds for

@@ -13,9 +13,10 @@ or pointers produced by pointer arithmetic that uses those pointers.
 Runtime checks can be omitted if a compiler proves that they are
 redundant. In addition, for performance-critical code, checks will be
 omitted when programmers demonstrate at compile-time that the checks are
-redundant (see Section 10.2.6 for details).
+redundant (see Section~\ref{section:avoiding-bounds-checks} for details).
 
-\section{Bounds declarations}\label{bounds-declarations}
+\section{Bounds declarations}
+\label{section:bounds-declarations}
 
 Bounds are declared using bounds declarations. Bounds declarations have
 the form:
@@ -37,7 +38,8 @@ the form:
 \end{quote}
 
 where \var{x} is a variable. There are additional forms for handling
-casts and void pointers that are described in Sections 4.5 and 4.6.
+casts and void pointers that are described in 
+Sections~\ref{section:pointer-cast-results} and \ref{section:pointers-to-void}.
 
 A bounds expression describes the memory that can be accessed using the
 value of \var{x}, provided that x is not null. Bounds expressions
@@ -70,7 +72,8 @@ include counts, pairs that specify an upper bound and lower bound,
 Bounds expression use ``non-modifying'' expressions. These are a subset
 of C expressions that do not modify variables or memory. They include
 local variables, parameters, constant expressions, casts, and operators
-such as addition, subtraction, and address-of. Section 4.3 describes
+such as addition, subtraction, and address-of. 
+Section~\ref{section:non-modifying-expressions}  describes
 non-modifying expressions in detail.
 
 In a bounds declaration of the form \boundsdecl{\var{x}}{\var{bounds-exp}},
@@ -92,7 +95,8 @@ in bounds. This avoids bound checks on pointer arithmetic.
 
 Count expressions have limits on their ranges to prevent signed integer
 overflow and unsigned integer wraparound from affecting size
-computations. Section 4.11 explains these limits in detail. The limits
+computations. Section~\ref{section:integer-overflow-informal}
+explains these limits in detail. The limits
 depend on the element type of the \arrayptr\ and the type of the count
 expression. For \boundsdecl{\var{x}}{\boundscount{\var{e1}}}, where x
 has type \arrayptrT ,
@@ -166,8 +170,9 @@ acceptable to use the address of an address-taken variable in a bounds
 declaration. This is provided that the resulting address is not used to
 access memory in the bounds declaration (that is, indirectly access the
 value of a variable). For example, given the declaration \texttt{int x},
-the expression \texttt{\&x} may appear in a bounds expression. Section
-11 handles pointers to \arrayptr\ types and bounds expressions
+the expression \texttt{\&x} may appear in a bounds expression.  
+Chapter~\ref{chapter:pointers-to-pointers}
+handles pointers to \arrayptr\ types and bounds expressions
 that dereference address-taken variables.
 
 \subsection{Using bounds declarations}\label{using-bounds-declarations}
@@ -178,10 +183,11 @@ by following the declarator with \texttt{:} \var{bounds-exp}. In that
 case, the bounds expression applies to the variable that is the subject
 of the declarator. By making the bounds be part of the program, this
 preserves the control and efficiency of C. The bounds declarations will
-be checked statically for correctness using rules described in Section
-0.
+be checked statically for correctness using rules described in 
+Chapter~\ref{chapter:checking-bounds}.
 
-\subsection{Bounds declarations at variable declarations}\label{bounds-declarations-at-variable-declarations}
+\subsection{Bounds declarations at variable declarations}
+\label{section:variable-declarations}
 
 Here are some examples of bounds declarations as part of variable
 declarations. The first function sums the integers stored in memory
@@ -316,7 +322,8 @@ void AES_cbc_encrypt(array_ptr<const unsigned char> in : count(len),
                      const int enc);
 \end{verbatim}
 
-\subsection{Bounds declarations at expression statements}\label{bounds-declarations-at-expression-statements}
+\subsection{Bounds declarations at expression statements}
+\label{section:statement-declarations}
 
 Programmers may wish to delay initializing variables or may wish to
 change the bounds of a variable in the middle of a function. This can be
@@ -333,7 +340,8 @@ statements. It does not make sense to have dataflow-sensitive bounds for
 externally-scoped variables and variables with static or thread storage.
 The bounds extend to the next assignment to any variable in the bounds
 declaration, with some exceptions for pointer incrementing or
-decrementing. Section 4.5 describes the extent of flow-sensitive bounds
+decrementing. Section~\ref{section:extent-of-declarations} 
+describes the extent of flow-sensitive bounds
 in more detail.
 
 Here is a simple example that illustrates bounds declarations at
@@ -402,7 +410,8 @@ scope for the bounds declaration or where clause. Any parameters
 occurring in the return bounds declaration or \keyword{where} clause may
 not be modified by the body of the function.
 
-The following example show the find function from Section 4.1.2 modified
+The following example show the find function from
+Section~\ref{section:variable-declarations} modified
 to return a pointer to the element instead of the index:
 
 \begin{verbatim}
@@ -605,7 +614,8 @@ statements:
 where-clause\textsubscript{opt}}\texttt{;}
 \end{quote}
 
-\section{Operations allowed in non-modifying expressions}\label{operations-allowed-in-non-modifying-expressions}
+\section{Operations allowed in non-modifying expressions}
+\label{section:non-modifying-expressions}
 
 As mentioned earlier, non-modifying expressions are a subset of C
 expressions that do not modify variables or memory. The subexpressions
@@ -769,7 +779,8 @@ course, programmers who are doing casts to use operations on larger
 types instead of operations on smaller types (for example, \texttt{int}
 instead of \texttt{char}) usually already are doing these checks.
 
-\subsection{Representing relative alignment in bounds declarations}\label{representing-relative-alignment-in-bounds-declarations}
+\subsection{Representing relative alignment in bounds declarations}
+\label{section:pointer-cast-results}
 
 To be able to reason about situations where an
 \arrayptrT\ is not
@@ -930,7 +941,8 @@ array_ptr<char> p : count(8) = a;
 array_ptr<int> r : count(2) = (array_ptr<int>) p;
 \end{verbatim}
 
-\section{Pointers to void}\label{pointers-to-void}
+\section{Pointers to void}
+\label{section:pointers-to-void}
 
 The definition of count expressions poses a problem for
 \arrayptrvoid. \texttt{Void} is an
@@ -960,7 +972,8 @@ of \var{e1} must be an integral type. This bounds declaration is a synonym for
 
 The standard C library functions for malloc, memcmp, and memcpy will be
 given bounds-safe interfaces to avoid breaking existing code as
-described in Section 6.3. However, if they were to return safe pointer
+described in Section~\ref{section:bounds-safe-interfaces}. 
+However, if they were to return safe pointer
 types, their bounds declarations would be:
 
 \begin{verbatim}
@@ -983,7 +996,8 @@ array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
   bounds((<array_ptr<char>) dest, (array_ptr<char>) dest + num) rel_align(char)
 \end{verbatim}
 
-\section{Extent of dataflow-sensitive bounds declarations}\label{extent-of-dataflow-sensitive-bounds-declarations}
+\section{Extent of dataflow-sensitive bounds declarations}
+\label{section:extent-of-declarations}
 
 Variables that have bounds declared for them at expression statements
 have dataflow-sensitive bounds declarations. There are two aspects two
@@ -994,7 +1008,8 @@ bounds for the variable for memory dereferences are given by the bounds
 declaration. Consistency is that all the bounds declarations flowing to
 a statement agree with each other.
 
-As mentioned in Section 4.1.3, a dataflow-sensitive bounds declaration
+As mentioned in Section~\ref{section:statement-declarations},
+a dataflow-sensitive bounds declaration
 extends to the next assignment to any variable occurring in the bounds
 declaration. There are exceptions for pointer increment and decrement.
 If an assignment
@@ -1021,7 +1036,8 @@ that bounds remain the same. However, with other kinds of assignments,
 the before and after values may be unrelated, so re-using bounds could
 lead to unexpected bounds checks failures.
 
-\subsection{Definition of extent for statements}\label{definition-of-extent-for-statements}
+\subsection{Definition of extent for statements}
+\label{section:extent-definition}
 
 We first define the set of bounds declarations that apply to a function
 component, where a function component is an expression statement,
@@ -1416,11 +1432,13 @@ bundled \var{\{ bundled-item-list\textsubscript{opt}} \}
 \var{expression-statement}
 \end{quote}
 
-\section{Bounds checks at pointer dereferences}\label{bounds-checks-at-pointer-dereferences}
+\section{Bounds checks at pointer dereferences}
+\label{section:bounds-checking-indirections}
 
 Given *\var{e1}, where \var{e1} is an expression of type
 \arrayptr, the compiler determines the bounds for \var{e1}
-following the rules in Section 5.1. Special rules are followed in
+following the rules in Section~\ref{section:inferring-expression-bounds}.
+Special rules are followed in
 \texttt{bundled} blocks to determine the bounds for \var{e1}. The
 compiler inserts checks before the memory pointed to by \var{e1} is
 read or written that \var{e1} is non-null and that the value of
@@ -1503,7 +1521,7 @@ a null pointer arithmetic failure immediately. To avoid this problem,
 the evaluation of a bounds expression in a bounds declaration is
 deferred until a bounds check uses the bounds expression.
 
-\section{Size computations for memory allocation and integer overflow or wraparound}\label{size-computations-for-memory-allocation-and-integer-overflow-or-wraparound}
+\section{Size computations for memory allocation and integer overflow or wraparound}\label{section:integer-overflow-informal}
 
 When objects are allocated dynamically in C, programmers have to compute
 the amount of memory to allocate for the objects. It is well-known 
@@ -1537,7 +1555,8 @@ checking to fail.
 
 We expand the count expression to integer arithmetic to make its size
 computation clear. \texttt{count(e1)} expands to \bounds{p}{p + e1}. 
-ollowing the rules in Section 3.4.2, the expansion of \texttt{p +
+Following the rules in Section~\ref{section:pointers-as-integers},
+the expansion of \texttt{p +
 e1} from pointer arithmetic to integer arithmetic depends on the type of
 \texttt{e1}.
 

@@ -3,7 +3,8 @@
 \chapter{Design choices considered but not chosen}
 \label{chapter:design-alternatives}
 
-\section{Support for \arrayptr\ and \arrayview\ pointers that are not relatively aligned}\label{support-for-arrayux5fptr-and-arrayux5fview-pointers-that-are-not-relatively-aligned}
+\section{Support for \arrayptr\ and \arrayview\ pointers that are not relatively aligned}
+\label{section:design-alternatives:always-unaligned}
 
 We considered supporting the case of \arrayptr\ or
 \arrayview\ pointers where pointers and their bounds are not
@@ -66,7 +67,8 @@ operations involving pointers and give pointers more leeway to encode
 information by modifying bits in pointers.
 
 In this approach, the meaning of a bounds expression would be defined
-differently than that given in Section 4 . The meaning would be th
+differently than that given in Section~\ref{section:bounds-declarations}. 
+The meaning would be the
 following. Given an expression \var{e} with a bounds expression
 \texttt{bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)}, let the runtime
 values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},

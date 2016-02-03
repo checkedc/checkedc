@@ -4,14 +4,14 @@
 \label{chapter:interoperation}
 
 \section{Conversions between pointers to objects of different types}
-\label{conversions-between-pointers-to-objects-of-different-types}
+\label{section:pointer-casting}
 
 Conversions from a pointer to one type to a pointer to a different type
 introduce two issues. First, there is type safety. Given a pointer to S
 that has been converted to be a pointer to T, is it valid to treat the
 memory pointed to by the pointer as being an object of type T instead of
 type S? Second, there is bounds safety. Given the pointer, what range of
-memory can be accessed validly using that pointer? This section focus on
+memory can be accessed validly using that pointer? This section focuses on
 bounds safety.
 
 Type safety is not addressed by this design note. Of course, violating
@@ -49,7 +49,8 @@ an expression e with type S:}
 \begin{itemize}
 \item
   \it{T is an \arrayptr: always. The bounds are inferred from the
-  expression following the rules in Section . Note that the result may
+  expression following the rules in Section~\ref{section:inferring-expression-bounds}.
+   Note that the result may
   be an \arrayptr with bounds(none).}
 \item
   \it{T is a ptr: sometimes. The bounds are inferred as well. The
@@ -125,7 +126,8 @@ skip this discussion.
 We discuss only
 \texttt{bounds\_cast\textless{}T\textgreater{}(}\var{e1}\texttt{,}
 \var{e2}\texttt{,} \var{e3)} because the other forms are special cases
-of this operation. From Section 4, recall the meaning of a bounds
+of this operation. From Section~\ref{section:bounds-declarations},
+recall the meaning of a bounds
 expression \texttt{bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)} for
 an expression \var{e1} at runtime. Let the runtime values of \var{e1},
 \var{lb}, and \var{ub} be \var{e1v}, \var{lbv}, and \var{ubv},
@@ -337,7 +339,7 @@ of the form (T *) e1\tabularnewline
 
 \section{Bounds-safe conversions for pointers to incomplete types, including pointers to void}\label{bounds-safe-conversions-for-pointers-to-incomplete-types-including-pointers-to-void}
 
-The prior section , the source and destination pointer types in a
+In the prior section, the source and destination pointer types in a
 bounds\_cast or core\_bounds\_cast operation must be complete types or
 have a referent type of void. However, there is one important exception:
 ptr\textless{}T\textgreater{} can always be safely converted to T *,
@@ -430,7 +432,7 @@ bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
 \end{longtable}
 
 \section{Bounds-safe interfaces to existing unsafe functions}
-\label{bounds-safe-interfaces-to-existing-unsafe-functions}
+\label{section:bounds-safe-interfaces}
 
 The new pointer types capture specific properties of pointers. One would
 like to update existing C code to use these new pointer types. However,

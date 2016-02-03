@@ -208,13 +208,13 @@ The following operations involving pointer-typed values are allowed:
   \arrayptrT , or \arrayviewT. For example, an \arrayviewT can be compared with an
   \arrayptrT . To support bounds checking and reasoning about program behavior, the
   result of comparing pointers to different objects must be defined.
-  Section 3.7 describes this requirement in detail.
+  Section~\ref{section:changes-to-undefined-behavior} describes this requirement in detail.
 \item
   Pointers to objects of the same type can be subtracted, except for
   \ptr\ types. The pointers do not have to be the same kind of
   pointer. The result of subtracting pointers to different objects of
-  the same type must be defined. Section 3.7 describes this requirement
-  in detail.
+  the same type must be defined. Section~\ref{section:changes-to-undefined-behavior}
+  describes this requirement in detail.
 \end{itemize}
 
 A value of one pointer type may be converted to a value of another
@@ -226,7 +226,7 @@ operators must be used. There are two kinds of bounds cast operators:
 conditions required to enforce bounds safety and
 \texttt{unchecked\_bounds\_cast}, which does no runtime checking and
 trusts the programmer. The rules for pointer casting and the bounds cast
-operators are described in in Section 6.
+operators are described in Section~\ref{section:pointer-casting}.
 
 \subsection{Rules for the address-of operator}\label{rules-for-the-address-of-operator}
 
@@ -334,7 +334,7 @@ array_view<int> p = src;
 \end{verbatim}
 
 The full rules for casting to an \arrayview\ type are covered
-in Section 6.1.
+in Section~\ref{section:pointer-casting}.
 
 \section{Pointer arithmetic error conditions}\label{pointer-arithmetic-error-conditions}
 
@@ -348,7 +348,8 @@ object or one past the last element of the array object.
 We take an alternative approach to defining the meaning of pointer
 arithmetic and the error conditions for pointer arithmetic. Pointer
 arithmetic is allowed to go out-of-bounds and has a well-defined
-semantics. Section 3.4.1 defines the semantics of the new pointer types
+semantics. Section~\ref{section:new-pointer-types-semantics}
+defines the semantics of the new pointer types
 directly in terms of byte addresses, instead of with respect to
 addresses of elements of an array. Pointer arithmetic that overflows or
 involves a null pointer is defined to produce a runtime error.
@@ -387,7 +388,8 @@ Similarly, if a compiler cannot prove that a pointer arithmetic
 expression for a new pointer type cannot overflow, it must insert a
 check. This may slow a typical program down by a slight amount.
 
-\subsection{Semantics of pointer arithmetic for new pointer types}\label{semantics-of-pointer-arithmetic-for-new-pointer-types}
+\subsection{Semantics of pointer arithmetic for new pointer types}
+\label{section:new-pointer-types-semantics}
 
 This section defines the semantics of pointer arithmetic and explains
 when overflow occurs in pointer arithmetic. It is assumed that memory is
@@ -477,7 +479,8 @@ on the size of arrays that can be described by some bounds. A signed
 integer that must be non-negative can describe an array of
 \texttt{INTPTR\_MAX/\sizeof{\var{T}}} elements.
 
-\subsection{Expressing pointer arithmetic as integer arithmetic}\label{expressing-pointer-arithmetic-as-integer-arithmetic}
+\subsection{Expressing pointer arithmetic as integer arithmetic}
+\label{section:pointers-as-integers}
 
 During static checking, pointer arithmetic operations will be converted
 to use integer arithmetic. This is necessary in C because at times
@@ -591,7 +594,8 @@ When pointers and their bounds are not relatively aligned to the
 referent type, the cost of bounds checking increases. We considered
 removing the entire concept of relative alignment from the design. We
 decided against that because it increases the cost of bounds checking.
-Section 15.1 describes proposals that were considered but not chosen.
+Section~\ref{section:design-alternatives:always-unaligned} describes 
+proposals that were considered but not chosen.
 
 \section{Program scopes for safe pointer types}\label{program-scopes-for-safe-pointer-types}
 
@@ -996,7 +1000,8 @@ void append(array_ptr<char> dst: count(dest_count),
 }
 \end{verbatim}
 
-\section{Changes to undefined behavior}\label{changes-to-undefined-behavior}
+\section{Changes to undefined behavior}
+\label{section:changes-to-undefined-behavior}
 
 C has situations where an expression has undefined behavior or the
 meaning of an expression is undefined:
@@ -1108,7 +1113,8 @@ In the case of a runtime error, program execution cannot continue in a
 way the uses the value of the expression that produced the error.
 
 For programs with expressions and initializers with undefined meanings,
-those programs must be rejected at translation-time. Section 5.11
+those programs must be rejected at translation-time. 
+Section~ref{section:avoiding-undefinedness}
 describes this in detail.
 
 Of course, there are other ways in which C expressions may have

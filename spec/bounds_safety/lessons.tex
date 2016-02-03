@@ -159,7 +159,8 @@ e1000_clean_tx_irq(
 \}
 \end{alltt}
 
-\section{Problems with making c function bodies dependently type }\label{problems-with-making-c-function-bodies-dependently-typed}
+\section{Problems with making {C} function bodies dependently type }
+\label{section:dependent-typing-issues}
 
 C function bodies need to be rewritten to use dependent types and to be
 properly typed according to dependent typing rules. Local pointer
@@ -327,7 +328,8 @@ Suppose there is a \arrayview\ type constructor where
 upper bounds on the valid range of memory associated with a pointer.
 \arrayview\ values can be used where pointer values can be
 used, with safety checks added for various operations. Consider the
-original example in Section 12.2. Here is the code for the method using
+original example in Section~\ref{section:dependent-typing-issues}. 
+Here is the code for the method using
 \arrayview .
 
 \begin{verbatim}

@@ -6,32 +6,39 @@
 This section describes basic rules for determining the validity of
 bounds declarations in a C translation unit. In general, these rules do
 not include any inference steps. Inference steps for reasoning about
-bounds are described in Section 10.
+bounds are described in Chapter~\ref{chapter:simple-invariants}.
 
-Section 5.1 describes how to determine the bounds for an expression of
+Section~\ref{section:inferring-expression-bounds}
+describes how to determine the bounds for an expression of
 type \arrayptr\ that does not have any assignments within it.
 We start with a set of bounds that are true about variables before the
 evaluation of the expression, called the context, and describe the
 bounds for the value of the expression.
 
-Section 5.3 then describes handling assignment expressions, assuming
+Section~\ref{section:checking-assignment-expressions}
+then describes handling assignment expressions, assuming
 that no assignments are nested within the expression. For an assignment
 expression, we must determine the updated context in addition to the
 value of the expression. The updated context contains new bounds for any
 variables assigned to by the expression.
 
-Section 5.4 combines the concepts and describes handling expressions
+Section~\ref{section:checking-nested-assignment-expressions}
+combines the concepts and describes handling expressions
 with nested assignments expressions.
 
-Section 5.5 describes how to validate expression statements. Section 5.8
+Section~\ref{section:checking-expression-statements} 
+describes how to validate expression statements. 
+Section~\ref{section:checking-function-call-arguments}
 describes validating function call arguments.
 
 Because this section covers bounds for \arrayptr\ variables,
 not data structures with \arrayptr\ data, certain expressions
 are not covered here. This includes member references and expressions
 that load or store \arrayptr\ values through pointers. These
-expressions are covered in Sections 7, 9, and
-11.  Section 4.10 does discuss how to insert bounds checking at uses of the
+expressions are covered in Chapters~\ref{chapter:structure-bounds}, 
+\ref{chapter:aliased-members}, and~\ref{chapter:pointers-to-pointers}.
+Section~\ref{section:bounds-checking-indirections} does discuss how to 
+insert bounds checking at uses of the
 indirection operator (\texttt{*}). This is different than discussing the
 bounds of the values \emph{returned} or \emph{stored} through the
 indirection operator.
@@ -51,7 +58,7 @@ equivalent \texttt{bounds} forms. The form \var{x} :
 \var{x}\texttt{,} \texttt{(\arrayptrchar )}
 \var{x} \texttt{+} \var{e1}\texttt{)}. For now, we ignore the
 additional side conditions on count expressions. Checking of these
-conditions will be addressed in Section 10.
+conditions will be addressed in Chapter~\ref{chapter:simple-invariants}.
 
 Finally, relative alignment is made explicit for all bounds
 declarations: \boundsdecl{\var{x}}{\bounds{\var{e2}}{\var{e3}}} is expanded to
@@ -63,7 +70,7 @@ In the rules below, we sometimes use shorter syntactic forms for
 brevity. The shorter forms should be replaced to the full forms before
 using the rules.
 
-\section{Inferring valid bounds for expressions without nested assignment expressions}\label{inferring-valid-bounds-for-expressions-without-nested-assignment-expressions}
+\section{Inferring valid bounds for expressions without nested assignment expressions}\label{section:inferring-expression-bounds}
 
 We first discuss determining valid bounds for expressions that do not
 have assignment expressions nested within them. The bounds for an
@@ -99,14 +106,15 @@ The bounds for 0 is the \texttt{any} bounds:
 \boundsinfer{0}{\boundsany}
 
 \subsection{Variables}
-\label{variables}
+\label{section:checking-variables}
 
 Suppose there is a use of some variable \var{x}.
 
 \begin{itemize}
 \item
   If \var{x} has type \arrayptr, the bounds are the result of
-  the analysis in Section 4.7.4 for this occurrence of \var{x}.
+  the analysis in Section~\ref{section:extent-definition}
+  for this occurrence of \var{x}.
 \item
   If \var{x} has type \ptrT, 
   \boundsinfer{\var{x}}{\boundsrel{\var{x}}{\var{x} \texttt{+ 1}}{\var{T}}}.
@@ -169,7 +177,7 @@ special variable \texttt{expr\_current\_value}.
 
 There needs to be validation that the bounds for argument expressions
 match the required bounds for formal parameters. This is described in
-Section 5.8.
+Section~\ref{section:checking-function-call-arguments}.
 
 The following code provides examples of function call expressions where
 bounds need to be computed. In the code, the programmer wraps a call to
@@ -352,7 +360,8 @@ then \boundsinfer{\var{e4 op e1}}
 Pointer arithmetic involving an \arrayptr\ value checks that
 the value is non-null and generates a runtime error if it is. This check
 is important because a null pointer may have invalid bounds (this
-follows from the definition of the meaning of bounds in Section 4.1). It
+follows from the definition of the meaning of bounds in 
+Section~\ref{section:bounds-declarations}). It
 prevents a null pointer with invalid bounds from being used to create a
 non-null pointer with invalid bounds, which could then be used to access
 memory.
@@ -371,7 +380,8 @@ If \var{e4} is a pointer to \var{T} and it can be proved that
                                             {\texttt{gcd(\var{c},\sizeof{\var{T}})}}}.
 \end{quote}
 
-Section 10 provides a general framework for checking side-conditions as
+Chapter~\ref{chapter:simple-invariants}
+provides a general framework for checking side-conditions as
 part of checking bounds declarations.
 
 \subsubsection{Treatment of expr\_current\_value variable in bounds for
@@ -451,7 +461,8 @@ which can be simplified to:
                                          expr_current_value + size)
 \end{verbatim}
 
-As we will explain in Section 10, it is fine to narrow a bounds by
+As we will explain in Chapter~\ref{chapter:simple-invariants}, 
+it is fine to narrow a bounds by
 adding a positive constant to the lower bounds. This allows us to adjust
 the bounds to what would be desired when extra padding is inserted:
 
@@ -508,7 +519,8 @@ as the bounds for the entire expression.
 If the special variable \texttt{expr\_current\_value} occurs in the
 bounds for \var{e2}, it is left unchanged.
 
-\section{Validity of bounds declarations for assignment expressions}\label{validity-of-bounds-declarations-for-assignment-expressions}
+\section{Validity of bounds declarations for assignment expressions}
+\label{section:checking-assignment-expressions}
 
 For an assignment expression of the form \var{x} \texttt{=} \var{e},
 where \var{x} is a variable and \var{e} is an expression, we start
@@ -740,10 +752,12 @@ of computing the inverse of \texttt{x = (x + 4) + 5}:
               (x - 5) - 4
 \end{verbatim}
 
-\section{Bounds for expressions with nested assignment expressions}\label{bounds-for-expressions-with-nested-assignment-expressions}
+\section{Bounds for expressions with nested assignment expressions}
+\label{section:checking-nested-assignment-expressions}
 
 C allows assignment expressions to be nested within other expressions.
-This means that the approach of Section 5.3 has to be extended to walk
+This means that the approach of 
+Section~\ref{section:checking-assignment-expressions} has to be extended to walk
 expressions recursively and update the context during the walk.
 
 Given some expression e that has subexpressions e\textsubscript{1}
@@ -757,23 +771,28 @@ new context and the bounds expression for e as follows:
   context and compute the updated context and the bound expression (if
   any) for the subexpression.
 \item
-  If e is an assignment expression, apply the rules in Section 5.3 to
+  If e is an assignment expression, apply the rules in 
+  Section~\ref{section:checking-assignment-expressions} to
   compute an updated context and a bounds expression for e
 \item
-  Otherwise, apply the rules in Section 5.1 to compute an updated bounds
+  Otherwise, apply the rules in Section~\ref{section:inferring-expression-bounds}
+  to compute an updated bounds
   expression for e.
 \end{itemize}
 
- \section{Checking expression statements}\label{checking-expression-statements}
+\section{Checking expression statements}
+\label{section:checking-expression-statements}
 
 Expression statements need to be checked for consistency with their
 expected bounds declarations. If an expression statement is within a
 bundled block, the checking is deferred to the end of the bundled block.
 
-To check an expression statement, the analysis of Section 4.7.4 is used
+To check an expression statement, the analysis of 
+Section~\ref{section:extent-definition} is used
 to determine the context for the expression in the statement (the bounds
-for variables before the statement is evaluated). The rules in Section
-5.4 are then used to determine the updated context.
+for variables before the statement is evaluated). The rules in 
+Section~\ref{section:checking-nested-assignment-expressions}
+are then used to determine the updated context.
 
 The updated context is then checked against the bounds declarations that
 must be true after the expression statement. For each
@@ -785,7 +804,8 @@ computed:
   If the expression statement has a bounds declaration for \var{x}, the
   bounds expression in that bounds declaration is used.
 \item
-  Otherwise, the analysis of Section 4.7.4 is used to determine the
+  Otherwise, the analysis of Section~\ref{section:extent-definition}
+  is used to determine the
   expected bounds expression for x.
 \end{itemize}
 
@@ -794,7 +814,8 @@ expected bounds expression holds. Implication is checked in this section
 using by placing non-modifying expressions into a canonical form and
 checking for syntactic equality. If two expressions have the same
 canonical form, any values that they have at runtime will always be
-identical. Section 10 describes more general techniques for checking
+identical. Chapter~\ref{chapter:simple-invariants}
+describes more general techniques for checking
 that context bounds imply the expected bounds.
 
 The context bounds expression implies that the expected bounds
@@ -866,7 +887,8 @@ none occurred before. For canonicalization, though, reassociation is
 fine.
 
 Signed integer operations do not follow certain mathematical identities.
-This is because according to the rules in Section 3.8, they may produce
+This is because according to the rules in 
+Section~\ref{section:changes-to-undefined-behavior}, they may produce
 a value on overflow, but the properties of the value are not specified.
 Signed addition is not associative: \texttt{(a + b) + c} is not
 guaranteed to produce the same result as \texttt{a + (b + c)} in the
@@ -885,7 +907,8 @@ signed integers will be written as \texttt{(a
 +}\emph{\textsubscript{signed}} \texttt{b)
 +}\emph{\textsubscript{signed}} \texttt{c}.
 
-The overflow checking operators introduced in Section 3.4.2 only include
+The overflow checking operators introduced in
+Section~\ref{section:pointers-as-integers} only include
 operators that can occur in practice. For canonicalization, it is useful
 to have a complete set of operators, including
 \texttt{+\textsubscript{ovf}} and \texttt{\textsubscript{-ovf}} that
@@ -1227,7 +1250,7 @@ x +\textsubscript{ovf} (4 *\textsubscript{ovf} k)
 The expressions are not identically syntactically, so bounds expression
 checking fails. The additional side conditions that \verb|k >= 0 && k <= UINTPTR\_MAX/4|
 are needed to show that the computed upper bound implies the expected upper bound. More
-general techniques from Section 10 are needed to show that the context
+general techniques from Chapter~\ref{chapter:simple-invariants} are needed to show that the context
 bounds imply the expected bounds.
 
 \subsection{Extending canonicalization to two's complement signed integer arithmetic}
@@ -1238,7 +1261,8 @@ as two's complement arithmetic is available under a compiler flag. In
 this case, the expected arithmetic properties hold, which enables more
 expressions to be canonicalized to the same form.
 
-\section{Checking declarations}\label{checking-declarations}
+\section{Checking declarations}
+\label{section:checking-declarations}
 
 Declarations also need to be checked for consistency with their bounds
 declarations. If the declaration is within a bundled block, the checking
@@ -1264,7 +1288,8 @@ each variable \var{v} in the list,
 \item
   If \var{v} has an initializer, the current context is updated by
   traversing the assignment expressions in the initializer using the
-  analysis from Section 5.4. The bounds for each individual assignment
+  analysis from Section~\ref{section:checking-nested-assignment-expressions}. 
+  The bounds for each individual assignment
   expression are recorded as well. Note that if \var{v} is a static
   variable, the assignment expressions must actually be constant
   expressions, so the context will not change.
@@ -1301,23 +1326,27 @@ each variable \var{v} in the list,
 \end{itemize}
 
 The current context is then checked against the bounds declarations that
-must be true after the declaration using the analysis in Section 5.5.
+must be true after the declaration using the analysis in 
+Section~\ref{section:checking-expression-statements}
 
 Declarations that are not definitions are not checked, other than to
 verify that all the declarations of a variable in a translation unit
 have the same bounds declaration (or lack of a bounds declarations) for
 the variable.
 
-\section{Checking bundled declarations and statements}\label{checking-bundled-declarations-and-statements}
+\section{Checking bundled declarations and statement}
+\label{section:checking-bundled}
 
 To check bundled declarations and statements, the current context is
 determined before the bundled block. The current context is then updated
 for each expression statement and declaration following the rules for
-updating contexts in Sections 5.5 and 5.6. The analysis of Section 4.7.4
+updating contexts in Sections~\ref{section:checking-expression-statements} and 
+\ref{section:checking-declarations}. The analysis of 
+Section~\ref{section:extent-definition}
 is used to determine the expected bounds expression for each variable at
 the end of the bundled block. The current context is checked against the
 bounds declarations that must be true at the end of the block using the
-analysis in Section 5.5.
+analysis in Section~\ref{section:checking-expression-statements}
 
 When an expression with \arrayptr\ type is dereferenced within
 an expression statement in a bundled block, the current context before
@@ -1369,7 +1398,8 @@ bounds are valid. This means that the context before the function call
 must imply that bounds declarations for variables in scope that have
 static storage are valid.
 
-\section{Checking function call arguments}\label{checking-function-call-arguments}
+\section{Checking function call arguments}
+\label{section:checking-function-call-arguments}
 
 Function call arguments also need to be checked for consistency with
 expected bounds declarations. This is similar to checking of expression
@@ -1392,10 +1422,12 @@ parameters,
   call.
 \item
   The context for the function call is constructed. The statement is
-  checked in that context using the rules in Section 5.5.
+  checked in that context using the rules in 
+  Section~\ref{section:checking-expression-statements}
 \item
   A subtle point is that the order of evaluation for argument
-  expressions in C is not defined (Section 5.11 discusses order of
+  expressions in C is not defined (Section~\ref{section:avoiding-undefinedness}
+  discusses order of
   evaluation issues in depth). A check is done also that the values of
   argument expressions used in checking the bounds declaration do not
   depend on the order of evaluation of arguments:
@@ -1419,7 +1451,8 @@ is optional. The bounds for \var{e} are computed. If the special
 variable \texttt{expr\_current\_value} occurs in the bounds, the special
 variable \keyword{return\_value} is substituted into the bounds in its
 place. It is then checked that the updated bounds for \var{e} imply the
-return bounds for the function using the rules in Section 5.5.
+return bounds for the function using the rules in 
+Section~\ref{section:checking-expression-statements}
 
 \section{Checking other statements}\label{checking-other-statements}
 
@@ -1459,11 +1492,14 @@ expression occurring in a statement to have new bounds declared for any
 bounds in it. This means that the bounds declarations in the context
 will be expected to be true after the evaluation of the expression too.
 
-The rules in Section 5.4 are used to determine the updated context after evaluation of the
-expression. The rules in Section 5.5 are used to check that the updated
+The rules in Section~\ref{section:checking-nested-assignment-expressions}
+are used to determine the updated context after evaluation of the
+expression. The rules in Section~\ref{section:checking-expression-statements}
+are used to check that the updated
 context is valid for the expected bounds declarations.
 
-\section{Avoiding undefined expressions and undefined bounds}\label{avoiding-undefined-expressions-and-undefined-bounds}
+\section{Avoiding undefined expressions and undefined bounds}
+\label{section:avoiding-undefinedness}
 
 The order of evaluation of side-effects in subexpressions of an
 expression is defined in C only in certain circumstances (these are

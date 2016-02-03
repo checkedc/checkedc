@@ -29,7 +29,8 @@
 \section{Bounds and null values}\label{bounds-and-null-values}
 
 It is troublesome that the current meaning of bounds expressions is
-conditional on values not being null. From Section 4:
+conditional on values not being null. 
+From Section~\ref{section:bounds-declarations}:
 
 \begin{quote}
 The meaning of a bounds expression can be defined more precisely. At
@@ -315,7 +316,8 @@ after cond1 ...
 
 \section{Discussion of optimizing bounds check and overflow}\label{discussion-of-optimizing-bounds-check-and-overflow}
 
-We had the following discussion in Section 4.10 that distracted from the
+We had the following discussion in Section~{section:bounds-checking-at-indirections}
+that distracted from the
 main point of the section. It's also confusing the overflow check for x
 + c is omitted. The point of the example below is that we can make code
 efficient. That deserves a fuller discussion and should be buttressed by
