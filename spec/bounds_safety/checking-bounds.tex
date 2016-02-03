@@ -1,3 +1,4 @@
+% !Tex root = checkedc.tex
 
 \chapter{Checking validity of bounds declarations for variables}\label{checking-validity-of-bounds-declarations-for-variables}
 
@@ -751,7 +752,7 @@ new context and the bounds expression for e as follows:
 \begin{itemize}
 \item
   Traverse e\textsubscript{1} \ldots{} e\textsubscript{n} in an order
-  that respect the sequence points of . For each subexpression, take the
+  that respect the sequence points of \cite{ISO2011}. For each subexpression, take the
   context and compute the updated context and the bound expression (if
   any) for the subexpression.
 \item
@@ -1465,7 +1466,7 @@ context is valid for the expected bounds declarations.
 
 The order of evaluation of side-effects in subexpressions of an
 expression is defined in C only in certain circumstances (these are
-described in Section 6.5 and Annex C of). Otherwise, the order of
+described in Section 6.5 and Annex C of \cite{ISO2011}). Otherwise, the order of
 evaluation of side-effects is undefined. Although nested assignment
 expressions help the brevity of programs, they lead to expressions whose
 meaning or bounds are undefined. To avoid compromising the integrity of

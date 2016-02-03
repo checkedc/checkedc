@@ -1,5 +1,4 @@
-
-
+% !Tex root = checkedc.tex
 
 \chapter{Lessons from Existing Research}\label{lessons-from-existing-research}
 
@@ -12,9 +11,9 @@ by industry, even though flaws in C and C++ programs have caused
 widespread, costly security problems \emph{(to do: citation).} What
 lessons can we learn from existing research?
 
-CCured uses whole-program static analysis to identify different uses of
-pointers in C programs. It identifies pointers that are used to read or
-write values only (safe pointers), pointers that are used in pointer
+CCured \cite{Necula2005} uses whole-program static analysis to identify 
+different uses of pointers in C programs. It identifies pointers that are used to
+read or write values only (safe pointers), pointers that are used in pointer
 arithmetic also (sequence pointers), and pointers that are involved in
 possibly non-type safe casts (wild pointers). It uses a multi-machine
 word representation for sequence pointers and wild pointers. It also
@@ -25,8 +24,8 @@ arithmetic. It suggests that new types of pointers should be introduced
 into C for pointers that have different safety requirements. This would
 be an easy and low-risk way to improve the safety of C programs.
 
-Deputy uses dependent types to avoid runtime layout changes in pointers
-involved in pointer arithmetic. The dependent types allow the bounds of
+Deputy \cite{Condit2007,Feng2006} uses dependent types to avoid runtime layout changes
+in pointers involved in pointer arithmetic. The dependent types allow the bounds of
 the pointers to be specified as part of the types of the pointers and
 the bounds to depend on runtime values. Deputy requires programmers to
 annotate function parameters, data structures, and global parameters
@@ -36,7 +35,7 @@ program type check. The runtime checks enforce that pointer values stay
 in bounds. The checks apply to pointer arithmetic and pointer
 dereferencing.
 
-Havoc goes beyond Deputy and allows types to be combined with program
+Havoc \cite{Condit2009} goes beyond Deputy and allows types to be combined with program
 verification. It allows a programmer to specify program invariants that
 imply type safety and can verify these invariants statically. It can
 handle unsafe code such as using a pointer to a field to access a prior

@@ -340,7 +340,7 @@ in Section 6.1.
 
 For existing unsafe C pointers, the definition of pointer arithmetic is
 described in terms of addresses of elements of an array object. The C
-Standard states, that given a pointer p that points to some element i of
+Standard \cite{ISO2011} states, that given a pointer p that points to some element i of
 an array object, p + j points to the (i+j)th element of that object.
 Pointer arithmetic is defined only for pointers to elements of the array
 object or one past the last element of the array object.
@@ -741,7 +741,7 @@ The following example illustrates why having an escape hatch from static
 checking is useful. Suppose a decoder from a compressed representation
 to an uncompressed representation is being converted to use safe
 pointers. This example is based on code patterns seen in the Abstract
-Syntax Notation (ASN1) parsing code of OpenSSL .
+Syntax Notation (ASN1) parsing code of OpenSSL \cite{OpenSSL2015}.
 
 \begin{verbatim}
 void decode(char *output_buffer, char *input_buffer, size_t input_len)
@@ -858,8 +858,8 @@ int decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer,
 \end{verbatim}
 
 The problems with requiring functions that validate buffer lengths to
-return status codes for errors are analyzed by . Annex K of the C
-Standard introduced a new set of standard library functions to replace
+return status codes for errors are analyzed by O'Donell and Sebor\cite{ODonell2015}. 
+Annex K of the C Standard \cite{ISO2011} introduced a new set of standard library functions to replace
 functions that provide no way to validate their arguments. These
 functions return status codes to indicate success or failure A classic
 example of a function prone to misuse is \texttt{strcpy(char *dst, const

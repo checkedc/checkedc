@@ -1,0 +1,15 @@
+#
+# ignore intermediate files created by LaTex and BibTex
+#
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.toc
+*.out
+
+# Ignore output files created usng Latex too.
+
+*.pdf
+*.dvi

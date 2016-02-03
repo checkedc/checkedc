@@ -1,3 +1,4 @@
+% !Tex root = checkedc.tex
 
 \chapter{Tracking bounds for variables with \arrayptr\ or incomplete checked array types}\label{tracking-bounds-for-variables-with-arrayux5fptr-or-incomplete-checked-array-types}
 
@@ -536,7 +537,7 @@ and the initial declarations of other variables used in the
 
 \section{Syntax changes}\label{syntax-changes}
 
-The grammar from the ``C Programming Language'' is extended to include
+The grammar from the ``C Programming Language'' \cite{Ritchie1988} is extended to include
 in-line bounds declarations and \keyword{where} clauses for declarations:
 
 \var{init-declarator} :
@@ -1190,7 +1191,7 @@ declaration.
 
 The inference process can be done for all \arrayptr\ variables
 in a function with dataflow-sensitive bounds using a forward dataflow
-analysis . The bounds declarations for all occurrences of
+analysis \cite{Aho2007}. The bounds declarations for all occurrences of
 \arrayptr\ variables in a function can be computed in
 worst-case O(N\^{}2 * M) time. N is the number of statements in a
 function and M is the number of \arrayptr\ variables in the
@@ -1504,8 +1505,9 @@ deferred until a bounds check uses the bounds expression.
 \section{Size computations for memory allocation and integer overflow or wraparound}\label{size-computations-for-memory-allocation-and-integer-overflow-or-wraparound}
 
 When objects are allocated dynamically in C, programmers have to compute
-the amount of memory to allocate for the objects. It is well-known that
-integer overflow or wraparound in these computations can lead to buffer
+the amount of memory to allocate for the objects. It is well-known 
+\cite{Howard2003,Mitre2015-128,Mitre2015-190,Mitre2015-680} 
+that integer overflow or wraparound in these computations can lead to buffer
 overruns . In Checked C, the explicit size computations are not enough
 to imply that the bounds for a newly-allocated object are valid.
 Additional side conditions that deal with integer overflow or wraparound
