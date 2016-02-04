@@ -718,7 +718,7 @@ example, support short ints are 2 bytes in size and
 This illustration shows 12 consecutive bytes in memory beginning at
 address a\textsubscript{0}, where \texttt{y} and \texttt{z} bound a
 3-element array and \texttt{z} points to the middle of the array. The
-memory occuped by the 3-element array is shaded in light purple, and the
+memory occuped by the 3-element array is shaded in light blue, and the
 element pointed to by x is also cross-hatched. The distances in bytes
 between \texttt{x}, \texttt{y}, and \texttt{z} are all multiples of 2,
 the size of \texttt{short int}.
@@ -1228,6 +1228,13 @@ expressions in the flow-sensitive bounds declaration for variables in
 the function, \boundsnone (indicating absence of bounds
 information), and \texttt{Top} (indicating contradiction or error):
 
+\begin{tikzpicture}[sibling distance=1in]
+\node[rectangle, minimum size=8pt]{\texttt{Top}}
+  child foreach \name in {\boundsnone, \var{bounds-exp\textsubscript{1}},
+                          \var{bounds-exp\textsubscript{2}}, \ldots}
+     {node{\name} edge from parent[<-, thick]};
+\end{tikzpicture}
+ 
 For an assignment to an \arrayptr\ variable, the existing
 lattice value for the \arrayptr\ variable is killed. A new
 lattice value is generated for the \arrayptr\ variable. If the
