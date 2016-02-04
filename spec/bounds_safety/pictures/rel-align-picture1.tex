@@ -1,0 +1,14 @@
+\documentclass[11pt]{report}
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}
+\newcommand{\rectsize}{20}
+\filldraw[color=cyan!30] (2*\rectsize pt, 0) rectangle(8*\rectsize pt, \rectsize pt);
+\filldraw[color=cyan!70] (4*\rectsize pt, 0) rectangle(6*\rectsize pt, \rectsize pt);
+\draw[step=20pt] (0,0) grid(12*\rectsize pt, \rectsize pt);
+\foreach \x in {0,...,11} 
+  {
+    \draw (\x * \rectsize pt, - \rectsize / 2 pt) node[anchor=west]{a\textsubscript{\x}};
+  }
+\end{tikzpicture}
+\end{document}
