@@ -722,6 +722,9 @@ memory occuped by the 3-element array is shaded in light purple, and the
 element pointed to by x is also cross-hatched. The distances in bytes
 between \texttt{x}, \texttt{y}, and \texttt{z} are all multiples of 2,
 the size of \texttt{short int}.
+\begin{center}
+\relalignpic{4}
+\end{center}
 
 This simplifies bounds checking because there is no concern during a
 bounds check that a pointer will access memory at the end or beginning
@@ -729,6 +732,9 @@ of the array that partially overlaps with the bounds. Suppose, for
 example, that \texttt{x} was not relatively aligned to \texttt{y} and
 \texttt{z} and points at a\textsubscript{7}. The object pointed to by
 \texttt{x} now straddles the array bounds. This illustration shows this:
+\begin{center}
+\relalignpic{7}
+\end{center}
 
 When \texttt{x} is not relatively aligned, the bounds check for x
 becomes more expensive. With relative alignment, the bounds check is
