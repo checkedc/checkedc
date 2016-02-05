@@ -254,90 +254,87 @@ variable is converted to a pointer type.
 \subsection{Summary of conversion operators}
 
 The following table summarizes the operations for converting between
-pointers to objects of different types, provided that S and T are
+pointers to objects of different types, provided that \var{S} and \var{T} are
 complete types:
 
-\begin{longtable}[c]{@{}lllll@{}}
-\toprule
-To
+\newcommand{\boundscast}[2]{\texttt{bounds\_cast<#1>#2}}
+\newcommand{\coreboundscast}[2]{\texttt{core\_bounds\_cast<#1>#2}}
+\newcommand{\assumeboundscast}[2]{\texttt{assume\_bounds\_cast<#1>#2}}
 
-From & array\_ptr\textless{}T\textgreater{} &
-array\_view\textless{}T\textgreater{} & ptr\textless{}T\textgreater{} &
-T *\tabularnewline
+{\tiny
+\begin{longtable}[c]{p{0.5in}p{1.4in}p{1.4in}p{1.1in}p{1.1in}}
+\toprule
+\multicolumn{1}{r}{\textit{To}}  & \arrayptrT &
+\arrayviewT & \ptrT &
+T * \tabularnewline
+\textit{From} \tabularnewline
 \midrule
 \endhead
-array\_ptr\textless{}S\textgreater{} &
-bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2)
+\arrayptrinst{\var{S}} &
+\boundscast{\arrayptrT}{(e1, e2)}
 
-bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3)
+\boundscast{\arrayptrT}{(e1, e2, e3)}
 
-core\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2)
+\coreboundscast{\arrayptrT}{(e1, e2)}
 
-core\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3) &
-bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2)
+\coreboundscast{\arrayptrT}{(e1, e2, e3)} &
+\boundscast{\arrayviewT}{(e1,e2)}
 
-bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3)
+\boundscast{\arrayviewT}{(e1, e2, e3)}
 
-core\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2)
+\coreboundscast{\arrayviewT}{(e1, e2)}
 
-core\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3) &
-bounds\_cast\textless{}ptr\textless{}T\textgreater{}\textgreater{}(e1)
+\coreboundscast{\arrayviewT}{(e1, e2, e3)} &
+\boundscast{\ptrT}{(e1)}
 
-core\_bounds\_cast\textless{}ptr\textless{}T\textgreater{}\textgreater{}(e1)
-& bounds\_cast\textless{}T *\textgreater{}(e1)
+\coreboundscast{\ptrT}{(e1)}
+& \boundscast{\var{T} *}{(e1)}
 
-If S==T, \&e1{[}i{]} can be used too.
+If \texttt{\var{S}==\var{T}}, \texttt{\&e1[i]} can be used too.
 
-assume\_bounds\_cast\textless{}T *\textgreater{}(e1)\tabularnewline
-array\_view\textless{}S\textgreater{} & Same as above & Same as above &
-Same as above & Same as above.\tabularnewline
-ptr\textless{}S\textgreater{} & Same as above & Same as above. & Same as
+\assumeboundscast{\var{T} *}{(e1)}\tabularnewline \midrule[0.25pt]
+\arrayviewinst{\var{S}} & Same as above & Same as above &
+Same as above & Same as above.\tabularnewline \midrule[0.25pt]
+\ptrinst{\var{S}} & Same as above & Same as above. & Same as
 above.
 
-For bounds\_cast, it is a compile-time error if sizeof(S) \textless{}
-sizeof(T). This is guaranteed to fail at runtime. &
-bounds\_cast\textless{}T *\textgreater{}(e1)
+For \texttt{bounds\_cast}, it is a compile-time error if \texttt{sizeof(\var{S}) <
+sizeof(\var{T})}. This is guaranteed to fail at runtime. &
+\boundscast{\var{T} *}{(e1)}
 
-assume\_bounds\_cast\textless{}T *\textgreater{}(e1)\tabularnewline
-S * & If e1 has known bounds, same as above.
+\assumeboundscast{\var{T} *}{(e1)}\tabularnewline \midrule[0.25pt] 
+\var{S} * & If e1 has known bounds, same as above. Otherwise:
 
-Otherwise:
+\texttt{assume\_bounds\_cast<\arrayviewT>}
 
-assume\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2)
+\texttt{(e1, e2)}
 
-assume\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3) & If e1 has known bounds, same as above.
+\texttt{assume\_bounds\_cast<\arrayviewT>}
 
-Otherwise:
+\texttt{(e1, e2, e3)} & If e1 has known bounds, same as above.  Otherwise:
 
-assume\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2)
+\texttt{assume\_bounds\_cast<\arrayviewT>}
 
-assume\_bound\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3). & If e1 has known bounds, same as above.
+\texttt{(e1, e2)}
 
-Otherwise:
+\texttt{assume\_bounds\_cast<\arrayviewT>}
 
-assume\_bounds\_cast\textless{}T\textgreater{}(e1), & C cast operation
-of the form (T *) e1\tabularnewline
+\texttt{(e1, e2, e3)}
+
+&
+If e1 has known bounds, same as above. Otherwise:
+
+\hspace{0pt} \assumeboundscast{\var{T}}{(e1)} & \texttt{(\var{T} *) e1}\tabularnewline
 \bottomrule
 \end{longtable}
+}
 
 \section{Bounds-safe conversions for pointers to incomplete types, including pointers to void}
 
 In the prior section, the source and destination pointer types in a
 bounds\_cast or core\_bounds\_cast operation must be complete types or
 have a referent type of void. However, there is one important exception:
-ptr\textless{}T\textgreater{} can always be safely converted to T *,
+\ptrT\ can always be safely converted to T *,
 even if T is incomplete. This follows from treating sizeof(T) as a
 symbolic constant in the rules for computing bounds and the runtime
 checking rules for bounds\_cast and core\_bounds\_cast.
@@ -354,77 +351,69 @@ kind of pointer type with a referent type of void. However, explicit
 casts must be used when converting from any kind of safe pointer type
 with a referent type of void:
 
-\begin{longtable}[c]{@{}lllll@{}}
+{\tiny
+\begin{longtable}[c]{p{0.6in}p{1in}p{1.1in}p{1.4in}p{1.4in}}
 \toprule
-To From & T * & ptr\textless{}T\textgreater{} &
-array\_view\textless{}T\textgreater{} &
-array\_ptr\textless{}T\textgreater{}\tabularnewline
+\multicolumn{1}{r}{\textit{To}}  & T * & \ptrT &\arrayviewT &
+                                \arrayptrT \tabularnewline
+\textit{From} \tabularnewline
 \midrule
 \endhead
 void * & Follow existing C rules & ptr\_cast\textless{}T\textgreater{},
 if bounds are known.
 
 assume\_ptr\_cast\textless{}T\textgreater{}, otherwise &
-bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{},
+bounds\_cast\textless{}\arrayviewT\textgreater{},
 if bounds are known:
 
 - check relative alignment
 
-assume\_bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2): e2 is length. No relative alignment check needed
+\assumeboundscast{\arrayviewT}{(e1, e2)}: No relative alignment check needed.
 
-assume\_bound\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3). e2/e3 are lower/upper bounds.
+\assumeboundscast{\arrayviewT}{(e1, e2, e3)}: check relative alignment &
+\boundscast{\arrayptrT}{}: 
 
-- check relative alignment &
-bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
-- has bounds(none) if bounds are unknown.
+- has \boundsnone\ if bounds are unknown.
 
 - check relative alignment if bounds are known.
 
-assume\_bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2): e2 is length, no relative alignment check needed
+\assumeboundscast{\arrayptrT}{(e1, e2)}: no relative alignment check needed
 
-assume\_bound\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}(e1,
-e2, e3): e2/e3 are lower/upper bounds
-
-- check relative alignment\tabularnewline
-ptr\textless{}void\textgreater{} & Only the following unsafe operator is
+\assumeboundscast{\arrayptrT}{(e1, e2, e3)}:  check relative alignment\tabularnewline
+\ptrinst{void} & Only the following unsafe operator is
 available.
 
 assume\_unsafe\_ptr\_cast: no check &
 ptr\_cast\textless{}T\textgreater{}
 
 \var{\texttt{TODO: need unsafe operator}} & Not allowed & Not
-allowed\tabularnewline
-view\textless{}void\textgreater{} & unsafe\_ptr\_cast: check that memory
+allowed \tabularnewline
+\arrayviewinst{void} & unsafe\_ptr\_cast: check that memory
 accessible by pointer dereference is in bounds
 
 assume\_unsafe\_ptr\_cast: no check &
 ptr\_cast\textless{}T\textgreater{}
 
 check that memory accessible by pointer dereference is in bounds &
-bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}:
+\boundscast{\arrayviewT}{}: check relative alignment &
+\boundscast{\arrayptrT}{}: check relative alignment\tabularnewline
 
-- check relative alignment &
-bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
-
-- check relative alignment\tabularnewline
-array\_ptr\textless{}void\textgreater{} & unsafe\_ptr\_cast: check that
+\arrayptrinst{void} & unsafe\_ptr\_cast: check that
 memory accessible by pointer dereference is in bounds
 
 assume\_unsafe\_ptr\_cast: no check &
 ptr\_cast\textless{}T\textgreater{}
 
 check that memory accessible by pointer dereference is in bounds &
-bounds\_cast\textless{}array\_view\textless{}T\textgreater{}\textgreater{}:
+\boundscast{\arrayviewT}{}:
 
 - check relative alignment &
-bounds\_cast\textless{}array\_ptr\textless{}T\textgreater{}\textgreater{}:
+bounds\_cast\textless{}\arrayptrT\textgreater{}:
 
 - check relative alignment\tabularnewline
 \bottomrule
 \end{longtable}
+} 
 
 \section{Bounds-safe interfaces to existing unsafe functions}
 \label{section:function-bounds-safe-interfaces}

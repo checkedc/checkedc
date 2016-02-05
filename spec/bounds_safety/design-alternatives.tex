@@ -394,25 +394,24 @@ consideration. The definitions differ on two axes:
 
 Here is the matrix of different permutations:
 
-\begin{longtable}[c]{@{}llll@{}}
+\begin{longtable}[c]{p{0.8in}p{1.4in}p{1.4in}p{1.4in}}
 \toprule
-Set of program points & By-value & By-reference & General
-comments\tabularnewline
+Set of program points & By-value & By-reference & General comments\tabularnewline
 \midrule
 \endhead
 Direct & & & By-value and by-reference evaluation is indistinguishable.
 Because there are no assignments, both produce the same
-result\tabularnewline
+result\tabularnewline \midrule
 Always & Introduces hidden temporary variables that hold bounds value.
 May lead to runtime failures if the lhs variable is assigned a pointer
 to an object outside of the declared bounds & Modification of variables
 used in bounds expressions requires declaring a new bounds for the lhs
-for variable. &\tabularnewline
+for variable. &\tabularnewline \midrule
 Intermediate & Introduces hidden temporary variables that hold bounds
 value.
 
 May lead to runtime failures if the lhs variable is assigned a pointer
-to an object outside of the declared bounds. & &\tabularnewline
+to an object outside of the declared bounds. & &\tabularnewline \midrule
 General comments & We would need to check that all pointer variables in
 bounded expressions are non-null before evaluating bounds at
 declaration.

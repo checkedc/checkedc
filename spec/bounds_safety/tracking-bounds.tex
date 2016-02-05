@@ -1589,7 +1589,7 @@ count expression. We can compare the size computations and see when the
 values differ. We add casts for any implicit conversions that would
 occur in the \texttt{malloc} size computation also:
 
-\begin{longtable}[c]{@{}llll@{}}
+\begin{longtable}[c]{lp{1.75in}p{1.75in}p{1in}}
 \toprule
 Type of e1 & Count size computation & \texttt{malloc} size computation &
 Values differ?\tabularnewline
@@ -1608,15 +1608,13 @@ For correctness, we want the count size computation and the
 implies that malloc did allocate the number of bytes expected by the
 count size computation. We add conditions on \texttt{e1} to do this:
 
-\begin{longtable}[c]{@{}ll@{}}
+\begin{longtable}[c]{ll}
 \toprule
 Type of e1 & Restrictions\tabularnewline
 \midrule
 \endhead
-Unsigned integer & \texttt{e1 \textless{}=
-UINT\_MAX/sizeof(T)}\tabularnewline
-Signed integer & \texttt{e1 \textgreater{}= 0 and e1 \textless{}=
-INT\_MAX/sizeof(T)}\tabularnewline
+Unsigned integer & \texttt{e1 <= UINT\_MAX/sizeof(T)}\tabularnewline
+Signed integer & \texttt{e1 >= 0 and e1 <= INT\_MAX/sizeof(T)}\tabularnewline
 \bottomrule
 \end{longtable}
 
