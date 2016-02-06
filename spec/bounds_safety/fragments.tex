@@ -4,7 +4,7 @@
 
 Here are some fragments of ideas that need to be more fully developed.
 
-\texttt{Incompleteness of static checking}
+\section{Incompleteness of static checking}
 
 The invariant checking algorithm is not complete, in that there may be
 invariants about the program that are true, but which the invariant
@@ -22,7 +22,7 @@ complete with disjunction (or) because of the presence of min and max.
 The logic used by the checker does not include axioms for disjunction or
 min/max.
 
-\texttt{Partial correctness}
+\section{Partial correctness}
 
 We are pursuing a strategy of being able to prove partial correctness
 when these undefined behaviors are possible. Specifically, we would
@@ -41,7 +41,7 @@ have to be made (that type casts are correct and memory allocation is
 correct). For example, we will narrow the amount of unsafe code so that
 assumptions are needed about less and less code.
 
-\texttt{Discussion of facts involving members}
+\section{Discussion of facts involving members}
 
 \var{fact: }
 
@@ -53,7 +53,7 @@ assumptions are needed about less and less code.
 \var{range-exp relop var-member-path}
 \end{quote}
 
-\texttt{Loop invariants and dataflow-sensitive bounds declarations}
+\section{Loop invariants and dataflow-sensitive bounds declarations}
 
 \texttt{Array\_ptr} variables with dataflow-sensitive bounds declarations also
 need loop invariants if the variables are updated in a loop. Those

@@ -22,20 +22,16 @@ Bounds are declared using bounds declarations. Bounds declarations have
 the form:
 
 \begin{quote}
-\var{x} \texttt{:} \var{bounds-exp}
+\boundsdecl{\var{x}}{\var{bounds-exp}}
 \end{quote}
 
-\var{bounds-exp:}
-
-\begin{quote}
-\texttt{count(}\var{non-modifying-exp}\texttt{)}
-
-\bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}}
-
-\boundsnone
-
-\boundsany
-\end{quote}
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
+\> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
+\> \boundsnone \\
+\> \boundsany
+\end{tabbing}
 
 where \var{x} is a variable. There are additional forms for handling
 casts and void pointers that are described in 
@@ -98,14 +94,14 @@ overflow and unsigned integer wraparound from affecting size
 computations. Section~\ref{section:integer-overflow-informal}
 explains these limits in detail. The limits
 depend on the element type of the \arrayptr\ and the type of the count
-expression. For \boundsdecl{\var{x}}{\boundscount{\var{e1}}}, where x
+expression. For \boundsdecl{\var{x}}{\boundscount{\var{e1}}}, where \var{x}
 has type \arrayptrT ,
 \var{e1} must be greater than or equal to 0. \var{e1} must be less
 than the maximum number of an
 \arrayptrT\ elements
 that can be indexed by an integer whose type matches that of \var{e1}.
 If \var{e1} has an unsigned integer type, \var{e1} must be less than
-or equal to \texttt{UINTPTR\_MAX/\sizeof{\var{T}}}. If e1 has a
+or equal to \texttt{UINTPTR\_MAX/\sizeof{\var{T}}}. If \var{e1} has a
 signed integer type, \var{e1} must be \textgreater{}= 0 and less than
 or equal to \texttt{INTPTR\_MAX/\sizeof{\var{T}}}.
 
@@ -124,11 +120,10 @@ element counts do not overflow or wraparound.
 This could be provided by adding a clause to bounds-exp that uses the
 same syntax as C conditional expressions: }
 
-\var{bounds-exp: }
-
-\begin{quote}
-\var{non-modifying-exp ? bounds-exp : bounds-exp}
-\end{quote}
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\>\texttt{\var{non-modifying-exp} ? \var{bounds-exp} : \var{bounds-exp}}
+\end{tabbing}
 
 \emph{This makes describing the system and checking properties more
 complex, so it is a feature that we will consider later.}
@@ -154,9 +149,9 @@ and \var{ubv}, respectively. The value ev will be \texttt{0} (null) or
 have been derived via a sequence of operations from a pointer to some
 object \var{obj} with \bounds{\var{low}}{\var{high}}.
 The following statement will be true at runtime:
-\var{ev} \texttt{== 0 \textbar{}\textbar{} (}\var{low}
-\texttt{<=} \var{lbv} \texttt{\&\&} ubv \texttt{<=}
-\var{high}\texttt{)}. In other words, if \var{ev} is null, the bounds
+\var{ev} \texttt{== 0 || (\var{low} <= \var{lbv}\&\& 
+\var{ubv} <= \var{high})}. In other words, 
+if \var{ev} is null, the bounds
 may or may not be valid. If \var{ev} is non-null, the bounds must be
 valid. This implies that any access to memory where \var{ev} \texttt{!=
 0 \&\&} lbv \texttt{<=} \var{ev} \texttt{\&\&} \var{ev}
@@ -549,69 +544,41 @@ and the initial declarations of other variables used in the
 The grammar from the ``C Programming Language'' \cite{Ritchie1988} is extended to include
 in-line bounds declarations and \keyword{where} clauses for declarations:
 
-\var{init-declarator} :
-
-\begin{quote}
-\var{declarator inline-bounds-specifier\textsubscript{opt}
-where-clause\textsubscript{opt}}
-
-\var{declarator inline-bounds-specifier\textsubscript{opt}
+\begin{tabbing}
+\var{init-}\={declarator:} \\
+\>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
+\>\var{declarator inline-bounds-specifier\textsubscript{opt} 
 where-clause\textsubscript{opt}} \texttt{=} \var{initializer
-where-clause\textsubscript{opt}}
-
-\ldots{}
-\end{quote}
-
-\var{parameter-declaration} :
-
-\begin{quote}
-\var{declaration-specifiers declarator}
-\var{inline-bounds-specifier\textsubscript{opt}
-where-clause\textsubscript{opt}}
-\end{quote}
-
-\var{inline-bounds-specifier:}
-
-\begin{quote}
-\texttt{:} \var{bounds-exp}
-\end{quote}
-
-\var{where-clause}:
-
-\begin{quote}
-\keyword{where} \var{facts}
-\end{quote}
-
-\var{facts}:
-
-\begin{quote}
-\var{fact}
-\end{quote}
-
-\var{fact} \texttt{\&\&} \var{facts}
-
-\var{fact: }
-
-\var{variable inline-bounds-specifier}
-
-\begin{quote}
-\var{variable relop non-modifying-exp}
-
-\var{non-modifying-exp relop variable}
-\end{quote}
-
+where-clause\textsubscript{opt}} \\
+\>\ldots{} \\
+\\
+\var{parameter-declaration:} \\
+\>\var{declaration-specifiers declarator} \\
+\>\var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
+\\
+\var{inline-bounds-specifier:}\\
+\>\texttt{:} \var{bounds-exp} \\ 
+\\
+\>\var{where-clause}: \\
+\>\keyword{where} \var{facts} \\
+\var{facts:} \\
+\>\var{fact} \\
+\>\var{fact} \texttt{\&\&} \var{facts} \\
+\\
+\var{fact:}\\
+\>\var{variable inline-bounds-specifier} \\
+\>\var{variable relop non-modifying-exp} \\
+\>\var{non-modifying-exp relop variable} \\
+\\
 where \var{relop} is one of \verb|<|, \verb|<=|, \verb|==|,
-\verb|!=|, \verb|>=|, \verb|>|.,
-
+\verb|!=|, \verb|>=|, \verb|>|.\\
+\\
 In addition, the grammar is updated to allow where clauses at expression
-statements:
-
-\var{expression-statement}:
-
-\begin{quote}
-\var{expression\textsubscript{opt}
-where-clause\textsubscript{opt}}\texttt{;}
-\end{quote}
+statements:\\
+\\
+\var{expression-statement:}\\
+\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\texttt{;}
+\end{tabbing}
 
 \section{Operations allowed in non-modifying expressions}
 \label{section:non-modifying-expressions}
@@ -622,7 +589,7 @@ of a non-modifying expression must themselves be non-modifying
 expressions. Non-modifying expressions include the following kinds of
 expressions:
 
-\begin{itemize}
+\begin{compactitem}
 \item
   Local variables and parameter variables
 \item
@@ -658,22 +625,19 @@ expressions:
 \item
   Access to special members of \arrayview\ types
   (\texttt{current}, \texttt{lower\_bound}, and \texttt{upper\_bound})
-\end{itemize}
+\end{compactitem}
 
 They also include expressions that access members of types or memory:
 
-\begin{itemize}
+\begin{compactitem}
 \item
   Member references (to members of structures or unions) (the `.'
   operator)
 \item
   Indirect member dereferences (-\textgreater{})
-\end{itemize}
-
-\begin{itemize}
 \item
   Pointer dereferences
-\end{itemize}
+\end{compactitem}
 
 The static checking of the validity of bounds declarations restricts the
 usage of non-modifying expressions that read memory when memory is being
@@ -681,7 +645,7 @@ modified.
 
 Non-modifying expressions do not include:
 
-\begin{itemize}
+\begin{compactitem}
 \item
   Assignment expressions (for the reason that evaluating them repeatedly
   at bounds checks would produce unexpected results)
@@ -696,7 +660,7 @@ Non-modifying expressions do not include:
 \item
   Comma expressions (because bounds expressions do not allow side
   effects, these can always be simplified to the second expression)
-\end{itemize}
+\end{compactitem}
 
 Programmers are advised to use simple non-modifying expressions because
 they may be fully re-evaluated at every bounds check involving the
@@ -793,22 +757,16 @@ relatively aligned to its bounds for \var{T}, there needs to be a way
 to represent this in the program. Bounds expressions are extended with
 an optional relative alignment clause:
 
-\var{bounds-exp:}
-
-\var{\ldots{}}
-
-\begin{quote}
-\bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}}
-        \var{relative-alignment-clause\textsubscript{opt}}
-\end{quote}
-
-\var{relative-alignment-clause:}
-
-\begin{quote}
-\relalign{\var{type}}
-
-\relalignval{\var{constant-exp}}
-\end{quote}
+\begin{tabbing}
+\var{bounds}\=\var{-exp:}\\
+\> \var{\ldots{}}\\
+\> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}}
+         \var{relative-alignment-clause\textsubscript{opt}} \\
+\\
+\var{relative-alignment-clause:}\\
+\> \relalign{\var{type}} \\
+\> \relalignval{\var{constant-exp}} 
+\end{tabbing}
 
 This clause is only added to bounds pairs because (by definition) count
 expressions always describe pointers that are relatively aligned to
@@ -1019,7 +977,7 @@ extends to the next assignment to any variable occurring in the bounds
 declaration. There are exceptions for pointer increment and decrement.
 If an assignment
 
-\begin{itemize}
+\begin{compactitem}
 \item
   increments or decrements a pointer variable (\texttt{++},
   \texttt{-\/-}, \texttt{+=}, \texttt{-=}), and
@@ -1028,7 +986,7 @@ If an assignment
   \bounds{\var{e1}}{\var{e2}}, and
 \item
   the pointer variable does not occur in \var{e1} or \var{e2},
-\end{itemize}
+\end{compactitem}
 
 then no bounds declaration is needed at the statement containing the
 assignment.
@@ -1046,11 +1004,10 @@ lead to unexpected bounds checks failures.
 
 We first define the set of bounds declarations that apply to a function
 component, where a function component is an expression statement,
-variable declaration, or part of a compound statement.
+variable declaration, or part of a compound statement. For any bounds
+declaration for a variable \var{v}, if
 
-For any bounds declaration for a variable \var{v}, if
-
-\begin{enumerate}
+\begin{compactenum}
 \item
   There is some path from the bounds declaration to the function
   component, and
@@ -1058,11 +1015,11 @@ For any bounds declaration for a variable \var{v}, if
   \var{v} occurs in the function component, and
 \item
   There is no other bounds decla;ration for \var{v} along the path
-\end{enumerate}
+\end{compactenum}
 
 then
 
-\begin{enumerate}
+\begin{compactenum}
 \item
   If one of the variables in the bounds expression is out-of-scope at
   the component, the declaration \boundsdecl{\var{v}}{\boundsnone}
@@ -1071,7 +1028,7 @@ then
   If one of the expressions or statements on the path modifies a
   variable occurring in the bounds declaration, and
 
-  \begin{enumerate}
+  \begin{compactenum}
   \item
     The expression or statement is not a pointer increment or decrement
     of the variable \var{v}, or
@@ -1080,12 +1037,12 @@ then
   \item
     the bounds expression has the form \texttt{count},
     \boundsnone, or \boundsany
-  \end{enumerate}
+  \end{compactenum}
 then the declaration \boundsdecl{\var{v}}{boundsnone} applies.
 Otherwise,
 \item
   The bounds declaration applies.
-\end{enumerate}
+\end{compactenum}
 
  \subsection{Consistency}
 
@@ -1416,34 +1373,21 @@ results in temporary variables and updating static variables \textit{en
 masse} after the required function calls have been made.
 
 The C syntax for is extended with:
-
-\var{statement:}
-
-\begin{quote}
-\var{bundled-statement;}
-\end{quote}
-
-\var{bundled-statement:}
-
-\begin{quote}
-bundled \var{\{ bundled-item-list\textsubscript{opt}} \}
-\end{quote}
-
-\var{bundled-item-list:}
-
-\begin{quote}
-\var{bundled-item}
-
-\var{bundled-item-list bundled-item}
-\end{quote}
-
-\var{bundled-item:}
-
-\begin{quote}
-\var{declaration}
-
-\var{expression-statement}
-\end{quote}
+\begin{tabbing}
+\var{statement:}\=\\
+\>\var{bundled-statement}\texttt{;} \\
+\\
+\var{bundled-statement:} \\
+\>\texttt{bundled \{ \var{bundled-item-list\textsubscript{opt}} \}} \\
+\\
+\var{bundled-item-list:}\\
+\> \var{bundled-item} \\
+\> \var{bundled-item-list bundled-item} \\
+\\
+\var{bundled-item:}\\
+\> \var{declaration}\\
+\> \var{expression-statement} 
+\end{tabbing}
 
 \section{Bounds checks at pointer dereferences}
 \label{section:bounds-checking-indirections}
@@ -1470,7 +1414,7 @@ runtime check as before. Otherwise, it inserts a runtime check that
 \texttt{\var{e2} <= \var{e1} \&\& \var{e1} + sizeof(\var{T}) - 1 < \var{e3}}
 
 Consider as an example, \verb|z = *x;| where 
-\verb+x : bounds(x, x + c)|. The compiler will produce code of the form
+\verb|x : bounds(x, x + c)|. The compiler will produce code of the form
 
 \begin{quote}
 \begin{verbatim}

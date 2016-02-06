@@ -139,8 +139,8 @@ Suppose there is a use of some variable \var{x}.
 A variable with type \var{T} whose address is taken is considered to be
 an array of one element:
 
-\boundsinfer{\texttt{\&var{x}}} 
-            {\boundsrel{\texttt{\&\var{x}}}{\texttt{\& \var{x} + 1}}{\var{T}}}.
+\boundsinfer{\texttt{\&\var{x}}} 
+            {\boundsrel{\texttt{\&\var{x}}}{\texttt{\&\var{x} + 1}}{\var{T}}}.
 
 \subsection{Function calls}
 
@@ -921,7 +921,7 @@ in the rule.
 The first step in canonicalization is to convert non-modifying
 expressions to an initial representation:
 
-\begin{enumerate}
+\begin{compactenum}
 \item
   All expressions involving operators are fully parenthesized and
   unnecessary parenthesis on variables and constants are removed. For
@@ -952,12 +952,12 @@ expressions to an initial representation:
   \var{e2} is converted to \var{e1}
   \texttt{+}\emph{\textsubscript{kind}}
   \texttt{-}\emph{\textsubscript{kind} e2}.
-\end{enumerate}
+\end{compactenum}
 
 For the second step of canonicalization, two sets of binary arithmetic
 operators are defined
 
-\begin{itemize}
+\begin{compactitem}
 \item
   The set of of commutative and associative operators (CA operators).
   This includes:
@@ -977,11 +977,11 @@ operators are defined
 \item
   The set of commutative-only operators (CO):
   \texttt{+\textsubscript{signed}} and \texttt{*\textsubscript{signed}}.
-\end{itemize}
+\end{compactitem}
 
 The following rules are applied until no further changes occur:
 
-\begin{enumerate}
+\begin{compactenum}
 \item
   Removing pointer casts and identity casts on integral types (casts
   from a type to itself). Pointer casts do not change the values of
@@ -990,7 +990,7 @@ The following rules are applied until no further changes occur:
   Folding constant integral expressions. The following expressions are
   constant-folded:
 
-  \begin{enumerate}
+  \begin{compactenum}
   \item
     Any constant expression that uses only overflow-checking arithmetic
     operators and that mathematically evaluates to an in-range integer
@@ -999,15 +999,15 @@ The following rules are applied until no further changes occur:
     Any constant expression involving integers that produces a defined
     result according to the C language standard or the C implementation
     rules.
-  \end{enumerate}
+  \end{compactenum}
 \item
   Applying algebraic identities to simplify expressions
 
-  \begin{enumerate}
+  \begin{compactenum}
   \item
     Arithmetic identities
 
-    \begin{enumerate}
+    \begin{compactenum}
     \item
       \var{e} \texttt{+} \texttt{0} = \var{e}, \var{e} \texttt{-}
       \texttt{0} = \var{e}, \texttt{0} \texttt{-} \var{e} =
@@ -1019,7 +1019,7 @@ The following rules are applied until no further changes occur:
       For a positive constant \var{c}, (\var{e}
       \texttt{*}\emph{\textsubscript{kind}} \var{c}) \texttt{\%}
       \var{c} = \texttt{0}
-    \end{enumerate}
+    \end{compactenum}
   \item
     Bitwise identities: \var{e} \texttt{\&} \texttt{0} = \texttt{0},
     \var{e} \texttt{\textbar{}} \texttt{0} = \var{e}, \var{e}
@@ -1050,13 +1050,11 @@ The following rules are applied until no further changes occur:
 
     When identities have commutative versions, those are applied as
     well.
-  \end{enumerate}
+  \end{compactenum}
 \item
   Applying associativity commutivity, and distributivity rules to put
   expressions in canonical forms:
-\end{enumerate}
-
-\begin{enumerate}
+\begin{compactenum}
 \item
   For each operator \var{op} in CA, repeatedly rewriting any expression
   of the from \var{e1} \var{op} \texttt{(}\var{e2} \var{op}
@@ -1077,7 +1075,7 @@ The following rules are applied until no further changes occur:
 \item
   Applying the following distributivity rules:
 
-  \begin{enumerate}
+  \begin{compactenum}
   \item
     Rewriting \texttt{-}\emph{\textsubscript{kind}}\texttt{(}\var{e1}
     \texttt{+}\emph{\textsubscript{kind}} \var{e2}\texttt{)} to
@@ -1103,8 +1101,9 @@ The following rules are applied until no further changes occur:
     \textbar{}\textbar{} (e2 \&\& e3) and rewriting e3 \&\& (e1
     \textbar{}\textbar{} e2) as (e3 \&\& e1 \textbar{}\textbar{} e3 \&\&
     e2)
-  \end{enumerate}
-\end{enumerate}
+  \end{compactenum}
+\end{compactenum}
+\end{compactenum}
 
 The distributivity rules expand the size of expressions, potentially
 increasing size exponentially. Implementations may have a reasonable

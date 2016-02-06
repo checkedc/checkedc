@@ -419,7 +419,7 @@ the ranges of signed integers and unsigned integers are different.
   shall be treated as an unsigned integer. For a signed integer, the
   minimum and maximum range for j shall be \texttt{INTPTR\_MIN} and
   \texttt{INTPTR\_MAX} For an unsigned integer, the minimum and maximum
-  range for j shall be 0 and UINTPTR\texttt{\_MAX}. If \var{j} is
+  range for j shall be 0 and \texttt{UINTPTR\_MAX}. If \var{j} is
   outside its valid range, the operation doing the scaling operation
   shall produce a runtime error.
 \item
@@ -437,7 +437,7 @@ the ranges of signed integers and unsigned integers are different.
   and \var{i} is an integer, shall be defined as \var{p} \texttt{+}
   \var{i}.
 \item
-  \var{p} \texttt{--} \var{i}, where \var{p} is an
+  \var{p} \texttt{-} \var{i}, where \var{p} is an
   \arrayptrT\ pointer
   and \var{i} is an integer. The integer \var{i} shall be scaled by
   \sizeof{\var{T}}, producing an integer \var{j}. The
@@ -446,10 +446,10 @@ the ranges of signed integers and unsigned integers are different.
   operation. If \var{p -} \var{j} is out of range for a pointer, the
   operation shall produce a runtime error.
 \item
-  \var{p} \texttt{--} \var{q}, where \var{p} and \var{q} are
+  \var{p} \texttt{-} \var{q}, where \var{p} and \var{q} are
   \arrayptrT
   pointers. The two pointers will be interpreted as unsigned integers
-  and the mathematical value \var{p} -- \var{q} shall be computed,
+  and the mathematical value \var{p} - \var{q} shall be computed,
   producing an integer \var{j}. If \var{j} is out of range for signed
   integer that can be added to an address, the operation shall produce a
   runtime error. If \var{j} is a multiple of
@@ -568,16 +568,16 @@ processor to never fail.
 
 \section{Relative alignment of \arrayptr\ and \arrayview\ values}
 
-\arrayptrT\ and \arrayviewT pointers provide safe
+\arrayptrT\ and \arrayviewT\ pointers provide safe
 pointer arithmetic on arrays. The bounds for these pointers usually
-describe a range of memory that is exactly the size of some array of T.
+describe a range of memory that is exactly the size of some array of \var{T}.
 The pointers point to an element of the array. In other words, the lower
-bound, the upper bound, and pointer are relatively aligned to the type
+bound, the upper bound, and pointer are  relatively aligned to the type
 \var{T}. Given a lower bound \var{lb}, an upper bound \var{ub}, and a
 pointer \var{p}, there should exist some integer \var{count} such that
 \var{ub} = \var{lb} + \var{count}. In addition, there is either some
 integer \var{index} such that \var{p} = \var{lb} + \var{index},
-where addition is C pointer arithmetic, or p is null.
+where addition is C pointer arithmetic, or \var{p} is null.
 
 The type to which a pointer and its bounds are relatively aligned is
 called the relative alignment type. By default, the relative alignment
@@ -585,7 +585,7 @@ type for a pointer and its bounds is the referent type. However, the
 relative alignment type can be overridden by specifying it explicitly as
 part of the bounds. This is useful when describing bounds for the
 results of pointers casts. It is necessary when describing bounds for
-\arrayptrvoid\ and \arrayviewvoid pointers. The type
+\arrayptrvoid\ and \arrayviewvoid\ pointers. The type
 \texttt{void} has no defined size, so the default relative alignment is
 undefined for \texttt{void}.
 
@@ -600,14 +600,14 @@ proposals that were considered but not chosen.
 
 To improve program reliability and to simplify understanding programs,
 it is desirable to limit code to using only safe pointers. To support
-this, we introduce ``checked'' program scopes. The ``checked'' keyword
+this, we introduce checked program scopes. The \keyword{checked} keyword
 can be attached to blocks and function definitions. In checked program
 scopes, definitions can use only safe pointer types and checked array
 types; they cannot use unsafe pointer types and unsafe arrays. On the
 other hand, declarations can use unsafe pointer types and unsafe arrays,
 provided that the declarations provide a bounds-safe interface.
 
-A new pragma directive BOUNDS\_CHECKED is introduced to control whether
+A new pragma directive \texttt{BOUNDS\_CHECKED} is introduced to control whether
 the top-level scope is a checked scope:
 \begin{alltt}
 #pragma BOUNDS_CHECKED \textit{on-off-switch}
@@ -619,7 +619,7 @@ By default, function definitions are not checked. A block inherits the
 checking properties of its parent. This preserves the meaning of
 existing C code.
 
-A checked block is introduced by placing the checked keyword before a
+A checked block is introduced by placing  \keyword{checked} before a
 compound block:
 \begin{verbatim}
 checked 
@@ -639,7 +639,7 @@ checked
 
 It is rarer for a programmer to need to introduce an unchecked scope. It
 is usually needed to allow the use of unsafe pointers within a checked
-block. The ``unchecked'' keyword can be used in all the places where the
+block. The \keyword{unchecked} keyword can be used in all the places where the
 checked keyword can be used. This example shows the use of an unchecked
 block:
 
@@ -662,9 +662,9 @@ checked
 }
 \end{verbatim}
 
-In a checked function definition, the body of the function is a checked
-block. A checked function definition is declared by placing the checked
-keyword before the definition. Here are examples of checked and
+In a checked function definition, the body of the function is a 
+checked  block. A checked function definition is declared by placing the
+\keyword{checked} before the definition. Here are examples of checked and
 unchecked function definitions:
 
 \begin{verbatim}
@@ -971,7 +971,7 @@ in the original code is done only if a marker is not found in
 try to deduce a precondition for the bounds check failing, but this is
 not possible because the precondition depends on the contents of
 \texttt{src}. A compiler would have to clone code to maintain the same
-behavior. This increase code size, so production compilers do not this
+behavior. This increases code size, so production compilers do not this
 sort of transformation or do it sparingly. Programmer control produces
 better results.
 
@@ -1005,7 +1005,7 @@ void append(array_ptr<char> dst: count(dest_count),
 C has situations where an expression has undefined behavior or the
 meaning of an expression is undefined:
 
-\begin{enumerate}
+\begin{itemize}
 \item
   Unsafe pointer arithmetic only has defined behavior when the resulting
   pointer points to the same object as the original pointer, or one
@@ -1032,7 +1032,7 @@ meaning of an expression is undefined:
 \item
   Initializers may have nested assignments within them. These can have
   undefined meanings as well for the same reasons as expressions.
-\end{enumerate}
+\end{itemize}
 
 Undefined behavior is different from unspecified behavior, where one of
 a number of choices may be made. Unspecified behavior in C includes:
@@ -1088,7 +1088,8 @@ signed integer overflow:
     Comparison of pointers for all different kinds of pointers shall be
     defined as the corresponding integer comparison.
   \item
-    Subtraction p - r of two pointers p and r of type T where one
+    Subtraction \var{p} \texttt{-} \var{r} of two pointers \var{p} and \var{r}
+    of type \var{T} where one
     pointer is a safe pointer and the other is an unsafe pointer shall
     be done following the rules for subtraction of safe pointers,
     treating the unsafe pointer as a safe pointer in those rules.
@@ -1113,7 +1114,7 @@ way the uses the value of the expression that produced the error.
 
 For programs with expressions and initializers with undefined meanings,
 those programs must be rejected at translation-time. 
-Section~ref{section:avoiding-undefinedness}
+Section~\ref{section:avoiding-undefinedness}
 describes this in detail.
 
 Of course, there are other ways in which C expressions may have
@@ -1139,7 +1140,7 @@ undefined behavior:
 \end{enumerate}
 
 The aim is to be able to show partial correctness of programs for the
-1\textsuperscript{st} item (avoiding out-of-bounds pointer accesses). A
+first item (avoiding out-of-bounds pointer accesses). A
 partial correctness guarantee has the form ``assuming X holds, then Y is
 true''. Informally, one might say ``assuming that memory allocation and
 type casts are correct and that unsafe code never reads or write though

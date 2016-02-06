@@ -1,11 +1,15 @@
-\begin{abstract}
+% !Tex root = checkedc.tex
+
+\parbox{5in}{
 Systems programmers need a systems programming language that
 detects or prevents common programming errors involving pointers. This
 would improve the reliability and security of systems software, as well
 the productivity of systems programmers. This design note describes
 Checked C, an extended version of C that provides bounds-checking for
 pointers and arrays.
+}
 
+\parbox{5in}{
 Checked C relies on static and dynamic checking to enforce bounds
 safety. It adds new pointer types and array types that are
 bounds-checked, yet layout-compatible with existing pointer and array
@@ -18,4 +22,6 @@ Checked C is a backwards-compatible extension: existing C programs work
 ``as is''. Programmers incrementally opt-in to bounds checking, while
 maintaining binary compatibility. Checked C builds on extensions to C
 proposed by the CCured and Deputy projects.
-\end{abstract}
+}
+
+

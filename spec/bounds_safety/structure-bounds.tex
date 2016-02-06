@@ -136,18 +136,14 @@ addresses are taken are not used in bounds expressions.
 \section{Declaring bounds for structure members}
 
 Member bounds declarations have the form:
-
-\var{member-bounds-decl}:
-
-\begin{quote}
-\var{member-path} : \var{member-bounds-exp}
-\end{quote}
-
-\var{member-path:}
-
-\var{identifier}
-
-\var{member-path} \texttt{.} \var{identifier}
+\begin{tabbing}
+\var{member}\={-bounds-decl:}\\
+\> \var{member-path} : \var{member-bounds-exp} \\
+\\
+\var{member-path:}\\
+\> \var{identifier} \\
+\> \var{member-path} \texttt{.} \var{identifier}
+\end{tabbing}
 
 A member path is a sequence of one or more member names, separated by
 the `.' operator. The sequence of members must be a valid sequence of
@@ -165,14 +161,15 @@ A structure member whose type is \arrayptr\ or an incomplete
 checked array type may have at most one bounds declared for it. The
 typing rules for member bounds declarations are the same as those for
 bounds declarations. For bounds declarations of the form
-\var{member-path} \texttt{:} \texttt{count(}\var{e1}\texttt{)}, the
+\boundsdecl{\var{member-path}}{\boundscount{\var{e1}}}, the
 member-path must have an \arrayptr\ type and cannot be the type
-\arrayptrvoid . The expression
+\arrayptrvoid. The expression
 \var{e1} must have an integral type. For bounds declarations of the
-form \var{member-path} \texttt{:} \bounds{\var{e1}}{\var{e2}}, the types of \var{x}, \var{e1}, and \var{e2}
+form \boundsdecl{\var{member-path}}{\bounds{\var{e1}}{\var{e2}}}, 
+the types of \var{x}, \var{e1}, and \var{e2}
 must be \arrayptr\ types. The types must be the same type,
 except that any of them can be
-\arrayptrvoid .
+\arrayptrvoid.
 
 A structure consists of a list of member declarations, each of which
 consists of type specifier followed by one or more structure member
@@ -181,59 +178,38 @@ optional where clause or in-line specification of member. The in-line
 specification of member follows syntax that is already used for
 declaring bitfields:
 
-\var{struct-member-declarator:}
-
-\begin{quote}
-\var{declarator where-clause\textsubscript{opt}}
-
-\var{declarator\textsubscript{opt}} \texttt{:}
-\var{constant-expression}
-
-\var{declarator} \texttt{:} \var{member-bounds-exp}
-\var{where-clause\textsubscript{opt}}
-\end{quote}
-
+\begin{tabbing}
+\var{struct}\=\var{-member-declarator:}\\
+\> \var{declarator where-clause\textsubscript{opt}} \\
+\> \var{declarator\textsubscript{opt}} \texttt{:}
+   \var{constant-expression} \\
+\> \var{declarator} \texttt{:} \var{member-bounds-exp}
+\var{where-clause\textsubscript{opt}} \\
+\\
 The list of member declarations is extended to include \keyword{where}
-clauses:
-
-\var{struct-member-declaration:}
-
-\begin{quote}
-\ldots{}
-
-\var{where-clause}\textsubscript{opt}
-\end{quote}
-
-The remaining syntax for specifying a structure remains unchanged:
-
-\var{struct-or-union-specifier:}
-
-\begin{quote}
-\var{struct-or-union identifier\textsubscript{opt}} \texttt{\{}
-\var{struct-member-declaration-list} \texttt{\}}
-\end{quote}
-
-\var{struct-member-declaration-list:}
-
-\begin{quote}
-\var{struct-member-declaration}
-
-\var{struct-member-declaration-list struct-member-declaration}
-\end{quote}
-
-\var{struct-member-declaration:}
-
-\begin{quote}
-\var{specifier-qualifier-list struct-declarator-list} \texttt{;}
-\end{quote}
-
-\var{struct-declarator-list:}
-
-\begin{quote}
-\var{struct-declarator}
-
-\var{struct-declarator-list} \texttt{,} \var{struct-declarator}
-\end{quote}
+clauses:\\
+\\
+\var{struct-member-declaration:}\\
+\> \ldots{} \\
+\> \var{where-clause}\textsubscript{opt}  \\
+\\
+The remaining syntax for specifying a structure remains unchanged: \\
+\\
+\var{struct-or-union-specifier:}\\
+\> \var{struct-or-union identifier\textsubscript{opt}} \texttt{\{}
+\var{struct-member-declaration-list} \texttt{\}} \\
+\\
+\var{struct-member-declaration-list:} \\
+\> \var{struct-member-declaration} \\
+\> \var{struct-member-declaration-list struct-member-declaration} \\
+\\
+\var{struct-member-declaration:} \\
+\> \var{specifier-qualifier-list struct-declarator-list} \texttt{;} \\
+\\
+\var{struct-declarator-list:} \\
+\> \var{struct-declarator} \\
+\> \var{struct-declarator-list} \texttt{,} \var{struct-declarator} 
+\end{tabbing}
 
 A member bounds expression can use members and child members of the
 structure being declared. Any member paths occurring in the member
@@ -268,18 +244,14 @@ sides of bound declarations are generalized to allow members of
 variables. The term \emph{variable member path} stands for variables or
 variables with member accesses. Variable member paths are used where
 variables were allowed:
-
-\var{bounds-decl:}
-
-\begin{quote}
-\var{var-member-path} \texttt{:} \var{bounds-exp}
-\end{quote}
-
-\var{var-member-path:}
-
-\var{identifier}
-
-\var{var-member-path} \texttt{.} \var{identifier}
+\begin{tabbing}
+\var{bounds}\=\var{-decl:}\\
+\> \var{var-member-path} \texttt{:} \var{bounds-exp} \\
+\\
+\var{var-member-path:} \\
+\> \var{identifier} \\
+\> \var{var-member-path} \texttt{.} \var{identifier}
+\end{tabbing}
 
 The first identifier in a variable member path must be the name of a
 local variable or parameter. The rest of the path, if there is one, must
@@ -292,14 +264,12 @@ restricted to variables.
 
 Programmers may declare the state of a member bounds for a variable
 using two kinds of facts:
-
-\var{fact:}
-
-\var{\ldots{}}
-
-\texttt{suspends(}\var{var-member-path}\texttt{)}
-
-\texttt{holds(}\var{var-member-path}\texttt{)}
+\begin{tabbing}
+\var{fact:}\= \\
+\> \var{\ldots{}} \\
+\> \texttt{suspends(\var{var-member-path})} \\
+\> \texttt{holds(\var{var-member-path})}
+\end{tabbing}
 
 If the \var{var-member-path} has an \arrayptr\ type, it must
 have the form \var{x.path,} where x is local variable or parameter

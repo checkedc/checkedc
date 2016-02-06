@@ -76,16 +76,12 @@ will need to state the relevant facts to use in inference.
 We start with facts about program points that a programmer may use to
 reason about bounds. A fact is a bounds declaration or a relational
 statement about a variable and a non-modifying expression:
-
-\var{fact: }
-
-\begin{quote}
-\var{bounds}
-
-\var{var relop non-modifying-exp}
-
-\var{range-exp relop var}
-\end{quote}
+\begin{tabbing}
+\var{fact:}\=\\
+\>\var{bounds} \\
+\>\var{var relop non-modifying-exp} \\
+\>\var{range-exp relop var}
+\end{tabbing}
 
 where \var{relop} is one of \textless{}, \textless{}=, ==, !=,
 \textgreater{}=, \textgreater{}. Recall that range-expressions are a
@@ -102,27 +98,18 @@ the where clause becomes a precondition that must be true at the call
 site. The compiler will check this precondition at the call sites. The
 grammar for where clauses is generalized to:
 
-\var{expression-statement}:
-
-\begin{quote}
-\var{expression\textsubscript{opt}}\texttt{;}
-
-\var{expression\textsubscript{opt} where-clause}\texttt{;}
-\end{quote}
-
-\var{where-clause}:
-
-\begin{quote}
-\keyword{where} \var{facts}
-\end{quote}
-
-\var{facts}:
-
-\begin{quote}
-\var{fact}
-\end{quote}
-
-\var{act} \texttt{\&\&} \var{facts}
+\begin{tabbing}
+\var{express}\=\var{ion-statement}:\\
+\> \var{expression\textsubscript{opt}}\texttt{;} \\
+\> \var{expression\textsubscript{opt} where-clause}\texttt{;} \\
+\\
+\var{where-clause}: \\
+\> \keyword{where} \var{facts} \\
+\\
+\var{facts}:\\
+\> \var{fact}\\
+\> \var{facts} \texttt{\&\&} \var{fact}
+\end{tabbing}
 
 The expression can be omitted, in which case a where clause may stand on
 its own as a set of invariants and bounds declarations:

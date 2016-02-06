@@ -308,14 +308,17 @@ example, a fact can be that the range of an integer variable \texttt{i}
 is always between 0 and 10. This can be used to deduce that an array
 access in a crucial inner loop is always in bounds.
 
+\omitted{
 Chapter~\ref{chapter:pointers-to-pointers}
 addresses pointers to \arrayptr\ variables and
 address-taken variables.
+}
 
 Chapter~\ref{chapter:lessons} describes prior work on extending C for safety and some
 lessons that we drew from that work. We are heavily influenced by the
 CCured and Deputy systems.
 
+\omitted{
 Chapter~\ref{chapter:eval} evaluates the design by describing our experience modifying
 an existing C open-source code base by hand to use the Checked C
 extensions. We chose to modify OpenSSL, an important widely-used
@@ -329,6 +332,10 @@ Chapter~\ref{chapter:open-issues} summarizes the open problems uncovered by
 Chapter~\ref{chapter:eval} or
 unaddressed by the design. It also describes next steps for implementing
 this in a C compiler.
+}
+
+Chapter~\ref{chapter:open-issues} summarizes open issues that remain to be addressed
+by the design.
 
 Chapter~\ref{chapter:design-alternatives} discusses design alternatives
 that were considered and not chosen.  It explains why those alternatives were
