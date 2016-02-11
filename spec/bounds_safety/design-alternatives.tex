@@ -3,60 +3,36 @@
 \chapter{Design choices considered but not chosen}
 \label{chapter:design-alternatives}
 
-\section{Support for \arrayptr\ and \arrayview\ pointers that are not relatively aligned}
+\section{Removing relative alignment}
 \label{section:design-alternatives:always-unaligned}
 
-We considered supporting the case of \arrayptr\ or
-\arrayview\ pointers where pointers and their bounds are not
-guaranteed to be relatively aligned. A programmer might use such
-pointers in coding patterns where code strides through an array of bytes
-interpreted as an array of integers or structures. Typically, the code
-checks that it has not gone too far before accessing memory. For
-example, given an array of bytes, a programmer may wish to replace byte
-operations with aligned 32-bit operations because they are more
-efficient. Extra bytes at the beginning or end of an array would be
-handled using special-case code.
+We consider removing the concept of relative alignment from the design to simplify
+the design.  Relative alignment is described in Sections~\ref{section:relative-alignment}
+and~\ref{section:pointer-cast-results}.  If relative alignment
+is removed, however, the compiler has to assume that bounds and pointers are
+not relatively aligned.   This would result in more costly bounds checks
+as well as significantly more bounds checks in optimized code.
 
-When bounds and pointers are not relatively aligned, the bounds checks
-against the upper bound for a pointer requires extra instructions. Given
-a pointer p, *p accesses the memory from p to p + sizeof(T) -- 1. Given
-an upper bound \var{ub}, the upper bounds check for \var{p} becomes p
-+ sizeof(T) -- 1 \textless{} ub. Note that the computation of p +
-sizeof(T) -- 1 would also need an overflow check, so it would typically
-result in several extra instructions, not just an extra addition.
+Checks against upper bounds would  take several more instructions.
+Given a pointer \var{p} to type \var{T}, \texttt{*\var{p}} accesses the memory from
+\var{p} to \texttt{\var{p} + sizeof(\var{T}) - 1}. Given an upper bound \var{ub}, the
+upper bounds check for \var{p} becomes \texttt{\var{p} + sizeof(\var{T}) - 1 < \var{ub}},
+not \texttt{\var{p} < \var{ub}}.  The
+computation of \texttt{\var{p} + sizeof(\var{T}) - 1} would need an overflow check also, 
+so there would typically be several extra instructions added to an upper bounds check, 
+not just an extra addition.
 
-The upper bounds check would be harder to optimize. Most programmers
-would write code that strides through an array using comparison that
-\var{p} \textless{} \var{ub}. The comparison \var{p} \textless{}
-\var{ub} does not imply \var{p} + sizeof(T) -- 1 \textless{}
-\var{ub}, so it would not be sufficient for a compiler to optimize away
-the upper bounds check. A compiler would have to know that the pointer
+There will also be more bounds checks because it will be harder for compiler optimizers
+to eliminate upper bounds checks in loops.  Most programmers would write code that
+strides through an array using a comparison that
+\texttt{\var{p} \textless{} \var{ub}}. The comparison 
+\texttt{\var{p} < \var{ub}} does not imply
+\texttt{\var{p} + sizeof(\var{T}) - 1 < \var{ub}}, so the comparison is
+not sufficient for a compiler to optimize away
+the upper bounds check. A compiler would have to know that a pointer
 and bounds are relatively aligned in order to eliminate the upper bounds
-check. It would be hard for a compiler to prove this because that would
+check. It would be hard for a compiler to prove this because it would
 require interprocedural or whole-program analysis.
-
-If all \arrayptr\ operations with bounds checks used the more
-general bounds check in order to support pointers that are not
-relatively aligned, there would be significantly more bounds checks in
-optimized code and the checks would also be more costly.
-
-We considered the alternative of introducing a new pointer modifier,
-such as ``ragged'', that could be used with \arrayptr\
-or \arrayview\ types to indicate that pointers and bounds may
-not be relatively aligned. A type with the ragged modifier would have
-the more costly upper bounds check. Because ragged and regular
-\arrayptr\ pointers would have different bounds checking
-sequences, casting away the unaligned modifier would compromise the
-integrity of bounds checking. It would be illegal to cast a ragged
-\arrayptr\ or \arrayview\ pointer to an
-\arrayptr\ or \arrayview\ with no ragged modifier.
-
-We chose not to add the ragged modifier to the language because it would
-be adding a new type modifier to support a relatively rare situation.
-This would add language complexity for little-to-no benefit in practice.
-For example, code that would use this feature typically also has logic
-to detect or handle leftover bytes. This logic can be adapted to compute
-bounds that are properly relatively aligned.
 
 \section{Allowing pointer variables to be assigned values with no relationship to their bounds}
 
@@ -250,81 +226,53 @@ it is not expected fail.
 There are a variety of different possible definitions of the semantics
 of bounds declarations. A bounds declaration has the form:
 
-\var{bounds-decl:}
-
 \begin{quote}
-\var{x} \texttt{:} \var{bounds-exp}
+\boundsdecl{\var{x}}{\var{bounds-exp}}
 \end{quote}
 
-\var{bounds-exp:}
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
+\> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
+\> \boundsnone \\
+\> \boundsany
+\end{tabbing}
 
-\begin{quote}
-\texttt{count(}\var{non-modifying-exp}\texttt{)}
+It may be attached to declarators, parameter declarations, or assignment statements:
 
-\texttt{bounds(}\var{non-modifying-exp}\texttt{,}
-\var{non-modifying-exp}\texttt{)}
-
-\boundsany
-
-\boundsnone
-\end{quote}
-
-It may be attached to declarators or an assignment statement:
-
-\var{init-declarator} :
-
-\begin{quote}
-\var{declarator inline-bounds-specifier\textsubscript{opt}
-where-clause\textsubscript{opt}}
-
-\var{declarator inline-bounds-specifier\textsubscript{opt}
+\begin{tabbing}
+\var{init-}\={declarator:} \\
+\>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
+\>\var{declarator inline-bounds-specifier\textsubscript{opt} 
 where-clause\textsubscript{opt}} \texttt{=} \var{initializer
-where-clause\textsubscript{opt}}
-
-\ldots{}
-\end{quote}
-
-\var{parameter-declaration} :
-
-\begin{quote}
-\var{declaration-specifiers declarator}
-\var{inline-bounds-specifier\textsubscript{opt}
-where-clause\textsubscript{opt}}
-\end{quote}
-
-\var{inline-bounds-specifier:}
-
-\begin{quote}
-\texttt{:} \var{bounds-exp}
-\end{quote}
-
-\var{where-clause}:
-
-\begin{quote}
-\keyword{where} \var{facts}
-\end{quote}
-
-\var{expression-statement}:
-
-\begin{quote}
-\var{expression\textsubscript{opt}
-where-clause\textsubscript{opt}}\texttt{;}
-\end{quote}
+where-clause\textsubscript{opt}} \\
+\>\ldots{} \\
+\\
+\var{parameter-declaration:} \\
+\>\var{declaration-specifiers declarator} \\
+\>\var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
+\\
+\var{expression-statement:}\\
+\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\texttt{;}
+\end{tabbing}
 
 The information in the bounds declaration is used at pointer
 dereferences involving either (1) the variable or (2) pointers
 constructed from the value of the variable.
 
-One question is when the values of the bounds expressions in a bounds
-declaration are computed. One possibility is to compute them eagerly at
-the point of the bounds declaration. This make sense in that expressions
-are evaluated at the point where they occur in C programs. However, a
-problem with evaluating bounds expressions early is that they may fault,
-even though their value is not needed.
+One design choice for bounds declarations is when
+bounds expressions are evaluated.  In the design, evaluation of
+bounds expressions is {\em deferred} until bounds checks.  The bounds
+expression could be evaluated {\em eagerly} at the point of the bounds declarations.
 
-Consider code that calls malloc, which returns null if memory cannot be
-allocated. The code checks that malloc succeeded before using the
-result.
+If bounds expressions in a bounds declaration \boundsdecl{\var{v}}{\var{e}} are evaluated 
+eagerly, they must  be evaluated only when \var{v} is non-null.  Bounds are not
+meaningful when \var{v} is null.  This prevents eager evaluation from accidentally
+causing a runtime failure when a null valued is encountered.    
+
+Consider the code for the use of \texttt{malloc}.   With eager evaluation,
+the bounds expressions in {\texttt\bounds{(result, result + size)}} would not
+be evaluated if \texttt{malloc} returns \texttt{null}:
 \begin{verbatim}
 array_ptr<int> result = malloc(size) where result : bounds (result, result + size)
 if (result != NULL) {
@@ -332,91 +280,80 @@ if (result != NULL) {
 }
 \end{verbatim}
 
-In this case, the bounds expression result + size will fault when null
-is returned. One way to think about the problem is that it is acceptable
-for null pointers to have meaningless bounds expressions. They cannot be
-used to access memory, after all. Of course, this is a problem if the
-bounds expression causes a runtime fault. Another way to think about
-this is that the problem is that the bounds expression is being
-evaluated whether it is needed or not. The evaluation should be deferred
-until it is definitely required.
+We considered eager evaluation, but rejected it because it would turn \arrayptr
+types into \arrayview types.   When a bounds expressions are always eagerly
+evaluated, the results need to be stored somewhere so that they can be used
+when \var{v} is used.  For local variables, hidden temporary variables could be
+introduced.   This breaks the design principle of not introducing hidden
+costs, though.  To avoid introducing hidden costs, \arrayptr types could carry
+their bounds with them.  However, this turns \arrayptr types into \arrayview types.
+For structures, introducing hidden state or converting \arrayptr types to \arrayview
+types is especially problematic because it breaks data layout compatibility.
 
-There are currently several different definitions of extent under
-consideration. The definitions differ on two axes:
+For these reasons, we think it is better to regard bounds declarations as being
+compile-time program invariants about the bounds of variables.   Normally, compile-time
+program invariants are never evaluated at runtime.  However, in the case of pointers
+the program invariants are used to provide runtime bounds safety.
 
-\begin{enumerate}
-\item
-  The set of program points to which a declaration applies. The
-  possibilities include:
+Deferred evaluation of bounds expressions has issues, too, though. First, there
+can be problems if a programmer modifies a variable used in a bounds expression
+within the extent of a bounds declaration.  Static checking could fail if the
+bounds declaration no longer holds.   This would be unexpected behavior for
+progammers.  Second, it is a new concept for C programmers.   It could confuse C
+programmers.  We recommend using a carefully designed study of programmers to understand 
+degree of difficulty of understanding the newe concept.
 
-  \begin{enumerate}
-  \item
-    The set of statements up to the first assignment to any variable
-    used in the bounds declaration. We will name this set of statements
-    the ``direct'' set
-  \item
-    All statements after the declaration where the variables involved in
-    the declaration in scope and a new declaration has not superseded
-    this definition. We will name this set the ``always'' set.
-  \item
-    Various sets of program points in between the two extremes of (a)
-    and (b). For the sake of discussion, we will name this set the
-    ``intermediate'' set.
+Because bounds declarations constrain assignments to variables within the scope
+of the bounds declarations, we consider several additional definitions of the
+extent for bounds declaration:
 
-    \begin{enumerate}
+\begin{compactitem}
+    \item The set of statements up to the first assignment to any variable
+     used in the bounds declaration. We will call this the ``direct'' set
     \item
-      The set of statements up to the first non-invertible assignment to
-      any variable used in the declaration (an assignment is
-      non-invertible if the old value of the variable cannot be
-      calculated from the new variable).
+      All statements after the bounds declaration where the variables involved in
+      the bounds declaration are in scope and a new bounds declaration has not superseded
+      the prior bounds declaration. We will call this the ``always'' set.
     \item
-      The set of statements up to the first assignment to any variables
-      used in the bounds expressions in the declaration.
-    \item
-      The set of statements up to the first assignment where the bounds
-      declaration can no longer be proved to be true (where the
-      right-hand side of the bounds declaration may no longer be a valid
-      range.
-    \end{enumerate}
-  \end{enumerate}
-\item
-  When the bounds expressions in a bounds declaration are evaluated. The
-  possibilities being considered are:
+      Various sets of program points in between the two extremes of (1) and (2).
+      For the sake of discussion, we call this the ``intermediate'' set.
+\end{compactitem}
+% stopping here for now.
 
-  \begin{enumerate}
-  \item
-    By-value (eagerly at the point of declaration)
-  \item
-    By-reference (at the point of use of the variable with the variable
-    declaration).
-  \end{enumerate}
-\end{enumerate}
+Here is a chart of the different permutations, with comments on their interactions:
 
-Here is the matrix of different permutations:
-
-\begin{longtable}[c]{p{0.8in}p{1.4in}p{1.4in}p{1.4in}}
+\begin{longtable}[c]{p{0.8in}p{2.8in}p{2.8in}}
 \toprule
-Set of program points & By-value & By-reference & General comments\tabularnewline
+Set of program points & By-value & By-reference \tabularnewline
 \midrule
 \endhead
-Direct & & & By-value and by-reference evaluation is indistinguishable.
-Because there are no assignments, both produce the same
-result\tabularnewline \midrule
-Always & Introduces hidden temporary variables that hold bounds value.
-May lead to runtime failures if the lhs variable is assigned a pointer
-to an object outside of the declared bounds & Modification of variables
-used in bounds expressions requires declaring a new bounds for the lhs
-for variable. &\tabularnewline \midrule
+Scope & Requires intermediate
+        variables                & Static checking may fail at assignments
+                                   to variables used in the bounds expressions.\\
+Direct & \multicolumn{2}{c}{By-value and by-reference evaluation is
+                            indistinguishable.  Because there are no assignments,
+                            they produce the same result} \\ \midrule
+Always & Introduces hidden temporary  variables that hold bounds value.
+
+May lead to unexpected runtime failures if the variable with bounds is assigned
+a pointer to an object outside of its declared bounds & 
+
+Static checking may fail at assignments to variables usesd in bounds expressions.
+
+For a bounds declaration \boundsdecl{\var{v}}{\var{e}}, the bounds of \var{v}
+must be bounds using a bounds declarations of \bounds{\var{v}}{\boundsnone} if
+variables in e continued to be used after v is no longer used.
+\\ \midrule
 Intermediate & Introduces hidden temporary variables that hold bounds
 value.
 
 May lead to runtime failures if the lhs variable is assigned a pointer
-to an object outside of the declared bounds. & &\tabularnewline \midrule
+to an object outside of the declared bounds. & \\ \midrule
 General comments & We would need to check that all pointer variables in
 bounded expressions are non-null before evaluating bounds at
 declaration.
 
 Otherwise evaluation may fail at runtime if a variable on the right-hand
-side is null. & &\tabularnewline
+side is null. &\tabularnewline
 \bottomrule
 \end{longtable}

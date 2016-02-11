@@ -166,9 +166,10 @@ declaration. This is provided that the resulting address is not used to
 access memory in the bounds declaration (that is, indirectly access the
 value of a variable). For example, given the declaration \texttt{int x},
 the expression \texttt{\&x} may appear in a bounds expression.  
+\omitted{
 Chapter~\ref{chapter:pointers-to-pointers}
 handles pointers to \arrayptr\ types and bounds expressions
-that dereference address-taken variables.
+that dereference address-taken variables.}
 
 \subsection{Using bounds declarations}
 
@@ -668,6 +669,7 @@ bounds expression. More complicated bounds expressions are allowed
 because programmers might find them useful.
 
 \section{Bounds declarations for results of casts between \arrayptr\ types}
+\label{section:pointer-cast-results}
 
 Typically \arrayptr\ pointers and their bounds are relatively
 aligned. Together, they represent a view of an array of \var{T}, where
@@ -749,13 +751,11 @@ types instead of operations on smaller types (for example, \texttt{int}
 instead of \texttt{char}) usually already are doing these checks.
 
 \subsection{Representing relative alignment in bounds declarations}
-\label{section:pointer-cast-results}
+\label{section:representing-relative-alignment}
 
-To be able to reason about situations where an
-\arrayptrT\ is not
-relatively aligned to its bounds for \var{T}, there needs to be a way
-to represent this in the program. Bounds expressions are extended with
-an optional relative alignment clause:
+Bounds expressions are extended with an optional relative alignment 
+clause to represent situations where an \arrayptrT\ is not relatively 
+aligned to its bounds for type \var{T}:
 
 \begin{tabbing}
 \var{bounds}\=\var{-exp:}\\

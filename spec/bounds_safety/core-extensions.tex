@@ -567,6 +567,7 @@ they can be placed so that they are statically predicted by the
 processor to never fail.
 
 \section{Relative alignment of \arrayptr\ and \arrayview\ values}
+\label{section:relative-alignment}
 
 \arrayptrT\ and \arrayviewT\ pointers provide safe
 pointer arithmetic on arrays. The bounds for these pointers usually
@@ -583,18 +584,18 @@ The type to which a pointer and its bounds are relatively aligned is
 called the relative alignment type. By default, the relative alignment
 type for a pointer and its bounds is the referent type. However, the
 relative alignment type can be overridden by specifying it explicitly as
-part of the bounds. This is useful when describing bounds for the
-results of pointers casts. It is necessary when describing bounds for
-\arrayptrvoid\ and \arrayviewvoid\ pointers. The type
+part of the bounds.  This is described in 
+Section~\ref{section:representing-relative-alignment}.
+This can be used for bounds for the results of pointers casts and 
+for  \arrayptrvoid\ and \arrayviewvoid\ pointers. The type
 \texttt{void} has no defined size, so the default relative alignment is
 undefined for \texttt{void}.
 
-When pointers and their bounds are not relatively aligned to the
-referent type, the cost of bounds checking increases. We considered
-removing the entire concept of relative alignment from the design. We
-decided against that because it increases the cost of bounds checking.
-Section~\ref{section:design-alternatives:always-unaligned} describes 
-proposals that were considered but not chosen.
+We considered removing the entire concept of relative alignment from the
+design to simplify the design.  We decided against that it because it 
+increases cost of bounds checking throughout the program.  
+Section~\ref{section:design-alternatives:always-unaligned} explains
+this choice in more detail.
 
 \section{Program scopes for safe pointer types}
 
