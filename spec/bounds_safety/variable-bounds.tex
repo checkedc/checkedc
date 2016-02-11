@@ -377,7 +377,7 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
         c = b
         where c : count(clen);
     }    
-    … 
+    ...
 }
 \end{verbatim}
 
@@ -392,7 +392,7 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
     ...
     // Adjusting end. Can declare new bounds for start at the assignment
-    end = end – 1 where start : bounds(start, end + 1);
+    end = end - 1 where start : bounds(start, end + 1);
 }
 \end{verbatim}
 
@@ -432,6 +432,7 @@ array_ptr<int> find(int key, array_ptr<int> a : count(len), int len)
 {
    ...
 }
+\end{verbatim}
 Here is the declaration of a function that allocates memory:
 
 \begin{verbatim}
@@ -1090,7 +1091,7 @@ A correct function declares new bounds for \texttt{start}:
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
     end = end + 1
-    where start : bounds(start, end – 1);
+    where start : bounds(start, end - 1);
     start[5] = 0; // program accepted by compiler; may fail bounds check at 
                   // run time
     ...
@@ -1110,7 +1111,7 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
     start[5] = 0; // bounds checked using (start, end)
     end = end + 1
     where start : bounds(start, end - 1);
-    start[5] = 0; // bounds checked using (start, end -1)
+    start[5] = 0; // bounds checked using (start, end - 1)
 }
 \end{verbatim}
 
@@ -1136,12 +1137,12 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
 
     if (val) {
         clen = alen;
-        c = a
+        c = a;
         where c : count(clen);
     }
     else {
         clen = blen;
-        c = b
+        c = b;
         where c : count(clen);
     }
     if (clen > 1) {
@@ -1150,8 +1151,8 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
 
     if (cond  && clen > 1) {
         c++
-        where c : count(clen – 1);
-        clen = clen – 1;
+        where c : count(clen - 1);
+        clen = clen - 1;
         where c : count(clen);
         result += c[0];
     }

@@ -1,3 +1,5 @@
+% !Tex root = checkedc.tex
+
 \chapter{Open issues}
 \label{chapter:open-issues}
 
@@ -42,22 +44,22 @@ been derived via a sequence of operations from a pointer to some object
 \var{obj} with \texttt{bounds(}\var{low}\texttt{,}
 \var{high}\texttt{)}. The following statement will be true at runtime:
 \var{ev} \texttt{== 0 \textbar{}\textbar{} (}\var{low}
-\texttt{\textless{}=} \var{lbv} \texttt{\&\&} ubv \texttt{\textless{}=}
+\texttt{<=} \var{lbv} \texttt{\&\&} ubv \texttt{<=}
 \var{high}\texttt{)}. In other words, if \var{ev} is null, the bounds
 may or may not be valid. If \var{ev} is non-null, the bounds must be
 valid. This implies that any access to memory where \var{ev} \texttt{!=
-0 \&\&} lbv \texttt{\textless{}=} \var{ev} \texttt{\&\&} \var{ev}
-\texttt{\textless{}} \var{ubv} will be within the bounds of \var{obj}.
+0 \&\&} lbv \texttt{<=} \var{ev} \texttt{\&\&} \var{ev}
+\texttt{<} \var{ubv} will be within the bounds of \var{obj}.
 \end{quote}
 
 The problem with this is that it means that e: bounds(lb, ub) does not
 imply e + 4 : bounds(lb, ub). The counter-example is the runtime value
 of e being 0. Let ev be the runtime value of e and ev == 0. For the
-first expression, ev == 0 \textbar{}\textbar{} (low \textless{}= lbv
-\&\& ubv \textless{}= high) must be true. For the second expression ev +
-4 == 0 \textbar{}\textbar{} (low \textless{}= lbv \&\& ubv \textless{}=
+first expression, ev == 0 \textbar{}\textbar{} (low <= lbv
+\&\& ubv <= high) must be true. For the second expression ev +
+4 == 0 \textbar{}\textbar{} (low <= lbv \&\& ubv <=
 high) must be true. This means the first expression must imply that (low
-\textless{}= lbv \&\& ubv \textless{}= high) is true. It does not: (A
+<= lbv \&\& ubv <= high) is true. It does not: (A
 \textbar{}\textbar{} B) being true does not imply B.
 
 We handle this by forbidding pointer arithmetic involving null pointers,
@@ -84,10 +86,10 @@ runtime values of \var{e}, \var{lb}, and \var{ub} be \var{ev},
 via a sequence of operations from a pointer to some object \var{obj}
 with \texttt{object\_bounds(}\var{low}\texttt{,} \var{high}\texttt{)}.
 The following statement will be true at runtime: \var{low}
-\texttt{\textless{}=} \var{lbv} \texttt{\&\&} ubv \texttt{\textless{}=}
+\texttt{<=} \var{lbv} \texttt{\&\&} ubv \texttt{<=}
 \var{high}. In other words, the bounds are always valid. This implies
-that any access to memory where lbv \texttt{\textless{}=} \var{ev}
-\texttt{\&\&} \var{ev} \texttt{\textless{}} \var{ubv} will be within
+that any access to memory where lbv \texttt{<=} \var{ev}
+\texttt{\&\&} \var{ev} \texttt{<} \var{ubv} will be within
 the bounds of \var{obj}.
 \end{quote}
 
@@ -198,7 +200,6 @@ Here is how the programmer can do this:
 struct S  {
      array_ptr<int> m where m : bounds(m & ~0x3, m & ~0x3 + 10);
 }
-
 S set(S s) 
 {
   array_ptr<int> a : bounds(a & ~0x3, a & ~0x3) relative_align(none) = s.m;
@@ -294,7 +295,7 @@ The current syntax for describing post-conditions places a where clause
 after the function parameter list declaration:
 
 \begin{verbatim}
-f( …)
+f( ...)
 where cond1 ...
 \end{verbatim}
 
@@ -306,10 +307,10 @@ clause after the function parameter list applied to post-conditions.
 Some suggestions are the keywords \texttt{on\_return} or \texttt{after}:
 
 \begin{verbatim}
-f( …)
+f(...)
 where cond1 ...
 
-f( …)
+f(...)
 after cond1 ...
 \end{verbatim}
 
@@ -347,7 +348,7 @@ z = *t1;
 \end{verbatim}
 \end{quote}
 
-This compiler can recognize that x \textless{}= t1 is always true,
+The compiler can recognize that \texttt{x <= t1} is always true,
 leading to:-
 
 \begin{quote}

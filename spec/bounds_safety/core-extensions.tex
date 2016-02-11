@@ -262,7 +262,7 @@ ptr<int> z = &b[0];
 
 If the type of an expression or a subexpression is ``checked array of
 \var{T}'', the type of the expression is altered to be
-\arrayptrT .
+\arrayptrT.
 
 Following existing C language rules, this alteration does not happen if
 the expression is an operand of an address-of operator, \texttt{++},
@@ -285,12 +285,12 @@ and an upper bound on accessible memory. Those values can be accessed
 using the \texttt{.} operator combined with the special field names
 \texttt{current}, \texttt{lower\_bound}, and \texttt{upper\_bound}. The
 resulting values have the type
-\arrayptrT . The
+\arrayptrT. The
 special field names can only be read and cannot be modified by
 assignments.
 
 \begin{verbatim}
-array_view<int> p = …
+array_view<int> p = ...
 array_ptr<int> low = p.lower_bound;
 array_ptr<int> high = p.upper_bound;
 array_ptr<int> current = p.current;
@@ -328,7 +328,7 @@ Similarly, an \arrayptr\ value with declared bounds can be
 converted to an \arrayview\ value:
 
 \begin{verbatim}
-array_ptr<int> src = …
+array_ptr<int> src = ...
 array_view<int> p = src;
 \end{verbatim}
 
@@ -372,8 +372,8 @@ mechanism may be invoked to redirect program execution to a new point of
 execution that does not use the value of the expression.
 
 Defining pointer arithmetic this way simplifies reasoning about the new
-pointer types. Expected Identities such as \texttt{p + 1 \textgreater{}
-p} now hold because, if \texttt{p + 1} overflows, the value cannot be
+pointer types. Expected Identities such as \texttt{p + 1 > p} now hold
+because, if \texttt{p + 1} overflows, the value cannot be
 used. This allows programmers to narrow the bounds for
 \arrayptr\ values by incrementing the lower bound or
 decrementing the upper bound, even in situations where the bounds are at
@@ -560,8 +560,8 @@ redundant or can be combined into adjacent machine instructions. For
 example, in the code \texttt{t = *p; p += 1;} the first dereference of
 \texttt{p} implies that \texttt{p} is non-null before the increment.
 Otherwise, in a typical C environment, the program would fault at
-\texttt{*p}. In the code \texttt{if (p \textless{} hi) \{ p += 1; \}}
-the check \texttt{p \textless{} hi} implies that the increment cannot
+\texttt{*p}. In the code \verb|if (p < hi) { p += 1; }|
+the check \texttt{p < hi} implies that the increment cannot
 overflow. The checks are also inexpensive on superscalar processors:
 they can be placed so that they are statically predicted by the
 processor to never fail.
@@ -675,7 +675,7 @@ checked int f(ptr<int> p)
 {
     int a = 5;
     ptr<int> pa = &a;
-…
+    ...
 }
 
 // unchecked at the function level: Safe and unsafe pointer types can occur 
@@ -757,7 +757,7 @@ void decode(char *output_buffer, char *input_buffer, size_t input_len)
     while (src < bound) {
         switch (*current++) {
             case UNCOMPRESSED_BYTES: { 
-                // just copy bytes; compression wasn’t useful here.
+                // just copy bytes; compression wasn't useful here.
                 size_t len = src[0] + src[1]*256;
                 src += 2;
                 memcpy(dst, src, len);
@@ -962,8 +962,8 @@ void append(array_ptr<char> dst: count(dest_count),
 }
 \end{verbatim}
 
-The compiler now knows that \texttt{i \textless{} src\_count
-\textless{}= dst\_count}, so it can eliminate the check.
+The compiler now knows that \texttt{i < src\_count
+<= dst\_count}, so it can eliminate the check.
 
 A compiler would not introduce this dynamic\_check because it would
 alter the behavior of \texttt{append}. The bounds check on \texttt{dst}
