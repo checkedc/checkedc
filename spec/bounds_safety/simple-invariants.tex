@@ -83,8 +83,9 @@ statement about a variable and a non-modifying expression:
 \>\var{range-exp relop var}
 \end{tabbing}
 
-where \var{relop} is one of \textless{}, \textless{}=, ==, !=,
-\textgreater{}=, \textgreater{}. Recall that range-expressions are a
+where \var{relop} is one of \texttt{<}, \texttt{<=}, \texttt{==},
+\texttt{!=}, \texttt{>=}, or texttt{>}. 
+Recall that range-expressions are a
 subset of C expressions restricted to variables, constant expressions,
 and addition, subtraction, and address-of operations. The variable and
 non-modifying expression in a fact must have pointer types or integral
@@ -150,7 +151,7 @@ switch (x) {
 \end{verbatim}
 
 Here is a simple example that introduces a fact that i is always
-\textgreater{}= 0:
+\texttt{>=} 0:
 
 \begin{verbatim}
 int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
@@ -236,22 +237,24 @@ applies this substitution to both the set of facts and the fact that is
 being checked.
 
 The compiler then reduces the set of relational operators to the set
-\textless{}, \textless{}=, ==, and != by swapping operands and replacing
-\textgreater{} and \textgreater{}= with \textless{}= and \textless{}
-instead.
+\texttt{<}, \texttt{<=}, \texttt{==},  and \texttt{!=}
+by swapping operands and replacing \texttt{>} and \texttt{>=} 
+with \texttt{<=} and \texttt{<} instead.
 
 The compiler then puts each bounds declaration into a normal form so
 that syntactic identity can be used to compare facts. For example,
 operands for addition operations are commuted so that constant operands
 appear first, followed by the remaining subexpressions in lexicographic
-order. Integer subtraction a -- b is turned into a + (-b). Additions
+order. Integer subtraction a - b is turned into a + (-b). Additions
 with only constant operands are simplified and algebraic identities for
 addition and subtraction such as x + 0 are applied
 
 The compiler next checks if the fact being checked is in the set of
 facts. If it is not, it applies transitivity rules involving
-\textless{}, \textless{}=, and ==. It also checks to see if \textless{}
-implies != is true, and if \textless{}= and \textgreater{}= imply ==.
+\texttt{<}, \texttt{<=}, and \texttt{==}.
+It also checks to see if \texttt{<}
+implies \texttt{!=} is true, and if \texttt{<=} and
+\texttt{>=} imply \texttt{==}.
 
 \subsection{Bounds declarations and facts}
 
@@ -262,53 +265,61 @@ compiler chooses representative variables and puts the non-modifying
 expressions that make up a bounds expression into normal forms.
 
 The rules for checking bounds declarations include rules for
-transitivity. For x : bounds(e1, e2), if e1 \textless{}= e3, then e3 can
-be substituted for e1. If e4 \textless{}= e2, e4 can be substituted in
-e2. For x : count(e1), if e2 \textless{}= e1, e2 can be substituted for
-e1.
+transitivity. For \boundsdecl{\var{x}}{\bounds{\var{e1}}{\var{e2}}}, if
+\texttt{\var{e1} <= \var{e3}}, then \var{e3} can
+be substituted for \var{e1}. 
+If \texttt{\var{e4} <= \var{e2}}, \var{e4} can be substituted for
+\var{e2}.  For \boundsdecl{\var{x}}{\boundscount{\var{e1}}}, if \
+\texttt{\var{e2} <= \var{e1} and \var{e2} >= 0}, 
+\var{e2} can be substituted for \var{e1}.
 
 \subsection{Pointer arithmetic and facts}
 
-The rules used to check facts include the identities x \textless{} x + k
-for positive k and x + k \textless{} x for negative k, where k is a
-constant and x is a new pointer type (\ptr\,
+The rules used to check facts include the identities \texttt{\var{x} < \var{x} + \var{k}}
+for positive \var{k} and \texttt{\var{x} + \var{k} < \var{k}} for
+negative \var{k}, where \var{k} is a
+constant and \var{x} is a variable that has a new pointer type (\ptr,
 \arrayview, or \arrayptr). These identities are true
 because pointer arithmetic overflow is defined as a runtime error for
-these pointer types. This guarantees that adding x and k produces either
+new pointer types. This guarantees that adding \var{x} and \var{k} produces either
 an in-range value or a runtime error (no value).
 
 \subsection{Integer arithmetic and overflow}
 
 Integral arithmetic may overflow. This consequence of that is that the
-rules used to check facts do not include the identities x \textless{} x
-+ k for positive k and x + k \textless{} x for negative k, where k is a
-constant and x has an integral type. These identities are not true in C
-because the computation x + k may overflow. According to C language
-rules, program behavior is undefined in that case.
+rules used to check facts do not include the identities 
+\texttt{\var{x} < \var{x} + \var{k}} 
+for positive \var{k} and \texttt{\var{x} + \var{k} < \var{x}} for 
+negative \var{k}, where \var{k} is a
+constant and \var{x} has an integral type. These identities are not true in C.  For signed integer types, the computation \texttt{\var{x} + \var{k}}
+may overflow.   According to C language
+rules, program behavior is undefined in that case.  For unsigned
+integer types, computations are performed modulo one plus
+the maximum unsigned integer.
 
 To use these identities for integers, the compiler needs to prove for
-positive k that x + k \textless{}= MAXINT and for negative k that MININT
-\textless{}= x + k. There are four rules that can be used to prove this:
+positive \var{k} that \texttt{\var{x} + \var{k} <= MAXINT} and for negative \var{k} that \texttt{MININT <= \var{x} + \var{k}}.  There are four rules that can be used to prove this:
 
 \begin{itemize}
 \item
-  Given an integer c and a positive integer k, if x \textless{}= c and c
-  + k \textless{}= MAXINT, then x + c \textless{}= MAXINT.
+  Given an integer \var{c} and a positive integer \var{k}, if 
+  \texttt{\var{x} <= \var{c}} and \texttt{\var{c} + \var{k} <= MAXINT},
+  then \texttt{\var{x} + \var{c} <= MAXINT}.
 \item
-  Conversely, given an integer c and a negative integer k, if c
-  \textless{}= x and c + k \textgreater{}= MININT, then x +
-  k\textgreater{}= MININT
+  Conversely, given an integer \var{c} and a negative integer 
+  \var{k}, if \texttt{\var{c} <= \var{x}} and \texttt{\var{c} +
+   \var{k} >= MININT}, then \texttt{\var{x} + \var{k} >= MININT}
 \item
-  Given x \textless{} y, where y is any variable, then x + 1
-  \textless{}= MAXINT
+  Given \texttt{\var{x} < \var{y}}, where \var{y} is any variable, 
+  then \texttt{\var{x} + 1 <= MAXINT}.
 \item
-  Conversely, given x\textgreater{}y, where y is any variable, then x-1
-  \textgreater{}= MININT
+  Conversely, given \texttt{\var{x} > \var{y}}, where \var{y}
+  is any variable, then \texttt{\var{x} - 1 >= MININT}.
 \end{itemize}
 
-To determine whether an expression e is invertible, the compiler uses
-the facts that are true before the expression to prove that MININT
-\textless{}= e and e \textless{}= MAXINT.
+To determine whether an expression \var{e} is invertible, the compiler uses
+the facts that are true before the expression to prove that
+\texttt{MININT >= \var{e}} and \texttt{\var{e} <= MAXINT}.
 
 Note that to invert an integer expression, the compiler also needs to
 prove that it cannot overflow.
@@ -387,7 +398,8 @@ where statements. First, the compiler computes the facts true after
 \texttt{buf = buf + 1}. The compiler computes the inverse expression for
 \texttt{buf + 1}, which is \texttt{buf - 1}. It substitutes it into the
 bounds expression that is true before the increment, producing the set
-of facts after the increment of \texttt{buf : bounds(buf -- 1, end)}:
+of facts after the increment of 
+\texttt{\boundsdecl{buf}{\bounds{buf-1}{end}}}:
 
 \begin{verbatim}
 int sum(array_ptr<int> buf : bounds(buf, end), 
@@ -405,8 +417,8 @@ int sum(array_ptr<int> buf : bounds(buf, end),
 The next step is for the compiler to show that that \texttt{buf :
 bounds(buf - 1, end)} implies \texttt{buf : bounds(buf, end)}. The
 transitivity rule for bounds expressions implies that the compiler must
-show buf -- 1 \textless{}= buf. This follows from the identity x -- k
-\textless{} x, completing the validation of the bounds expression:
+show \texttt{buf - 1 <= buf}. This follows from the identity
+\texttt{\var{x} - \var{k} < \var{x}}, completing the validation of the bounds expression:
 
 \begin{verbatim}
 int sum(array_ptr<int> buf where bounds(buf) == (buf, end), 
