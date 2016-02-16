@@ -29,9 +29,9 @@ violations of bounds safety by themselves.
 
 Three new operators are introduced for converting between the different
 kinds of pointer types:
-\texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}},
-\texttt{core\_bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}},
-and \texttt{assume\_bounds\_cast\textless{}}T\texttt{\textgreater{}}.
+\texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}},
+\texttt{core\_bounds\_cast<}\var{T}\texttt{\textgreater{}},
+and \texttt{assume\_bounds\_cast<}T\texttt{\textgreater{}}.
 The syntax of the operators is similar to the syntax of C++ type
 conversion operators. \var{T} is the destination type to which a source
 value is being converted. The new operators take one to three arguments,
@@ -64,24 +64,24 @@ an expression e with type S:}
 
 \subsection{Dynamic checking using bounds\_cast\textless{}T\textgreater{}}
 
-\texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}} uses
+\texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}} uses
 dynamic checks to enforce the preservation of bounds safety. \var{T}
 must be a pointer type and is the desired destination type. The operator
 takes 1 to 3 arguments, depending on the kind of conversion being done:
 
 \begin{itemize}
 \item
-  \texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}(}\var{e1},
+  \texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}(}\var{e1},
   \var{e2}\texttt{)} converts \var{e1} to an \arrayptr or
   \arrayview type with bounds
   \texttt{count(}\var{e2}\texttt{)}.
 \item
-  \texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{,}
+  \texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{,}
   \var{e2}\texttt{,} \var{e3}\texttt{)} converts \var{e1} to an
   \arrayptr or \arrayview type with bounds
   \texttt{bounds(}\var{e2}\texttt{,} \var{e3}\texttt{)}.
 \item
-  \texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{)}
+  \texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{)}
   converts \var{e1} to either a \ptr or * type.
 \end{itemize}
 
@@ -93,36 +93,36 @@ runtime checks are done:
 
 \begin{itemize}
 \item
-  \texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}(}\var{e1},
+  \texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}(}\var{e1},
   \var{e2}\texttt{)}: if \var{e1} \texttt{!= 0}, check that \var{lb}
-  \texttt{\textless{}=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+
-  sizeof(referent-type(}\var{T}\texttt{)) *} e2 \texttt{\textless{}=}
+  \texttt{<=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+
+  sizeof(referent-type(}\var{T}\texttt{)) *} e2 \texttt{<=}
   \var{ub}.
 \item
-  \texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{,}
+  \texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{,}
   \var{e2}\texttt{,} \var{e3}\texttt{)}: if \var{e1} \texttt{!= 0},
-  check that \var{lb} \texttt{\textless{}=} \var{e2} \texttt{\&\&}
-  \var{e3} \texttt{\textless{}=} \var{ub}. Also check that relative
+  check that \var{lb} \texttt{<=} \var{e2} \texttt{\&\&}
+  \var{e3} \texttt{<=} \var{ub}. Also check that relative
   alignment constraints for \var{e1}, \var{e2}, and \var{e3} are met.
 \item
-  \texttt{bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{)}:
+  \texttt{bounds\_cast<}\var{T}\texttt{\textgreater{}(}\var{e1}\texttt{)}:
   check that there is room for least one element of \var{T}. This is
   the same as doing the check for
-  \texttt{bounds\_cast\textless{}}T\texttt{\textgreater{}(}e1,
+  \texttt{bounds\_cast<}T\texttt{\textgreater{}(}e1,
   1\texttt{)}: if \var{e1} \texttt{!=} \texttt{0}, check that \var{lb}
-  \texttt{\textless{}=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+}
-  \texttt{sizeof(referent-type(}\var{T}\texttt{) \textless{}=}
+  \texttt{<=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+}
+  \texttt{sizeof(referent-type(}\var{T}\texttt{) <=}
   \var{ub}.
 \end{itemize}
 
-\subsection{Correctness of bounds\_cast\textless{}T\textgreater{} conversions}
+\subsection{Correctness of bounds\_cast<T\textgreater{} conversions}
 
 In this section, the correctness of the bounds\_cast conversions is
 discussed. Readers interested in just using the operations may safely
 skip this discussion.
 
 We discuss only
-\texttt{bounds\_cast\textless{}T\textgreater{}(}\var{e1}\texttt{,}
+\texttt{bounds\_cast<T\textgreater{}(}\var{e1}\texttt{,}
 \var{e2}\texttt{,} \var{e3)} because the other forms are special cases
 of this operation. From Section~\ref{section:bounds-declarations},
 recall the meaning of a bounds
@@ -133,8 +133,8 @@ respectively. The value \var{e1v} will be \texttt{0} or have been
 derived via a sequence of operations from a pointer to some object
 \var{obj} with \texttt{bounds(}\var{low}\texttt{,}
 \var{high}\texttt{)}. The following statement will be true: \var{e1v}
-\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{\textless{}=}
-\var{lbv} \texttt{\&\&} ubv \texttt{\textless{}=}
+\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{<=}
+\var{lbv} \texttt{\&\&} ubv \texttt{<=}
 \var{high}\texttt{)}.
 
 To ensure \texttt{bounds(}\var{e2}\texttt{,} \var{e3}\texttt{)} is
@@ -143,22 +143,22 @@ valid for \var{e1}, we need to show the following:
 \begin{quote}
 Let \var{e2v} and \var{e3v} be the runtime values for \var{e2} and
 \var{e3} respectively. Then \var{e1v} \texttt{== NULL
-\textbar{}\textbar{} (}\var{low} \texttt{\textless{}=} \var{e2v}
-\texttt{\&\&} e3v \texttt{\textless{}=} \var{high}\texttt{)}.
+\textbar{}\textbar{} (}\var{low} \texttt{<=} \var{e2v}
+\texttt{\&\&} e3v \texttt{<=} \var{high}\texttt{)}.
 \end{quote}
 
 Given \var{e1v} \texttt{== 0 \textbar{}\textbar{} (}\var{low}
-\texttt{\textless{}=} \var{lbv} \texttt{\&\&} ubv \texttt{\textless{}=}
+\texttt{<=} \var{lbv} \texttt{\&\&} ubv \texttt{<=}
 \var{high}\texttt{)}, the runtime check that if \var{e1v} \texttt{!=}
-\var{0}, \var{lbv} \texttt{\textless{}=} \var{e2v} \texttt{\&\&}
-e\var{3v} \texttt{\textless{}=} \var{ubv} implies \var{e1v}
-\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{\textless{}=}
-\var{e2v} \texttt{\&\&} e3v \texttt{\textless{}=}
+\var{0}, \var{lbv} \texttt{<=} \var{e2v} \texttt{\&\&}
+\var{e3v} \texttt{<=} \var{ubv} implies \var{e1v}
+\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{<=}
+\var{e2v} \texttt{\&\&} e3v \texttt{<=}
 \var{high}\texttt{).}
 
-\subsection{Static checking use core\_bounds\_cast\textless{}T\textgreater{}}
+\subsection{Static checking use core\_bounds\_cast<T\textgreater{}}
 
-\texttt{core\_bounds\_cast\textless{}}\var{T}\texttt{\textgreater{}}
+\texttt{core\_bounds\_cast<}\var{T}\texttt{\textgreater{}}
 uses static checking to enforce the preservation of bounds safety:
 
 \begin{itemize}
