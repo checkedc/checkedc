@@ -609,19 +609,18 @@ expressions:
 \item
   Sizeof expressions
 \item
-  Multiplicative expressions (*, /, \%)
+  Multiplicative expressions (\texttt{*}, \texttt{/}, \texttt{\%})
 \item
-  Additive expressions (+, -))
+  Additive expressions (\texttt{+}, \texttt{-})
 \item
-  Shift expressions (\textgreater{}\textgreater{},
-  \textless{}\textless{})
+  Shift expressions (\texttt{>>}, \texttt{<<})
 \item
-  Relational and equality expressions (\textless{}, \textgreater{},
-  \textless{}=, \textgreater{}=, ==, !=)
+  Relational and equality expressions (\texttt{<}, \texttt{>},
+  \texttt{<=}, \texttt{>=}, \texttt{==}, \texttt{!=})
 \item
-  Bitwise expressions: and, or, exclusive-or
+  Bitwise expressions: and (\texttt{\&}), or (\texttt{|}), exclusive-or (\texttt{\^})
 \item
-  Logical AND (\&\&) and logical OR (\textbar{}\textbar{}) expressions
+  Logical AND (\texttt{\&\&}) and logical OR (\texttt{||}) expressions
 \item
   Conditional expressions
 \item
@@ -633,10 +632,10 @@ They also include expressions that access members of types or memory:
 
 \begin{compactitem}
 \item
-  Member references (to members of structures or unions) (the `.'
+  Member references (to members of structures or unions) (the \texttt{.}
   operator)
 \item
-  Indirect member dereferences (-\textgreater{})
+  Indirect member dereferences (\texttt{->})
 \item
   Pointer dereferences
 \end{compactitem}
@@ -1428,11 +1427,11 @@ z = *t1;
 Suppose \boundsdecl{x}{\boundscount{\texttt{c}}} instead. The bounds declaration 
 \boundsdecl{\var{e1}}{\boundscount{\var{e2}}} is a synonym for 
 \boundsdecl{\var{e1}}{\bounds{\var{e1}}{\var{e1} \texttt{+} \var{e2}}}.
-The runtime check becomes \texttt{e1 \textless{}= e1 \textless{} e1 + e2}.
-In this example, the check becomes \texttt{x \textless{}= x \textless{}
-x + c}. The condition \texttt{x \textless{}= x} is trivially true. The
-condition \texttt{x \textless{} x + c} simplifies to \texttt{0
-\textless{} c}, that is \texttt{c \textgreater{} 0}, which is what one
+The runtime check becomes \texttt{e1 <= e1 < e1 + e2}.
+In this example, the check becomes \texttt{x <= x <
+x + c}. The condition \texttt{x <= x} is trivially true. The
+condition \texttt{x < x + c} simplifies to \texttt{0
+< c}, that is \texttt{c \textgreater{} 0}, which is what one
 would expect.
 
 Now suppose pointer arithmetic is involved and \texttt{z = *(x+5)}. The
@@ -1544,7 +1543,7 @@ Unsigned integer & \texttt{sizeof(T) *\textsubscript{ovf} e1} &
 \texttt{sizeof(T) * e1} & On overflow\tabularnewline
 Signed integer & \texttt{((signed\_size\_t) sizeof(T))
 *\textsubscript{ovf} e1} & \texttt{sizeof(T) * (size\_t) e1} & On
-overflow or when e1 \textless{} 0.\tabularnewline
+overflow or when \texttt{e1 <} 0.\tabularnewline
 \bottomrule
 \end{longtable}
 
