@@ -38,7 +38,7 @@
 %
 % meta variables are italicized.  Use the macro name var
 % to save on typing.
-\newcommand{\var}[1]{\textrm{\textit{#1}}}
+\newcommand{\var}[1]{\texttt{\textit{#1}}}
 %
 % macro for font for keywords
 %
@@ -49,21 +49,21 @@
 % array_ptr type macros
 %
 \newcommand{\arrayptr}{\texttt{array\_ptr}}
-\newcommand{\arrayptrinst}[1]{\texttt{array\_ptr<}#1\texttt{>}}
+\newcommand{\arrayptrinst}[1]{\texttt{array\_ptr<#1>}}
 \newcommand{\arrayptrT}{\arrayptrinst{\var{T}}}
 \newcommand{\arrayptrchar}{\arrayptrinst{\texttt{char}}}
 \newcommand{\arrayptrint}{\arrayptrinst{\texttt{int}}}
 \newcommand{\arrayptrvoid}{\arrayptrinst{\texttt{void}}}
 
 \newcommand{\arrayview}{\texttt{array\_view}}
-\newcommand{\arrayviewinst}[1]{\texttt{array\_view<}#1\texttt{>}}
+\newcommand{\arrayviewinst}[1]{\texttt{array\_view<#1>}}
 \newcommand{\arrayviewT}{\arrayviewinst{\var{T}}}
 \newcommand{\arrayviewchar}{\arrayviewinst{\texttt{char}}}
 \newcommand{\arrayviewint}{\arrayviewinst{\texttt{int}}}
 \newcommand{\arrayviewvoid}{\arrayviewinst{\texttt{void}}}
 
 \newcommand{\ptr}{\texttt{ptr}}
-\newcommand{\ptrinst}[1]{\texttt{ptr<}#1\texttt{>}}
+\newcommand{\ptrinst}[1]{\texttt{ptr<#1>}}
 \newcommand{\ptrT}{\ptrinst{\var{T}}}
 \newcommand{\ptrchar}{\ptrinst{\texttt{char}}}
 \newcommand{\ptrint}{\ptrinst{\texttt{int}}}
@@ -72,24 +72,24 @@
 %
 % bounds expression macros
 %
-\newcommand{\relalign}[1]{\texttt{rel\_align(}#1\texttt{)}}
-\newcommand{\relalignval}[1]{\texttt{rel\_align\_value(}#1\texttt{)}}
+\newcommand{\relalign}[1]{\texttt{rel\_align(#1)}}
+\newcommand{\relalignval}[1]{\texttt{rel\_align\_value(#1)}}
 \newcommand{\bounds}[2]{\texttt{bounds(#1, #2)}}
 \newcommand{\boundsrel}[3]{\texttt{bounds(#1, #2) \relalign{#3}}}
 \newcommand{\boundsrelval}[3]{\texttt{bounds(#1\, #2)} \relalignval{#3}}
 \newcommand{\boundsany}{\texttt{bounds(any)}}
 \newcommand{\boundsnone}{\texttt{bounds(none)}}
-\newcommand{\boundscount}[1]{\texttt{count(}#1\texttt{)}}
-\newcommand{\boundsbytecount}[1]{\texttt{byte\_count(}#1\texttt{)}}
+\newcommand{\boundscount}[1]{\texttt{count(#1)}}
+\newcommand{\boundsbytecount}[1]{\texttt{byte\_count(#1)}}
 
 %
 % bounds declaration macros
 %
-\newcommand{\boundsdecl}[2]{\texttt{#1}~:~#2}
+\newcommand{\boundsdecl}[2]{\texttt{#1}~\texttt{:}~\texttt{#2}}
 %
 % computed bounds for expressions
 %
-\newcommand{\boundsinfer}[2]{#1~\texttt{:-}~#2}
+\newcommand{\boundsinfer}[2]{\texttt{#1}~\texttt{:-}~\texttt{#2}}
 
 \begin{document}
 
@@ -100,8 +100,9 @@
 {\huge Extensions to C for Pointer Safety \par}
 {Version 0.4 \par}
 \vspace{0.5in}
-{David Tarditi \par} 
 {Checked C Technical Report Number 1 \par}
+\vspace{0.25in}
+{Author(s): David Tarditi, Microsoft\par} 
 \vspace{1in}
 {\it Summary \par}
 \input{abstract}
