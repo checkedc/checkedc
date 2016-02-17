@@ -6,12 +6,12 @@
 \section{Removing relative alignment}
 \label{section:design-alternatives:always-unaligned}
 
-We consider removing the concept of relative alignment from the design to simplify
-the design.  Relative alignment is described in Sections~\ref{section:relative-alignment}
+We considered removing the concept of relative alignment from the design to simplify it. 
+Relative alignment is described in Sections~\ref{section:relative-alignment}
 and~\ref{section:pointer-cast-results}.  If relative alignment
-is removed, however, the compiler has to assume that bounds and pointers are
-not relatively aligned.   This would result in more costly bounds checks
-as well as significantly more bounds checks in optimized code.
+is removed, however, compilers have to assume that bounds and pointers are
+not relatively aligned.   This would result in more costly bounds checks and
+more bounds checks in optimized code.
 
 Checks against upper bounds would  take several more instructions.
 Given a pointer \var{p} to type \var{T}, \texttt{*\var{p}} accesses the memory from
@@ -19,10 +19,10 @@ Given a pointer \var{p} to type \var{T}, \texttt{*\var{p}} accesses the memory f
 upper bounds check for \var{p} becomes \texttt{\var{p} + sizeof(\var{T}) - 1 < \var{ub}},
 not \texttt{\var{p} < \var{ub}}.  The
 computation of \texttt{\var{p} + sizeof(\var{T}) - 1} would need an overflow check also, 
-so there would typically be several extra instructions added to an upper bounds check, 
+so several extra instructions would be added to an upper bounds check, 
 not just an extra addition.
 
-There will also be more bounds checks because it will be harder for compiler optimizers
+There would also be more bounds checks because it would be harder for compiler optimizers
 to eliminate upper bounds checks in loops.  Most programmers would write code that
 strides through an array using a comparison that
 \texttt{\var{p} \textless{} \var{ub}}. The comparison 
@@ -134,7 +134,7 @@ f()
 }
 \end{verbatim}
 
-\subsection{Proposed rules for conversion of array types to pointer types}
+\subsection{Rules for conversion of array types to pointer types}
 
 Array types may be complete or incomplete. A complete array type
 specifies the number of elements in the array using a constant
