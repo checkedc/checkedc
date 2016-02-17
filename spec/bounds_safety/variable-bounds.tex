@@ -963,13 +963,15 @@ array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
 \label{section:extent-of-declarations}
 
 Variables that have bounds declared for them at expression statements
-have dataflow-sensitive bounds declarations. There are two aspects two
+have dataflow-sensitive bounds declarations. There are two aspects to
 dataflow-sensitive bounds: extent and consistency. The extent of a
-bounds declaration is the part of the program to which a bounds
-declaration applies. Within the extent of a bounds declaration, the
+flow-sensitive bounds declaration is the part of the program to which 
+a flow-sensitive bounds
+declaration applies. Within the extent of a flow-sensitive 
+bounds declaration, the
 bounds for the variable for memory dereferences are given by the bounds
-declaration. Consistency is that all the bounds declarations flowing to
-a statement agree with each other.
+declaration. Consistency is that all the flow-sensitive bounds 
+declarations flowing to a statement agree with each other.
 
 As mentioned in Section~\ref{section:statement-declarations},
 a dataflow-sensitive bounds declaration
@@ -999,51 +1001,49 @@ that bounds remain the same. However, with other kinds of assignments,
 the before and after values may be unrelated, so re-using bounds could
 lead to unexpected bounds checks failures.
 
-\subsection{Definition of extent for statements}
+\subsection{Definition of extent}
 \label{section:extent-definition}
 
-We first define the set of bounds declarations that apply to a function
-component, where a function component is an expression statement,
-variable declaration, or part of a compound statement. For any bounds
+We first define the set of flow-sensitive bounds declarations that apply to a component of a function.  A component is an expression statement,
+variable declaration, or part of a compound statement. For any
+flow-sensitive bounds
 declaration for a variable \var{v}, if
 
 \begin{compactenum}
 \item
-  There is some path from the bounds declaration to the function
+  There is some path from the bounds declaration to the 
   component, and
 \item
-  \var{v} occurs in the function component, and
+  \var{v} occurs in the component, and
 \item
-  There is no other bounds decla;ration for \var{v} along the path
+  there is no other flow-sensitive bounds declaration for 
+  \var{v} along the path
 \end{compactenum}
 
 then
 
 \begin{compactenum}
 \item
-  If one of the variables in the bounds expression is out-of-scope at
-  the component, the declaration \boundsdecl{\var{v}}{\boundsnone}
-  applies, otherwise
-\item
-  If one of the expressions or statements on the path modifies a
-  variable occurring in the bounds declaration, and
-
+  if all the variables occurring in the bounds declaration are 
+  in-scope at the component, and
+  \begin{compactenum} 
+  \item No expressions or statements on the path modify a variable
+  occurring in the bounds declaration
+  \item or
   \begin{compactenum}
-  \item
-    The expression or statement is not a pointer increment or decrement
-    of the variable \var{v}, or
-  \item
-    v occurs in the bounds expression, or
-  \item
-    the bounds expression has the form \texttt{count},
-    \boundsnone, or \boundsany
-  \end{compactenum}
-then the declaration \boundsdecl{\var{v}}{boundsnone} applies.
-Otherwise,
-\item
-  The bounds declaration applies.
+  \item The only expressions or statements on the path that
+   modify a variable occurring in the bounds declaration 
+   are pointer increments or decrements of \var{v}, and
+   \item \var{v} does not occur in the bounds expression, and
+   \item the bounds expression is not a count expression
+   \end{compactenum}
+   \end{compactenum}
+   then the bounds declaration applies to the component   
+\item 
+   Otherwise, the bounds declaration \boundsdecl{\var{v}}{\boundsnone}
+   applies to the component.
 \end{compactenum}
-
+  
  \subsection{Consistency}
 
 These conditions ensure the consistency of bounds declarations:
@@ -1472,11 +1472,16 @@ x = malloc ((sizeof(int) * 5)
 where x : bounds(x, x + 5);
 \end{verbatim}
 
-When should \texttt{x + 5} be evaluated? If it is evaluated eagerly,
-then \texttt{malloc} returning null on a failure to allocate will cause
-a null pointer arithmetic failure immediately. To avoid this problem,
+When is \texttt{x + 5} evaluated?  In this design, 
 the evaluation of a bounds expression in a bounds declaration is
-deferred until a bounds check uses the bounds expression.
+{\em deferred} until a bounds check uses the bounds expression. 
+This avoids the need for temporary storage to 
+hold the value of \texttt{x + 5}.  The need for temporary storage would
+be particularly problematic when bounds declarations are extended
+to structures.   It also avoids complications when \texttt{x} is
+\texttt{null}. Section~\ref{section:bounds-declarations-alternate-semantics} 
+discusses eager evaluation of bounds expressions at
+bounds declarations in more detail and explains why that was not chosen.
 
 \section{Size computations for memory allocation and integer overflow or wraparound}
 \label{section:integer-overflow-informal}

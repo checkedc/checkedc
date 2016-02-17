@@ -221,10 +221,11 @@ introduces an invisible failure point in a program where one does not
 otherwise exist. Pointer arithmetic is not normally bounds checked, so
 it is not expected fail.
 
-\section{Alternate definitions of the semantics of bounds declarations}
+\section{Alternate semantics for bounds declarations}
+\label{section:bounds-declarations-alternate-semantics}
 
-There are a variety of different possible definitions of the semantics
-of bounds declarations. A bounds declaration has the form:
+There are a variety of possible semantics for
+bounds declarations. A bounds declaration has the form:
 
 \begin{quote}
 \boundsdecl{\var{x}}{\var{bounds-exp}}
@@ -241,7 +242,7 @@ of bounds declarations. A bounds declaration has the form:
 It may be attached to declarators, parameter declarations, or assignment statements:
 
 \begin{tabbing}
-\var{init-}\={declarator:} \\
+\var{init-}\=\var{declarator:} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} 
 where-clause\textsubscript{opt}} \texttt{=} \var{initializer
@@ -263,97 +264,92 @@ constructed from the value of the variable.
 One design choice for bounds declarations is when
 bounds expressions are evaluated.  In the design, evaluation of
 bounds expressions is {\em deferred} until bounds checks.  The bounds
-expression could be evaluated {\em eagerly} at the point of the bounds declarations.
+expressions could be evaluated {\em eagerly} at the point of the bounds declarations.
 
 If bounds expressions in a bounds declaration \boundsdecl{\var{v}}{\var{e}} are evaluated 
-eagerly, they must  be evaluated only when \var{v} is non-null.  Bounds are not
-meaningful when \var{v} is null.  This prevents eager evaluation from accidentally
-causing a runtime failure when a null valued is encountered.    
+eagerly, they must  be evaluated only when \var{v} is non-null. If \var{v} is null,
+the bounds might not be meaningful.  This keeps eager evaluation from
+causing accidental runtime failures when null values are encountered.    
 
 Consider the code for the use of \texttt{malloc}.   With eager evaluation,
-the bounds expressions in {\texttt\bounds{(result, result + size)}} would not
+the bounds expressions in \bounds{result}{result + size} would not
 be evaluated if \texttt{malloc} returns \texttt{null}:
 \begin{verbatim}
-array_ptr<int> result = malloc(size) where result : bounds (result, result + size)
+array_ptr<int> result = malloc(size) where result : bounds (result, result + size);
 if (result != NULL) {
       ... *result = ...
 }
 \end{verbatim}
 
-We considered eager evaluation, but rejected it because it would turn \arrayptr
-types into \arrayview types.   When a bounds expressions are always eagerly
+We considered eager evaluation, but rejected it because it would turn \arrayptr\
+types into \arrayview\ types.  When bounds expressions are always eagerly
 evaluated, the results need to be stored somewhere so that they can be used
 when \var{v} is used.  For local variables, hidden temporary variables could be
-introduced.   This breaks the design principle of not introducing hidden
-costs, though.  To avoid introducing hidden costs, \arrayptr types could carry
-their bounds with them.  However, this turns \arrayptr types into \arrayview types.
-For structures, introducing hidden state or converting \arrayptr types to \arrayview
-types is especially problematic because it breaks data layout compatibility.
+introduced.  This breaks the design principle of not introducing hidden
+costs, though.  To avoid introducing hidden costs, the semantics of \arrayptr\ types could 
+be changed so that they carry their bounds with them.   This just turns \arrayptr\ types into 
+\arrayview\ types.   For structures, introducing hidden state or converting \arrayptr\ types to 
+\arrayview\ types is especially problematic because it breaks data layout compatibility.
 
-For these reasons, we think it is better to regard bounds declarations as being
-compile-time program invariants about the bounds of variables.   Normally, compile-time
-program invariants are never evaluated at runtime.  However, in the case of pointers
-the program invariants are used to provide runtime bounds safety.
+For these reasons, we think it is better to think of bounds declarations as being
+program invariants describing the bounds of variables.   Normally, 
+program invariants are not evaluated at runtime.  However, in the case of pointers,
+the program invariants are used to provide bounds safety at runtime.
 
 Deferred evaluation of bounds expressions has issues, too, though. First, there
 can be problems if a programmer modifies a variable used in a bounds expression
 within the extent of a bounds declaration.  Static checking could fail if the
-bounds declaration no longer holds.   This would be unexpected behavior for
-progammers.  Second, it is a new concept for C programmers.   It could confuse C
-programmers.  We recommend using a carefully designed study of programmers to understand 
-degree of difficulty of understanding the newe concept.
+bounds declaration no longer holds.  These would be unexpected errors for
+C progammers.  Second, it is a new concept for C programmers that could
+cause confusion.  We recommend a carefully designed study of
+programmers to evaluate the difficulty of learning the concept.
 
 Because bounds declarations constrain assignments to variables within the scope
-of the bounds declarations, we consider several additional definitions of the
-extent for bounds declaration:
+of the bounds declarations, we considered several alternate definitions of 
+bounds declarations.   First, we considered not having lexically-scoped bounds
+declarations and just having flow-sensitive bounds declarations.  Flow-sensitive
+bounds declarations are more subtle to understand, though, while lexically-scoped
+bounds declarations can be understood at a glance.  We decided to keep
+lexically-scoped bounds declarations because they are simpler to understand and
+allow bounds invariants to be declared that always cover a set of statements.
+In contrast, with only flow-sensitive bounds declarations, a programmer might need 
+to redeclare the bounds invariant at  assignments to variables that occur in the
+bounds declaration. This could lead to verbose code, something C tries to
+avoid, and it could also be error-prone.
 
+We considered the opposite approach of having only lexically-scoped
+bounds declarations.   However, this introduces the opposite problem of
+redeclaring invariants.  A pointer variable could not have different
+bounds declarations during at different points in the program.  This could
+make modifying existing C code to be bounds-safe more complex: an existing
+variable might need to be replaced with several new variables.
+
+Finally, we considered several alternate definitions of the extent of a
+flow-sensitive bounds declaration for a pointer variable:
 \begin{compactitem}
-    \item The set of statements up to the first assignment to any variable
-     used in the bounds declaration. We will call this the ``direct'' set
-    \item
-      All statements after the bounds declaration where the variables involved in
-      the bounds declaration are in scope and a new bounds declaration has not superseded
-      the prior bounds declaration. We will call this the ``always'' set.
-    \item
-      Various sets of program points in between the two extremes of (1) and (2).
-      For the sake of discussion, we call this the ``intermediate'' set.
+    \item Defining extent to be the set of statements up to the first assignment
+          to any variable occurring in the bounds declaration.   This is a
+          ``minimal'' notion of extent.  It removes the special case for
+          pointer increment and decrement, so bounds
+          declarations would be required at those statements.  We believe
+          the special case will lead to more succinct code, so we chose to
+          keep it.
+    \item Defining extent to be all the statements between the bounds
+          declaration and the next bounds declaration for
+         the pointer variable or the last use of the pointer variable.  This
+         is a ``maximal'' notion of extent.  We thought this case might
+         lead to surprising error messages when modifying existing
+         code.  In particular, with this definition, extending
+         the lifetime of a pointer variable could lead to errors
+         at assignments within the new part of the lifetime, specifically
+         assignments to variables that occur in the bounds declaration.
+         The current definition is more conservative.  It could produce errors
+         only at new uses of the pointer variable or assignments in
+         the new part of the lifetime that increment or decrement the pointer 
+         variable.
+  \item Adding special cases to the current definition beyond
+        pointer increment and decrement.  
 \end{compactitem}
-% stopping here for now.
+We believe that we need experience using flow-sensitive bounds declarations
+to choose between these different possible definitions of extent.
 
-Here is a chart of the different permutations, with comments on their interactions:
-
-\begin{longtable}[c]{p{0.8in}p{2.8in}p{2.8in}}
-\toprule
-Set of program points & By-value & By-reference \tabularnewline
-\midrule
-\endhead
-Scope & Requires intermediate
-        variables                & Static checking may fail at assignments
-                                   to variables used in the bounds expressions.\\
-Direct & \multicolumn{2}{c}{By-value and by-reference evaluation is
-                            indistinguishable.  Because there are no assignments,
-                            they produce the same result} \\ \midrule
-Always & Introduces hidden temporary  variables that hold bounds value.
-
-May lead to unexpected runtime failures if the variable with bounds is assigned
-a pointer to an object outside of its declared bounds & 
-
-Static checking may fail at assignments to variables usesd in bounds expressions.
-
-For a bounds declaration \boundsdecl{\var{v}}{\var{e}}, the bounds of \var{v}
-must be bounds using a bounds declarations of \bounds{\var{v}}{\boundsnone} if
-variables in e continued to be used after v is no longer used.
-\\ \midrule
-Intermediate & Introduces hidden temporary variables that hold bounds
-value.
-
-May lead to runtime failures if the lhs variable is assigned a pointer
-to an object outside of the declared bounds. & \\ \midrule
-General comments & We would need to check that all pointer variables in
-bounded expressions are non-null before evaluating bounds at
-declaration.
-
-Otherwise evaluation may fail at runtime if a variable on the right-hand
-side is null. &\tabularnewline
-\bottomrule
-\end{longtable}
