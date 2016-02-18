@@ -55,6 +55,7 @@ layout and data layout cannot be changed. C programs must also
 interoperate with existing operating systems and software that require
 specific data layouts.
 
+\section{Overview}
 Checked C addresses the bounds checking problem for C by:
 
 \begin{itemize}
@@ -166,45 +167,28 @@ first-order logic for quantifier-free Presburger arithmetic is
 satisfiable (true or false). Even statically checking properties of
 simple fragments of real programs can be computationally intractable.
 
-We address this problem two ways. First, the language of invariants is
-restricted. The language of invariants does not allow disjunctive
-invariants (invariants involving \verb+||+. For example, one
-cannot write an invariant that says that variable x has a pointer to a 5
-or 7 element array, depending on the value of some Boolean variable b.
-The combination of disjunction with conjunction leads to an exponential
-size increase when invariants are put into a normal form to check that
-two invariants are the same, so it is avoided.
-
-Second, the inference that compilers are expected to do is limited also.
-A compiler acts as a \emph{checker} for invariants. It checks that
+We address this problem two ways. First,  the rules that compilers
+use to check the validity of bounds are limited intentionally.  They can
+check the validity of bounds that are needed in practice.  However, there are
+bounds that are true that cannot be proved using the rules.  In the terminology
+of program logics, the rules are incomplete.   As an example, the size
+of expressions that rules about distributivity limit the size of
+expressions that they produce.   In practice, this means in practice that 
+simple disjunctive bounds can be checked, but complex disjunctive bounds cannot be checked.
+ 
+Second, the inference that compilers do for checking program invariants is
+limited.  Compilers act as \emph{checkers} for invariants. They check that
 declared invariants follow from other \emph{declared} invariants, the
 program control-flow, intervening assignments, and simple axioms about
-invariants, such as transitivity of relational operators. The compiler
-does not try to devise invariants or prove the correctness of
-invariants; it applies simple local reasoning to check them. The
+invariants, such as transitivity of relational operators. Compilers
+do not try to devise invariants or prove the correctness of
+invariants; they apply simple local reasoning to check them. The
 programmer has to call out the relevant facts. If a programmer declares
 an invariant \texttt{x == y} but neglects to declare the invariant
-\texttt{y == z}, the checker may not be able to reason several
+\texttt{y == z}, a checker may not be able to reason several
 statements later that \texttt{x == z}, even though it may be true at
 that point in the program. This is taking advantage of the fact that
 checking a proof is usually much easier than creating the proof.
-
-One question for the design is how usable it is with these restrictions.
-We plan to evaluate the limitation on the language of invariants
-empirically by examining code and looking for code that requires
-disjunctive invariants about bounds. We will also see how many
-invariants need to be explicitly declared for the compiler.
-
-Another problem with static checking is that static checking has
-theoretical and practical limits. A program logic may be incomplete: a
-fact that is true about a program may not be provable in the logic. Even
-when a program logic can prove a fact, the proof may require deep
-knowledge of an area or the properties of the program. A programmer may
-not have the time or expertise to construct the proof that the fact is
-true. For example, code may be relying on properties of modular
-arithmetic for correctness. For these situations, programs can
-dynamically check facts that are believed to be true, but not provable
-via the static checking in the language.
 
 Establishing the safety of pointer operations is just the first step in
 establishing type safety for C programs. There are other ways which C
@@ -213,6 +197,8 @@ still in use, do incorrect unsafe pointer casts, or have concurrency
 races that tear data structures. Addressing these problems is beyond the
 scope of this design document. For now, we assume that programs are
 correct in these other aspects.
+
+\section{Organization of this document}
 
 The rest of this document is organized as follows. Chapter~\ref{chapter:principles}
 describes the principles that will be applied to extending C.  

@@ -233,62 +233,7 @@ S set(S s)
 } 
 \end{verbatim}
 
-\section{Conditional bounds or disjunction}
-
-We have omitted disjunction for the language of bounds expressions. We
-believe that it will be needed for coding patterns that appear in
-practice. Here is an example of a coding patterns:
-
-\begin{verbatim}
-    //the return buffer has bounds count(len) when *success == SUCCESS.
-    int* ValidIfSuccess(int *success, int len); 
-\end{verbatim}
-
-This bounds on the return value might be written as:
-\begin{verbatim}
-    where return_value : *success ? bounds(none) : count(len)
-\end{verbatim}
-
-This is syntactic sugar for the expression:
-
-\begin{verbatim}
-    (*success && return_value : bounds(none)) || (!(*success) && return_value : count(len))
-\end{verbatim}
-
-It is unclear what effect allowing disjunction in logical expressions
-would have on the cost of the static checking required by the system. It
-is clear that allowing arbitrary sized expressions with conjunction and
-disjunction would be problematic. To even check that two expressions are
-equivalent, they have to be put in a normal form, either disjunctive
-normal form or conjunction normal form. For some expressions, this
-conversion to a normal form can lead to an exponential increase in the
-number of terms.
-
-For example, the current expressions used by the system are implicitly
-in conjunctive normal form
-
-\begin{verbatim}
-exp1 && exp2 && exp3
-\end{verbatim}
-
-If we want to put a logical expression of the form
-\begin{verbatim}
-(x && y) || e
-\end{verbatim}
-
-into conjunctive normal form, we end up with
-
-\begin{verbatim}
-(x || e) && (y || e)
-\end{verbatim}
-
-which duplicates the expression e. A simple approach to that problem
-would be to limit the size of expressions that are arguments to a
-disjunction operator. We could require that disjunction only be applied
-to subexpressions of size k, where k is relatively small (say 5). Size
-is measured by the number of interior nodes in the expression.
-
- \section{Concrete syntax}
+\section{Concrete syntax}
 
 \subsection{Post-condition syntax}
 The current syntax for describing post-conditions places a where clause

@@ -3,10 +3,28 @@
 \chapter{Design choices considered but not chosen}
 \label{chapter:design-alternatives}
 
+This chapter describes design choices that we considered and chose not to pursue.
+This is useful for two reasons.  First, it provides reasons for why the current
+design choices were made.  Second, as we gather experience with the current
+design, we may want change  our design choices.  This chapter provides a starting point
+of alternative possible designs.  For example, support for non-relatively 
+aligned pointers originally started in this chapter as a design choice that
+we were not going to make.  After looking at C code that
+made extensive use of pointer casts, we changed our mind and incorporated
+the material into the main design.
+
+It is also useful to have this material in a separate chapter for organizing
+the presentation of the design.  There is less to read for readers simply
+interested in learning the existing design.  It avoids confusing
+readers who are browsing the design in a non-linear order.   If the material
+were interleaved, readers could start learning about a design, only to find
+out at the end of a section that the design was in fact {\em not} chosen.
+ 
 \section{Removing relative alignment}
 \label{section:design-alternatives:always-unaligned}
 
-We considered removing the concept of relative alignment from the design to simplify it. 
+We considered removing the concept of relative alignment from the design in order
+to have a simpler design. 
 Relative alignment is described in Sections~\ref{section:relative-alignment}
 and~\ref{section:pointer-cast-results}.  If relative alignment
 is removed, however, compilers have to assume that bounds and pointers are
@@ -39,8 +57,7 @@ require interprocedural or whole-program analysis.
 We considered allowing pointer variables to be assigned pointer values
 not derived in some way from the object with which their bounds are
 associated. The idea would be to avoid unnecessary restrictions on
-operations involving pointers and give pointers more leeway to encode
-information by modifying bits in pointers.
+operations involving pointers.
 
 In this approach, the meaning of a bounds expression would be defined
 differently than that given in Section~\ref{section:bounds-declarations}. 
@@ -57,9 +74,9 @@ of memory for some valid object. This is provided that the value of the
 expression with which those bounds are associated is non-null.
 
 The problem with this approach is that it has unexpected consequences
-for the bounds that are allowed to be declared for pointer variables.
+for the bounds that can be declared for pointer variables.
 Any valid pointer bounds could be declared for a variable because there
-is no longer a requirement that a pointer stored in the variable is
+is no longer a requirement that a pointer stored in the variable be
 derived from a pointer to the object associated with the bounds. The
 following example would be valid:
 
@@ -68,21 +85,20 @@ array_ptr<int> x : count(5) = malloc(sizeof(int) * 5);
 array_ptr<int> y : bounds(x, x + 5) = malloc(sizeof(int) * 2);
 \end{verbatim}
 
-Because the bounds are disassociated from the actual pointer values,
-there is much more potential for errors to be made by programmers that
-are only detected at runtime. This approach was not pursued further for
-this reason.
+This makes it more likely that programming errors involving bounds
+declarations are detected only at runtime.  This approach was not 
+pursued further for this reason.
 
-\section{Address-of and array-to-pointer conversion always produce safe pointer types}
+\section{Address-of operations and array-to-pointer conversions always produce safe pointer types}
 
 We considered a designed where the address-of operator (\&) and
-array-to-pointer type conversion always produced safe pointers. To
-preserve compatibility with existing C code, we introduce implicit
+array-to-pointer type conversions always produce safe pointer types. To
+preserve compatibility with existing C code, we would introduce implicit
 conversions from safe pointers to unsafe pointers. We found that we were
 not able to preserve backwards compatibility for the address-of operator
 and that implicit array-to-pointer conversions required bounds checking.
 
-\subsection{Proposed rules for an address-of operator that produces safe pointer type.}
+\subsection{Address-of operator rules}
 
 The address-of operator (\texttt{\&}) applied to an lvalue expression of
 type \var{T} would produce a value of type
@@ -134,7 +150,7 @@ f()
 }
 \end{verbatim}
 
-\subsection{Rules for conversion of array types to pointer types}
+\subsection{Array-to-pointer conversion rules}
 
 Array types may be complete or incomplete. A complete array type
 specifies the number of elements in the array using a constant
