@@ -364,8 +364,7 @@ Here is a simple example of capturing the lower bounds of an
 \arrayptr\ variable using another variable:
 
 \begin{verbatim}
-int sum(array_ptr<int> buf : bounds(buf, end), 
-         array_ptr<int> end) {
+int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     array_ptr<int> tmp = buf;
     where buf : bounds(tmp, end); // substitute tmp for buf
     int sum = 0;
@@ -381,8 +380,7 @@ Here is a more complicated example where \texttt{buf} is incremented
 \emph{and} \texttt{buf} is the lower bound:
 
 \begin{verbatim}
-int sum(array_ptr<int> buf : bounds(buf, end), 
-        array_ptr<int> end) {
+int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     int sum = 0;
     while (buf < end) {
         sum += *buf;   
@@ -402,8 +400,7 @@ of facts after the increment of
 \texttt{\boundsdecl{buf}{\bounds{buf-1}{end}}}:
 
 \begin{verbatim}
-int sum(array_ptr<int> buf : bounds(buf, end), 
-        array_ptr<int> end) {
+int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     int sum = 0;
     while (buf < end) {
         sum += *buf;   
