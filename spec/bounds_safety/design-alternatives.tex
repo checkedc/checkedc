@@ -1,30 +1,57 @@
 % !Tex root = checkedc.tex
 
-\chapter{Design choices considered but not chosen}
+\chapter{Rejected design choices}
 \label{chapter:design-alternatives}
 
-This chapter describes design choices that we considered and chose not to pursue.
-This is useful for two reasons.  First, it provides reasons for why the current
-design choices were made.  Second, as we gather experience with the current
-design, we may want change  our design choices.  This chapter provides a starting point
+This chapter describes design choices that we considered and rejected.
+A separate chapter is useful for three reasons.   First, it makes it 
+easier to learn the existing design because there is less to read.
+Second, it provides reasons for why the current
+design choices were made.  Third , as we gather experience with the current
+design, we may want change the design choices hat we made. 
+This chapter provides a starting point 
 of alternative possible designs.  For example, support for non-relatively 
-aligned pointers originally started in this chapter as a design choice that
-we were not going to make.  After looking at C code that
+aligned pointers originally started in this chapter as a rejected design choice 
+After looking at C code that
 made extensive use of pointer casts, we changed our mind and incorporated
 the material into the main design.
 
-It is also useful to have this material in a separate chapter for organizing
-the presentation of the design.  There is less to read for readers simply
-interested in learning the existing design.  It avoids confusing
-readers who are browsing the design in a non-linear order.   If the material
-were interleaved, readers could start learning about a design, only to find
-out at the end of a section that the design was in fact {\em not} chosen.
- 
+\section{Alternate syntax for pointer types}
+
+Instead of using the C++ template instantiation syntax, we
+considered allowing the new pointer names to be used in place of \texttt{*}.
+For example, given a declaration of the form \texttt{int *pi;}, this could be changed
+to declare a \texttt{ptr} to an integer by substituting \texttt{ptr} for \texttt{*},
+producing \texttt{int ptr pi;}.
+  
+This seems to make code less readable.  This is apparent for type names that 
+consist of several words: \texttt{const unsigned int ptr g} is more
+difficult to parse quickly than \texttt{\ptrinst{const unsigned int} g}.
+The use of a symbol can be recognized visually more quickly than the use 
+of an identifier.  
+
+Another possible approach is to treat the new kinds
+of pointer types  as new modifiers for pointers.  For example, 
+\texttt{int * ptr pi;} would declare a \texttt{ptr} to an integer. This is 
+also difficult to parse and makes code even more verbose.
+
+A drawback to using C++ template instantiation syntax is that it interacts
+poorly with mixed C declarators. In the syntax of C declarators, \texttt{*} is used as
+a prefix to an identifier to modify the type of an identifier. A mixed
+declarator is a declarator where different identifiers have different
+types because of different modifiers. An example of a mixed declarator
+is the declaration \texttt{int i, *pi;}. The C++ template instantiation produces a
+type, so ``mixed'' declarators must be broken across multiple
+lines instead. The resulting declarations would be 
+\texttt{int i; \ptrint\ pi;} On the other hand, non-mixed
+declarators are fine: \texttt{int *pj, *pi;} becomes
+\texttt{\ptrint\ pi, pj;}.
+
 \section{Removing relative alignment}
 \label{section:design-alternatives:always-unaligned}
 
 We considered removing the concept of relative alignment from the design in order
-to have a simpler design. 
+to simplify the design. 
 Relative alignment is described in Sections~\ref{section:relative-alignment}
 and~\ref{section:pointer-cast-results}.  If relative alignment
 is removed, however, compilers have to assume that bounds and pointers are

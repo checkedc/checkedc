@@ -15,6 +15,9 @@ used in place of `*'
   involved in pointer arithmetic and will be given this type. When
   values of this pointer type are used to read or write memory, they
   must be non-null. The non-nullness is checked at runtime if necessary.
+  The name \ptr\ is chosen for these kinds of pointers because these
+  are expected to be the most common type of pointer in C code. \ptr\
+  is a short succinct name.
 \item
   \arrayptrT: this is
   a pointer to an element of an array of type \var{T} values. A
@@ -37,36 +40,9 @@ ranges continue to exist. Pointer arithmetic is not forbidden on unsafe
 pointer types because it would break existing C code. C compilers will
 have an error or warning mode that flags unexpected uses of `*'.
 
-The name \ptr\ is chosen for pointers that can only be read or
-written because those are expected to be the most common type of pointer
-in C code. It is a short succinct name.
-
 The same syntax as C++ template instantiations is used for building
 instances of these types because this syntax is well-known and
 understood. The parameter to these type constructors must be a type.
-
-\begin{quote}
-\emph{Note that using C++ template instantiation syntax interacts poorly
-with mixed C declarators. In the syntax of C declarators, `*' is used as
-a prefix to an identifier to modify the type of an identifier. A mixed
-declarator is a declarator where different identifiers have different
-types because of different modifiers. An example of a mixed declarator
-is the declaration int i, *pi; The C++ template instantiation produces a
-type, so ``mixed'' declarators} \emph{must be broken across multiple
-lines instead. The resulting declarations would be} int i;
-\ptrint\ pi;\emph{. On the other hand, non-mixed
-declarators are fine: int *pj, *pi; is given the syntax
-\ptrint\ pi, pj.}
-
-\emph{Instead of using the C template instantiation syntax, we
-considered allowing the new pointer names to be used in place of *, for
-example,} int i, ptr pi;\emph{. However, in our opinion, that made code
-less readable. The use of a symbol can be recognized visually more
-quickly than the use of an identifier. This is apparent for type names
-that consist of several words:} const unsigned int ptr g \emph{is more
-difficult to parse quickly than} \ptrinst{\texttt{const unsigned
-int}} g\emph{.}
-\end{quote}
 
 \section{New kinds of array types}
 
