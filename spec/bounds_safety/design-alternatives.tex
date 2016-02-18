@@ -7,8 +7,8 @@ This chapter describes design choices that we considered and rejected.
 A separate chapter is useful for three reasons.   First, it makes it 
 easier to learn the existing design because there is less to read.
 Second, it provides reasons for why the current
-design choices were made.  Third , as we gather experience with the current
-design, we may want change the design choices hat we made. 
+design choices were made.  Third, as we gather experience with the current
+design, we may want change the design choices that we made. 
 This chapter provides a starting point 
 of alternative possible designs.  For example, support for non-relatively 
 aligned pointers originally started in this chapter as a rejected design choice 
@@ -78,43 +78,6 @@ the upper bounds check. A compiler would have to know that a pointer
 and bounds are relatively aligned in order to eliminate the upper bounds
 check. It would be hard for a compiler to prove this because it would
 require interprocedural or whole-program analysis.
-
-\section{Allowing pointer variables to be assigned values with no relationship to their bounds}
-
-We considered allowing pointer variables to be assigned pointer values
-not derived in some way from the object with which their bounds are
-associated. The idea would be to avoid unnecessary restrictions on
-operations involving pointers.
-
-In this approach, the meaning of a bounds expression would be defined
-differently than that given in Section~\ref{section:bounds-declarations}. 
-The meaning would be the
-following. Given an expression \var{e} with a bounds expression
-\texttt{bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)}, let the runtime
-values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
-and \var{ubv}, respectively. If \var{ev} is not null, there will
-always exist some object at runtime with the bounds (\var{low},
-\var{high}) such that \var{low} \texttt{\textless{}=} \var{lbv} \&\&
-\var{ubv} \texttt{\textless{}=} \var{high}. In other words, the
-requirement is that expression bounds are always a subrange of the range
-of memory for some valid object. This is provided that the value of the
-expression with which those bounds are associated is non-null.
-
-The problem with this approach is that it has unexpected consequences
-for the bounds that can be declared for pointer variables.
-Any valid pointer bounds could be declared for a variable because there
-is no longer a requirement that a pointer stored in the variable be
-derived from a pointer to the object associated with the bounds. The
-following example would be valid:
-
-\begin{verbatim}
-array_ptr<int> x : count(5) = malloc(sizeof(int) * 5);
-array_ptr<int> y : bounds(x, x + 5) = malloc(sizeof(int) * 2);
-\end{verbatim}
-
-This makes it more likely that programming errors involving bounds
-declarations are detected only at runtime.  This approach was not 
-pursued further for this reason.
 
 \section{Address-of operations and array-to-pointer conversions always produce safe pointer types}
 
@@ -231,7 +194,7 @@ rule that an \arrayptrT\ can be
 implicitly cast to a \var{T} * in situations where a T * type is
 expected. Those situations may include pointer assignment, arguments to
 function calls, return statements, and conditional expressions. For
-conditional, expressions of the form exp1 \texttt{?} exp2 \texttt{:}
+onditional, expressions of the form exp1 \texttt{?} exp2 \texttt{:}
 exp3, the implicit coercion occurs when exp2 or exp3 has type T * and
 the other expression has type
 \arrayptrT. These situations do not
@@ -396,3 +359,39 @@ flow-sensitive bounds declaration for a pointer variable:
 We believe that we need experience using flow-sensitive bounds declarations
 to choose between these different possible definitions of extent.
 
+\section{Allowing pointer variables to be assigned values with no relationship to their bounds}
+
+We considered allowing pointer variables to be assigned pointer values
+not derived in some way from the object with which their bounds are
+associated. The idea would be to avoid unnecessary restrictions on
+operations involving pointers.
+
+In this approach, the meaning of a bounds expression would be defined
+differently than that given in Section~\ref{section:bounds-declarations}. 
+The meaning would be the
+following. Given an expression \var{e} with a bounds expression
+\texttt{bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)}, let the runtime
+values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
+and \var{ubv}, respectively. If \var{ev} is not null, there will
+always exist some object at runtime with the bounds (\var{low},
+\var{high}) such that \var{low} \texttt{\textless{}=} \var{lbv} \&\&
+\var{ubv} \texttt{\textless{}=} \var{high}. In other words, the
+requirement is that expression bounds are always a subrange of the range
+of memory for some valid object. This is provided that the value of the
+expression with which those bounds are associated is non-null.
+
+The problem with this approach is that it has unexpected consequences
+for the bounds that can be declared for pointer variables.
+Any valid pointer bounds could be declared for a variable because there
+is no longer a requirement that a pointer stored in the variable be
+derived from a pointer to the object associated with the bounds. The
+following example would be valid:
+
+\begin{verbatim}
+array_ptr<int> x : count(5) = malloc(sizeof(int) * 5);
+array_ptr<int> y : bounds(x, x + 5) = malloc(sizeof(int) * 2);
+\end{verbatim}
+
+This makes it more likely that programming errors involving bounds
+declarations are detected only at runtime.   We did not pursue
+this approach further for this reason.
