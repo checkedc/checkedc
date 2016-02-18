@@ -198,10 +198,71 @@ races that tear data structures. Addressing these problems is beyond the
 scope of this design document. For now, we assume that programs are
 correct in these other aspects.
 
+\section{Principles for extensions}
+\label{chapter:principles}
+
+Here are the principles that we apply to extending C to support bounds checking:
+
+\begin{enumerate}
+\item
+  Preserve the efficiency and control of C. C is designed to be
+  low-level and work with the same types that computer processors work
+  with. This makes C ``close to the hardware'', allowing programmers to
+  write efficient programs and control what programs do precisely at the
+  machine level. These features are one reason why C is valued as a
+  system programming language. Extensions will be ``pay-as-you-go'' and
+  continue to provide precise control to programmers at the machine
+  level. Hidden costs will be avoided.
+\item
+  Be Minimal. This means adding the minimal set of extensions needed to
+  accomplish the goals. It is easier to learn extensions if there are as
+  few of them as possible. It also lets us stay true to the design goals
+  of C.
+\item
+  Aim for clarity and succinctness. Clarity means that code is easy to
+  understand and extensions are straightforward to understand.
+  Succinctness means the programmers have less to read or type.
+  Programmers value clarity and succinctness because it makes them more
+  productive at their jobs. Sometimes clarity and succinctness are in
+  tension and sometimes they are not. When they are in conflict, clarity
+  will be prioritized above succinctness, primarily because source code
+  is read many more times than it is written.
+\item
+  Enable incremental use. Real systems are large and complicated, with
+  hundreds of thousands and millions of lines of code. The teams that
+  work on those systems will adopt safe pointer operations over time,
+  not all at once, so incremental use of safe pointer operations will be
+  supported. Teams will prefer incremental conversion paths because of
+  practical matters such as reducing risk, fixing existing bugs
+  identified by introducing bounds checking, maintaining system
+  stability, and understanding performance effects. Even though
+  incremental use will be supported, it is not the end goal. We believe
+  that benefits of using safe pointer operations will be modest until
+  almost an entire system is converted. At that point, we expect a
+  qualitative increase in system reliability and programmer
+  productivity.
+\end{enumerate}
+
+Two specific design principles are adopted based on these principles:
+
+\begin{enumerate}
+\item
+  Do not change the meaning of existing C code. Methods that do not use
+  extensions will continue to compile, link, and run ``as is''. If the
+  meaning of existing C code is changed, it will violate the principles
+  of clarity and enabling incremental adoption.
+\item
+  Adopt existing notations from C++ when it meets our needs, instead of
+  inventing new notations. Many systems are hybrid C/C++ systems, so
+  this approach fits with the principle of clarity. It also enables
+  incremental adoption. One of the design goals of C++ has been that C
+  is a subset of C++. That will continue to be true even for our
+  extended C.
+\end{enumerate}
+
 \section{Organization of this document}
 
-The rest of this document is organized as follows. Chapter~\ref{chapter:principles}
-describes the principles that will be applied to extending C.  
+The rest of this document is organized as follows.
 Chapter~\ref{chapter:core-extensions} describes
 the new pointer types and the new array types, including syntax,
 semantics, and error conditions. It also covers other extensions to C
@@ -326,3 +387,5 @@ by the design.
 Chapter~\ref{chapter:design-alternatives} discusses design alternatives
 that were considered and not chosen.  It explains why those alternatives were
 not chosen.
+
+\

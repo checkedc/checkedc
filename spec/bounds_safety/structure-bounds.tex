@@ -3,16 +3,17 @@
 \chapter{Bounds for structure types}
 \label{chapter:structure-bounds}
 
-This section extends reasoning about bounds to variables with structure
-types by introducing bounds for members of structures.
-
+This chapter extends reasoning about bounds to variables with structure
+types by introducing bounds for members of structures.   
 Structure types may have members with \arrayptr\ types. Those
 members must have \emph{member bounds} associated with them in order for
 the values stored there to be used to access memory. A structure member
 declaration may include a \keyword{where} clauses that declares member
 bounds. The bounds for a member also may be placed inline at the
 declaration of the member. The list of declarations of structure members
-may also include where clauses at top-level. Here are examples:
+may also include where clauses at top-level. 
+
+Here are examples:
 
 \begin{verbatim}
 struct S {
