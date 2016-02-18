@@ -116,18 +116,6 @@ show that \var{e1} is in range. The conditions have advantages. At
 object uses, they provide scaffolding to show that expressions based on
 element counts do not overflow or wraparound.
 
-\emph{For now, no easy way is provided to specify conditional bounds.
-This could be provided by adding a clause to bounds-exp that uses the
-same syntax as C conditional expressions: }
-
-\begin{tabbing}
-\var{bounds}\=\var{-exp:} \\
-\>\texttt{\var{non-modifying-exp} ? \var{bounds-exp} : \var{bounds-exp}}
-\end{tabbing}
-
-\emph{This makes describing the system and checking properties more
-complex, so it is a feature that we will consider later.}
-
 The meaning and correctness of bounds are based on the C semantics for
 pointers and pointer arithmetic. At runtime, any non-null pointer in C
 has an object associated with it. The association starts when a pointer

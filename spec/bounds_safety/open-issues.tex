@@ -1,7 +1,32 @@
 % !Tex root = checkedc.tex
 
-\chapter{Open issues}
+\chapter{Pending work and open issues}
 \label{chapter:open-issues}
+
+This chapter discuss work that needs to be done and open issues.
+
+\section{Pending work}
+
+\begin{itemize}
+\item Allow conditional bounds expressions.   While we allow conditional
+expressions in the non-modifying expressions in a bounds expression, we
+do not have a conditional form of bounds expressions.  This is useful for
+specifying that an expression only has bounds if some condition is true.
+This could be provided by adding a clause to bounds-exp that uses the
+same syntax as C conditional expressions:
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\>\texttt{\var{non-modifying-exp} ? \var{bounds-exp} : \var{bounds-exp}}
+\end{tabbing}
+
+We have to add descriptions of introduction and elimination
+forms, as well as enhance the rules for checking the validity of bounds.
+\item Allow bounds declarations to declare bounds for expressions.
+This would allow us to easily describe the bounds when pointers are tagged.
+We would describe the bounds for the untagged pointer.  A tagged pointer
+could not be used to access memory.  It would have to be untagged first 
+to have valid bounds.
+\end{itemize}
 
 \section{Language and library features to be addressed}
 
