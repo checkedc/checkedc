@@ -8,9 +8,40 @@ This chapter discuss work that needs to be done and open issues.
 \section{Pending work}
 
 \begin{itemize}
-\item Allow conditional bounds expressions.   While we allow conditional
-expressions in the non-modifying expressions in a bounds expression, we
-do not have a conditional form of bounds expressions.  This is useful for
+\item Add a way to lift bounds to pointers to \arrayptr\ pointers
+      and other lvalues used in their bounds.  This will be 
+      necessary for handling pass-by-reference parameters.
+      In C, pass-by-reference parameters are represented pointers
+      to storage that holds the resulting values.  They are
+      used to return multiple values from a function.
+      For example, one parameter may be a pointer to an 
+      \arrayptr\ and another parameter may be a pointer to an 
+      integer that is the length of the \arrayptr:
+\begin{verbatim}
+f(ptr<array_ptr<int>> ptrbuf, ptr<int> ptrlen) {
+   ...
+}
+\end{verbatim}
+       There needs to be a way to describe the bounds for
+       \texttt{*ptrbuf} using \texttt{*ptrlen}.
+       
+      This will also be necessary for handling address-of operations
+      involving structure members with member bounds.
+      Suppose \texttt{s} is a structure variable where the structure 
+      has a member bounds. If the address of a member of \texttt{s} is
+      taken and the member appears in the member bounds, the member
+      bounds becomes a constraint on that pointer.  In particular, 
+      there are constraints on values that may be written to memory using 
+      that pointer.
+\item Add a way to describe that safe pointers are not aliases
+      of each other. It will be important to know that a pointer store 
+      does not affect a pointer involved in a constraint.  For example,
+      in \texttt{f}, \texttt{*ptrbuf} and \texttt{ptrlen} cannot alias 
+      the same memory. Otherwise a store into an element of \texttt{*ptrbuf}
+      might accidentally  modify the length of the buffer.
+\item Allow conditional bounds expressions.   While conditional
+expressions are allowed in the non-modifying expressions in a bounds expression, 
+there is not a conditional form of bounds expressions.  This is useful for
 specifying that an expression only has bounds if some condition is true.
 This could be provided by adding a clause to bounds-exp that uses the
 same syntax as C conditional expressions:
@@ -19,13 +50,13 @@ same syntax as C conditional expressions:
 \>\texttt{\var{non-modifying-exp} ? \var{bounds-exp} : \var{bounds-exp}}
 \end{tabbing}
 
-We have to add descriptions of introduction and elimination
+We would need to add descriptions of introduction and elimination
 forms, as well as enhance the rules for checking the validity of bounds.
 \item Allow bounds declarations to declare bounds for expressions.
 This would allow us to easily describe the bounds when pointers are tagged.
-We would describe the bounds for the untagged pointer.  A tagged pointer
-could not be used to access memory.  It would have to be untagged first 
-to have valid bounds.
+The bounds for the untagged pointer would be described. 
+A tagged pointer could not be used to access memory.  It would have to be
+untagged first  to have valid bounds.
 \end{itemize}
 
 \section{Language and library features to be addressed}
@@ -54,8 +85,7 @@ to have valid bounds.
 \end{itemize}
 
 \section{Concrete syntax}
-
-\subsection{Post-condition syntax}
+ 
 The current syntax for describing post-conditions places a where clause
 after the function parameter list declaration:
 
@@ -65,63 +95,16 @@ where cond1 ...
 \end{verbatim}
 
 This syntax might lead to confusion. We might want to adopt an alternate
-syntax that makes this clearer. At the design discussion on 7/29/2015,
-it was discovered that the group did not understand that the where
-clause after the function parameter list applied to post-conditions.
-
-Some suggestions are the keywords \texttt{on\_return} or \texttt{after}:
+syntax that makes this clearer. Some suggestions are the keywords
+\texttt{on\_return} or \texttt{after}:
 
 \begin{verbatim}
 f(...)
-where cond1 ...
+on_return cond1 ...
 
 f(...)
 after cond1 ...
 \end{verbatim}
 
-\section{Discussion of optimizing bounds check and overflow}
-
-We had the following discussion in Section~{section:bounds-checking-at-indirections}
-that distracted from the
-main point of the section. It's also confusing the overflow check for x
-+ c is omitted. The point of the example below is that we can make code
-efficient. That deserves a fuller discussion and should be buttressed by
-empirical data.
-
-Consider as an example, z = *(x+5); where x : bounds(x, x + c). The
-compiler will produce code of the form
-
-\begin{quote}
-\begin{verbatim}
-assert(x != null);
-t1 = x + 5;
-check x + 5 for overflow
-assert(t1 != null && x <= t1 && t1 < x + c);
-z = *t1;
-\end{verbatim}
-\end{quote}
-
-This simplifies to:
-
-\begin{quote}
-\begin{verbatim}
-assert(x != null);
-t1 = x + 5;
-check for overflow x + 5
-assert(x <= t1 && t1 < x+c);
-z = *t1;
-\end{verbatim}
-\end{quote}
-
-The compiler can recognize that \texttt{x <= t1} is always true,
-leading to:-
-
-\begin{quote}
-\begin{verbatim}
-assert(x != null);
-t1 = x + 5;
-check for overflow of x + 5
-assert(t1 < x + c);
-z = *t1;
-\end{verbatim}
-\end{quote}
+Section~\ref{section:alternate-pointer-type-syntax} describes alternate
+syntax proposals for pointer types.
