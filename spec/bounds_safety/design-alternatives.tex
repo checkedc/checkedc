@@ -370,12 +370,12 @@ In this approach, the meaning of a bounds expression would be defined
 differently than that given in Section~\ref{section:bounds-declarations}. 
 The meaning would be the
 following. Given an expression \var{e} with a bounds expression
-\texttt{bounds(}\var{lb}\texttt{,} \var{ub}\texttt{)}, let the runtime
+\bounds{\var{lb}}{\var{ub}}, let the runtime
 values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
 and \var{ubv}, respectively. If \var{ev} is not null, there will
 always exist some object at runtime with the bounds (\var{low},
-\var{high}) such that \var{low} \texttt{\textless{}=} \var{lbv} \&\&
-\var{ubv} \texttt{\textless{}=} \var{high}. In other words, the
+\var{high}) such that \var{low} \texttt{<=} \var{lbv}\ \&\&
+\var{ubv} \texttt{<=} \var{high}. In other words, the
 requirement is that expression bounds are always a subrange of the range
 of memory for some valid object. This is provided that the value of the
 expression with which those bounds are associated is non-null.
@@ -395,3 +395,104 @@ array_ptr<int> y : bounds(x, x + 5) = malloc(sizeof(int) * 2);
 This makes it more likely that programming errors involving bounds
 declarations are detected only at runtime.   We did not pursue
 this approach further for this reason.
+
+\section{Null pointers and bounds expressions}
+
+\newcommand{\objectbounds}[2]{\texttt{object\_bounds(#1, #2)}}
+
+The meaning of bounds expressions is conditional on values not being null. 
+From Section~\ref{section:bounds-declarations}:
+\begin{quote}
+At runtime, given an expression \var{e} with a bounds expression
+\bounds{\var{lb}}{\var{ub}}, let the runtime
+values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
+and \var{ubv}, respectively. The value \var{ev} will be \texttt{0} (null) or
+have been derived via a sequence of operations from a pointer to some
+object \var{obj} with \bounds{\var{low}}{\var{high}}.
+The following statement will be true at runtime:
+\var{ev} \texttt{== 0 || (\var{low} <= \var{lbv}\&\& 
+\var{ubv} <= \var{high})}. 
+\end{quote}
+
+If \var{ev} is null, the bounds may or may not be valid.
+This creates a problem.  Pointer arithmetic cannot be allowed
+on null values.  If it were allowed, then
+\boundsdecl{\var{e}}{\bounds{\var{lb}}{\var{ub}}} would
+not imply \boundsdecl{\var{e}+\var{k}}{\bounds{\var{lb}}{\var{ub}}}, where \var{k} is
+a non-zero constant.
+Consider the counterexample where \var{ev} (the runtime value of \var{e}) is \texttt{0}.
+For the first bounds expression, \texttt{\var{ev} == 0 \textbar\textbar (\var{low} <= \var{lbv}
+\&\& \var{ubv} <= \var{high})} is true. For the second bounds expression \texttt{\var{ev} +
+\var{k} == 0 \textbar\textbar (\var{low} <= \var{lbv} \&\& \var{ubv} <=
+\var{high})} must be true.  We know that \texttt{\var{ev} + \var{k} == 0} is false, so
+that means that the first bounds expression
+must imply that \texttt{(\var{low} <= \var{lbv} \&\& \var{ubv} <= \var{high})} is true. 
+However, it does not: 
+\texttt{\var{A} \textbar{}\textbar{} \var{B}} does not imply \var{B}.
+
+This is handled in the design by using runtime checking to prevent
+pointer arithmetic involving null pointers.  However, this produces
+an odd result.  A pointer variable can have bounds that are always
+valid because they correspond to an actual object.  The value for
+this pointer variable cannot be moved using pointer arithmetic to null
+and then to another value besides null.
+
+There is no way in the current design to express that a variable has
+bounds that are always valid.  This could be addressed with a 
+a new bounds expression:
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\>\objectbounds{\var{bounds-exp}}{\var{bounds-exp}}
+\end{tabbing}
+The meaning of this bounds expression would be defined as follows:
+\begin{quote}
+At runtime, given an expression \var{e} with a bounds expression
+\objectbounds{\var{lb}}{\var{ub}}, let the
+runtime values of \var{e}, \var{lb}, and \var{ub} be \var{ev},
+\var{lbv}, and \var{ubv}, respectively. The value ev will have been derived
+via a sequence of operations from a pointer to some object \var{obj}
+with \objectbounds{\var{low}}{\var{high}}.  The following statement 
+will be true at runtime: \texttt{\var{low} <= \var{lbv} \&\&
+\var{ubv} <= \var{high}}
+\end{quote}
+In other words, the bounds are always valid. This implies
+that any access to memory where \texttt{\var{lbv} <= \var{ev}
+\&\& \var{ev} < \var{ubv}} will be within the bounds of \var{obj}.
+
+The meaning of \boundsdecl{\var{e}}{\bounds{\var{lb}}{\var{ub}}}
+could be defined as \var{e} \texttt{== 0
+\textbar{}\textbar{}} \objectbounds{\var{lb}}{\var{ub}}.
+\objectbounds{\var{e1}}{\var{e2}} would imply \bounds{\var{e1}}{\var{e2}}.
+Conversely, if some value \var{v} has \bounds{\var{e1}}{\var{e2}} and
+\var{v} is not null, this would imply \objectbounds{\var{e1}}{\var{e2}}.
+
+For variables and expressions with an \texttt{object\_bounds}
+bounds expression, runtime checks for null pointer arithmetic
+would not be necessary.
+
+It would be problematic to use \texttt{object\_bounds} widely for
+C function arguments.   Implicit in many uses of
+\texttt{object\_bounds} would be an assertion that the parameter
+to which it is being applied  non-null pointer.  Consider:
+\begin{verbatim}
+f(array_ptr<int> x : object_bounds(x, x + 5) {
+    array_ptr<int> y = x + 1;
+    ...
+}
+\end{verbatim}
+This risks dividing C functions into those that can
+take null pointer arguments and those that only take non-null 
+pointer arguments. In our experience, requirements that pointers 
+not be null tend to propagate virally throughout code bases.  If an 
+entire code base can be  converted, this can work well.  Otherwise, 
+it results in messy dynamic checks for non-nullness in code.
+Now, it is possible with lightweight invariants and \texttt{dynamic\_check}
+that such checks would not be messy.
+
+The existing practice in C is that null pointers are widely used interchangeably
+with non-null pointers.  This introduces uncertainty about the usefulness of this 
+feature for C code bases.  The runtime benefit of eliminating non-null
+checks in pointer arithmetic is likely small.  Following the principal of 
+minimality, we have rejected the design choice of adding \texttt{object\_bounds} 
+for now. 
+

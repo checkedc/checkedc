@@ -10,16 +10,16 @@
 
 Code that uses safe pointer types must be able to interoperate with
 code that uses unsafe pointer types.  This chapter describes support
-for doing this.  Section~\ref{section:pointer-casting} starts with
-basic conversion operations: how different kinds of pointers to
-other kinds of pointers.  Section~\ref{section:function-bounds-safe-interfaces}
-describes existing code that uses unsafe pointers can be modified
+for this.  Section~\ref{section:pointer-casting} starts with
+conversion operations: how different kinds of pointers can
+be converted to other kinds of pointers.  
+Section~\ref{section:function-bounds-safe-interfaces}
+describes how existing code that uses unsafe pointers can be modified
 to present a safe interface.  They key insight there is that the
 the interface must be both safe and unsafe, depending on context.
 For existing code that uses unsafe pointers, the interface is descriptive,
 but correctness is not enforced by the language.  For code that uses safe
-pointers, the interface propery usage of the interface is checked
-and enforced.
+pointers, proper usage of the interface is checked and enforced.
 
 \section{Conversions between pointers to objects of different types}
 \label{section:pointer-casting}
