@@ -15,8 +15,8 @@ pointer operations.
 
 Pointers and the unification of arrays and pointers are one of the
 strengths of the C programming language, allowing programmers to write
-concise, efficient programs. At the same time, they are one of the main
-sources of reliability and security problems in modern software. This is
+concise, efficient programs. At the same time, they are a source of
+reliability and security problems in modern software. This is
 because pointers and array indices are not bounds checked in C and
 related languages such as C++. Bounds checking checks that a pointer or
 array index is in bounds before it is used to read or write memory. A
@@ -43,7 +43,7 @@ incorrect results or, in the hands of a malicious adversary, the
 complete malfunctioning of the program and the takeover of a running
 process by the adversary.
 
-This design note describes Checked C, an extension to C that provides
+This technical report describes Checked C, an extension to C that provides
 bounds checking for pointers and arrays. There are two obstacles to
 adding bounds checking to C. First, it is not clear where to put the
 bounds information at runtime. Second, it is not clear how to make the
@@ -167,13 +167,13 @@ first-order logic for quantifier-free Presburger arithmetic is
 satisfiable (true or false). Even statically checking properties of
 simple fragments of real programs can be computationally intractable.
 
-We address this problem two ways. First,  the rules that compilers
+This problem is addressed in two ways. First, the rules that compilers
 use to check the validity of bounds are limited intentionally.  They can
 check the validity of bounds that are needed in practice.  However, there are
 bounds that are true that cannot be proved using the rules.  In the terminology
-of program logics, the rules are incomplete.   As an example, the size
-of expressions that rules about distributivity limit the size of
-expressions that they produce.   In practice, this means in practice that 
+of program logics, the rules are incomplete.  As an example, the 
+rules about distributivity limit the size of
+expressions that they produce.   In practice, this means that 
 simple disjunctive bounds can be checked, but complex disjunctive bounds cannot be checked.
  
 Second, the inference that compilers do for checking program invariants is
@@ -195,13 +195,13 @@ establishing type safety for C programs. There are other ways which C
 programs may fail. C programs may incorrectly deallocate memory that is
 still in use, do incorrect unsafe pointer casts, or have concurrency
 races that tear data structures. Addressing these problems is beyond the
-scope of this design document. For now, we assume that programs are
+scope of this technical report. For now, it is assumed that programs are
 correct in these other aspects.
 
 \section{Principles for extensions}
 \label{chapter:principles}
 
-Here are the principles that we apply to extending C to support bounds checking:
+Here are the principles that are followed to extend C to support bounds checking:
 
 \begin{enumerate}
 \item
@@ -216,17 +216,17 @@ Here are the principles that we apply to extending C to support bounds checking:
 \item
   Be Minimal. This means adding the minimal set of extensions needed to
   accomplish the goals. It is easier to learn extensions if there are as
-  few of them as possible. It also lets us stay true to the design goals
+  few of them as possible. It also stays true to the design goals
   of C.
 \item
   Aim for clarity and succinctness. Clarity means that code is easy to
   understand and extensions are straightforward to understand.
   Succinctness means the programmers have less to read or type.
   Programmers value clarity and succinctness because it makes them more
-  productive at their jobs. Sometimes clarity and succinctness are in
+  productive.  Sometimes clarity and succinctness are in
   tension and sometimes they are not. When they are in conflict, clarity
   will be prioritized above succinctness, primarily because source code
-  is read many more times than it is written.
+  is usually read many more times than it is written.
 \item
   Enable incremental use. Real systems are large and complicated, with
   hundreds of thousands and millions of lines of code. The teams that
@@ -256,7 +256,7 @@ Two specific design principles are adopted based on these principles:
   inventing new notations. Many systems are hybrid C/C++ systems, so
   this approach fits with the principle of clarity. It also enables
   incremental adoption. One of the design goals of C++ has been that C
-  is a subset of C++. That will continue to be true even for our
+  is a subset of C++. That will continue to be true even for this
   extended C.
 \end{enumerate}
 
