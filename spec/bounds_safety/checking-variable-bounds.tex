@@ -3,7 +3,7 @@
 \chapter{Checking validity of bounds for variables}
 \label{chapter:checking-bounds}
 
-This section describes basic rules for determining the validity of
+This chapter describes basic rules for determining the validity of
 bounds declarations in a C translation unit. In general, these rules do
 not include any inference steps. Inference steps for reasoning about
 bounds are described in Chapter~\ref{chapter:simple-invariants}.
@@ -14,18 +14,15 @@ type \arrayptr\ that does not have any assignments within it.
 We start with a set of bounds that are true about variables before the
 evaluation of the expression, called the context, and describe the
 bounds for the value of the expression.
-
 Section~\ref{section:checking-assignment-expressions}
 then describes handling assignment expressions, assuming
 that no assignments are nested within the expression. For an assignment
 expression, we must determine the updated context in addition to the
 value of the expression. The updated context contains new bounds for any
 variables assigned to by the expression.
-
 Section~\ref{section:checking-nested-assignment-expressions}
 combines the concepts and describes handling expressions
 with nested assignments expressions.
-
 Section~\ref{section:checking-expression-statements} 
 describes how to validate expression statements. 
 Section~\ref{section:checking-function-call-arguments}
@@ -76,7 +73,7 @@ using the rules.
 We first discuss determining valid bounds for expressions that do not
 have assignment expressions nested within them. The bounds for an
 expression is always determined with respect to a context (bounds for
-variables read by the expression). We will use \texttt{:-} to denote the
+variables read by the expression). We will use $\vdash$ to denote the
 valid bounds for an expression. The notation \boundsinfer{\var{e}}{\var{bounds-exp}}
 means that expression \var{e} has valid bounds \var{bounds-exp}.
 
@@ -122,9 +119,9 @@ Suppose there is a use of some variable \var{x}.
 \item
   If \var{x} has type
   \arrayviewT, 
-  \boundsinfer{\var{x}}{\boundsrel{\var{x}\texttt{.lower\_bound},
-                                   \var{x}\texttt{.upper\_bound},
-                                   \var{T}}}
+  \boundsinfer{\var{x}}{\boundsrel{\var{x}\texttt{.lower\_bound}}
+                                  {\var{x}\texttt{.upper\_bound}}
+                                  {\var{T}}}
 \item
   If \var{x} has an array type with a known number of elements \var{n}
   such that the variable is being converted implicitly to a pointer
@@ -162,7 +159,7 @@ Suppose there is a function call expression of the form
   \item
     Otherwise, substitute \texttt{\var{e1} \ldots{} \var{en}} for the formal
     parameters of \var{f} occurring in \var{exp1}. Also substitute the
-    special symbol \texttt{expr\_current\_value} for
+    special symbol \exprcurrentvalue\ for
     \texttt{return\_value}. These substitutions produce \var{exp2}.
     \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\var{exp2}}.
   \end{itemize}
@@ -173,7 +170,7 @@ Suppose there is a function call expression of the form
 
 The special variable \texttt{return\_value} may appear \var{exp1}. It
 is the value of the function call expression, so it is replaced with the
-special variable \texttt{expr\_current\_value}.
+special variable \exprcurrentvalue.
 
 There needs to be validation that the bounds for argument expressions
 match the required bounds for formal parameters. This is described in
@@ -259,9 +256,9 @@ return bounds expression.
 Next, the actual arguments are substituted for the formal parameters and
 \texttt{current\_expr\_value} is substituted for \texttt{return\_value}.
 The argument \texttt{size} is substituted for \texttt{s}, producing
-\begin{verbatim}
-    init(alloc_helper(size), size) :- bounds(current_expr_value, current_expr_value + size) rel_align(int)
-\end{verbatim}
+\begin{alltt}
+    init(alloc\_helper(size), size) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size) rel_align(int)
+\end{alltt}
 
 It would not be possible to represent the bounds if \texttt{size} were a
 function call too:
@@ -294,10 +291,10 @@ formal parameters used in the return bounds are valid non-modifying
 expressions. The only argument is the variable size, so this check
 succeeds. Next, size is substituted for n and current\_expr\_value is
 substituted for return\_value, producing:
-\begin{verbatim}
-   alloc_helper(size) :- bounds(current_expr_value, current_expr_value + size) 
+\begin{alltt}
+   alloc\_helper(size) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size) 
                          rel_align(int)
-\end{verbatim}
+\end{alltt}
 
 \subsection{Pointer arithmetic}
 
@@ -322,7 +319,7 @@ through \var{x op e1} is the same memory that can be accessed through
 \item
   If \var{x} is a pointer to \var{T} and 
   \boundsinfer{\var{x}}{\boundsrel{\var{e2}}{\var{e3}}{\var{T}}},
-  then \boundsinfer{\var{x} \var{op} \var{e1}}{\boundsrel{\var{e2}}{\var{e3}}{var{T}}}.
+  then \boundsinfer{\var{x} \var{op} \var{e1}}{\boundsrel{\var{e2}}{\var{e3}}{\var{T}}}.
 \end{itemize}
 
 This can be extended to pointer operations of the form \var{e4 op e1},
@@ -354,7 +351,7 @@ then \boundsinfer{\var{e4 op e1}}
                             {\texttt{GCD(\var{c}, sizeof(\var{T}))}}}.
 \end{quote}
 
-\subsubsection{Bounds for unsafe pointer arithmetic}
+\subsubsection{Unsafe pointer arithmetic}
 
 Pointer arithmetic involving an \arrayptr\ value checks that
 the value is non-null and generates a runtime error if it is. This check
@@ -383,31 +380,30 @@ Chapter~\ref{chapter:simple-invariants}
 provides a general framework for checking side-conditions as
 part of checking bounds declarations.
 
-\subsubsection{Treatment of expr\_current\_value variable in bounds for
-pointer arithmetic expressions}
+\subsubsection{Treatment of expr\_current\_value}
 
-If the special variable \texttt{expr\_current\_value} occurs in
+If the special variable \exprcurrentvalue\ occurs in
 \bounds{\var{e2}}{\var{e3}}, then
-\texttt{expr\_current\_value} must be adjusted as follows:
+\exprcurrentvalue\ must be adjusted as follows:
 
 \begin{itemize}
 \item
-  If op is \texttt{+}, then substitute \texttt{expr\_current\_value -}
-  \var{e1} for all occurrences of \texttt{expr\_current\_value} in
+  If op is \texttt{+}, then substitute \texttt{\exprcurrentvalue\ -}
+  \var{e1} for all occurrences of \exprcurrentvalue\ in
   \bounds{\var{e2}}{\var{e3}}
 \item
-  If op is \texttt{-}, substitute \texttt{expr\_current\_value +}
-  \var{e1} for all occurrences of \texttt{expr\_current\_value} in
+  If op is \texttt{-}, substitute \texttt{\exprcurrentvalue\ +}
+  \var{e1} for all occurrences of \exprcurrentvalue\ in
   \bounds{\var{e2}}{\var{e3}}.
 \end{itemize}
 
 The reasoning behind this that the current value of the expression has
 changed as the result of \texttt{op} \var{e1}. An adjustment in the
 opposite direction of equal magnitude must be made for occurrences of
-\texttt{expr\_current\_value}.
+\exprcurrentvalue.
 
 The following example illustrates the treatment of
-\texttt{expr\_current\_value}. Consider the prior example that had a
+\exprcurrentvalue. Consider the prior example that had a
 function called \texttt{alloc\_helper} that returned some
 newly-allocated memory. Suppose there is an expression that offsets a
 pointer returned by a call to \texttt{alloc\_helper}.
@@ -419,55 +415,55 @@ pointer returned by a call to \texttt{alloc\_helper}.
 To compute the bounds for this expression, first the valid bounds for
 \texttt{alloc\_helper(size)} are computed:
 
-\begin{verbatim}
-   alloc_helper(size) :- bounds(expr_current_value, expr_current_value + size)
-\end{verbatim}
+\begin{alltt}
+   alloc\_helper(size) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size)
+\end{alltt}
 
-Next, \texttt{expr\_current\_value - 2} is substituted for
-\texttt{expr\_current\_value}, yielding:
+Next, \texttt{\exprcurrentvalue\ - 2} is substituted for
+\exprcurrentvalue\, yielding:
 
-\begin{verbatim}
-   alloc_helper(size) + 2 :- (expr_current_value - 2, expr_current_value - 2 + size)
-\end{verbatim}
+\begin{alltt}
+   alloc\_helper(size) + 2 \(\vdash\) (\exprcurrentvalue - 2, \exprcurrentvalue - 2 + size)
+\end{alltt}
 
 Now, suppose the pointer is being adjusted to insert some blank padding
 at the beginning of the newly-allocated object. We can remove the
-occurrence of \texttt{expr\_current\_value - 2} in the upper bound by
+occurrence of \texttt{\exprcurrentvalue\ - 2} in the upper bound by
 over-allocating in the expression:
 
-\begin{verbatim}
+\begin{alltt}
    alloc_helper(size + 2) + 2
-\end{verbatim}
+\end{alltt}
 
 The valid bounds for \texttt{alloc\_helper(size + 2)} are:
 
-\begin{verbatim}
-   alloc_helper(size + 2) :- bound(expr_current_value, expr_current_value + size + 2)
-\end{verbatim}
+\begin{alltt}
+   alloc\_helper(size + 2) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size + 2)
+\end{alltt}
 
 The valid bounds for the entire expression are:
 
-\begin{verbatim}
-    alloc_helper(size + 2) + 2 :- bounds(expr_current_value - 2,
-                                         expr_current_value - 2 + size + 2)
-\end{verbatim}
+\begin{alltt}
+    alloc\_helper(size + 2) + 2 \(\vdash\) bounds(\exprcurrentvalue - 2,
+                                        \exprcurrentvalue - 2 + size + 2)
+\end{alltt}
 
 which can be simplified to:
 
-\begin{verbatim}
-    alloc_helper(size + 2) + 2 :- bounds(expr_current_value - 2, 
-                                         expr_current_value + size)
-\end{verbatim}
+\begin{alltt}
+    alloc\_helper(size + 2) + 2 \(\vdash\) bounds(\exprcurrentvalue - 2, 
+                                        \exprcurrentvalue + size)
+\end{alltt}
 
 As we will explain in Chapter~\ref{chapter:simple-invariants}, 
 it is fine to narrow a bounds by
 adding a positive constant to the lower bounds. This allows us to adjust
 the bounds to what would be desired when extra padding is inserted:
 
-\begin{verbatim}
-    alloc_helper(size + 2) + 2 :- bounds(expr_current_value, 
-                                         expr_current_value + size)
-\end{verbatim}
+\begin{alltt}
+    alloc\_helper(size + 2) + 2 \(\vdash\) bounds(\exprcurrentvalue, 
+                                        \exprcurrentvalue + size)
+\end{alltt}
 
 \subsection{Cast expressions}
 
@@ -475,15 +471,15 @@ Given a cast expression of the form \texttt{(\var{T})} \var{e},
 the bounds for \var{e} are determined. The bounds for
 \var{e} are used as the bounds for the entire expression.
 
-If the special variable \texttt{expr\_current\_value} appears in the
+If the special variable \exprcurrentvalue\ appears in the
 bounds for \var{e},
 
 \begin{itemize}
 \item
   If T is an integral type large enough to hold a pointer or a pointer
   type, let \var{S} be the type of \var{e}. The expression
-  \texttt{((\var{S}) expr\_current\_value)} is substituted for
-  all occurrences of \texttt{expr\_current\_value}.
+  \texttt{((\var{S}) \exprcurrentvalue)} is substituted for
+  all occurrences of \exprcurrentvalue.
 \item
   Otherwise, the bounds of \var{e} are  altered to \boundsnone.
 \end{itemize}
@@ -496,10 +492,10 @@ determined. They must be syntactically identical (after putting the
 bounds into a normal form). The bounds for \var{e2} are used as the
 bounds for the entire expression.
 
-If the special variable \texttt{expr\_current\_value} occurs in the
+If the special variable \exprcurrentvalue\ occurs in the
 bounds for \var{e2}, it is left unchanged. The conditional expression
 does not change the value returned by one if its branches, so no
-adjustment to \texttt{expr\_current\_value} is needed.
+adjustment to \exprcurrentvalue\ is needed.
 
 \emph{This is an expression where a conditional bounds expression could
 be used to represent the resulting range. Another alternative that work
@@ -514,7 +510,7 @@ Given an expression of the form \var{e1} \texttt{,} \var{e2}, the
 bounds for \var{e2} are determined. The bounds for \var{e2} are used
 as the bounds for the entire expression.
 
-If the special variable \texttt{expr\_current\_value} occurs in the
+If the special variable \exprcurrentvalue\ occurs in the
 bounds for \var{e2}, it is left unchanged.
 
 \section{Validity of bounds declarations for assignment expressions}
@@ -569,11 +565,11 @@ The updated context will be determined in three steps. First, if
 
 \begin{enumerate}
 \item
-  If \var{e} \texttt{:-} \var{exp}, then the context is updated with
-  \var{x} \texttt{:} \var{exp}.
+  If \boundsinfer{\var{e}}{\var{exp}}, then the context is updated with
+  \boundsdecl{\var{x}}{\var{exp}}.
 \item
-  Otherwise, the context is updated with \var{x} \texttt{:
-  bounds(none)} to indicate that \var{x} has no valid bounds.
+  Otherwise, the context is updated with \boundsdecl{\var{x}}{\boundsnone}
+   to indicate that \var{x} has no valid bounds.
 \end{enumerate}
 
 Second, the context is updated to reflect the change in the value of
@@ -591,13 +587,13 @@ Second, the context is updated to reflect the change in the value of
 An assignment expression in C has a value. The bounds of the assignment
 expression will be the bounds of \var{x} at this point.
 
-Third, the special variable \texttt{expr\_current\_value} is eliminated
+Third, the special variable \exprcurrentvalue\ is eliminated
 from the bounds of \var{x}, if it was introduced because it occurred in
-\var{e} \texttt{:-} \var{exp}. Recall that
-\texttt{expr\_current\_value} stands for the current value of an
+\boundsdecl{\var{e}}{\var{exp}}. Recall that
+\exprcurrentvalue\ stands for the current value of an
 expression whose bounds is being determined. Because the value of
 \var{e} has been assigned to \var{x}, \var{x} is substituted for
-\texttt{expr\_current\_value} in the bounds for x.
+\exprcurrentvalue\ in the bounds for x.
 
 \subsection{Invertibility}
 
@@ -1311,7 +1307,7 @@ each variable \var{v} in the list,
 
     \begin{itemize}
     \item
-      If \texttt{expr\_current\_value} appears in the bounds for
+      If \exprcurrentvalue\ appears in the bounds for
       \var{e}, \var{v} is substituted for it.
     \item
       The context is updated to map v to the updated bounds.
@@ -1328,7 +1324,7 @@ verify that all the declarations of a variable in a translation unit
 have the same bounds declaration (or lack of a bounds declarations) for
 the variable.
 
-\section{Checking bundled declarations and statement}
+\section{Checking bundled declarations and statements}
 \label{section:checking-bundled}
 
 To check bundled declarations and statements, the current context is
@@ -1442,7 +1438,7 @@ parameters,
 
 A return statement has the form \texttt{return} \var{e}, where \var{e}
 is optional. The bounds for \var{e} are computed. If the special
-variable \texttt{expr\_current\_value} occurs in the bounds, the special
+variable \exprcurrentvalue\ occurs in the bounds, the special
 variable \keyword{return\_value} is substituted into the bounds in its
 place. It is then checked that the updated bounds for \var{e} imply the
 return bounds for the function using the rules in 
