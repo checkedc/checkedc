@@ -1,7 +1,17 @@
 % !Tex root = checkedc.tex
 
-\chapter{New types and other extensions to C semantics}
+\chapter{Extensions to existing C concepts}
 \label{chapter:core-extensions}
+
+This chapter describes extensions to existing C concepts. 
+It covers new kinds of pointer types and array types, their meaning,
+and the operations  on them.   It introduces two
+new program scopes: \texttt{check} and \texttt{unchecked}
+blocks. It covers a generalization of assertions to 
+dynamic checks that are never  removed (unless a compiler
+proves them redundant) because bounds safety depends upon them. 
+Finally, it describes changes to
+undefined behavior needed for bounds safety.
 
 \section{New kinds of pointer types}
 Three new safe pointer types are added to C. Each pointer type can be
