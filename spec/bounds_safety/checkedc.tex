@@ -34,7 +34,16 @@
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{3}
 
+% Use this command to omit text temporarily for the document.
 \newcommand{\omitted}[1]{}
+
+% Use this command to provide a feedback or comment on the 
+% text.  The first argument should be the name of the person
+% providing feedback and the second argument should be the 
+% text of the feedback.   For example:
+%  \feedback{David Tarditi}{Here are some additional examples.}
+
+\newcommand{\feedback}[2]{\footnote{Feedback (#1): #2}}
 %
 % meta variables are italicized.  Use the macro name var
 % to save on typing.
