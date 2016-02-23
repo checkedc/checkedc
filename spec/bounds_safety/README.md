@@ -13,9 +13,12 @@ section for information on how to obtain LaTex.  To type set the specification, 
 windows and run the following commands:
 
 pdflatex checkedc
+
 bibtex checked
+
 pdflatex checkedc
-pdflatex checkedc.
+
+pdflatex checkedc
 
 The multiple runs of pdflatex are needed so that cross-references converge.   The
 resulting file will be called checkedc.pdf.
@@ -34,5 +37,5 @@ Both distributions of LaTex install a nice editor for working with LaTex files c
 
 ## Learning about LaTex
 
-For a very brief introduction to LaTex, read [A document for absolute LaTex beginners](http://ctan.org/pkg/first-latex-doc).   A good starting point for learning about LaTex is a [A (Not So) Short Introduction to Latex2E"] (http://ctan.org/pkg/lshort-english).
+For a very brief introduction to LaTex, read [A document for absolute LaTex beginners](http://ctan.org/pkg/first-latex-doc).   A good starting point for learning about LaTex is a [A (Not So) Short Introduction to Latex2E] (http://ctan.org/pkg/lshort-english).
 
