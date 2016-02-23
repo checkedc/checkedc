@@ -3,9 +3,9 @@
 \chapter{Bounds for variables}
 \label{chapter:tracking-bounds}
 
-A variable whose type is \arrayptr\ that is used to access
-memory must have bounds declared for it. In addition, a variable with an
-incomplete checked array type also must have bounds declared for it.
+Variable with \arrayptr\ types that are used to access
+memory must have bounds declared for them.  The same requirement
+holds for variables with incomplete checked array types.
 
 For an \arrayptr\ variable, the bounds will be used to check
 memory accesses at runtime involving the pointers stored in the variable
@@ -80,7 +80,7 @@ For \boundsdecl{\var{x}}{\bounds{\var{e1}}{\var{e2}}}, \var{e1} and
 \var{e2} must have the same \arrayptr\ type. The type of x is
 typically the same type as \var{e1} and \var{e2}, but it can be a
 different \arrayptr\ or checked array type. Allowing the types
-to different is useful for describing the results of pointer casts and
+to be different is useful for describing the results of pointer casts and
 bounds for \arrayptrvoid\ pointers.
 
 For any variable with a bounds declaration, the variable must be
@@ -100,21 +100,17 @@ has type \arrayptrT ,
 than the maximum number of an
 \arrayptrT\ elements
 that can be indexed by an integer whose type matches that of \var{e1}.
-If \var{e1} has an unsigned integer type, \var{e1} must be less than
-or equal to \texttt{UINTPTR\_MAX/\sizeof{\var{T}}}. If \var{e1} has a
-signed integer type, \var{e1} must be \textgreater{}= 0 and less than
-or equal to \texttt{INTPTR\_MAX/\sizeof{\var{T}}}.
-
 A bounds declaration \boundsdecl{\var{x}}{\boundscount{\var{e1}}} is an
 abbreviation for \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}}} with additional conditions that \var{e1}
 \texttt{>= 0 \&\& \var{e1} <= (char *)}
 \var{ub}\texttt{.} \var{ub} is either
 \texttt{UINTPTR\_MAX/\sizeof{\var{T}}} or
-\texttt{INTPTR\_MAX/\sizeof{\var{T}}}. The conditions may
-require programmers to add additional checks at memory allocations to
-show that \var{e1} is in range. The conditions have advantages. At
-object uses, they provide scaffolding to show that expressions based on
-element counts do not overflow or wraparound.
+\texttt{INTPTR\_MAX/\sizeof{\var{T}}}. 
+
+The conditions may require programmers to add additional checks at memory allocations
+to show that \var{e1} is in range. However, the conditions have advantages too.
+They provide scaffolding for proving that expressions based on
+element counts of \arrayptr\ variables do not overflow or wraparound.
 
 The meaning and correctness of bounds are based on the C semantics for
 pointers and pointer arithmetic. At runtime, any non-null pointer in C
@@ -142,7 +138,7 @@ The following statement will be true at runtime:
 if \var{ev} is null, the bounds
 may or may not be valid. If \var{ev} is non-null, the bounds must be
 valid. This implies that any access to memory where \var{ev} \texttt{!=
-0 \&\&} lbv \texttt{<=} \var{ev} \texttt{\&\&} \var{ev}
+0 \&\&} \var{lbv} \texttt{<=} \var{ev} \texttt{\&\&} \var{ev}
 \texttt{<} \var{ubv} will be within the bounds of \var{obj}.
 
 In this section, to simplify the description, it is assumed that none of
@@ -345,8 +341,8 @@ void f()
 }
 \end{verbatim}
 
-In the second example, an \arrayptr\ c and its length are initialized
-lazily to either a or b, depending on the another parameter.
+In the second example, an \arrayptr\ \texttt{c} and its length are initialized
+lazily to either \texttt{a} or \texttt{b}, depending on another parameter \texttt{val}:
 
 \begin{verbatim}
 /* use either a or b depending on val */
@@ -390,11 +386,11 @@ Bounds may be declared for the value returned by a function. The
 parameter list can be followed by either \texttt{:} \var{bounds-exp} or
 a \keyword{where} clause. The special variable \keyword{return\_value} can
 be used to refer to the return value. The parameters are considered in
-scope for the bounds declaration or where clause. Any parameters
+scope for the bounds declaration or \keyword{where} clause. Any parameters
 occurring in the return bounds declaration or \keyword{where} clause may
 not be modified by the body of the function.
 
-The following example show the find function from
+The following example show the \texttt{find} function from
 Section~\ref{section:variable-declarations} modified
 to return a pointer to the element instead of the index:
 
@@ -434,7 +430,7 @@ have bounds that are invariants. Any assignments to the variable
 \emph{or} variables in the bounds expression must maintain the
 invariant. The invariant can be suspended temporarily during updates.
 
-Because externally-scoped \arrayptr variables can have bounds declared
+Because externally-scoped \arrayptr\ variables can have bounds declared
 for them only at their definitions, by definition their bounds are
 always invariants.
 
@@ -461,7 +457,7 @@ void bad(int i)
 
 Local variables with static storage class or thread storage class can
 have only bounds declarations with bounds expressions that use variables
-with the same storage class or variables that are declared
+with the same storage class as the local variable or variables that are declared
 \texttt{const}. The memory for static variables and thread variables
 persists across exit and reentry from functions and blocks. It follows
 that the bounds information must persist also.
@@ -477,11 +473,11 @@ variables with external linkage.
 \section{Variables at external scope}
 
 If there are multiple declarations of a variable with external scope in
-a translation unit, the bounds declaration and/or where clauses for the
+a translation unit, the bounds declaration and/or \keyword{where} clauses for the
 variable must be identical at all the declarations. This prevents the
 specification of different bounds for global variables in the same
 compilation unit. Any variables with external scope that have bounds
-declarations and/or where clauses must have the same bounds declaration
+declarations and/or \keyword{where} clauses must have the same bounds declaration
 and where clauses in all translation units.
 
 All places in a program that may write to a variable with external scope
@@ -493,30 +489,30 @@ To see what can go wrong without this requirement, consider the
 following example:
 
 \begin{verbatim}
-extern int num;
+extern int size;
 
-void update_num(int i)
+void update_size(int i)
 {
     num = i;
 }
 
-extern array_ptr<int> ap : count(num);
+extern array_ptr<int> ap : count(size);
 
 void go()
 {
-    update_num(INT_MAX);
+    update_size(INT_MAX);
     ap[100] = 0xbad;
 }
 
-// define count and ap
-int num = 10;
+// define size and ap
+int size = 10;
 int arr[10];
-array_ptr<int> ap = arr : count(num);
+array_ptr<int> ap = arr : count(size);
 \end{verbatim}
 
 The checking of bounds declarations does not know at
-\texttt{update\_num} that \texttt{ap} needs to have at least \texttt{i}
-elements when count is updated, allowing a programmer to accidentally
+\texttt{update\_size} that \texttt{ap} needs to have at least \texttt{i}
+elements when \texttt{size} is updated, allowing a programmer to accidentally
 invalidate bounds declarations.
 
 A simple rule enforces this restriction. Given the initial declaration
@@ -535,7 +531,7 @@ The grammar from the ``C Programming Language'' \cite{Ritchie1988} is extended t
 in-line bounds declarations and \keyword{where} clauses for declarations:
 
 \begin{tabbing}
-\var{init-}\={declarator:} \\
+\var{init-}\=\var{declarator:} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} 
 where-clause\textsubscript{opt}} \texttt{=} \var{initializer
@@ -543,14 +539,13 @@ where-clause\textsubscript{opt}} \\
 \>\ldots{} \\
 \\
 \var{parameter-declaration:} \\
-\>\var{declaration-specifiers declarator} \\
-\>\var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
+\>\var{declaration-specifiers declarator} \var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \\
 \var{inline-bounds-specifier:}\\
 \>\texttt{:} \var{bounds-exp} \\ 
 \\
 \>\var{where-clause}: \\
-\>\keyword{where} \var{facts} \\
+keyword{where} \var{facts} \\
 \var{facts:} \\
 \>\var{fact} \\
 \>\var{fact} \texttt{\&\&} \var{facts} \\
@@ -651,8 +646,8 @@ Non-modifying expressions do not include:
   effects, these can always be simplified to the second expression)
 \end{compactitem}
 
-Programmers are advised to use simple non-modifying expressions because
-they may be fully re-evaluated at every bounds check involving the
+It suggested that programmers use simple non-modifying expressions because
+the expressions may be fully re-evaluated at every bounds check involving the
 bounds expression. More complicated bounds expressions are allowed
 because programmers might find them useful.
 
@@ -760,11 +755,11 @@ This clause is only added to bounds pairs because (by definition) count
 expressions always describe pointers that are relatively aligned to
 their bounds. The optional relative alignment clause specifies a
 relative alignment type \var{T} or the required relative alignment of
-the pointer and its bounds and in bytes. Given 
+the pointer and its bounds and bytes. Given 
 \boundsdecl{\var{x}}{\boundsrel{\var{e1}}{\var{e2}}{\var{T}}},
 \texttt{(((\arrayptrchar) \var{x}) - ((\arrayptrchar) \var{e1})) \%
         \sizeof{\var{T}} == 0} and
-(((\arrayptrchar) \var{e2}\texttt{) --
+(((\arrayptrchar) \var{e2}\texttt{) -
 (\arrayptrchar\ } \var{x}\texttt{)) \%
 sizeof(}\var{T}\texttt{) == 0} must be true. If the number of bytes is
 specified, \sizeof{\var{T}} is replaced by the
@@ -1149,7 +1144,7 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
 }
 \end{verbatim}
 
-\subsection{Computing the extent of flow-sensitive bounds declarations}
+\subsection{Computing extent}
 
 This section is primarily for compiler implementers. Those readers
 primarily interested in the language may skip it safely. It describes
@@ -1471,7 +1466,7 @@ to structures.   It also avoids complications when \texttt{x} is
 discusses eager evaluation of bounds expressions at
 bounds declarations in more detail and explains why that was not chosen.
 
-\section{Size computations for memory allocation and integer overflow or wraparound}
+\section{Size computations and integer overflow or wraparound}
 \label{section:integer-overflow-informal}
 
 When objects are allocated dynamically in C, programmers have to compute
@@ -1581,7 +1576,8 @@ void *calloc(size_t nobj, size_t size);
 \end{verbatim}
 
 A signed version is needed too:
-
 \begin{verbatim}
 void *signed_calloc(signed_size_t nobj, size_t size);
 \end{verbatim}
+However, \texttt{calloc} also zeros the allocated memory.  For the sake of efficiency,
+new allocation functions that compute sizes but do not zero memory may be needed.

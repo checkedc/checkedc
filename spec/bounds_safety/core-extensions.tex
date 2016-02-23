@@ -141,7 +141,7 @@ checked array of int''.
 
 It is easy to convert a function that operates only on complete array
 types to one where array accesses are bounds checked: just add the
-checked keyword to the declarations of the variables with complete array
+\keyword{checked} keyword to the declarations of the variables with complete array
 types. Consider a method that adds 2x2 integer arrays \texttt{a} and
 \texttt{b} so that \texttt{a} = \texttt{a} + \texttt{b}:
 
@@ -178,7 +178,7 @@ The following operations involving pointer-typed values are allowed:
   Assignment: two pointers of the same type can be assigned.
 \item
   Adding or subtracting a pointer type and an integer. This is allowed
-  for \var{T} \texttt{*}, \arrayptrT, and \arrayviewT types.
+  for \var{T} \texttt{*}, \arrayptrT, and \arrayviewT\ types.
 \item
   Pointers to objects of the same type can be compared for equality or
   inequality. The pointers do not have to be the same kind of pointer.
@@ -190,7 +190,7 @@ The following operations involving pointer-typed values are allowed:
   \verb|<|, \verb|<=|, \verb|>|, \verb|>=| operators. The pointers do not have to be
   the same kind of pointer. Given a type \var{T}, a \var{T}
   \texttt{*}, \arrayptrT\ or   \arrayviewT, can be compared to a \var{T} \texttt{*},
-  \arrayptrT , or \arrayviewT. For example, an \arrayviewT can be compared with an
+  \arrayptrT , or \arrayviewT. For example, an \arrayviewT\ can be compared with an
   \arrayptrT . To support bounds checking and reasoning about program behavior, the
   result of comparing pointers to different objects must be defined.
   Section~\ref{section:changes-to-undefined-behavior} describes this requirement in detail.
@@ -209,7 +209,7 @@ used. If bounds safety cannot be checked at compile-time, bounds cast
 operators must be used. There are two kinds of bounds cast operators:
 \keyword{dynamic\_bounds\_cast}, which does runtime checks of any
 conditions required to enforce bounds safety and
-\texttt{unchecked\_bounds\_cast}, which does no runtime checking and
+\texttt{assume\_bounds\_cast}, which does no runtime checking and
 trusts the programmer. The rules for pointer casting and the bounds cast
 operators are described in Section~\ref{section:pointer-casting}.
 
@@ -228,7 +228,7 @@ of type \var{T}, the following rules apply:
   \texttt{*}.
 \end{itemize}
 
-If the \& operator is applied to an lvalue expression that is a
+If the \texttt{\&} operator is applied to an lvalue expression that is a
 dereference of a pointer or an array that has bounds checking, the
 bounds check will be done when the address is taken. This guarantees
 that it is valid to dereference the pointer that results from the
@@ -256,13 +256,13 @@ the expression is an operand of an address-of operator, \texttt{++},
 operator or the `\texttt{.}' operator. The prohibition against this
 conversion occurring for operands of the address-of operator gives the
 results of the operator a more precise type. For sizeof, it also results
-in a more precise answer. The prohibitions against it for ++, and --
-operands and the left operand of an assignment operato keeps array
+in a more precise answer. The prohibitions against it for \texttt{++}, and
+\texttt{--} operands and the left operand of an assignment operato keeps array
 variables from being modifiable.
 
 \subsection{\texttt{Array\_view<}\textit{T}\texttt{>} specific operations}
 
-An \arrayviewT
+An \arrayviewT\
 pointer carries three values with it: the memory location that will be
 accessed by dereferencing the
 \arrayviewT, a lower
@@ -282,18 +282,18 @@ array_ptr<int> high = p.upper_bound;
 array_ptr<int> current = p.current;
 \end{verbatim}
 
-An \arrayviewT value
+An \arrayviewT\ value
 is created by casting a value of another pointer type to the
 \arrayviewT type. A
-value of another pointer type may be converted to an
-\arrayviewT in
+value of another pointer type may be converted implicitly to an
+\arrayviewT\ in
 situations where an
-\arrayviewT value is
+\arrayviewT\ value is
 expected, the referent type of the other pointer type is \var{T}, and
 the bounds of the value can be determined automatically.
 
 For example, a variable of array type can be converted automatically to
-an \arrayview\ . First, the array type will be converted to a
+an \arrayview. First, the array type will be converted to a
 pointer type of either \var{T} \texttt{*} or
 \arrayptrT , depending
 on whether the array type is checked or unchecked. This pointer type
@@ -358,7 +358,7 @@ mechanism may be invoked to redirect program execution to a new point of
 execution that does not use the value of the expression.
 
 Defining pointer arithmetic this way simplifies reasoning about the new
-pointer types. Expected Identities such as \texttt{p + 1 > p} now hold
+pointer types. Expected identities such as \texttt{p + 1 > p} now hold
 because, if \texttt{p + 1} overflows, the value cannot be
 used. This allows programmers to narrow the bounds for
 \arrayptr\ values by incrementing the lower bound or
@@ -403,17 +403,17 @@ the ranges of signed integers and unsigned integers are different.
   \var{i} is a signed integer, the scaled result shall be treated as a
   signed integer. If \var{i} is an unsigned integer, the scaled result
   shall be treated as an unsigned integer. For a signed integer, the
-  minimum and maximum range for j shall be \texttt{INTPTR\_MIN} and
+  minimum and maximum range for \var{j} shall be \texttt{INTPTR\_MIN} and
   \texttt{INTPTR\_MAX} For an unsigned integer, the minimum and maximum
-  range for j shall be 0 and \texttt{UINTPTR\_MAX}. If \var{j} is
+  range for \var{j} shall be 0 and \texttt{UINTPTR\_MAX}. If \var{j} is
   outside its valid range, the operation doing the scaling operation
   shall produce a runtime error.
 \item
-  \var{p} \texttt{+} \var{i}, where p is an
+  \var{p} \texttt{+} \var{i}, where \var{p} is an
   \arrayptrT\ pointer
   and \var{i} is an integer. The integer \var{i} shall be scaled by
   \sizeof{\var{T}}, producing an integer \var{j}. The
-  pointer p will be interpreted as an unsigned integer. The mathematical
+  pointer \var{p} will be interpreted as an unsigned integer. The mathematical
   value \var{p} + \var{j} shall be the result of the operation. If
   \var{p} + \var{j} is out of range for a pointer, the operation shall
   produce a runtime error.
@@ -433,7 +433,7 @@ the ranges of signed integers and unsigned integers are different.
   operation shall produce a runtime error.
 \item
   \var{p} \texttt{-} \var{q}, where \var{p} and \var{q} are
-  \arrayptrT
+  \arrayptrT\
   pointers. The two pointers will be interpreted as unsigned integers
   and the mathematical value \var{p} - \var{q} shall be computed,
   producing an integer \var{j}. If \var{j} is out of range for signed
@@ -481,28 +481,28 @@ of its result cannot be represented by the result type:
 
 \begin{itemize}
 \item
-  \texttt{+\textsubscript{ovf}} takes an unsigned integer i and an
-  integer j and produces an unsigned integer in the range 0 to
-  \texttt{UINTPTR\_MAX}. Its result is the mathemetical value i + j.
+  \texttt{+\textsubscript{ovf}} takes an unsigned integer \var{i} and an
+  integer \var{j} and produces an unsigned integer in the range 0 to
+  \texttt{UINTPTR\_MAX}. Its result is the mathemetical value ]var{i} + \var{j}.
 \item
   For subtraction, there are two forms:
 
   \begin{itemize}
   \item
-    \texttt{-\textsubscript{ovf}} takes an unsigned integer i and an
-    integer j as an argument and computes i - j, producing an unsigned
+    \texttt{-\textsubscript{ovf}} takes an unsigned integer \var{i} and an
+    integer \var{j} as an argument and computes \var{i} - \var{j}, producing an unsigned
     integer in the range 0 to \texttt{UINTPTR\_MAX}. Its result is the
-    mathematical value i - j.
+    mathematical value \var{i} - \var{j}.
   \item
-    \texttt{-\textsubscript{ovf\_diff }}takes two unsigned integers i
-    and j and computes i - j, producing a signed integer of type
-    \texttt{ptrdiff\_t}. Its result is the mathemetical value i - j.
+    \texttt{-\textsubscript{ovf\_diff }}takes two unsigned integers \var{i}
+    and \var{j} and computes \var{i} - \var{j}, producing a signed integer of type
+    \texttt{ptrdiff\_t}. Its result is the mathemetical value \var{i} - \var{j}.
   \end{itemize}
 \item
-  \texttt{*\textsubscript{ovf }}takes two integers i and j (both either
+  \texttt{*\textsubscript{ovf }}takes two integers \var{i} and \var{j} (both either
   signed or unsigned) as arguments. It produces an integer whose type is
   the same as the input argument types. Its result is the mathematical
-  value i * j.
+  value \var{i} * \var{j}.
 \end{itemize}
 
 Given an expression \texttt{e1} with a pointer type and an expression
@@ -520,7 +520,7 @@ signed or unsigned integer as \texttt{e2}.
   must cast \sizeof{\var{T}} to a signed integer. We introduce a
   signed integer type \texttt{signed\_size\_t} that is large enough for
   this cast. \texttt{e1 + e2} expands to \texttt{e1 +\textsubscript{ovf}
-  ((signed\_size\_t) \sizeof{\var{T}} *\textsubscript{ovf} e2}. This cast is
+  ((signed\_size\_t) \sizeof{\var{T}}) *\textsubscript{ovf} e2}. This cast is
   necessary because in C, multiplying a signed integer by an unsigned
   integer implicitly converts the signed integer to be an unsigned
   integer.
@@ -549,8 +549,8 @@ Otherwise, in a typical C environment, the program would fault at
 \texttt{*p}. In the code \verb|if (p < hi) { p += 1; }|
 the check \texttt{p < hi} implies that the increment cannot
 overflow. The checks are also inexpensive on superscalar processors:
-they can be placed so that they are statically predicted by the
-processor to never fail.
+they can be placed so that they are statically predicted by 
+processors to never fail.
 
 \section{Relative alignment of \arrayptr\ and \arrayview\ values}
 \label{section:relative-alignment}
@@ -578,8 +578,8 @@ for  \arrayptrvoid\ and \arrayviewvoid\ pointers. The type
 undefined for \texttt{void}.
 
 We considered removing the entire concept of relative alignment from the
-design to simplify the design.  We decided against that it because it 
-increases cost of bounds checking throughout the program.  
+design to simplify the design.  We decided against that because it would 
+increase the cost of bounds checking throughout the program.  
 Section~\ref{section:design-alternatives:always-unaligned} explains
 this choice in more detail.
 
@@ -651,7 +651,7 @@ checked
 
 In a checked function definition, the body of the function is a 
 checked  block. A checked function definition is declared by placing the
-\keyword{checked} before the definition. Here are examples of checked and
+\keyword{checked} keyword before the definition. Here are examples of checked and
 unchecked function definitions:
 
 \begin{verbatim}
@@ -687,7 +687,7 @@ called does not have to be declared as checked. The notion of whether a
 scope is checked or not checked is lexical and the function definition
 is a separate lexical scope.
 
-As we add different notions of checking to C programs, we will use the
+As we add different notions of checking to Checked C, we will use the
 checked and unchecked keywords for all the different notions of
 checking. We may introduce additional keywords to control specific kinds
 of checking.
@@ -733,16 +733,16 @@ to an uncompressed representation is being converted to use safe
 pointers. This example is based on code patterns seen in the Abstract
 Syntax Notation (ASN1) parsing code of OpenSSL \cite{OpenSSL2015}.
 
-\begin{verbatim}
-void decode(char *output_buffer, char *input_buffer, size_t input_len)
-{
-    char *src = input_buffer;
-    char *src_bound = src + input_len;
-    char *dst = out_buffer;
+\begin{alltt}
+void decode(char *output\_buffer, char *input\_buffer, size\_t input\_len)
+\{
+    char *src = input\_buffer;
+    char *src\_bound = src + input\_len;
+    char *dst = out\_buffer;
 
-    while (src < bound) {
-        switch (*current++) {
-            case UNCOMPRESSED_BYTES: { 
+    while (src < src\_bound) \{
+        switch (*current++) \{
+            case UNCOMPRESSED\_BYTES: \{ 
                 // just copy bytes; compression wasn't useful here.
                 size_t len = src[0] + src[1]*256;
                 src += 2;
@@ -750,15 +750,15 @@ void decode(char *output_buffer, char *input_buffer, size_t input_len)
                 src += len;
                 dst += len;
                 break;
-            }
-            case COMPRESSED_INT64: {
+            \}
+            case COMPRESSED\_INT64: \{
                 ...
                 break;
-            }
+            \}
         ...
-    }
-}
-\end{verbatim}
+    \}
+\}
+\end{alltt}
 
 The caller knows that the destination buffer will be large enough and
 that the contents of the source buffer are well-formed. However, these
@@ -769,83 +769,83 @@ proving functional correctness.
 To use safe pointers, the size of the destination buffer must be passed
 in and there must be a check before the memcpy that the destination
 buffer and source buffer have enough room. We ignore the details of how
-the bounds are described for now.
+the bounds are described for now.    The new code for safe pointers is italicized:
 
-\begin{verbatim}
-void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
-            size_t input_len, size_t output_len)
-{
-    array_ptr<char> src = input_buffer;
-    array_ptr<char> src_bound = src + input_len;
-    array_ptr<char> dst = out_buffer;
-    array_ptr<char> dst_bound = out_buffer + output_len;
+\begin{alltt}
+void decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer, 
+            size\_t input_len\textit{, size\_t output_len})
+\{
+    array\_ptr<char> src = input\_buffer;
+    array\_ptr<char> src\_bound = src + input\_len;
+    array\_ptr<char> dst = out\_buffer;
+    \textit{array\_ptr<char> dst\_bound = out\_buffer + output\_len;}
 
 
-    while (src < bound) {
-        switch (*current++) {
-            case UNCOMPRESSED_BYTES: { 
-                size_t len = src[0] + src[1]*256;
+    while (src < src\_bound) \{
+        switch (*current++) \{
+            case UNCOMPRESSED\_BYTES: \{ 
+                size\_t len = src[0] + src[1]*256;
                 src += 2;
-                // need check that dst and src have at least len bytes of
-                // space
+                \textit{// need check that dst and src have at least len bytes of}
+                \textit{// space}
                 memcpy(dst, src, len);
                 src += len;
                 dst += len;                
                 break;
-            }
-            case COMPRESSED_INT64: {
+            \}
+            case COMPRESSED\_INT64: \{
                 ...
                 break;
-            }
+            \}
         ...
-    }
-}
-\end{verbatim}
+    \}
+\}
+\end{alltt}
 
 How should that check be written? One approach is to change the
 control-flow by inserting if-statements into the program. Something must
 be done if the check fails, though. One possibility is to just ignore a
-failure. This is bad programming practice because now the program might
+failure. This is a bad programming practice because now the program might
 fail silently:
 
-\begin{verbatim}
-void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
-            size_t input_len, size_t output_len)
-{
+\begin{alltt}
+void decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer, 
+            size\_t input\_len\textit{, size\_t output\_len})
+\{
       ...
-            case UNCOMPRESSED_BYTES: { 
-                size_t len = src[0] + src[1]*256;
+            case UNCOMPRESSED\_BYTES: \{
+                size\_t len = src[0] + src[1]*256;
                 src += 2;
-                // check that dst and src have at least len bytes of
-                // space
-                if (dst + len >= dst_bound || src + len >= src_bound) {
-                    goto failure;
-                }
+                \textit{// check that dst and src have at least len bytes of}
+                \textit{// space}
+                \textit{if (dst + len >= dst\_bound || src + len >= src\_bound) \{}
+                \textit{   goto failure;}
+                \textit{\}}
                 memcpy(dst, src, len);
                 src += len;
                 dst += len;                
                 break;
-            }
+            \}
    ...
-   failure: 
-      return;
-}
-\end{verbatim}
+   \textit{failure:}
+   \textit{   return;}
+\}
+\end{alltt}
 
 This could be fixed by having \texttt{decode} return a status code
 indicating success or failure. That just pushes the problem upward to
 the caller and leaves a testing problem. The program should never fail,
 so there is no way to test the path.
 
-\begin{verbatim}
-int decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
-            size_t input_len, size_t output_len)
-{
+\begin{alltt}
+\textit{int} decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer, 
+            size\_t input\_len\textit{, size\_t output\_len})
+\{
    ...
-   failure: 
-      return 1;
-}
-\end{verbatim}
+\textit{   failure:}
+\textit{      return 1;}
+\}
+\end{alltt}
 
 The problems with requiring functions that validate buffer lengths to
 return status codes for errors are analyzed by O'Donell and Sebor\cite{ODonell2015}. 
@@ -867,15 +867,15 @@ and not propagate upward in the call chain. If the programmer is
 correct, the check never fails. If the programmer is incorrect, the
 check might fail and invoke error-handling code:
 
-\begin{verbatim}
-void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer, 
-            size_t input_len, size_t output_len)
+\begin{alltt}
+void decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer, 
+            size\_t input\_len\textit{, size\_t output\_len})
 {
       ...
-            case UNCOMPRESSED_BYTES: { 
-                size_t len = src[0] + src[1]*256;
+            case UNCOMPRESSED\_BYTES: { 
+                size\_t len = src[0] + src[1]*256;
                 src += 2;
-                dynamic_check(dst + len < dst_bound && src + len < src_bound);
+                \textit{dynamic\_check(dst + len < dst\_bound && src + len < src_bound);}
                 memcpy(dst, src, len);
                 src += len;
                 dst += len;                
@@ -883,7 +883,7 @@ void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer,
             }
    ...
 }
-\end{verbatim}
+\end{alltt}
 
 One can argue that it is a problem to have a dynamic point of failure
 that leads to error-handling code being invoked. This is the same way
@@ -912,20 +912,20 @@ void append(array_ptr<char> dst : count(dst_count),
 }
 \end{verbatim}
 
-The highlighted expressions are bounds checked:
-\begin{verbatim}
-void append(array_ptr<char> dst: count(dest_count), 
-            array_ptr<char> src : count(src_count), 
-            size_t dst_count, size_t src_count)
-{ 
-    for (size_t i = 0; i < src_count; i++) {
-        if (src[i] == marker) {
+The italicized expressions are bounds checked:
+\begin{alltt}
+void append(array\_ptr<char> dst: count(dest\_count), 
+            array\_ptr<char> src : count(src\_count), 
+            size\_t dst\_count, size\_t src\_count)
+\{ 
+    for (size\_t i = 0; i < src\_count; i++) \{
+        if (\textit{src[i]} == marker) \{
            break;
-        }
-        dst[i] = src[i];
-    }
-}
-\end{verbatim}
+        \}
+        \textit{dst[i]} = \textit{src[i]};
+    \}
+\}
+\end{alltt}
 
 It is clear that the accesses to \texttt{src} are in-bounds based on
 just information from the for-loop, so a compiler will eliminate those
@@ -933,20 +933,20 @@ bounds checks. It is not clear that assignments through \texttt{dst} are
 always in bounds, so the check there must remain. It can be eliminated
 by adding a \texttt{dynamic\_check}:
 
-\begin{verbatim}
-void append(array_ptr<char> dst: count(dest_count), 
-            array_ptr<char> src : count(src_count), 
-            size_t dst_count, size_t src_count)
-{ 
-    dynamic_check(src_count <= dst_count);
-    for (size_t i = 0; i < src_count; i++) {
-        if (src[i] == marker) {
+\begin{alltt}
+void append(array\_ptr<char> dst: count(dest\_count), 
+            array\_ptr<char> src : count(src\_count), 
+            size\_t dst\_count, size\_t src\_count)
+\{ 
+    \textit{dynamic\_check(src\_count <= dst\_count);}
+    for (size\_t i = 0; i < src\_count; i++) \{
+        if (src[i] == marker) \{
             break;
-        }
+        \}
         dst[i] = src[i];
-    }
-}
-\end{verbatim}
+    \}
+\}
+\end{alltt}
 
 The compiler now knows that \texttt{i < src\_count
 <= dst\_count}, so it can eliminate the check.
@@ -955,36 +955,36 @@ A compiler would not introduce this dynamic\_check because it would
 alter the behavior of \texttt{append}. The bounds check on \texttt{dst}
 in the original code is done only if a marker is not found in
 \texttt{src} and \texttt{src\_count \textgreater{} 0}. A compiler could
-try to deduce a precondition for the bounds check failing, but this is
+try to deduce a precondition for the loop 
+that prevents the bounds check from failing, but this is
 not possible because the precondition depends on the contents of
 \texttt{src}. A compiler would have to clone code to maintain the same
 behavior. This increases code size, so production compilers do not this
 sort of transformation or do it sparingly. Programmer control produces
-better results.
+better results.   Here is the code a compiler might generate with cloning.
 
-\begin{verbatim}
-void append(array_ptr<char> dst: count(dest_count), 
-            array_ptr<char> src : count(src_count), 
-            size_t dst_count, size_t src_count)
-{ 
-    if (src_count <= dst_count) {
-        for (size_t i = 0; i < src_count; i++) {
-            if (src[i] == marker) {
+\begin{alltt}
+void append(array\_ptr<char> dst: count(dest\_count), 
+            array\_ptr<char> src : count(src\_count), 
+            size\_t dst\_count, size_t src\_count)
+\{ 
+    if (src\_count <= dst\_count) \{
+        for (size\_t i = 0; i < src\_count; i++) \{
+            if (src[i] == marker) \{
                 break;
-            }
+            \}
             dst[i] = src[i];  // no bounds check needed
-        }   
-    else {
-        for (size_t i = 0; i < src_count; i++) {
-            if (src[i] == marker) {
+        \}   
+    else \{
+        for (size\_t i = 0; i < src\_count; i++) \{
+            if (src[i] == marker) \{
                 break;
-            }
-            dst[i] = src[i];  // bounds check needed
-        }   
-
-    }
-}
-\end{verbatim}
+            \}
+            \textit{dst[i]} = src[i];  // bounds check needed
+        \}   
+    \}
+\}
+\end{alltt}
 
 \section{Changes to undefined behavior}
 \label{section:changes-to-undefined-behavior}
@@ -1056,7 +1056,7 @@ of the details.
 
 A careful reading of the rules for unsafe pointer comparison implies
 that it is impossible to detect an out-of-bounds unsafe pointer in C,
-for example. If an unsafe pointer p is not in the valid range for an
+for example. If an unsafe pointer \var{p} is not in the valid range for an
 object, the pointer comparison is undefined.
 
 To provide for pointer bounds safety, we require that C implementations
