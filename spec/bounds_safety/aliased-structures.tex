@@ -1,0 +1,218 @@
+% !Tex root = checkedc.tex
+
+\chapter{Member bounds and pointers to structure types}
+\label{chapter:aliased-members}
+
+A member bounds may be suspended for an object that is referenced using
+a pointer. The syntax for this is:
+
+\var{fact ::=}
+
+\texttt{suspends(}\var{exp}\texttt{-\textgreater{}}\var{identifier}\texttt{)}
+
+\texttt{holds(}\var{exp}\texttt{-\textgreater{}}\var{identifier\texttt{)}}
+
+\var{exp} must have type \ptrinst{\textit{S}}, where
+\var{S} is some struct type, and \var{identifier} must be a field of
+\var{S}. In practice facts of the form (*\var{exp}).\var{identifier}
+will be allowed also. In this description,
+(*\var{exp}).\var{identifier} is omitted because it is semantically
+identical to \var{exp}\texttt{-\textgreater{}}\var{identifier}.
+
+A member bounds may be suspended for an expression on entry to a
+function or on exit to a function. If it is suspended on exit, the
+expression must involve only the return value and parameter variables
+and the parameter variables cannot be changed during the body of the
+method.
+
+Here are examples of several functions with suspended member bounds on
+function entry and exit:
+
+\begin{verbatim}
+struct S {
+     array_ptr<int> a : count(len);
+     int len;
+}
+
+// Member bounds for arg is suspended and remains suspended
+// on exit
+void f1(S *arg where suspends(arg->a)) where suspends(arg->a)
+{
+   ...
+}
+
+ // Member bounds for arg is suspended on entry and holds on exit
+void *f2(S *arg where suspends(arg->a))
+{ 
+     ...
+}
+
+// Member bounds is suspended for the return value.
+S *f3() where suspends(return->a)
+{
+    ...
+}
+
+// Member bounds is suspended for the argument on entry.
+// It is suspended on exit for the return value and the argument.
+S *f3(S *arg) where suspends(return->a) &&  suspends(arg->a)
+{
+    ...
+}
+\end{verbatim}
+
+While a member bounds is suspended for an object, the
+\arrayptr\ field of that object covered by that invariant
+cannot be used to access memory. The possibility of aliasing makes
+enforcing this rule complicated. Other variables or memory locations may
+hold pointers to the object pointed to by \var{exp}. The
+\texttt{suspends} and \texttt{resume} annotations apply to \var{exp}
+only. The other variables or memory locations may not be annotated as
+having suspended member bounds, so they could be used to access memory
+using an \arrayptr\ field in an inconsistent fashion.
+
+To prevent this, restrictions are placed on what code can do while a
+member bounds is suspended. The restrictions make conservative
+assumptions about the possible aliases of exp. In practice, member
+bounds should only be suspended for brief pieces of code.
+Section~\ref{section:avoiding-aliased-accesses}
+describes the rules that enforce these restrictions. 
+Section~\ref{section:better-alias-information}
+contains proposals for loosening these restrictions by relying on
+additional information about pointer aliasing.
+
+We assume for now that the address of a field in a structure type that
+is used in a member bounds cannot be taken. If it could be taken, it
+would be trivial to break the member bounds.
+
+\section{Avoiding aliased accesses to object members with suspended bounds}
+\label{section:avoiding-aliased-accesses}
+
+To allow efficient compilation, it is important to require only local
+analyses of aliasing behavior and to avoid requiring whole-program
+analyses of aliasing behavior. The following conservative assumptions
+are made about possible aliasing to allow local analysis:
+
+\begin{itemize}
+\item
+  Variables of structure type represent distinct objects from each
+  other.
+\item
+  Only variables that are address-taken can be have pointer aliases to
+  their storage. A variable is address-taken if the \& (address-of)
+  operator is used to obtain its address or the address of a member of
+  the variable.
+\item
+  Any two pointers to structures can be aliases for the same object,
+  even if the pointers point to different structure types. It is
+  possible to cast from \ptrinst{\textit{S}} to
+  \ptrT if \var{S} and
+  \var{T} are compatible types. Autobahn Design Note 3 will cover
+  pointer casts and rules for compatible types. For now, with no
+  definition of compatible types, we will assume that all structure
+  types are potentially compatible.
+\end{itemize}
+
+The following rules enforce that an \arrayptr\ field of an
+object is not used to access memory while the type-level invariant for
+the object is suspended.
+
+We will all paths in a function that start at a point of suspension of a
+type-level bounds via a pointer. The point of suspension may be a
+statement with an annotation
+\texttt{suspends}(\var{exp}\textgreater{}\var{identifier}\texttt{)}.
+It may also be the entry to the function, if
+\texttt{suspends}(\var{exp}-\textgreater{}\var{identifier}) is true on
+entry to the function.
+
+\begin{enumerate}
+\item
+  For every path from the suspend point, either
+
+  \begin{enumerate}
+  \item
+    There must be a statement with a
+    \texttt{holds(}\var{exp}-\textgreater{}\var{identifier}\texttt{)}
+    annotation along the path.
+  \item
+    Or the path must end at an exit point of the function (a
+    \texttt{return} statement, or for a \texttt{void} function that
+    returns nothing, the end of the function) and the type-level
+    invariant for \var{exp} must be suspended on exit to the function.
+  \end{enumerate}
+\item
+  The limited part of the path will be defined as either
+
+  \begin{enumerate}
+  \item
+    The part of path between the suspend point and the \texttt{holds}
+    expression, if there is one.
+  \item
+    The entire path otherwise.
+  \end{enumerate}
+\item
+  For the limited part of the path,
+
+  \begin{enumerate}
+  \item
+    There cannot be a memory read or write through an
+    \arrayptr\ member accessed via a structure operator
+    \texttt{-\textgreater{}}.
+  \item
+    There cannot be a memory read or write through an
+    \arrayptr\ member of an address-taken variable that was in
+    scope at the point of suspension.
+  \item
+    Any function call must either
+
+    \begin{enumerate}
+    \item
+      Take \texttt{exp} as an argument, to ensure that 3a and 3b are
+      followed while the type-level member bounds is suspended for
+      \texttt{exp}.
+    \item
+      Or the called function must be annotated as following rules 3a and
+      3b above.
+    \end{enumerate}
+  \item
+    The value of \texttt{exp} cannot change:
+
+    \begin{enumerate}
+    \item
+      There cannot be an assignment to a variable used in \texttt{exp}
+    \item
+      exp cannot read memory that is modified by the limited part of the
+      path. For now, this will be approximated the rule that
+      \texttt{exp} cannot contain a pointer dereference or a function
+      call.
+    \end{enumerate}
+  \end{enumerate}
+\end{enumerate}
+
+We also need to extend facts and checking of facts to handle equality of
+pointer-dereferenced members and variables:
+
+\var{fact} ::=
+
+\var{exp}\texttt{-\textgreater{}}\var{identifier} == var
+
+\var{var} \texttt{==} exp\texttt{-\textgreater{}}\var{identifier}
+
+The following kinds of assignments invalidate these types of facts:
+
+\begin{itemize}
+\item
+  Assignment through an unsafe pointer.
+\item
+  Assignment to any structure member through a pointer expression other
+  than \var{exp}. The other expression could be an alias for the object
+  pointed to by \var{exp}. This can happen even if the other expression
+  involves a different struct type than \var{exp}.
+\item
+  Any assignment to a member of an address-taken variable. \var{exp}
+  could be an alias for the address-taken variable.
+\end{itemize}
+
+\section{Examples}
+\section{Loosening restrictions with better alias information}
+\label{section:better-alias-information}

@@ -1,0 +1,499 @@
+% !Tex root = checkedc.tex
+
+\chapter{Rejected design choices}
+\label{chapter:design-alternatives}
+
+This chapter describes design choices that we considered and rejected.
+A separate chapter is useful for three reasons.   First, it makes it 
+easier to learn the existing design because there is less to read.
+Second, it provides reasons for why the current
+design choices were made.  Third, as we gather experience with the current
+design, we may want change the design choices that we made. 
+This chapter provides a starting point 
+of alternative possible designs.  For example, support for non-relatively 
+aligned pointers originally started in this chapter as a rejected design choice 
+After looking at C code that
+made extensive use of pointer casts, we changed our mind and incorporated
+the material into the main design.
+
+\section{Alternate syntax for pointer types}
+\label{section:alternate-pointer-type-syntax}
+
+Instead of using the C++ template instantiation syntax, we
+considered allowing the new pointer names to be used in place of \texttt{*}.
+For example, given a declaration of the form \texttt{int *pi;}, this could be changed
+to declare a \texttt{ptr} to an integer by substituting \texttt{ptr} for \texttt{*},
+producing \texttt{int ptr pi;}.
+  
+This seems to make code less readable.  This is apparent for type names that 
+consist of several words: \texttt{const unsigned int ptr g} is more
+difficult to parse quickly than \texttt{\ptrinst{const unsigned int} g}.
+The use of a symbol can be recognized visually more quickly than the use 
+of an identifier.  
+
+Another possible approach is to treat the new kinds
+of pointer types  as new modifiers for pointers.  For example, 
+\texttt{int * ptr pi;} would declare a \texttt{ptr} to an integer. This is 
+also difficult to parse and makes code even more verbose.
+
+A drawback to using C++ template instantiation syntax is that it interacts
+poorly with mixed C declarators. In the syntax of C declarators, \texttt{*} is used as
+a prefix to an identifier to modify the type of an identifier. A mixed
+declarator is a declarator where different identifiers have different
+types because of different modifiers. An example of a mixed declarator
+is the declaration \texttt{int i, *pi;}. The C++ template instantiation produces a
+type, so ``mixed'' declarators must be broken across multiple
+lines instead. The resulting declarations would be 
+\texttt{int i; \ptrint\ pi;} On the other hand, non-mixed
+declarators are fine: \texttt{int *pj, *pi;} becomes
+\texttt{\ptrint\ pi, pj;}.
+
+\section{Removing relative alignment}
+\label{section:design-alternatives:always-unaligned}
+
+We considered removing the concept of relative alignment from the design in order
+to simplify the design. 
+Relative alignment is described in Sections~\ref{section:relative-alignment}
+and~\ref{section:pointer-cast-results}.  If relative alignment
+is removed, however, compilers have to assume that bounds and pointers are
+not relatively aligned.   This would result in more costly bounds checks and
+more bounds checks in optimized code.
+
+Checks against upper bounds would  take several more instructions.
+Given a pointer \var{p} to type \var{T}, \texttt{*\var{p}} accesses the memory from
+\var{p} to \texttt{\var{p} + sizeof(\var{T}) - 1}. Given an upper bound \var{ub}, the
+upper bounds check for \var{p} becomes \texttt{\var{p} + sizeof(\var{T}) - 1 < \var{ub}},
+not \texttt{\var{p} < \var{ub}}.  The
+computation of \texttt{\var{p} + sizeof(\var{T}) - 1} would need an overflow check also, 
+so several extra instructions would be added to an upper bounds check, 
+not just an extra addition.
+
+There would also be more bounds checks because it would be harder for compiler optimizers
+to eliminate upper bounds checks in loops.  Most programmers would write code that
+strides through an array using a comparison that
+\texttt{\var{p} \textless{} \var{ub}}. The comparison 
+\texttt{\var{p} < \var{ub}} does not imply
+\texttt{\var{p} + sizeof(\var{T}) - 1 < \var{ub}}, so the comparison is
+not sufficient for a compiler to optimize away
+the upper bounds check. A compiler would have to know that a pointer
+and bounds are relatively aligned in order to eliminate the upper bounds
+check. It would be hard for a compiler to prove this because it would
+require interprocedural or whole-program analysis.
+
+\section{Address-of operations and array-to-pointer conversions always produce safe pointer types}
+
+We considered a designed where the address-of operator (\&) and
+array-to-pointer type conversions always produce safe pointer types. To
+preserve compatibility with existing C code, we would introduce implicit
+conversions from safe pointers to unsafe pointers. We found that we were
+not able to preserve backwards compatibility for the address-of operator
+and that implicit array-to-pointer conversions required bounds checking.
+
+\subsection{Address-of operator rules}
+
+The address-of operator (\texttt{\&}) applied to an lvalue expression of
+type \var{T} would produce a value of type
+\ptrT.
+
+Existing C code expects the address-of operator to produce a \var{T} *.
+To allow most code to compile without changes, we add an implicit cast
+rule: \ptrT can be cast
+implicitly to a \var{T} * in those situations where a \var{T}
+\texttt{*} type is expected, except for pointer arithmetic operators
+that add or subtract a pointer and an integer. Those situations include
+pointer assignment, arguments to function calls, return statements, and
+conditional expressions. In all these situations a \var{T} \texttt{*}
+type must have been declared explicitly in the code already, so this
+implicit cast does not introduce unsafe pointer types where none existed
+before.
+
+Pointer arithmetic operators are excluded to avoid the silent
+introduction of unsafe pointer types and to preserve the value of having
+the \ptrT type. If
+there were always an implicit cast from \ptrT to \var{T} \texttt{*},
+then any expression that uses pointer arithmetic could do pointer
+arithmetic on \ptrT
+values.
+
+Code takes the address of an array element and immediately does pointer
+arithmetic will still fail to type check, introducing a potential
+backward compatibility issue:
+\begin{verbatim}
+f()
+{
+    int a[10];
+    int *x = &a[0] + 5; // &a[0] has type ptr<T>.  Pointer arithmetic is not allowed
+    ...
+}
+\end{verbatim}
+
+We expect this kind of code to be rare because the succinct style is to
+use \texttt{a} instead of \texttt{\&a[0]}, but is nonetheless a
+possibility, so this proposal still violates the principle of not
+changing the meaning of existing C code.
+
+\begin{verbatim}
+f()
+{
+    int a[10];
+    int *x = ((int *) &a[0]) + 5; // redundant but OK under old rule
+    ...
+}
+\end{verbatim}
+
+\subsection{Array-to-pointer conversion rules}
+
+Array types may be complete or incomplete. A complete array type
+specifies the number of elements in the array using a constant
+expression. In incomplete array type does not specify the number of
+elements in the array. Examples of complete array types are int[10]
+and int[10][10]. Examples of incomplete array types are
+int[] and int[][10].
+
+If the type of an expression or a subexpression is an ``array of
+\var{T}'', the following rules would apply. If the array is a complete
+type, the type of the expression is altered to
+\arrayptrT . If it is
+an incomplete type, the type of the expression is altered to \var{T} *.
+This alteration does not happen if the expression is an operand of an
+address-of operator, \texttt{++}, \texttt{-\/-}, \texttt{sizeof}, or the
+left operand of an assignment operator or the `\texttt{.}' operator.
+
+These rules would have an interesting effect for arrays of complete
+types: all array references involving those arrays would be bounds
+checked. Any address computations involving those arrays will be checked
+for overflow also. Because the existing C language definition leaves
+out-of-bounds access of arrays of complete type undefined, as well as
+the meaning of overflowing address computations undefined, this is
+compatible with the existing C language definition.
+
+However, these rules by themselves are problematic for existing C code.
+It is common in C code to use array types interchangeably with pointer
+types. The rule that complete array types are converted to
+\arrayptr\ types could cause problems for such code
+
+\begin{verbatim}
+f(int *arg, int len)
+{ 
+   ...
+}
+
+g() {
+   int x[10];
+   f(x, 10);
+}
+
+h() {
+   int x[10];
+   int *ptr = x;
+   f(ptr, 10);
+}
+\end{verbatim}
+
+To allow existing code to continue to compile unchanged, we adopt the
+rule that an \arrayptrT\ can be
+implicitly cast to a \var{T} * in situations where a T * type is
+expected. Those situations may include pointer assignment, arguments to
+function calls, return statements, and conditional expressions. For
+onditional, expressions of the form exp1 \texttt{?} exp2 \texttt{:}
+exp3, the implicit coercion occurs when exp2 or exp3 has type T * and
+the other expression has type
+\arrayptrT. These situations do not
+include array references and adding or subtracting a pointer type and an
+integer. \arrayptrT\ is an acceptable
+type for those operations and a coercion to T * is not needed.
+
+We allow \arrayptr\ values to not be within bounds. Because of
+this, any implicit conversion of an \arrayptr\ value with a
+bounds to an unsafe pointer type must be bounds checked. Otherwise, it
+is easy to write ``safe'' code that creates undetected buffer overruns:
+
+\begin{verbatim}
+// f looks safe, but does something bad that is undetected before calling unsafe code
+f(array_ptr<int> p where bounds(p) == (p, p + 10))
+{
+    // first argument implicitly converted to int *
+    poke(p + random_large_value(), 31415);  
+}
+
+void poke(int *p, int val)
+{
+    *p val
+}
+\end{verbatim}
+
+The silent introduction of a bounds check at a call to a method violates
+the design principles of control and clarity. The implicit conversion
+introduces an invisible failure point in a program where one does not
+otherwise exist. Pointer arithmetic is not normally bounds checked, so
+it is not expected fail.
+
+\section{Alternate semantics for bounds declarations}
+\label{section:bounds-declarations-alternate-semantics}
+
+There are a variety of possible semantics for
+bounds declarations. A bounds declaration has the form:
+
+\begin{quote}
+\boundsdecl{\var{x}}{\var{bounds-exp}}
+\end{quote}
+
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
+\> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
+\> \boundsnone \\
+\> \boundsany
+\end{tabbing}
+
+It may be attached to declarators, parameter declarations, or assignment statements:
+
+\begin{tabbing}
+\var{init-}\=\var{declarator:} \\
+\>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
+\>\var{declarator inline-bounds-specifier\textsubscript{opt} 
+where-clause\textsubscript{opt}} \texttt{=} \var{initializer
+where-clause\textsubscript{opt}} \\
+\>\ldots{} \\
+\\
+\var{parameter-declaration:} \\
+\>\var{declaration-specifiers declarator} \\
+\>\var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
+\\
+\var{expression-statement:}\\
+\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\texttt{;}
+\end{tabbing}
+
+The information in the bounds declaration is used at pointer
+dereferences involving either (1) the variable or (2) pointers
+constructed from the value of the variable.
+
+One design choice for bounds declarations is when
+bounds expressions are evaluated.  In the design, evaluation of
+bounds expressions is {\em deferred} until bounds checks.  The bounds
+expressions could be evaluated {\em eagerly} at the point of the bounds declarations.
+
+If bounds expressions in a bounds declaration \boundsdecl{\var{v}}{\var{e}} are evaluated 
+eagerly, they must  be evaluated only when \var{v} is non-null. If \var{v} is null,
+the bounds might not be meaningful.  This keeps eager evaluation from
+causing accidental runtime failures when null values are encountered.    
+
+Consider the code for the use of \texttt{malloc}.   With eager evaluation,
+the bounds expressions in \bounds{result}{result + size} would not
+be evaluated if \texttt{malloc} returns \texttt{null}:
+\begin{verbatim}
+array_ptr<int> result = malloc(size) where result : bounds (result, result + size);
+if (result != NULL) {
+      ... *result = ...
+}
+\end{verbatim}
+
+We considered eager evaluation, but rejected it because it would turn \arrayptr\
+types into \arrayview\ types.  When bounds expressions are always eagerly
+evaluated, the results need to be stored somewhere so that they can be used
+when \var{v} is used.  For local variables, hidden temporary variables could be
+introduced.  This breaks the design principle of not introducing hidden
+costs, though.  To avoid introducing hidden costs, the semantics of \arrayptr\ types could 
+be changed so that they carry their bounds with them.   This just turns \arrayptr\ types into 
+\arrayview\ types.   For structures, introducing hidden state or converting \arrayptr\ types to 
+\arrayview\ types is especially problematic because it breaks data layout compatibility.
+
+For these reasons, we think it is better to think of bounds declarations as being
+program invariants describing the bounds of variables.   Normally, 
+program invariants are not evaluated at runtime.  However, in the case of pointers,
+the program invariants are used to provide bounds safety at runtime.
+
+Deferred evaluation of bounds expressions has issues, too, though. First, there
+can be problems if a programmer modifies a variable used in a bounds expression
+within the extent of a bounds declaration.  Static checking could fail if the
+bounds declaration no longer holds.  These would be unexpected errors for
+C progammers.  Second, it is a new concept for C programmers that could
+cause confusion.  We recommend a carefully designed study of
+programmers to evaluate the difficulty of learning the concept.
+
+Because bounds declarations constrain assignments to variables within the scope
+of the bounds declarations, we considered several alternate definitions of 
+bounds declarations.   First, we considered not having lexically-scoped bounds
+declarations and just having flow-sensitive bounds declarations.  Flow-sensitive
+bounds declarations are more subtle to understand, though, while lexically-scoped
+bounds declarations can be understood at a glance.  We decided to keep
+lexically-scoped bounds declarations because they are simpler to understand and
+allow bounds invariants to be declared that always cover a set of statements.
+In contrast, with only flow-sensitive bounds declarations, a programmer might need 
+to redeclare the bounds invariant at  assignments to variables that occur in the
+bounds declaration. This could lead to verbose code, something C tries to
+avoid, and it could also be error-prone.
+
+We considered the opposite approach of having only lexically-scoped
+bounds declarations.   However, this introduces the opposite problem of
+redeclaring invariants.  A pointer variable could not have different
+bounds declarations during at different points in the program.  This could
+make modifying existing C code to be bounds-safe more complex: an existing
+variable might need to be replaced with several new variables.
+
+Finally, we considered several alternate definitions of the extent of a
+flow-sensitive bounds declaration for a pointer variable:
+\begin{compactitem}
+    \item Defining extent to be the set of statements up to the first assignment
+          to any variable occurring in the bounds declaration.   This is a
+          ``minimal'' notion of extent.  It removes the special case for
+          pointer increment and decrement, so bounds
+          declarations would be required at those statements.  We believe
+          the special case will lead to more succinct code, so we chose to
+          keep it.
+    \item Defining extent to be all the statements between the bounds
+          declaration and the next bounds declaration for
+         the pointer variable or the last use of the pointer variable.  This
+         is a ``maximal'' notion of extent.  We thought this case might
+         lead to surprising error messages when modifying existing
+         code.  In particular, with this definition, extending
+         the lifetime of a pointer variable could lead to errors
+         at assignments within the new part of the lifetime, specifically
+         assignments to variables that occur in the bounds declaration.
+         The current definition is more conservative.  It could produce errors
+         only at new uses of the pointer variable or assignments in
+         the new part of the lifetime that increment or decrement the pointer 
+         variable.
+  \item Adding special cases to the current definition beyond
+        pointer increment and decrement.  
+\end{compactitem}
+We believe that we need experience using flow-sensitive bounds declarations
+to choose between these different possible definitions of extent.
+
+\section{Allowing pointer variables to be assigned values with no relationship to their bounds}
+
+We considered allowing pointer variables to be assigned pointer values
+not derived in some way from the object with which their bounds are
+associated. The idea would be to avoid unnecessary restrictions on
+operations involving pointers.
+
+In this approach, the meaning of a bounds expression would be defined
+differently than that given in Section~\ref{section:bounds-declarations}. 
+The meaning would be the
+following. Given an expression \var{e} with a bounds expression
+\bounds{\var{lb}}{\var{ub}}, let the runtime
+values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
+and \var{ubv}, respectively. If \var{ev} is not null, there will
+always exist some object at runtime with the bounds (\var{low},
+\var{high}) such that \var{low} \texttt{<=} \var{lbv}\ \&\&
+\var{ubv} \texttt{<=} \var{high}. In other words, the
+requirement is that expression bounds are always a subrange of the range
+of memory for some valid object. This is provided that the value of the
+expression with which those bounds are associated is non-null.
+
+The problem with this approach is that it has unexpected consequences
+for the bounds that can be declared for pointer variables.
+Any valid pointer bounds could be declared for a variable because there
+is no longer a requirement that a pointer stored in the variable be
+derived from a pointer to the object associated with the bounds. The
+following example would be valid:
+
+\begin{verbatim}
+array_ptr<int> x : count(5) = malloc(sizeof(int) * 5);
+array_ptr<int> y : bounds(x, x + 5) = malloc(sizeof(int) * 2);
+\end{verbatim}
+
+This makes it more likely that programming errors involving bounds
+declarations are detected only at runtime.   We did not pursue
+this approach further for this reason.
+
+\section{Null pointers and bounds expressions}
+
+\newcommand{\objectbounds}[2]{\texttt{object\_bounds(#1, #2)}}
+
+The meaning of bounds expressions is conditional on values not being null. 
+From Section~\ref{section:bounds-declarations}:
+\begin{quote}
+At runtime, given an expression \var{e} with a bounds expression
+\bounds{\var{lb}}{\var{ub}}, let the runtime
+values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
+and \var{ubv}, respectively. The value \var{ev} will be \texttt{0} (null) or
+have been derived via a sequence of operations from a pointer to some
+object \var{obj} with \bounds{\var{low}}{\var{high}}.
+The following statement will be true at runtime:
+\var{ev} \texttt{== 0 || (\var{low} <= \var{lbv}\&\& 
+\var{ubv} <= \var{high})}. 
+\end{quote}
+
+If \var{ev} is null, the bounds may or may not be valid.
+This creates a problem.  Pointer arithmetic cannot be allowed
+on null values.  If it were allowed, then
+\boundsdecl{\var{e}}{\bounds{\var{lb}}{\var{ub}}} would
+not imply \boundsdecl{\var{e}+\var{k}}{\bounds{\var{lb}}{\var{ub}}}, where \var{k} is
+a non-zero constant.
+Consider the counterexample where \var{ev} (the runtime value of \var{e}) is \texttt{0}.
+For the first bounds expression, \texttt{\var{ev} == 0 \textbar\textbar (\var{low} <= \var{lbv}
+\&\& \var{ubv} <= \var{high})} is true. For the second bounds expression \texttt{\var{ev} +
+\var{k} == 0 \textbar\textbar (\var{low} <= \var{lbv} \&\& \var{ubv} <=
+\var{high})} must be true.  We know that \texttt{\var{ev} + \var{k} == 0} is false, so
+that means that the first bounds expression
+must imply that \texttt{(\var{low} <= \var{lbv} \&\& \var{ubv} <= \var{high})} is true. 
+However, it does not: 
+\texttt{\var{A} \textbar{}\textbar{} \var{B}} does not imply \var{B}.
+
+This is handled in the design by using runtime checking to prevent
+pointer arithmetic involving null pointers.  However, this produces
+an odd result.  A pointer variable can have bounds that are always
+valid because they correspond to an actual object.  The value for
+this pointer variable cannot be moved using pointer arithmetic to null
+and then to another value besides null.
+
+There is no way in the current design to express that a variable has
+bounds that are always valid.  This could be addressed with a 
+a new bounds expression:
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\>\objectbounds{\var{bounds-exp}}{\var{bounds-exp}}
+\end{tabbing}
+The meaning of this bounds expression would be defined as follows:
+\begin{quote}
+At runtime, given an expression \var{e} with a bounds expression
+\objectbounds{\var{lb}}{\var{ub}}, let the
+runtime values of \var{e}, \var{lb}, and \var{ub} be \var{ev},
+\var{lbv}, and \var{ubv}, respectively. The value ev will have been derived
+via a sequence of operations from a pointer to some object \var{obj}
+with \objectbounds{\var{low}}{\var{high}}.  The following statement 
+will be true at runtime: \texttt{\var{low} <= \var{lbv} \&\&
+\var{ubv} <= \var{high}}
+\end{quote}
+In other words, the bounds are always valid. This implies
+that any access to memory where \texttt{\var{lbv} <= \var{ev}
+\&\& \var{ev} < \var{ubv}} will be within the bounds of \var{obj}.
+
+The meaning of \boundsdecl{\var{e}}{\bounds{\var{lb}}{\var{ub}}}
+could be defined as \var{e} \texttt{== 0
+\textbar{}\textbar{}} \objectbounds{\var{lb}}{\var{ub}}.
+\objectbounds{\var{e1}}{\var{e2}} would imply \bounds{\var{e1}}{\var{e2}}.
+Conversely, if some value \var{v} has \bounds{\var{e1}}{\var{e2}} and
+\var{v} is not null, this would imply \objectbounds{\var{e1}}{\var{e2}}.
+
+For variables and expressions with an \texttt{object\_bounds}
+bounds expression, runtime checks for null pointer arithmetic
+would not be necessary.
+
+It would be problematic to use \texttt{object\_bounds} widely for
+C function arguments.   Implicit in many uses of
+\texttt{object\_bounds} would be an assertion that the parameter
+to which it is being applied  non-null pointer.  Consider:
+\begin{verbatim}
+f(array_ptr<int> x : object_bounds(x, x + 5) {
+    array_ptr<int> y = x + 1;
+    ...
+}
+\end{verbatim}
+This risks dividing C functions into those that can
+take null pointer arguments and those that only take non-null 
+pointer arguments. In our experience, requirements that pointers 
+not be null tend to propagate virally throughout code bases.  If an 
+entire code base can be  converted, this can work well.  Otherwise, 
+it results in messy dynamic checks for non-nullness in code.
+Now, it is possible with lightweight invariants and \texttt{dynamic\_check}
+that such checks would not be messy.
+
+The existing practice in C is that null pointers are widely used interchangeably
+with non-null pointers.  This introduces uncertainty about the usefulness of this 
+feature for C code bases.  The runtime benefit of eliminating non-null
+checks in pointer arithmetic is likely small.  Following the principal of 
+minimality, we have rejected the design choice of adding \texttt{object\_bounds} 
+for now. 
+

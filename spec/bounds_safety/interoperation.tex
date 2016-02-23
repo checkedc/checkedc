@@ -1,0 +1,686 @@
+% !Tex root = checkedc.tex
+
+\newcommand{\boundscast}[2]{\texttt{bounds\_cast<#1>#2}}
+\newcommand{\coreboundscast}[2]{\texttt{core\_bounds\_cast<#1>#2}}
+\newcommand{\assumeboundscast}[2]{\texttt{assume\_bounds\_cast<#1>#2}}
+\newcommand{\ptrcast}[2]{\texttt{bounds\_cast<#1>#2}}
+
+\chapter{Interoperation}
+\label{chapter:interoperation}
+
+Code that uses safe pointer types must be able to interoperate with
+code that uses unsafe pointer types.  This chapter describes support
+for this.  Section~\ref{section:pointer-casting} starts with
+conversion operations: how different kinds of pointers can
+be converted to other kinds of pointers.  
+Section~\ref{section:function-bounds-safe-interfaces}
+describes how existing code that uses unsafe pointers can be modified
+to present a safe interface.  They key insight there is that the
+the interface must be both safe and unsafe, depending on context.
+For existing code that uses unsafe pointers, the interface is descriptive,
+but correctness is not enforced by the language.  For code that uses safe
+pointers, proper usage of the interface is checked and enforced.
+
+\section{Conversions between pointers to objects of different types}
+\label{section:pointer-casting}
+
+Conversions from a pointer to one type to a pointer to a different type
+introduce two issues. First, there is type safety. Given a pointer to S
+that has been converted to be a pointer to T, is it valid to treat the
+memory pointed to by the pointer as being an object of type T instead of
+type S? Second, there is bounds safety. Given the pointer, what range of
+memory can be accessed validly using that pointer? This section focuses on
+bounds safety.
+
+Type safety is not addressed by this technical report. Of course, violating
+type safety can lead to violations of bounds safety. This can happen
+when there is a conversion between a safe pointer to an object of
+structure type that contains a bounds-checked member and a safe pointer
+to an object of another type. A programmer can use the pointer to the
+other type to modify the bounds-checked member or its bounds in an
+inconsistent fashion. For now, it is the programmer's responsibility to
+update bounds-checked members and their bounds properly when using a
+safe pointer that results from such a conversion. Conversions between
+safe pointers to integral types, floating-point types, or structure that
+contain only integral types or floating-point types cannot lead to
+violations of bounds safety by themselves.
+
+The following rules apply to a conversion of a value of one safe
+pointer type to a value of another 
+
+%For a conversion  a value of one safe pointer type to another safe 
+%pointer to maintain bounds safety at runtime, the following rules
+%apply.
+%\begin{itemize}
+%\item When converting to a \ptrT, the source pointer must point
+%to memory at least as large as \var{T}
+%\item When converting from a 
+%\item When converting to an \arrayviewT, two differ
+%\end{itemize}
+
+Three new operators are introduced for converting between the different
+kinds of pointer types:
+\boundscast{\var{T}}{},
+\coreboundscast{\var{T}}{},
+and \assumeboundscast{\var{T}}{}.
+The syntax of the operators is similar to the syntax of C++ type
+conversion operators. \var{T} is the destination type to which a source
+value is being converted. The new operators take one to three arguments,
+where the first argument is the pointer being converted and additional
+arguments describe the desired new bounds.
+
+The meanings of the operators when T is a complete type are described
+first.
+
+\begin{quote}
+\var{Here are the rules for when a cast operator (T) can be applied to
+an expression e with type S:}
+\end{quote}
+
+\begin{itemize}
+\item
+  \it{T is an \arrayptr: always. The bounds are inferred from the
+  expression following the rules in Section~\ref{section:inferring-expression-bounds}.
+   Note that the result may
+  be an \arrayptr with bounds(none).}
+\item
+  \it{T is a ptr: sometimes. The bounds are inferred as well. The
+  resulting bounds must be large enough to hold at least a single
+  element of type T. This implies the bounds cannot be bounds(none).}
+\item
+  \it{T is an unsafe ptr and S is safe pointer: sometimes. Like ptr, }
+    \item
+    \it{If S is ptr type and size of the of the referent }
+\end{itemize}
+
+\subsection{Dynamic checking using bounds\_cast\textless{}T\textgreater{}}
+
+\boundscast{\var{T}}{} uses
+dynamic checks to enforce the preservation of bounds safety. \var{T}
+must be a pointer type and is the desired destination type. The operator
+takes 1 to 3 arguments, depending on the kind of conversion being done:
+
+\begin{itemize}
+\item
+  \boundscast{\var{T}}{(\var{e1},
+  \var{e2})} converts \var{e1} to an \arrayptr\ or
+  \arrayview\ type with bounds \boundscount{\var{e2}}.
+\item
+  \boundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})} converts \var{e1} to an
+  \arrayptr\ or \arrayview\ type with bounds
+  \bounds{\var{e2}}{\var{e3}}.
+\item
+  \boundscast{\var{T}}{(\var{e1})}
+  converts \var{e1} to either a \ptr\ or * type.
+\end{itemize}
+
+It is a compile-time error if the bounds of \var{e1} are
+\boundsnone. No runtime checks are done if the bounds of \var{e1}
+are \boundsany. If the bounds of \var{e1} are
+\bounds{\var{lb}}{\var{ub}}, the following
+runtime checks are done:
+
+\begin{itemize}
+\item
+  \boundscast{\var{T}}{(\var{e1}, \var{e2})}:
+   if \var{e1} \texttt{!= 0}, check that \var{lb}
+  \texttt{<=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+
+  sizeof(referent-type(}\var{T}\texttt{)) *} e2 \texttt{<=}
+  \var{ub}.
+\item
+  \boundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})}: if \var{e1} \texttt{!= 0},
+  check that \var{lb} \texttt{<=} \var{e2} \texttt{\&\&}
+  \var{e3} \texttt{<=} \var{ub}. Also check that relative
+  alignment constraints for \var{e1}, \var{e2}, and \var{e3} are met.
+\item
+  \boundscast{\var{T}}{(\var{e1})}:
+  check that there is room for least one element of \var{T}. This is
+  the same as doing the check for
+  \boundscast{\var{T}}{(e1, 1)}: if \var{e1} \texttt{!=} \texttt{0}, check that \var{lb}
+  \texttt{<=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+}
+  \texttt{sizeof(referent-type(}\var{T}\texttt{) <=}
+  \var{ub}.
+\end{itemize}
+
+\subsection{Correctness of bounds\_cast\textless{}T\textgreater{} conversions}
+
+In this section, the correctness of the bounds\_cast conversions is
+discussed. Readers interested in just using the operations may safely
+skip this discussion.
+
+We discuss only
+\boundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})} because the other forms are special cases
+of this operation. From Section~\ref{section:bounds-declarations},
+recall the meaning of a bounds
+expression \bounds{\var{lb}}{ub} for
+an expression \var{e1} at runtime. Let the runtime values of \var{e1},
+\var{lb}, and \var{ub} be \var{e1v}, \var{lbv}, and \var{ubv},
+respectively. The value \var{e1v} will be \texttt{0} or have been
+derived via a sequence of operations from a pointer to some object
+\var{obj} with \bounds{\var{low}}{\var{high}}.
+The following statement will be true: \var{e1v}
+\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{<=}
+\var{lbv} \texttt{\&\&} ubv \texttt{<=}
+\var{high}\texttt{)}.
+
+To ensure \bounds{\var{e2}}{\var{e3}} is
+valid for \var{e1}, we need to show the following:
+
+\begin{quote}
+Let \var{e2v} and \var{e3v} be the runtime values for \var{e2} and
+\var{e3} respectively. Then \var{e1v} \texttt{== NULL
+\textbar{}\textbar{} (}\var{low} \texttt{<=} \var{e2v}
+\texttt{\&\&} e3v \texttt{<=} \var{high}\texttt{)}.
+\end{quote}
+
+Given \var{e1v} \texttt{== 0 \textbar{}\textbar{} (}\var{low}
+\texttt{<=} \var{lbv} \texttt{\&\&} ubv \texttt{<=}
+\var{high}\texttt{)}, the runtime check that if \var{e1v} \texttt{!=}
+\var{0}, \var{lbv} \texttt{<=} \var{e2v} \texttt{\&\&}
+\var{e3v} \texttt{<=} \var{ubv} implies \var{e1v}
+\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{<=}
+\var{e2v} \texttt{\&\&} e3v \texttt{<=}
+\var{high}\texttt{).}
+
+\subsection{Static checking using core\_bounds\_cast\textless{}T\textgreater{}}
+
+\coreboundscast{\var{T}}{}
+uses static checking to enforce the preservation of bounds safety:
+
+\begin{itemize}
+\item
+  \coreboundscast{\var{T}}{(\var{e1},
+  \var{e2})} converts \var{e1} to an \arrayptr\ or
+  \arrayview\ type with bounds
+  \boundscount{\var{e2}}.
+\item
+  \coreboundscast{\var{T}}{(\var{e1},
+  \var{e2},\var{e3})} converts \var{e1} to an
+  \arrayptr\ or \arrayview\ type with bounds
+  \bounds{\var{e2}}{\var{e3}}.
+\item
+  \coreboundscast{\var{T}}{(\var{e1})}
+  converts \var{e1} to either a \ptr\ or * type.
+\end{itemize}
+
+Like \boundscast{\var{T}}{}, it
+is a compile-time error if the bounds of e1 are \boundsnone.
+There is no static checking if the bounds of e1 are
+\boundsany. If the bounds are \bounds{lb}{ub}, 
+the following must be provable via static checking:
+
+\begin{itemize}
+\item
+  \coreboundscast{\var{T}}{(\var{e1},
+  \var{e2})}: under the assumption that 
+  \texttt{\var{e1} != 0, lb <= \var{e1} \&\& 
+         \var{e1} + sizeof(referent-type(\var{T})) * \var{e2} <= ub.}
+\item
+  \coreboundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})}: 
+  under the assumption that
+  \var{e1} \texttt{!= 0}, \var{lb} \texttt{<=} \var{e2}
+  \texttt{\&\&} \var{e3} \texttt{<=} \var{ub}. Also show the
+  relative alignment constraints for \var{e1}, \var{e2}, and \var{e3}
+  are met: \texttt{(}\var{e3} \texttt{-} \var{e2}\texttt{) \%
+  sizeof(referent-type(}\var{T}\texttt{)) == 0 \&\& (\var{e2} - \var{e1})
+  \%
+  sizeof(referent-type(}\var{T}\texttt{)}), where arithmetic is done in
+  bytes.
+\item
+  \coreboundscast{\var{T}}{(\var{e1})}
+  converts \var{e1} to either a \ptr\ or * type. For this, check
+  that
+  \coreboundscast{\var{T}}{(\var{e1},\var{1})} holds.
+\end{itemize}
+
+\texttt{core\_bounds\_cast} can be used when programmers do not want to
+introduce the possibility of dynamic runtime failures due to bounds
+casts. It is recommended for conversions between pointers to
+constant-length arrays, which succeed at runtime using
+\texttt{core\_bounds\_cast} if and only if they succeed at run-time
+using \texttt{bounds\_cast}. For example, converting an array\_ptr of 12
+characters to an array\_ptr of 4 32-bit integers should always succeed
+at compile-time.
+
+\subsection{Conversions without checking using assume\_bounds\_cast\textless{}T\textgreater{}}
+
+\assumeboundscast{\var{T}}{}
+converts unsafe pointers to safe pointers. The declared bounds are
+trusted without verification, although relative alignment is checked if
+necessary. The source expression must have an unsafe pointer type.
+
+\begin{itemize}
+\item
+  \assumeboundscast{\var{T}}{(\var{e1},\var{e2})}
+  converts \var{e1} to an \arrayptr\ or
+  \arrayview\ type with \boundscount{\var{e2}}
+\item
+  \assumeboundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})}
+  converts \var{e1} to an
+  \arrayptr\ or \arrayview\ type with \bounds{var{e2}}{\var{e3}}.
+  There is a runtime check that the relative alignment requirements for
+  T are satisfied by \var{e1,} \var{e2} and \var{e3}. \var{e2} and
+  \var{e3} can have pointer type.
+\item
+  \assumeboundscast{\var{T}}{(\var{e1})}
+  converts \var{e1} to a \ptr\ type or T \texttt{*}.
+\end{itemize}
+
+A subtle point about
+\boundscast{\var{T}}{} and
+\coreboundscast{\var{T}}{}
+are that they allow {\em bounds-safe casts} of an expression
+\var{e} of unsafe pointer type to an \arrayview\ or
+\arrayptr\ type. This is provided that the bounds for \var{e}
+can be determined. Only a few kinds of expressions with unsafe pointer
+types have bounds that can be determined: address-of expressions
+involving variables and uses of array variables, where the array
+variable is converted to a pointer type.
+
+\subsection{Summary of conversion operators}
+
+The following table summarizes the operations for converting between
+pointers to objects of different types, provided that \var{S} and \var{T} are
+complete types:
+
+
+
+{\tiny
+\begin{longtable}[c]{p{0.5in}p{1.4in}p{1.4in}p{1.1in}p{1.1in}}
+\toprule
+\multicolumn{1}{r}{\textit{To}}  & \arrayptrT &
+\arrayviewT & \ptrT &
+T * \tabularnewline
+\textit{From} \tabularnewline
+\midrule
+\endhead
+\arrayptrinst{\var{S}} &
+\boundscast{\arrayptrT}{(e1, e2)}
+
+\boundscast{\arrayptrT}{(e1, e2, e3)}
+
+\coreboundscast{\arrayptrT}{(e1, e2)}
+
+\coreboundscast{\arrayptrT}{(e1, e2, e3)} &
+\boundscast{\arrayviewT}{(e1,e2)}
+
+\boundscast{\arrayviewT}{(e1, e2, e3)}
+
+\coreboundscast{\arrayviewT}{(e1, e2)}
+
+\coreboundscast{\arrayviewT}{(e1, e2, e3)} &
+\boundscast{\ptrT}{(e1)}
+
+\coreboundscast{\ptrT}{(e1)}
+& \boundscast{\var{T} *}{(e1)}
+
+If \texttt{\var{S}==\var{T}}, \texttt{\&e1[i]} can be used too.
+
+\assumeboundscast{\var{T} *}{(e1)}\tabularnewline \midrule[0.25pt]
+\arrayviewinst{\var{S}} & Same as above & Same as above &
+Same as above & Same as above.\tabularnewline \midrule[0.25pt]
+\ptrinst{\var{S}} & Same as above & Same as above. & Same as
+above.
+
+For \texttt{bounds\_cast}, it is a compile-time error if \texttt{sizeof(\var{S}) <
+sizeof(\var{T})}. This is guaranteed to fail at runtime. &
+\boundscast{\var{T} *}{(e1)}
+
+\assumeboundscast{\var{T} *}{(e1)}\tabularnewline \midrule[0.25pt] 
+\var{S} * & If e1 has known bounds, same as above. Otherwise:
+
+\assumeboundscast{\arrayviewT}{(e1, e2)}
+
+\assumeboundscast{\arrayviewT}{(e1, e2, e3)} &
+   If e1 has known bounds, same as above.  Otherwise:
+
+\assumeboundscast{\arrayviewT}{(e1, e2)}
+
+\assumeboundscast{\arrayviewT}{(e1, e2, e3)}
+
+&
+If e1 has known bounds, same as above. Otherwise:
+
+\hspace{0pt} \assumeboundscast{\var{T}}{(e1)} & \texttt{(\var{T} *) e1}\tabularnewline
+\bottomrule
+\end{longtable}
+}
+
+\section{Bounds-safe conversions for pointers to incomplete types, including pointers to void}
+
+In the prior section, the source and destination pointer types in a
+bounds\_cast or core\_bounds\_cast operation must be complete types or
+have a referent type of void. However, there is one important exception:
+\ptrT\ can always be safely converted to T *,
+even if T is incomplete. This follows from treating sizeof(T) as a
+symbolic constant in the rules for computing bounds and the runtime
+checking rules for bounds\_cast and core\_bounds\_cast.
+
+This exception is useful when converting code incrementally from unsafe
+pointer types to safe pointers. One may have converted the body of a
+function to use safe pointers, but not yet have converted some functions
+that it calls.
+
+C allows pointer types to be freely converted to void * types and void *
+types to be freely converted back to pointer types. For safe pointer
+types, any kind of safe pointer type can be freely converted to the same
+kind of pointer type with a referent type of void. However, explicit
+casts must be used when converting from any kind of safe pointer type
+with a referent type of void:
+
+{\tiny
+\begin{longtable}[c]{p{0.6in}p{1in}p{1.1in}p{1.4in}p{1.4in}}
+\toprule
+\multicolumn{1}{r}{\textit{To}}  & T * & \ptrT &\arrayviewT &
+                                \arrayptrT \tabularnewline
+\textit{From} \tabularnewline
+\midrule
+\endhead
+void * & Follow existing C rules & \texttt{ptr\_cast<\var{T}>},
+if bounds are known.
+
+\texttt{assume\_ptr\_cast<\var{T}>}, otherwise &
+\texttt{bounds\_cast<\arrayviewT>},
+if bounds are known:
+
+- check relative alignment
+
+\assumeboundscast{\arrayviewT}{(var{e1}, \var{e2})}: No relative alignment check needed.
+
+\assumeboundscast{\arrayviewT}{(\var{e1}, \var{e2}, \var{e3})}: check relative alignment &
+\boundscast{\arrayptrT}{}: 
+
+- has \boundsnone\ if bounds are unknown.
+
+- check relative alignment if bounds are known.
+
+\assumeboundscast{\arrayptrT}{(e1, e2)}: no relative alignment check needed
+
+\assumeboundscast{\arrayptrT}{(e1, e2, e3)}:  check relative alignment\tabularnewline
+\ptrinst{void} & Only the following unsafe operator is
+available.
+
+assume\_unsafe\_ptr\_cast: no check &
+\ptrcast{\var{T}}{}
+
+\var{\texttt{TODO: need unsafe operator}} & Not allowed & Not
+allowed \tabularnewline
+\arrayviewinst{void} & unsafe\_ptr\_cast: check that memory
+accessible by pointer dereference is in bounds
+
+assume\_unsafe\_ptr\_cast: no check &
+\ptrcast{\var{T}}{}
+
+check that memory accessible by pointer dereference is in bounds &
+\boundscast{\arrayviewT}{}: check relative alignment &
+\boundscast{\arrayptrT}{}: check relative alignment\tabularnewline
+
+\arrayptrinst{void} & unsafe\_ptr\_cast: check that
+memory accessible by pointer dereference is in bounds
+
+assume\_unsafe\_ptr\_cast: no check &
+\ptrcast{\var{T}}{}
+
+check that memory accessible by pointer dereference is in bounds &
+\boundscast{\arrayviewT}{}:
+
+- check relative alignment &
+\boundscast{\arrayptrT}{}:
+
+- check relative alignment\tabularnewline
+\bottomrule
+\end{longtable}
+} 
+
+\section{Bounds-safe interfaces to existing unsafe functions}
+\label{section:function-bounds-safe-interfaces}
+
+The new pointer types capture specific properties of pointers. One would
+like to update existing C code to use these new pointer types. However,
+this will not be possible when backward compatibility requirements
+exist. Consider C runtime functions or OS APIs. It may be feasible to
+modify the header files for the runtime function or OS API. It may be
+impossible to require all uses of these functions or APIs be updated.
+Code written by 3\textsuperscript{rd} parties may use these APIs and it
+is not reasonable for an existing shipping OS to require all
+3\textsuperscript{rd} parties update their existing code to use the new
+types.
+
+Consider what would happen if the signature for memcpy were updated to
+use \arrayptr. The function
+
+\begin{verbatim}
+void *memcpy(void *dest, const void *src, size_t count);
+\end{verbatim}
+
+becomes
+
+\begin{verbatim}
+void *memcpy(array_ptr<void> dest, array_ptr<const void> src, size_t count);
+\end{verbatim}
+
+This, of course, breaks every piece of existing code that uses memcpy.
+The code will no longer compile. C does not have method overloading, so
+one cannot simply define multiple overloaded versions of memcpy. That
+would also be duplicative and potentially increase program sizes.
+
+The reverse problem also exists: suppose the signature for memcpy is not
+updated. Then every ``safe'' method that calls memcpy would need to cast
+the arguments to unsafe pointer types!
+
+Given that we may not be able to change the pointer types of existing
+APIs, we need to adopt an approach that supports backwards
+compatibility, enables new safe code to be written easily, and maintains
+the safety of new code.
+
+We address this by:
+
+\begin{enumerate}
+\item
+  Allowing programmers to declare bounds-safe interfaces to code and
+  data structures that use unsafe pointers. A bounds-safe interface for
+  a function, for example, describes bounds for unsafe pointer
+  parameters.
+\item
+  In checked scopes, where only safe pointers are allowed, unsafe
+  pointer types in bounds-safe interfaces are reinterpreted as safe
+  pointer types. This makes the code in those scopes straightforward to
+  understand: only safe pointers are used, all memory accesses are
+  bounds checked or in bounds, and bounds-safe interfaces are trusted
+  and respected.
+\item
+  In unchecked scopes, where safe and unsafe pointer types are allowed,
+  we separate type checking concerns from bounds checking concerns. We
+  allow implicit coercions at uses of bounds-safe interfaces between
+  safe pointer types and unsafe pointer types. We also allow implicit
+  coercions from unsafe pointer types to safe pointer types, subject to
+  the limitation the bounds checking must also succeed.
+\end{enumerate}
+
+Functions that have parameters with unsafe pointer types or that return
+values with unsafe pointer types can have bounds declared for the unsafe
+pointer parameters or the unsafe pointer return value. Bounds must be
+declared for all parameters with unsafe pointer types and the return
+value, if it has an unsafe pointer type. In the case where a parameter
+has \texttt{ptr} type, this can be declared specially.
+
+Here is the bounds-safe interface for memcpy:
+\begin{verbatim}
+void *memcpy(void *dest : count(len), const void *src : count(len), size_t len)
+where return_value : bounds(dest, dest + count)
+\end{verbatim}
+
+The correctness of bounds information is enforced at compile-time when
+memcpy is passed safe pointer arguments. It is not enforced when memcpy
+is passed unsafe pointer arguments.
+
+Similarly, for data structures, members with unsafe pointer types can
+have bounds declared. If bounds are declared for one member of a
+structure with an unsafe pointer type, they must be declared for all
+members with unsafe pointer types.
+
+Here are the bounds for a structure that is a counted buffer of
+characters.
+\begin{verbatim}
+struct S {
+     char *arr : count(len);
+     int len;
+}
+\end{verbatim}
+
+We may have a method that takes a counted buffer of characters and
+counts the number of instances of a specific character. The \texttt{ptr}
+declaration can be used to declare an unsafe pointer to a singleton
+object of a type:
+\begin{verbatim}
+int count_char(S *str where ptr, char arg);
+\end{verbatim}
+
+It is very important to understand that the \emph{semantics of unsafe
+pointers does not change even when bounds are declared for the
+pointers}. The declared bounds are used only when checking safe code
+that calls unsafe functions or uses unsafe data structures. Unsafe
+pointer dereferences do not have bounds checks added to them. A method
+that declares a bounds-safe interface and whose body consists of only
+unsafe code is compiled as though the bounds-safe interface has been
+stripped from its source code.
+
+\section{Implicit conversions}
+\label{section:implicit-conversions}
+
+In unchecked scopes, we allow implicit coercions from safe pointer types
+to the corresponding unsafe pointer types in the following cases. In
+each case, one or more types is reinterpreted and type checking proceeds
+with the reinterpreted types:
+
+\begin{itemize}
+\item
+  Function call:
+
+  \begin{itemize}
+  \item
+    If the function being called has a bounds-safe interface for unsafe
+    pointer type arguments and an argument expression has a safe pointer
+    type, then the type of each argument of a safe pointer type will be
+    reinterpreted as the corresponding unsafe pointer type.
+  \end{itemize}
+\item
+  Field assignment: if the left hand side has an unsafe pointer type,
+  the right-hand side has a safe pointer type, and the left-hand side is
+  a member of a type with a bounds-safe interface, then the right-hand
+  side type will be reinterpreted as the corresponding unsafe pointer
+  type.
+\end{itemize}
+
+We allow coercions from unsafe pointer types to the corresponding safe
+pointer types in the following cases:
+
+\begin{itemize}
+\item
+  Function call:
+
+  \begin{itemize}
+  \item
+    If a function being called has a parameter of a safe pointer type
+    and the type of an argument is an unsafe pointer, then the type of
+    the argument will be reinterpreted as the corresponding safe pointer
+    type.
+  \end{itemize}
+\item
+  Assignment: if the left hand side has a safe pointer type to T, the
+  right-hand side has an unsafe pointer type to T, then the right-hand
+  side type will be reinterpreted as the corresponding safe pointer
+  type.
+\end{itemize}
+
+The rules for checking bounds are applied separately. These rules are
+extended to deal with bounds-safe interface functions as follows.
+
+\begin{enumerate}
+\item
+  Respecting bounds interfaces:
+
+  \begin{enumerate}
+  \item
+    If function call has arguments with safe pointer types that are
+    converted implicitly to unsafe pointer types, then the bounds for
+    the arguments must satisfy the bounds requirements for the unsafe
+    pointer parameters. In addition,
+
+    \begin{enumerate}
+    \item
+      If an argument corresponds to a parameter that has a bounds
+      declaration, the argument will be checked to see if it is in
+      bounds following the bounds declaration.
+    \item
+      If an argument corresponds to a parameter that has \texttt{ptr}
+      declaration, the argument will be checked to see if it is in
+      bounds of its computed bounds.
+    \end{enumerate}
+  \item
+    TBD: field assignment to a member of a type with a bound-safe
+    interface (the issue is that we never infer when a bounds is valid).
+  \end{enumerate}
+\item
+  Trusting bounds interfaces:
+
+  \begin{enumerate}
+  \item
+    If a function call returns an unsafe pointer and the function has a
+    bounds-safe interface, the bounds for the return value will be
+    computed the same as if the function returned an \arrayptr
+    type.
+  \item
+    If a member access returns an unsafe pointer and the member access
+    is to a type with a bounds-safe interface, the member access will
+    have the bounds declared for it by the member bounds declared in the
+    type.
+  \end{enumerate}
+\end{enumerate}
+
+Here are some examples:
+\begin{verbatim}
+void f() 
+{
+    int a;
+    // the type of &a will be int *.  This will be implicitly converted to
+    // ptr<int>.
+    ptr<int> pa : bounds(&a, &a + 1) = &a;
+    int arr[5][5];
+    // the type of arr will be int[5] *.  This will be implicitly converted to
+    // ptr<int[5]> 
+    ptr<int[5]> parr : bounds(arr, arr + 1) = arr;
+    ...
+}
+
+void copy(array_ptr<int> dest : count(len), 
+          array_ptr<int> src : count(len), int len)
+{
+    // dest, src will be converted to a void *
+    // The checking of bounds information succeeds at compile time.
+    // The runtime bounds checks that dest and src are in range are  
+    // guaranteed to succeed
+    memcpy(dest, src, len);
+}
+ 
+f(S s) 
+{
+     int len = s.len;
+     array_ptr<char> sp : count(len) = s.arr;
+     ...
+     if (len > 0) {
+        sp[0] = 'a';
+     }
+}
+\end{verbatim}
+
+The following example will fail at compile time. The bounds for sp will
+be computed as \texttt{bounds(none)}, which clearly does not match
+\texttt{count(sp, sp + 1)}.
+\begin{verbatim}
+char *random();
+
+f() {
+    array_ptr<char> sp : count(1) = random(); 
+}
+\end{verbatim}

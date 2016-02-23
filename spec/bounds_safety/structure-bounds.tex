@@ -1,0 +1,733 @@
+% !Tex root = checkedc.tex
+
+\chapter{Bounds for structure types}
+\label{chapter:structure-bounds}
+
+This chapter extends reasoning about bounds to variables with structure
+types by introducing bounds for members of structures.   
+Structure types may have members with \arrayptr\ types. Those
+members must have \emph{member bounds} associated with them in order for
+the values stored there to be used to access memory. A structure member
+declaration may include a \keyword{where} clauses that declares member
+bounds. The bounds for a member also may be placed inline at the
+declaration of the member. The list of declarations of structure members
+may also include where clauses at top-level. 
+
+Here are examples:
+
+\begin{verbatim}
+struct S {
+   array_ptr<int> data : count(num);
+   int num;
+};
+\end{verbatim}
+
+or
+
+\begin{verbatim}
+struct S {
+    array_ptr<int> data where data : count(num);
+    int num;
+}
+\end{verbatim}
+
+or
+
+\begin{verbatim}
+struct S {
+    array_ptr<int> data;
+    int num;
+    where data : count(num);
+}
+\end{verbatim}
+
+Member bounds are invariants that are assumed to be true by default for
+objects of that type. A member bound may be suspended for a specific
+object to allow for initialization of the object or modification of the
+members involved in the member bounds declarations. The member bound
+must be declared to hold again before \arrayptr\ field covered
+by the bounds can be used to access memory. Here is an example of
+variable of type S being initialized:
+
+\begin{verbatim}
+void f(int len) {
+    S y 
+    where suspends(y.data);
+    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    y.data = newarr;
+    y.num = len
+    where holds(y.data);    // the member bounds for y.data now holds
+    ...
+}
+\end{verbatim}
+
+Suspends and holds are dataflow-sensitive declarations of the state of
+the member bounds for a specific member of variables. They can be
+applied to variable members that have member bounds.
+
+They also can be applied to variables or variable members with structure
+type as a syntactic short-hand. In that case, they apply the nested
+members of the variable or variable member. The example could also be
+written as:
+
+\begin{verbatim}
+void f(int len) {
+    S y 
+    where suspends(y);
+    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    y.data = newarr;
+    y.num = len
+    where holds(y);    // the member bounds for y.data now holds
+    ...
+}
+\end{verbatim}
+
+Making member bounds be invariants provides a way to deal with issues
+causing by aliasing. There can be pointers to data structures or members
+of data structures. There may be multiple pointers to a single object or
+member of an object stored in memory. When there are multiple pointers,
+the pointers are said to be aliases because they all name the same
+memory location. The object is aliased. Aliasing makes it hard to reason
+about the behavior of the program.
+
+Consider the example:
+\begin{verbatim}
+f(S *q, S *r, bool b)
+{
+   if (b) {
+      q->arr = malloc(sizeof(int)*5);
+      q->len = 5;
+   }
+   else {
+      r->arr = malloc(sizeof(int)*5);
+      r->len = 5;
+   }
+}
+\end{verbatim}
+
+Even when b is true, the value \texttt{r-\textgreater{}arr} may still be
+changed by a call to f. This can happen when \texttt{q} and \texttt{r}
+are the same value and are aliases for the same memory location.
+Changing one named value (\texttt{q-\textgreater{}arr}) can have the
+effect of changing some other value with a distinct name
+(\texttt{r-\textgreater{}arr}). In general, it is difficult to know
+whether an assignment through one pointer variable is affecting the
+members of other pointer variables.
+
+Member bounds being invariants for structure members allow localized
+reasoning about bounds. A programmer can assume that the bounds are true
+for objects of that type. The member bounds may be suspended temporarily
+for specific objects while they are being initialized or modified.
+
+The bounds declarations for variables with structure types and the
+suspend and hold declarations will be checked statically for validity.
+Chapter~\ref{chapter:checking-structure-bounds} extends the rules 
+from Chapter~\ref{chapter:checking-bounds}
+to variables with structure
+types and to suspends and holds declarations.
+
+In the rest of this section, to simplify the description, assumptions
+about address-taken variables similar to those in
+Section~\ref{section:bounds-declarations} are made.
+It is assumed that none of the variables or members of variables on the
+left-hand side of bounds-declarations have their addresses taken. It is
+assumed also that the values of variables or members of variables whose
+addresses are taken are not used in bounds expressions.
+
+\section{Declaring bounds for structure members}
+
+Member bounds declarations have the form:
+\begin{tabbing}
+\var{member}\={-bounds-decl:}\\
+\> \var{member-path} : \var{member-bounds-exp} \\
+\\
+\var{member-path:}\\
+\> \var{identifier} \\
+\> \var{member-path} \texttt{.} \var{identifier}
+\end{tabbing}
+
+A member path is a sequence of one or more member names, separated by
+the `.' operator. The sequence of members must be a valid sequence of
+member accesses for the structure type. The common case of using a
+member of the structure type is simply a member path of length 1.
+
+Member bounds expressions are similar to the bounds expressions
+described in Section~\ref{section:bounds-declarations}, 
+except that members of the structure type are
+used in place of variables in the non-modifying expressions. In
+addition, pointer indirection and indirect member references are
+excluded.
+
+A structure member whose type is \arrayptr\ or an incomplete
+checked array type may have at most one bounds declared for it. The
+typing rules for member bounds declarations are the same as those for
+bounds declarations. For bounds declarations of the form
+\boundsdecl{\var{member-path}}{\boundscount{\var{e1}}}, the
+member-path must have an \arrayptr\ type and cannot be the type
+\arrayptrvoid. The expression
+\var{e1} must have an integral type. For bounds declarations of the
+form \boundsdecl{\var{member-path}}{\bounds{\var{e1}}{\var{e2}}}, 
+the types of \var{x}, \var{e1}, and \var{e2}
+must be \arrayptr\ types. The types must be the same type,
+except that any of them can be
+\arrayptrvoid.
+
+A structure consists of a list of member declarations, each of which
+consists of type specifier followed by one or more structure member
+declarators. Structure member declarators are changed to allow an
+optional where clause or in-line specification of member. The in-line
+specification of member follows syntax that is already used for
+declaring bitfields:
+
+\begin{tabbing}
+\var{struct}\=\var{-member-declarator:}\\
+\> \var{declarator where-clause\textsubscript{opt}} \\
+\> \var{declarator\textsubscript{opt}} \texttt{:}
+   \var{constant-expression} \\
+\> \var{declarator} \texttt{:} \var{member-bounds-exp}
+\var{where-clause\textsubscript{opt}} \\
+\\
+The list of member declarations is extended to include \keyword{where}
+clauses:\\
+\\
+\var{struct-member-declaration:}\\
+\> \ldots{} \\
+\> \var{where-clause}\textsubscript{opt}  \\
+\\
+The remaining syntax for specifying a structure remains unchanged: \\
+\\
+\var{struct-or-union-specifier:}\\
+\> \var{struct-or-union identifier\textsubscript{opt}} \texttt{\{}
+\var{struct-member-declaration-list} \texttt{\}} \\
+\\
+\var{struct-member-declaration-list:} \\
+\> \var{struct-member-declaration} \\
+\> \var{struct-member-declaration-list struct-member-declaration} \\
+\\
+\var{struct-member-declaration:} \\
+\> \var{specifier-qualifier-list struct-declarator-list} \texttt{;} \\
+\\
+\var{struct-declarator-list:} \\
+\> \var{struct-declarator} \\
+\> \var{struct-declarator-list} \texttt{,} \var{struct-declarator} 
+\end{tabbing}
+
+A member bounds expression can use members and child members of the
+structure being declared. Any member paths occurring in the member
+bounds expressions must start with members of the structure type being
+declared. Here is an example of the use of child members:
+
+\begin{verbatim}
+struct A {
+   array_ptr<int> data;
+}
+
+struct N {
+    int num;
+}
+
+struct S {
+   A a
+   where count(a.data) == n.num;
+   N n;
+};
+\end{verbatim}
+
+Allowing member bounds to use nested members of members complicates
+explaining concepts. Sometimes concepts will be explained using member
+bounds that use only immediate members and then generalized to handle
+nested members.
+
+\section{Bounds declarations for variables with structure types}
+
+To describe facts about members of specific variables, the left-hand
+sides of bound declarations are generalized to allow members of
+variables. The term \emph{variable member path} stands for variables or
+variables with member accesses. Variable member paths are used where
+variables were allowed:
+\begin{tabbing}
+\var{bounds}\=\var{-decl:}\\
+\> \var{var-member-path} \texttt{:} \var{bounds-exp} \\
+\\
+\var{var-member-path:} \\
+\> \var{identifier} \\
+\> \var{var-member-path} \texttt{.} \var{identifier}
+\end{tabbing}
+
+The first identifier in a variable member path must be the name of a
+local variable or parameter. The rest of the path, if there is one, must
+describe a member path for the structure type that has an
+\arrayptr\ type. The member path can be used as a name for its
+associated member bounds. Inline bounds declarations are still
+restricted to variables.
+
+\section{Declaring the state of member bounds for variables}
+
+Programmers may declare the state of a member bounds for a variable
+using two kinds of facts:
+\begin{tabbing}
+\var{fact:}\= \\
+\> \var{\ldots{}} \\
+\> \texttt{suspends(\var{var-member-path})} \\
+\> \texttt{holds(\var{var-member-path})}
+\end{tabbing}
+
+If the \var{var-member-path} has an \arrayptr\ type, it must
+have the form \var{x.path,} where x is local variable or parameter
+name. The fact \texttt{suspends(}\var{x.path}\texttt{)} means that the
+member bounds declared by the type of x for \var{path} does not
+currently hold for x. The fact \texttt{holds(}\var{x.path}\texttt{)}
+means that the member bounds declared by the type of x for \var{path}
+holds now for x.
+
+As a convenient short-hand notation, the \var{var-member-path} can have
+a structure type. In that case, the declaration applies to all member
+bounds for the structure type and child members of the structure type.
+
+\subsection{Parameters and return values}
+
+The state of members bounds can be declared for parameters and return
+values using suspends and holds as well. By default, the state is
+\texttt{holds}.
+
+Consider the following structure type definitions:
+
+\begin{verbatim}
+struct S {
+    array_ptr<int> data : count(num);
+    int num;
+}
+
+struct T {
+    S arr1;
+    S arr2;
+    array_ptr<float> weights : count(len);
+    int len;
+}
+\end{verbatim}
+
+Here are some function declarations involving the state of member
+bounds:
+\begin{verbatim}
+T f(T x where holds(x)) where holds(return_value)   // the default 
+
+T f(T x where suspends(x.arr1))
+where suspends(return_value.arr2)
+
+T f(T x where suspends(x.arr1.data)
+where suspends(return_value.arr1.data)
+\end{verbatim}
+
+\begin{quote}
+\emph{One thing to consider is whether to allow functions to be
+parametric with respect to the state of member bounds. This might be
+useful to describe a function that sets one of the members of a
+structure type and does not affect the state of other members.}
+\end{quote}
+
+\subsection{Extent of declarations of member bounds state for variables}
+
+Declarations of the state of member bounds are dataflow-sensitive and
+follow rules similar to flow-sensitive bounds declarations.
+
+We first define the set of state declarations that apply to a function
+component, where a function component is an expression statement,
+variable declaration, or part of a compound statement.
+
+The state declarations for variables and variable members with structure
+types are expanded to state declarations of the individual members with
+\arrayptr\ type. It is assumed that declarations of automatic
+structure variables without initializers implicitly have suspends
+declarations for the variables. All other declarations of structure
+variables are assumed implicit to have holds declarations for the
+variables. The other declarations are either automatic variables with
+initializers or variables with static storage, which are initialized to
+0. Any array\_ptr members initialized to 0 have \boundsany, so
+they satisfy their member bounds declarations.
+
+For any declaration of member bounds state for \var{v}.\var{mp}, where
+v is variable and \var{mp} is a member path, if
+
+\begin{enumerate}
+\item
+  There is some path from the declaration to the function component, and
+\item
+  \var{v} occurs in the function component, and
+\item
+  There is no other declaration of member bounds state for \var{v.mp}
+  along the path
+\end{enumerate}
+
+then
+
+\begin{enumerate}
+\item
+  The declaration of member bounds state applies
+\end{enumerate}
+
+This condition ensures the consistency of member bounds state
+declarations for variables:
+
+\begin{enumerate}
+\item
+  \emph{Agreement of bounds declarations}: If a variable occurring in a
+  function component has more than one state declaration that applies to
+  it at the component, then all the state declarations applying to it at
+  the component must be syntactically identical. This avoids ambiguity
+  about which state declaration applies to an occurrence of a variable.
+  It an error for the member bounds state declarations to disagree.
+\end{enumerate}
+
+The following example illustrates the declaration of member bounds
+state. The structure S represents variable length array, where data
+holds a pointer to the data for the array and num is the length of the
+array. The function f takes a length parameter len and creates an
+initialized instance of S in the variable y. It then copies y to z.
+
+\begin{verbatim}
+struct S {
+   array_ptr<int> data
+   where count(data)== num;
+   int num;
+};
+\end{verbatim}
+
+Here is a version of f where all member bounds state declarations are
+explicit. For structure variable members whose member bounds is
+suspends, the bounds declarations are explicit as well.
+
+\begin{verbatim}
+void f(int len) {
+    S y where suspends(y.data);
+    S z where suspends(z.data);
+    int i, j;
+    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    y.data = newarr
+    where y.data : count(len);
+    y.num = len
+    where holds(y.data);   // the member bounds for y.data now holds
+    z = y
+    where holds(z.data);
+}
+\end{verbatim}
+
+This can be written more succinctly as:
+
+\begin{verbatim}
+void f(int len) {
+    S y;
+    S z;
+    int i, j;
+    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    y.data = newarr
+    where y.data : count(len);
+    y.num = len
+    where holds(y);   // y is initialized now
+    z = y
+    where holds(z);   // z is initialized now
+}
+\end{verbatim}
+
+\section{Integration of member bounds and bounds for variables}
+
+A member of a structure variable may be covered by its member bounds
+declaration and a bounds declaration at the same time. This coexistence
+happens when a member is initialized to satisfy its member bounds
+declaration. Here is a version of f that is annotated with both member
+bounds and bounds declarations for members of a variable.
+\begin{verbatim}
+void f(int len) {
+    S y;
+    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    y.data = newarr
+    where newarr : count(len) && y.data : count(len)
+    y.num = len
+    where holds(y.data) && y.data : count(len) && 
+          y.data : count(y.num)
+    ...
+}
+\end{verbatim}
+
+After the assignment \texttt{y.num = len}, the member bounds holds for
+y.data and so does the bounds \texttt{y.data : count(y.num)}.
+
+\subsection{Determining bounds for a use of an \arrayptr\ member of a variable}
+\label{section:determining-variable-member-bounds}
+
+When a member path \var{mp} of a variable \var{x} is used and
+\var{x}\texttt{.}\var{mp} has type \arrayptr, the bounds for
+\var{x}\texttt{.}\var{mp} are determined using these rules:
+
+\begin{itemize}
+\item
+  If the use is within the extent of a bounds declaration
+  \var{x}\texttt{.}\var{mp} \texttt{:} \var{bounds-exp} and
+  \var{bounds-exp} is not \boundsnone, \var{bounds-exp} is
+  the bounds.
+\item
+  Otherwise, if the state of the member bounds for
+  \var{x}\texttt{.}\var{mp} is \texttt{holds}, the member bounds for
+  \var{x}\texttt{.}\var{mp} is used.
+\item
+  Otherwise, the bounds of \var{x}\texttt{.}\var{mp} is
+  \boundsnone.
+\end{itemize}
+
+\subsection{Suspends declarations and bounds for variables.}
+
+When the member bounds \var{m}b for a variable member is suspended by a
+statement of the form:
+
+\var{e2} \keyword{where} \texttt{suspends(}\var{x.mp}\texttt{);}
+
+where \var{x} is a variable and \var{mp} is a member path, there is an
+implicit bounds declaration for \var{x}\texttt{.}\var{mp} at the point
+of suspension. This happens unless \var{e2} modifies a member \var{m}
+of \var{x} that occurs in \var{mb}. In addition, the state of the
+member bounds for \var{x}\texttt{.}\var{mp} must be \texttt{holds}
+before the statement. The member bounds declaration \var{mb} is
+converted to a bounds declaration by prefixing each occurrence of a
+member path in \var{mb} with the expression ``\var{x}\texttt{.}''.
+
+For example, given
+
+\begin{verbatim}
+ S  copy_and_resize(S arg, int len) {
+    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len)
+       where suspends(arg);
+    for (int i = 0; i < arg.num; i++) {
+       newarr[i] = arg.data[i];
+    }
+    arg.data = newarr where arg.data : count(len);
+    arg.num = len where arg.data : count(arg.num)
+    where holds(arg);   // member bounds for arg holds now
+    return arg;
+}
+\end{verbatim}
+
+
+There is implicitly a bounds declaration at the suspension of the member
+bounds for arg:
+
+\begin{verbatim}
+    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len)
+       where suspends(arg) && arg.data : count(arg.num);
+\end{verbatim}
+
+If the suspends were done after the assignment to \texttt{arg.data}:
+
+\begin{verbatim}
+    arg.data = newarr
+    suspends(arg);
+\end{verbatim}
+
+there would not be an implicit bounds declaration because arg.data is
+modified by the assignment.
+
+At a declaration of a structure variable x, no implicit bounds
+declarations are inserted if the declaration suspends the member bounds
+for a member of x. There was no point at which the member bounds was
+known to be true. For example,
+
+\begin{verbatim}
+f(S arg where suspends(arg))
+\end{verbatim}
+
+does not have an implicit bounds declaration of the form \verb|arg.data :count(arg.len)|.
+
+\subsection{Holds declarations and bounds for variables}\
+
+At a holds declaration for a member path mp of a structure variable x,
+the bounds declarations that are true about members of x, as well as any
+facts that are true at the point of the holds declaration, must imply
+that the member bounds for mp holds.
+
+\begin{quote}
+\emph{To do: this is just a special case of the fact that a member
+bounds for a structure variable must be true after all statements in the
+scope of the variable, unless the member bounds is suspended after the
+statement. }
+
+\emph{To do: it seems that requiring programmers to explicitly call out
+interesting facts involving equality of variables or variable members
+leads to a lot of verbosity in programs. We should reconsider whether
+these must be explicitly declared by the programmer.}
+\end{quote}
+
+\section{Bounds-safe interfaces}
+\label{section:structure-bounds-safe-interfaces}
+
+Just as existing functions can have bounds-safe interfaces declared for
+them, existing structure types can have bounds-safe interfaces declared
+for them. This allows safe code to use those data structures and for
+those uses to be checked. Existing unsafe code is unchanged.
+
+To create a bound-safe interface for a structure type, a programmer
+declares member bounds for structure members with unsafe pointer types.
+A programmer may also declare whether an unsafe pointer should be
+treated as \ptr\ type by safe code.
+
+Here is a bound-safe interface for a structure that is a counted buffer
+of characters:
+
+\begin{verbatim}
+struct CountedBuffer {
+     char *arr : count(len);
+     int len;
+}
+\end{verbatim}
+
+Here is a bounds-safe for interface for a structure for a node in a
+binary tree. The node contains two pointers to two other nodes. Pointer
+arithmetic on those two other nodes is not allowed.
+
+\begin{verbatim}
+struct BinaryNode {
+    int data;
+    BinaryNode *left : ptr;
+    BinaryNode *right : ptr;
+}
+\end{verbatim}
+
+If bounds information is declared for one member of a structure with an
+unsafe pointer type, it must be declared for all other members of the
+structure with unsafe pointer types.
+
+It is important to understand that the \emph{semantics of unsafe
+pointers does not change even when bounds are declared for the
+pointers}. The declared bounds are used only by safe code that uses the
+data structure, when storing safe pointers into the data structure, and
+when converting unsafe pointers data structures, and when reading safe
+pointers from the data structure unsafe functions or uses unsafe data
+structures.
+
+\section{Bounds for pointers with information stored in unused bits}
+
+C programs sometimes store information in unused bits of pointers. This
+is typically done to save space in data structure. For example, a
+program might store a tag in the least significant bits or most
+significant bits of some pointers, knowing that those bits are always
+zero otherwise. This section covers how to represent the bounds of these
+pointers and extends the rules for checking bounds declarations to
+expressions that modify bits of pointers.
+
+The bounds of such a pointer are easy to described: they are the bounds
+of the original pointer. If a pointer variable or member is used in its
+own bounds, the additional information must be removed first. This is
+done by masking out the bits that always 0.
+
+For example, suppose there is the following structure:
+
+\begin{verbatim}
+struct S {
+   array_ptr<int> p : bounds(p, p + 4);
+   int tag : 2;
+}
+\end{verbatim}
+
+A programmer might know that on a machine with 32 bit pointers, the
+least 2 significant bits of p are always 0, so tag could be stored
+within p. The bounds would be changed to:
+
+\begin{verbatim}
+struct S {
+   array_ptr<int> p : bounds((array_ptr<int>) ((size_t) p & ~3), 
+                             (array_ptr<int>) ((size_t) p & ~3) + 4) rel_align(char);
+}
+\end{verbatim}
+
+There is one important caveat: tags cannot be stored in null pointers. A
+null pointer may have bounds that are not valid. This is fine because
+the null pointer may not be used to access memory. However, tagging a
+null pointer could result in a non-null pointer with bounds that are not
+valid. This non-null pointer could be used to incorrectly access memory.
+
+\subsection{Extending bounds checking rules to integral
+expressions}
+
+C programs modify bits in pointers by converting pointers to integers,
+operating on integers, and converting the integers back to pointers. The
+rules for inferring bounds for expressions are extended to track bounds
+through integral expressions:
+
+\begin{itemize}
+\item
+  Given e1 op e2, where op is an additive, multiplicative, or bitwise
+  binary operator on integral types, the bounds of e1 and e2 can be
+  computed:
+
+  \begin{itemize}
+  \item
+    If e1 has bounds b, where b is not bounds(none), and e2 has
+    bounds(none), and it can be proved that e1 != 0, then e1 op e2
+    \texttt{:-} b.
+  \item
+    If the special variable \texttt{expr\_current\_value} occurs in b
+
+    \begin{itemize}
+    \item
+      If e1 op e2 is invertible, then inverse of e1 op e2 is substituted
+      for \texttt{expr\_current\_value}.
+    \item
+      Otherwise the bounds of the expression are altered to be
+      bounds(none).
+    \end{itemize}
+  \item
+    Similar rules apply for the reverse situation where e1 has
+    bounds(none) and e2 has bounds b, where b is not bounds(none).
+  \end{itemize}
+\item
+  Given e1 op e2 where op is a shift operator, e1 is the integral value
+  being shifted, and e2 is the shift amount,
+
+  \begin{itemize}
+  \item
+    If e1 has bounds b, where b is not bounds(none), and e2 has
+    bounds(none), and it can be proved that e1 != 0, then e1 op e2
+    \texttt{:-} b.
+  \item
+    If the special variable \texttt{expr\_current\_value} occurs in b,
+    bounds of the expression are altered to be bounds(none). Shift
+    expressions are not invertible because they lose information.
+  \end{itemize}
+\end{itemize}
+
+\subsection{An example}
+
+The following code shows a tag of 1 can be set in a non-null pointer:
+
+\begin{verbatim}
+#define untagged_bounds(x) \
+   bounds((array_ptr<int>) ((size_t) x & ~3), \
+          (array_ptr<int>) ((size_t) x & ~3) + 4) rel_align(char)
+
+S set(S s) 
+{
+  array_ptr<int> a : untagged_bounds(a) = s.p;
+  if (a != NULL) {
+    size_t y : untagged_bounds(a) = ((size_t) a) | 1;
+    dynamic_assert(y & ~0x3 == (size_t) a & ~0x3); // always true
+    // legal by substitution of y & 0x3 for a & ~0x3
+    where y : object_bounds(y & ~0x3, y & ~0x3) relative_align(none);
+    // exp : object_bounds(a,b) implies exp : bounds(a,b), no matter what
+    // the value of exp
+    where y : bounds(y ~0x3, y & ~0x3);
+    // satifies member bounds requirements
+    s.p = (array_ptr<int>) y;
+   }
+}
+\end{verbatim}
+
+This could be condensed to:
+\begin{verbatim}
+S set(S s) 
+{
+   array_ptr<int> a : bounds(a & ~0x3, a & ~0x3) = s.p;
+   if (a != NULL) {
+       size_t y : bounds(a & ~0x3, a & ~0x3) rel_align(char) = ((size_t) a) | 1;
+       dynamic_assert(y & ~0x3 == a & ~0x3);
+       where y : object_bounds(y & ~0x3, y & ~0x3) rel_align(char);
+       s.p = (array_ptr<int>) y;
+   }
+} 
+\end{verbatim}

@@ -1,0 +1,152 @@
+\documentclass[11pt]{report}
+\usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage{alltt}
+\usepackage{amssymb,amsmath}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead[RO]{\slshape \rightmark}
+\fancyhead[LO]{}
+\usepackage{paralist}
+\usepackage{tikz}
+\usepackage{soul}
+\usepackage{color}
+\usetikzlibrary{patterns}
+
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{longtable,booktabs}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlengt{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{3}
+
+% Use this command to omit text temporarily for the document.
+\newcommand{\omitted}[1]{}
+
+% Use this command to provide a feedback or comment on the 
+% text.  The first argument should be the name of the person
+% providing feedback and the second argument should be the 
+% text of the feedback.   For example:
+%  \feedback{David Tarditi}{Here are some additional examples.}
+
+\newcommand{\feedback}[2]{\footnote{Feedback (#1): #2}}
+%
+% meta variables are italicized.  Use the macro name var
+% to save on typing.
+\newcommand{\var}[1]{\texttt{\textit{#1}}}
+%
+% macro for font for keywords
+%
+\newcommand{\keyword}[1]{\texttt{#1}}
+\newcommand{\sizeof}[1]{\texttt{sizeof(#1)}}
+%
+
+% array_ptr type macros
+%
+\newcommand{\arrayptr}{\texttt{array\_ptr}}
+\newcommand{\arrayptrinst}[1]{\texttt{array\_ptr<#1>}}
+\newcommand{\arrayptrT}{\arrayptrinst{\var{T}}}
+\newcommand{\arrayptrchar}{\arrayptrinst{\texttt{char}}}
+\newcommand{\arrayptrint}{\arrayptrinst{\texttt{int}}}
+\newcommand{\arrayptrvoid}{\arrayptrinst{\texttt{void}}}
+
+\newcommand{\arrayview}{\texttt{array\_view}}
+\newcommand{\arrayviewinst}[1]{\texttt{array\_view<#1>}}
+\newcommand{\arrayviewT}{\arrayviewinst{\var{T}}}
+\newcommand{\arrayviewchar}{\arrayviewinst{\texttt{char}}}
+\newcommand{\arrayviewint}{\arrayviewinst{\texttt{int}}}
+\newcommand{\arrayviewvoid}{\arrayviewinst{\texttt{void}}}
+
+\newcommand{\ptr}{\texttt{ptr}}
+\newcommand{\ptrinst}[1]{\texttt{ptr<#1>}}
+\newcommand{\ptrT}{\ptrinst{\var{T}}}
+\newcommand{\ptrchar}{\ptrinst{\texttt{char}}}
+\newcommand{\ptrint}{\ptrinst{\texttt{int}}}
+\newcommand{\ptrvoid}{\ptrinst{\texttt{void}}}
+
+%
+% bounds expression macros
+%
+\newcommand{\relalign}[1]{\texttt{rel\_align(#1)}}
+\newcommand{\relalignval}[1]{\texttt{rel\_align\_value(#1)}}
+\newcommand{\bounds}[2]{\texttt{bounds(#1, #2)}}
+\newcommand{\boundsrel}[3]{\texttt{bounds(#1, #2) \relalign{#3}}}
+\newcommand{\boundsrelval}[3]{\texttt{bounds(#1\, #2)} \relalignval{#3}}
+\newcommand{\boundsany}{\texttt{bounds(any)}}
+\newcommand{\boundsnone}{\texttt{bounds(none)}}
+\newcommand{\boundscount}[1]{\texttt{count(#1)}}
+\newcommand{\boundsbytecount}[1]{\texttt{byte\_count(#1)}}
+
+\newcommand{\exprcurrentvalue}{\texttt{expr\_current\_value}}
+
+%
+% bounds declaration macros
+%
+\newcommand{\boundsdecl}[2]{\texttt{#1}~\texttt{:}~\texttt{#2}}
+%
+% computed bounds for expressions
+%
+\newcommand{\boundsinfer}[2]{\texttt{#1}~$\vdash$~\texttt{#2}}
+
+\begin{document}
+
+\begin{titlepage}
+{\center
+\mbox{ }\\
+\vspace{2in}
+{\huge Extending C with pointer safety \par}
+{Version 0.4 -- draft as of \today \par}
+\vspace{0.5in}
+{Checked C Technical Report Number 1 \par}
+\vspace{0.25in}
+{Author(s): David Tarditi, Microsoft\par} 
+\vspace{1in}
+{\it Summary \par}
+\input{abstract}
+}
+\end{titlepage}
+
+\tableofcontents
+
+\include{pictures/rel-align-picture1}
+\include{introduction}
+\include{core-extensions}
+\include{variable-bounds}
+\include{checking-variable-bounds}
+\include{interoperation}
+\include{structure-bounds}
+\include{checking-structure-bounds}
+\include{aliased-structures}
+\include{simple-invariants}
+%\include{pointers-to-pointers}
+\include{lessons}
+%\chapter{Experience applying to this to OpenSSL}
+%\label{chapter:eval}
+\include{open-issues}
+\include{design-alternatives}
+
+\nocite{Jones2009}
+\bibliographystyle{plain}
+\bibliography{sources}
+
+\appendix
+% \include{fragments}
+% \include{array-view-compilation}
+
+\end{document}
