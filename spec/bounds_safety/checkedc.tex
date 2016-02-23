@@ -3,7 +3,7 @@
 \usepackage{alltt}
 \usepackage{amssymb,amsmath}
 \usepackage{fancyhdr}
-\pagestyle{fancy}
+\pagestyle{fancy}\pagestyle{fancy}\pagestyle{fancy}
 \fancyhead[RO]{\slshape \rightmark}
 \fancyhead[LO]{}
 \usepackage{paralist}
@@ -122,7 +122,31 @@
 }
 \end{titlepage}
 
+\thispagestyle{empty}
+\mbox{  }\\
+\vspace{1.0in}
+
+Microsoft is making this Specification available under the Open Web
+Foundation Final Specification Agreement (version OWF 1.0).  The OWF 1.0
+is available at {\color{blue} \url{http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0}}.
+
+This Specification is part of an on-going research project.
+Contributions to this specification
+are made under the Open Web Foundation Contributor License 1.0. 
+This license is available at {\color{blue} \url{http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owf-contributor-license-agreement-1-0---copyright-and-patent}}.
+
+\newpage
+
+% use roman numbers for the table of contents
+\setcounter{page}{1}
+\pagenumbering{roman}
+
 \tableofcontents
+
+% number the body of the document from 1 using arabic
+% numerals.
+\setcounter{page}{1}
+\pagenumbering{arabic}
 
 \include{pictures/rel-align-picture1}
 \include{introduction}
