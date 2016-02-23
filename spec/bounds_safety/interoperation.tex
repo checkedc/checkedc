@@ -32,7 +32,7 @@ type S? Second, there is bounds safety. Given the pointer, what range of
 memory can be accessed validly using that pointer? This section focuses on
 bounds safety.
 
-Type safety is not addressed by this design note. Of course, violating
+Type safety is not addressed by this technical report. Of course, violating
 type safety can lead to violations of bounds safety. This can happen
 when there is a conversion between a safe pointer to an object of
 structure type that contains a bounds-checked member and a safe pointer
@@ -44,6 +44,19 @@ safe pointer that results from such a conversion. Conversions between
 safe pointers to integral types, floating-point types, or structure that
 contain only integral types or floating-point types cannot lead to
 violations of bounds safety by themselves.
+
+The following rules apply to a conversion of a value of one safe
+pointer type to a value of another 
+
+%For a conversion  a value of one safe pointer type to another safe 
+%pointer to maintain bounds safety at runtime, the following rules
+%apply.
+%\begin{itemize}
+%\item When converting to a \ptrT, the source pointer must point
+%to memory at least as large as \var{T}
+%\item When converting from a 
+%\item When converting to an \arrayviewT, two differ
+%\end{itemize}
 
 Three new operators are introduced for converting between the different
 kinds of pointer types:

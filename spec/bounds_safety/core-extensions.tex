@@ -769,11 +769,12 @@ proving functional correctness.
 To use safe pointers, the size of the destination buffer must be passed
 in and there must be a check before the memcpy that the destination
 buffer and source buffer have enough room. We ignore the details of how
-the bounds are described for now.    The new code for safe pointers is italicized:
+the bounds are described for now.    The new code for safe pointers is italicized
+and highlighted in yellow:
 
 \begin{alltt}
 void decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer, 
-            size\_t input_len\textit{, size\_t output_len})
+            size\_t input_len\hl{\textit{, size\_t output_len}})
 \{
     array\_ptr<char> src = input\_buffer;
     array\_ptr<char> src\_bound = src + input\_len;
@@ -786,8 +787,8 @@ void decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer,
             case UNCOMPRESSED\_BYTES: \{ 
                 size\_t len = src[0] + src[1]*256;
                 src += 2;
-                \textit{// need check that dst and src have at least len bytes of}
-                \textit{// space}
+                \hl{\textit{// need check that dst and src have at least len bytes of}}
+                \hl{\textit{// space}}
                 memcpy(dst, src, len);
                 src += len;
                 dst += len;                
@@ -816,11 +817,11 @@ void decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer,
             case UNCOMPRESSED\_BYTES: \{
                 size\_t len = src[0] + src[1]*256;
                 src += 2;
-                \textit{// check that dst and src have at least len bytes of}
-                \textit{// space}
-                \textit{if (dst + len >= dst\_bound || src + len >= src\_bound) \{}
-                \textit{   goto failure;}
-                \textit{\}}
+                \hl{\textit{// check that dst and src have at least len bytes of}}
+                \hl{\textit{// space}}
+                \hl{\textit{if (dst + len >= dst\_bound || src + len >= src\_bound) \{}}
+                \hl{\textit{   goto failure;}}
+                \hl{\textit{\}}}
                 memcpy(dst, src, len);
                 src += len;
                 dst += len;                
@@ -839,11 +840,11 @@ so there is no way to test the path.
 
 \begin{alltt}
 \textit{int} decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer, 
-            size\_t input\_len\textit{, size\_t output\_len})
+            size\_t input\_len\hl{\textit{, size\_t output\_len}})
 \{
    ...
-\textit{   failure:}
-\textit{      return 1;}
+\hl{\textit{   failure:}}
+\hl{\textit{      return 1;}}
 \}
 \end{alltt}
 
@@ -875,7 +876,7 @@ void decode(array\_ptr<char> output\_buffer, array\_ptr<char> input\_buffer,
             case UNCOMPRESSED\_BYTES: { 
                 size\_t len = src[0] + src[1]*256;
                 src += 2;
-                \textit{dynamic\_check(dst + len < dst\_bound && src + len < src_bound);}
+                \hl{\textit{dynamic\_check(dst + len < dst\_bound && src + len < src_bound);}}
                 memcpy(dst, src, len);
                 src += len;
                 dst += len;                
@@ -919,10 +920,10 @@ void append(array\_ptr<char> dst: count(dest\_count),
             size\_t dst\_count, size\_t src\_count)
 \{ 
     for (size\_t i = 0; i < src\_count; i++) \{
-        if (\textit{src[i]} == marker) \{
+        if (\hl{\textit{src[i]}} == marker) \{
            break;
         \}
-        \textit{dst[i]} = \textit{src[i]};
+        \hl{\textit{dst[i]}} = \hl{\textit{src[i]}};
     \}
 \}
 \end{alltt}
@@ -938,7 +939,7 @@ void append(array\_ptr<char> dst: count(dest\_count),
             array\_ptr<char> src : count(src\_count), 
             size\_t dst\_count, size\_t src\_count)
 \{ 
-    \textit{dynamic\_check(src\_count <= dst\_count);}
+    \hl{\textit{dynamic\_check(src\_count <= dst\_count);}}
     for (size\_t i = 0; i < src\_count; i++) \{
         if (src[i] == marker) \{
             break;
@@ -980,7 +981,7 @@ void append(array\_ptr<char> dst: count(dest\_count),
             if (src[i] == marker) \{
                 break;
             \}
-            \textit{dst[i]} = src[i];  // bounds check needed
+            \hl{\textit{dst[i]}} = src[i];  // bounds check needed
         \}   
     \}
 \}
