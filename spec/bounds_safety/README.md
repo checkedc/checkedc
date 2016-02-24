@@ -14,7 +14,7 @@ windows and run the following commands:
 
 pdflatex checkedc
 
-bibtex checked
+bibtex checkedc
 
 pdflatex checkedc
 
