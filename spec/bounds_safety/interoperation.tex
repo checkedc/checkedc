@@ -1,8 +1,12 @@
 % !Tex root = checkedc.tex
 
+\newcommand{\dynamicboundscast}{\texttt{dynamic\_bounds\_cast}}
+\newcommand{\dynamicboundscastinst}[2]{\texttt{dynamic\_bounds\_cast<#1>#2}}
+\newcommand{\assumeboundscast}{\texttt{assume\_bounds\_cast}}
+\newcommand{\assumeboundscastinst}[2]{\texttt{assume\_bounds\_cast<#1>#2}}
+
 \newcommand{\boundscast}[2]{\texttt{bounds\_cast<#1>#2}}
 \newcommand{\coreboundscast}[2]{\texttt{core\_bounds\_cast<#1>#2}}
-\newcommand{\assumeboundscast}[2]{\texttt{assume\_bounds\_cast<#1>#2}}
 \newcommand{\ptrcast}[2]{\texttt{bounds\_cast<#1>#2}}
 
 \chapter{Interoperation}
@@ -41,396 +45,202 @@ other type to modify the bounds-checked member or its bounds in an
 inconsistent fashion. For now, it is the programmer's responsibility to
 update bounds-checked members and their bounds properly when using a
 safe pointer that results from such a conversion. Conversions between
-safe pointers to integral types, floating-point types, or structure that
+safe pointers to integral types, floating-point types, or structures that
 contain only integral types or floating-point types cannot lead to
 violations of bounds safety by themselves.
 
-The following rules apply to a conversion of a value of one safe
-pointer type to a value of another 
-
-%For a conversion  a value of one safe pointer type to another safe 
-%pointer to maintain bounds safety at runtime, the following rules
-%apply.
-%\begin{itemize}
-%\item When converting to a \ptrT, the source pointer must point
-%to memory at least as large as \var{T}
-%\item When converting from a 
-%\item When converting to an \arrayviewT, two differ
-%\end{itemize}
-
-Three new operators are introduced for converting between the different
-kinds of pointer types:
-\boundscast{\var{T}}{},
-\coreboundscast{\var{T}}{},
-and \assumeboundscast{\var{T}}{}.
-The syntax of the operators is similar to the syntax of C++ type
-conversion operators. \var{T} is the destination type to which a source
-value is being converted. The new operators take one to three arguments,
-where the first argument is the pointer being converted and additional
-arguments describe the desired new bounds.
-
-The meanings of the operators when T is a complete type are described
-first.
-
-\begin{quote}
-\var{Here are the rules for when a cast operator (T) can be applied to
-an expression e with type S:}
-\end{quote}
-
+\subsection{Cast operators}
+This section describes casts to pointer types.
+A conversion of a value from one safe pointer type to a value of another safe
+pointer type is valid when the following rules hold:
 \begin{itemize}
-\item
-  \it{T is an \arrayptr: always. The bounds are inferred from the
-  expression following the rules in Section~\ref{section:inferring-expression-bounds}.
-   Note that the result may
-  be an \arrayptr with bounds(none).}
-\item
-  \it{T is a ptr: sometimes. The bounds are inferred as well. The
-  resulting bounds must be large enough to hold at least a single
-  element of type T. This implies the bounds cannot be bounds(none).}
-\item
-  \it{T is an unsafe ptr and S is safe pointer: sometimes. Like ptr, }
-    \item
-    \it{If S is ptr type and size of the of the referent }
+\item If the destination pointer is a \ptrT\ type, the range of 
+memory that can be accessed beginning at the source pointer is
+large enough to hold a value of type \var{T}.
+\item If the destination pointer is a \arrayptrT\ or \arrayviewT type, 
+the bounds for the destination pointer are equal to or within the range of
+the memory accessible through the source pointer.
 \end{itemize}
 
-\subsection{Dynamic checking using bounds\_cast\textless{}T\textgreater{}}
+Casts between safe pointer types should preserve bounds safety
+by default.  The cases where it does not should be the unusual cases.
+For this reason, C cast operations to safe pointer types are 
+required to be provably safe at compile-time.   We add two new
+operators for other cases.  Table~\ref{table:cast-operators}
+describes the operators.
 
-\boundscast{\var{T}}{} uses
-dynamic checks to enforce the preservation of bounds safety. \var{T}
-must be a pointer type and is the desired destination type. The operator
-takes 1 to 3 arguments, depending on the kind of conversion being done:
+\begin{table}
+\begin{tabular}{p{1.5in}p{4in}}
+\toprule
+Operator & Description \\
+\texttt{(T *)} & The C cast operator.  Additional static checking rules
+ensure pointer casts to safe pointer type are safe.\\
+\dynamicboundscast\ & Does dynamic checks to enforce bounds
+safety.  It produces a runtime error if the checks fail.\\
+\assumeboundscast\ & Declares new bounds for the value that are trusted without verification.  
+Because it is unsafe, it is not allowed in \keyword{checked} blocks.\\
+\bottomrule
+\end{tabular}
+\caption{Cast operators for pointer types}
+\label{table:cast-operators}
+\end{table}
+
+The syntax of the new operators is similar to the syntax of C++ type
+conversion operators, where the destination pointer type is specified by
+placing a type argument \texttt{<\var{T}>} after the operator: \dynamicboundscastinst{\var{T}}{}
+and \assumeboundscastinst{\var{T}}{}.   A relative alignment type or constant can be
+specified using an optional second argument:  
+\dynamicboundscastinst{\var{T}, \var{A}}{} or \assumeboundscastinst{\var{T, \var{A}}}{}.
+Of course, macro-like syntax could be used as well.
+
+For C cast operations from safe pointer types to unsafe pointer types,
+it is not possible to prove that they are safe at compile-time.   At the same
+time, it is desirable catch the programming error of converting an out-of-range
+safe pointer to an unsafe pointer and then trying to use the unsafe
+pointer to access memory.  For this reason, we take the stance that if the
+destination pointer is a \unsafeptrT\ type, the range of memory that can be accessed
+beginning at the safe pointer should be provably large enough at compile time 
+to hold a value of type \var{T}.
+
+C does allow an unsafe pointer to point one element past the end of an array.
+However, it is illegal to dereference that pointer.  This case mainly arises
+from loops that stride through an array and end up creating a pointer one past
+an element of an array.  It would be unusual for a programmer to
+convert a safe pointer to an unsafe pointer and then stride downwards through an array, 
+predecrementing the pointer.  Because of that, C cast operations from safe pointer
+types to unsafe pointer types that would create a pointer one element past
+the end of the array pointed to by the safe pointer are rejected at compile time.
+A programmer may use an \assumeboundscast\ operation do this instead.
+
+\subsection{Static and runtime checking rules}
+
+Here are the static checking rules for C cast operations of the form \texttt{(\var{D}) \var{e}},
+where \var{e} has source type \var{S}. If
+\var{D} is not \ptrvoid\ or \unsafeptrvoid\ and \var{D} is
 
 \begin{itemize}
+\item \ptrT: the bounds of \var{e} are computed using the rules
+in Section~\ref{section:checking-nested-assignment-expressions}.
+\begin{itemize}
+\item If the bounds are \boundsnone, checking fails with a compile-time
+error.
+\item Otherwise, if the bounds are \boundsany, checking 
+succeeds.
+\item Otherwise, the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible
+to that form).  It must be statically provable that \texttt{\var{e} >= \var{lb}}
+and that {\texttt{((char *) \var{ub}) - ((char *) e) >= sizeof(\var{T})}}.    
+\end{itemize}
+\item \arrayptrT: No new rules are needed.   The rules in
+Chapter~\ref{chapter:checking-bounds} already cover this case.
+\item \arrayviewT: It must be statically provable that \var{e}
+and \bounds{lb}{ub} meet the relative alignment requirements of
+the destination \arrayview\ type.  At runtime, a new value of
+type \arrayviewT\ with the value of \var{e} and \bounds{lb}{ub} will be created.
+\item \texttt{\var{T} *}: If the source type \var{S} is
+\begin{itemize}
+\item An unsafe pointer type (\texttt{*}), checking succeeds.
+\item \ptrT, the checking succeeds. This handles the case where \var{T}
+is an incomplete type.
+\item Otherwise, the same rules are followed as for \ptrT.
+\end{itemize}
+\end{itemize}
+
+If \var{D} is \ptrvoid\ or \unsafeptrvoid\ and \var{S} is:
+\begin{itemize}
+\item A \ptr\ type, static checking always succeeds.
+\item An \arrayptr\ or \arrayview\ type: The bounds of \var{e} are computed:
+\begin{itemize}
+\item If the resulting bounds are \boundsnone, checking fails with a compile-time
+error.
+\item Otherwise, if the result bounds are \boundsany, checking 
+succeeds.
+\item Otherwise, the result must be \bounds{\var{lb}}{\var{ub}} (or convertible
+to that form).   It must be statically provable that \texttt{\var{e} >= \var{lb}}
+and that {\texttt{((char *) \var{ub}) - ((char *) e) >= 1}}.   
+\end{itemize}
+\end{itemize}
+
+The \dynamicboundscast\ operator is not strictly needed.
+Programmers could write checks by hand.  However, programmers
+would have to compute the bounds of expressions by hand too, so it is convenient to
+have it. It takes 1 to 3 arguments, depending on the kind of conversion being done:
+\begin{itemize}
 \item
-  \boundscast{\var{T}}{(\var{e1},
-  \var{e2})} converts \var{e1} to an \arrayptr\ or
-  \arrayview\ type with bounds \boundscount{\var{e2}}.
-\item
-  \boundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})} converts \var{e1} to an
-  \arrayptr\ or \arrayview\ type with bounds
-  \bounds{\var{e2}}{\var{e3}}.
-\item
-  \boundscast{\var{T}}{(\var{e1})}
+  \dynamicboundscastinst{\var{T}}{(\var{e1})}
   converts \var{e1} to either a \ptr\ or * type.
+\item
+  \dynamicboundscastinst{\var{T}}{(\var{e1},
+  \var{e2})} converts \var{e1} to an \arrayptr\ or
+  \arrayview\ type with bounds \boundscount{\var{e2}}.  
+\item
+  \dynamicboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})} converts \var{e1} to an
+  \arrayptr\ or \arrayview\ type with bounds
+  \bounds{\var{e2}}{\var{e3}}.  \dynamicboundscastinst{\var{T}, \var{A}}
+  {(\var{e1},\var{e2},\var{e3})}
+   optionally changes the relative alignment of the bounds to \var{A}.
 \end{itemize}
 
-It is a compile-time error if the bounds of \var{e1} are
-\boundsnone. No runtime checks are done if the bounds of \var{e1}
-are \boundsany. If the bounds of \var{e1} are
-\bounds{\var{lb}}{\var{ub}}, the following
-runtime checks are done:
-
+Here is the checking that is done. The bounds of \var{e1} are computed
+using the rules in Section~\ref{section:checking-nested-assignment-expressions}.
+If the bounds of \var{e1} are \boundsnone, it is a compile-time error. 
+If the bounds of \var{e1} are \boundsany, no runtime checks are needed.
+Otherwise the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible to that form).
+The following runtime checks are done:
+\begin{itemize}
+\item Check whether \var{e1} is 0.  If so, no further runtime checking
+is needed.
+\item Otherwise, if the operator has the form:
 \begin{itemize}
 \item
-  \boundscast{\var{T}}{(\var{e1}, \var{e2})}:
-   if \var{e1} \texttt{!= 0}, check that \var{lb}
+  \dynamicboundscastinst{\var{T}}{(\var{e1})}:
+  check that there is room for least one element of \var{T} by doing the
+  the check for \dynamicboundscastinst{\var{T}}{(e1, 1)}.
+\item
+  \dynamicboundscastinst{\var{T}}{(\var{e1}, \var{e2})}:
+   check that \var{lb}
   \texttt{<=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+
   sizeof(referent-type(}\var{T}\texttt{)) *} e2 \texttt{<=}
   \var{ub}.
 \item
-  \boundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})}: if \var{e1} \texttt{!= 0},
+  \dynamicboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})}: 
   check that \var{lb} \texttt{<=} \var{e2} \texttt{\&\&}
-  \var{e3} \texttt{<=} \var{ub}. Also check that relative
-  alignment constraints for \var{e1}, \var{e2}, and \var{e3} are met.
-\item
-  \boundscast{\var{T}}{(\var{e1})}:
-  check that there is room for least one element of \var{T}. This is
-  the same as doing the check for
-  \boundscast{\var{T}}{(e1, 1)}: if \var{e1} \texttt{!=} \texttt{0}, check that \var{lb}
-  \texttt{<=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+}
-  \texttt{sizeof(referent-type(}\var{T}\texttt{) <=}
-  \var{ub}.
+  \var{e3} \texttt{<=} \var{ub}. Also check that \var{e1}, \var{e2}, and \var{e3} 
+  are relatively aligned to \var{T} (or the optional alignment parameter instead, if one
+  is given). 
+
+\end{itemize}
 \end{itemize}
 
-\subsection{Correctness of bounds\_cast\textless{}T\textgreater{} conversions}
-
-In this section, the correctness of the bounds\_cast conversions is
-discussed. Readers interested in just using the operations may safely
-skip this discussion.
-
-We discuss only
-\boundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})} because the other forms are special cases
-of this operation. From Section~\ref{section:bounds-declarations},
-recall the meaning of a bounds
-expression \bounds{\var{lb}}{ub} for
-an expression \var{e1} at runtime. Let the runtime values of \var{e1},
-\var{lb}, and \var{ub} be \var{e1v}, \var{lbv}, and \var{ubv},
-respectively. The value \var{e1v} will be \texttt{0} or have been
-derived via a sequence of operations from a pointer to some object
-\var{obj} with \bounds{\var{low}}{\var{high}}.
-The following statement will be true: \var{e1v}
-\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{<=}
-\var{lbv} \texttt{\&\&} ubv \texttt{<=}
-\var{high}\texttt{)}.
-
-To ensure \bounds{\var{e2}}{\var{e3}} is
-valid for \var{e1}, we need to show the following:
-
-\begin{quote}
-Let \var{e2v} and \var{e3v} be the runtime values for \var{e2} and
-\var{e3} respectively. Then \var{e1v} \texttt{== NULL
-\textbar{}\textbar{} (}\var{low} \texttt{<=} \var{e2v}
-\texttt{\&\&} e3v \texttt{<=} \var{high}\texttt{)}.
-\end{quote}
-
-Given \var{e1v} \texttt{== 0 \textbar{}\textbar{} (}\var{low}
-\texttt{<=} \var{lbv} \texttt{\&\&} ubv \texttt{<=}
-\var{high}\texttt{)}, the runtime check that if \var{e1v} \texttt{!=}
-\var{0}, \var{lbv} \texttt{<=} \var{e2v} \texttt{\&\&}
-\var{e3v} \texttt{<=} \var{ubv} implies \var{e1v}
-\texttt{== 0 \textbar{}\textbar{} (}\var{low} \texttt{<=}
-\var{e2v} \texttt{\&\&} e3v \texttt{<=}
-\var{high}\texttt{).}
-
-\subsection{Static checking using core\_bounds\_cast\textless{}T\textgreater{}}
-
-\coreboundscast{\var{T}}{}
-uses static checking to enforce the preservation of bounds safety:
-
+The operator \assumeboundscastinst{\var{T}}{} declares bounds that are trusted
+without verification:
 \begin{itemize}
 \item
-  \coreboundscast{\var{T}}{(\var{e1},
-  \var{e2})} converts \var{e1} to an \arrayptr\ or
-  \arrayview\ type with bounds
-  \boundscount{\var{e2}}.
-\item
-  \coreboundscast{\var{T}}{(\var{e1},
-  \var{e2},\var{e3})} converts \var{e1} to an
-  \arrayptr\ or \arrayview\ type with bounds
-  \bounds{\var{e2}}{\var{e3}}.
-\item
-  \coreboundscast{\var{T}}{(\var{e1})}
-  converts \var{e1} to either a \ptr\ or * type.
-\end{itemize}
-
-Like \boundscast{\var{T}}{}, it
-is a compile-time error if the bounds of e1 are \boundsnone.
-There is no static checking if the bounds of e1 are
-\boundsany. If the bounds are \bounds{lb}{ub}, 
-the following must be provable via static checking:
-
-\begin{itemize}
-\item
-  \coreboundscast{\var{T}}{(\var{e1},
-  \var{e2})}: under the assumption that 
-  \texttt{\var{e1} != 0, lb <= \var{e1} \&\& 
-         \var{e1} + sizeof(referent-type(\var{T})) * \var{e2} <= ub.}
-\item
-  \coreboundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})}: 
-  under the assumption that
-  \var{e1} \texttt{!= 0}, \var{lb} \texttt{<=} \var{e2}
-  \texttt{\&\&} \var{e3} \texttt{<=} \var{ub}. Also show the
-  relative alignment constraints for \var{e1}, \var{e2}, and \var{e3}
-  are met: \texttt{(}\var{e3} \texttt{-} \var{e2}\texttt{) \%
-  sizeof(referent-type(}\var{T}\texttt{)) == 0 \&\& (\var{e2} - \var{e1})
-  \%
-  sizeof(referent-type(}\var{T}\texttt{)}), where arithmetic is done in
-  bytes.
-\item
-  \coreboundscast{\var{T}}{(\var{e1})}
-  converts \var{e1} to either a \ptr\ or * type. For this, check
-  that
-  \coreboundscast{\var{T}}{(\var{e1},\var{1})} holds.
-\end{itemize}
-
-\texttt{core\_bounds\_cast} can be used when programmers do not want to
-introduce the possibility of dynamic runtime failures due to bounds
-casts. It is recommended for conversions between pointers to
-constant-length arrays, which succeed at runtime using
-\texttt{core\_bounds\_cast} if and only if they succeed at run-time
-using \texttt{bounds\_cast}. For example, converting an array\_ptr of 12
-characters to an array\_ptr of 4 32-bit integers should always succeed
-at compile-time.
-
-\subsection{Conversions without checking using assume\_bounds\_cast\textless{}T\textgreater{}}
-
-\assumeboundscast{\var{T}}{}
-converts unsafe pointers to safe pointers. The declared bounds are
-trusted without verification, although relative alignment is checked if
-necessary. The source expression must have an unsafe pointer type.
-
-\begin{itemize}
-\item
-  \assumeboundscast{\var{T}}{(\var{e1},\var{e2})}
+  \assumeboundscastinst{\var{T}}{(\var{e1},\var{e2})}
   converts \var{e1} to an \arrayptr\ or
   \arrayview\ type with \boundscount{\var{e2}}
 \item
-  \assumeboundscast{\var{T}}{(\var{e1},\var{e2},\var{e3})}
+  \assumeboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})}
   converts \var{e1} to an
-  \arrayptr\ or \arrayview\ type with \bounds{var{e2}}{\var{e3}}.
-  There is a runtime check that the relative alignment requirements for
-  T are satisfied by \var{e1,} \var{e2} and \var{e3}. \var{e2} and
-  \var{e3} can have pointer type.
+  \arrayptr\ or \arrayview\ type with \bounds{\var{e2}}{\var{e3}}.
+  It must be statically provable that \var{e1}, \var{e2} and \var{e3}
+  are relatively aligned for \var{T} (or the optional
+  relative alignment parameter instead, if there is one).
 \item
-  \assumeboundscast{\var{T}}{(\var{e1})}
-  converts \var{e1} to a \ptr\ type or T \texttt{*}.
+  \assumeboundscastinst{\var{T}}{(\var{e1})}
+  converts \var{e1} to a \ptr\ or \texttt{*} type.
 \end{itemize}
 
-A subtle point about
-\boundscast{\var{T}}{} and
-\coreboundscast{\var{T}}{}
+If any rule depends on \texttt{sizeof(\var{T})} and \var{T} is
+an incomplete type, the cast operation that uses the rule shall fail
+to check at compile-time.
+
+A subtle point about the C cast operator and \dynamicboundscast
 are that they allow {\em bounds-safe casts} of an expression
 \var{e} of unsafe pointer type to an \arrayview\ or
 \arrayptr\ type. This is provided that the bounds for \var{e}
 can be determined. Only a few kinds of expressions with unsafe pointer
 types have bounds that can be determined: address-of expressions
-involving variables and uses of array variables, where the array
-variable is converted to a pointer type.
-
-\subsection{Summary of conversion operators}
-
-The following table summarizes the operations for converting between
-pointers to objects of different types, provided that \var{S} and \var{T} are
-complete types:
-
-
-
-{\tiny
-\begin{longtable}[c]{p{0.5in}p{1.4in}p{1.4in}p{1.1in}p{1.1in}}
-\toprule
-\multicolumn{1}{r}{\textit{To}}  & \arrayptrT &
-\arrayviewT & \ptrT &
-T * \tabularnewline
-\textit{From} \tabularnewline
-\midrule
-\endhead
-\arrayptrinst{\var{S}} &
-\boundscast{\arrayptrT}{(e1, e2)}
-
-\boundscast{\arrayptrT}{(e1, e2, e3)}
-
-\coreboundscast{\arrayptrT}{(e1, e2)}
-
-\coreboundscast{\arrayptrT}{(e1, e2, e3)} &
-\boundscast{\arrayviewT}{(e1,e2)}
-
-\boundscast{\arrayviewT}{(e1, e2, e3)}
-
-\coreboundscast{\arrayviewT}{(e1, e2)}
-
-\coreboundscast{\arrayviewT}{(e1, e2, e3)} &
-\boundscast{\ptrT}{(e1)}
-
-\coreboundscast{\ptrT}{(e1)}
-& \boundscast{\var{T} *}{(e1)}
-
-If \texttt{\var{S}==\var{T}}, \texttt{\&e1[i]} can be used too.
-
-\assumeboundscast{\var{T} *}{(e1)}\tabularnewline \midrule[0.25pt]
-\arrayviewinst{\var{S}} & Same as above & Same as above &
-Same as above & Same as above.\tabularnewline \midrule[0.25pt]
-\ptrinst{\var{S}} & Same as above & Same as above. & Same as
-above.
-
-For \texttt{bounds\_cast}, it is a compile-time error if \texttt{sizeof(\var{S}) <
-sizeof(\var{T})}. This is guaranteed to fail at runtime. &
-\boundscast{\var{T} *}{(e1)}
-
-\assumeboundscast{\var{T} *}{(e1)}\tabularnewline \midrule[0.25pt] 
-\var{S} * & If e1 has known bounds, same as above. Otherwise:
-
-\assumeboundscast{\arrayviewT}{(e1, e2)}
-
-\assumeboundscast{\arrayviewT}{(e1, e2, e3)} &
-   If e1 has known bounds, same as above.  Otherwise:
-
-\assumeboundscast{\arrayviewT}{(e1, e2)}
-
-\assumeboundscast{\arrayviewT}{(e1, e2, e3)}
-
-&
-If e1 has known bounds, same as above. Otherwise:
-
-\hspace{0pt} \assumeboundscast{\var{T}}{(e1)} & \texttt{(\var{T} *) e1}\tabularnewline
-\bottomrule
-\end{longtable}
-}
-
-\section{Bounds-safe conversions for pointers to incomplete types, including pointers to void}
-
-In the prior section, the source and destination pointer types in a
-bounds\_cast or core\_bounds\_cast operation must be complete types or
-have a referent type of void. However, there is one important exception:
-\ptrT\ can always be safely converted to T *,
-even if T is incomplete. This follows from treating sizeof(T) as a
-symbolic constant in the rules for computing bounds and the runtime
-checking rules for bounds\_cast and core\_bounds\_cast.
-
-This exception is useful when converting code incrementally from unsafe
-pointer types to safe pointers. One may have converted the body of a
-function to use safe pointers, but not yet have converted some functions
-that it calls.
-
-C allows pointer types to be freely converted to void * types and void *
-types to be freely converted back to pointer types. For safe pointer
-types, any kind of safe pointer type can be freely converted to the same
-kind of pointer type with a referent type of void. However, explicit
-casts must be used when converting from any kind of safe pointer type
-with a referent type of void:
-
-{\tiny
-\begin{longtable}[c]{p{0.6in}p{1in}p{1.1in}p{1.4in}p{1.4in}}
-\toprule
-\multicolumn{1}{r}{\textit{To}}  & T * & \ptrT &\arrayviewT &
-                                \arrayptrT \tabularnewline
-\textit{From} \tabularnewline
-\midrule
-\endhead
-void * & Follow existing C rules & \texttt{ptr\_cast<\var{T}>},
-if bounds are known.
-
-\texttt{assume\_ptr\_cast<\var{T}>}, otherwise &
-\texttt{bounds\_cast<\arrayviewT>},
-if bounds are known:
-
-- check relative alignment
-
-\assumeboundscast{\arrayviewT}{(var{e1}, \var{e2})}: No relative alignment check needed.
-
-\assumeboundscast{\arrayviewT}{(\var{e1}, \var{e2}, \var{e3})}: check relative alignment &
-\boundscast{\arrayptrT}{}: 
-
-- has \boundsnone\ if bounds are unknown.
-
-- check relative alignment if bounds are known.
-
-\assumeboundscast{\arrayptrT}{(e1, e2)}: no relative alignment check needed
-
-\assumeboundscast{\arrayptrT}{(e1, e2, e3)}:  check relative alignment\tabularnewline
-\ptrinst{void} & Only the following unsafe operator is
-available.
-
-assume\_unsafe\_ptr\_cast: no check &
-\ptrcast{\var{T}}{}
-
-\var{\texttt{TODO: need unsafe operator}} & Not allowed & Not
-allowed \tabularnewline
-\arrayviewinst{void} & unsafe\_ptr\_cast: check that memory
-accessible by pointer dereference is in bounds
-
-assume\_unsafe\_ptr\_cast: no check &
-\ptrcast{\var{T}}{}
-
-check that memory accessible by pointer dereference is in bounds &
-\boundscast{\arrayviewT}{}: check relative alignment &
-\boundscast{\arrayptrT}{}: check relative alignment\tabularnewline
-
-\arrayptrinst{void} & unsafe\_ptr\_cast: check that
-memory accessible by pointer dereference is in bounds
-
-assume\_unsafe\_ptr\_cast: no check &
-\ptrcast{\var{T}}{}
-
-check that memory accessible by pointer dereference is in bounds &
-\boundscast{\arrayviewT}{}:
-
-- check relative alignment &
-\boundscast{\arrayptrT}{}:
-
-- check relative alignment\tabularnewline
-\bottomrule
-\end{longtable}
-} 
+involving variables and uses of array variables.
 
 \section{Bounds-safe interfaces to existing unsafe functions}
 \label{section:function-bounds-safe-interfaces}

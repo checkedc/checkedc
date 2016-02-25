@@ -8,6 +8,8 @@ This chapter discuss work that needs to be done and open issues.
 \section{Pending work}
 
 \begin{itemize}
+\item The definition of \arrayviewT\ need to be extended to include
+      relative alignment
 \item Add a way to lift bounds to pointers to \arrayptr\ pointers
       and other lvalues used in their bounds.  This will be 
       necessary for handling pass-by-reference parameters.
@@ -71,7 +73,8 @@ untagged first  to have valid bounds.
   to undefined behavior.
 \item
   Function pointers: the where clauses must become part of the signature
-  of the pointer type.
+  of the pointer type.  In addition, we need to consider how implicit
+  conversions of bounds-safe interfaces work with functino pointers.
 \item
   Variable arguments
 \item

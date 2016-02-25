@@ -57,6 +57,10 @@
 \newcommand{\sizeof}[1]{\texttt{sizeof(#1)}}
 %
 
+%
+% type macros
+%
+\newcommand{\void}{\texttt{void}}
 % array_ptr type macros
 %
 \newcommand{\arrayptr}{\texttt{array\_ptr}}
@@ -79,6 +83,10 @@
 \newcommand{\ptrchar}{\ptrinst{\texttt{char}}}
 \newcommand{\ptrint}{\ptrinst{\texttt{int}}}
 \newcommand{\ptrvoid}{\ptrinst{\texttt{void}}}
+
+\newcommand{\unsafeptrinst}[1]{\texttt{#1 *}}
+\newcommand{\unsafeptrT}{\texttt{\var{T} *}}
+\newcommand{\unsafeptrvoid}{\unsafeptrinst{void}}
 
 %
 % bounds expression macros
