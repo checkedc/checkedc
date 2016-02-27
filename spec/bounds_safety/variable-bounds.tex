@@ -471,6 +471,7 @@ function calls, unless the variables with external linkage are declared
 variables with external linkage.
 
 \section{Variables at external scope}
+\label{section:external-scope-variables}
 
 If there are multiple declarations of a variable with external scope in
 a translation unit, the bounds declaration and/or \keyword{where} clauses for the
@@ -519,12 +520,14 @@ A simple rule enforces this restriction. Given the initial declaration
 in a translation unit of a variable with external scope that has a
 \keyword{where} clause, there cannot be any function definitions between
 the declaration and the initial declarations of other variables used in
-the \keyword{where} clause. It is possible for the initial declaration of
+the bounds declaration for the variable or the optional \keyword{where} clause for the declaration.
+It is possible for the initial declaration of
 a variable with external scope to occur within the body of a function.
 In that case, there cannot be any statements or declarations of
 non-external variables with initializers between the initial declaration
 and the initial declarations of other variables used in the
-\keyword{where} clause.
+bounds declaration for the variable or the optional \keyword{where} clause for
+the declaration.
 
 \section{Syntax changes}
 The grammar from the ``C Programming Language'' \cite{Ritchie1988} is extended to include

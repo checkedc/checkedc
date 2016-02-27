@@ -589,10 +589,19 @@ To improve program reliability and to simplify understanding programs,
 it is desirable to limit code to using only safe pointers. To support
 this, we introduce checked program scopes. The \keyword{checked} keyword
 can be attached to blocks and function definitions. In checked program
-scopes, definitions can use only safe pointer types and checked array
-types; they cannot use unsafe pointer types and unsafe arrays. On the
-other hand, declarations can use unsafe pointer types and unsafe arrays,
-provided that the declarations provide a bounds-safe interface.
+scopes, the declared types of variables are allowed to be or use
+safe pointer types or checked array types; unsafe pointer types
+and unsafe array types are not allowed.  Similarly, for functions,
+return types and parameter types are allowed to be or use safe pointer
+types or checked array types.  
+
+On the other hand,  declarations in checked scopes can use unsafe pointer 
+types and unsafe array types,  provided that the declarations provide a 
+bounds-safe interface.   These are described in
+Section~\ref{section:function-bounds-safe-interfaces}.
+Variables and functions used in checked scopes are 
+allowed to have or be safe pointer types, checked array types, or unsafe pointer types
+and unsafe array types with bounds declarations. 
 
 A new pragma directive \texttt{BOUNDS\_CHECKED} is introduced to control whether
 the top-level scope is a checked scope:

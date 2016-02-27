@@ -514,7 +514,7 @@ as the bounds for the entire expression.
 If the special variable \exprcurrentvalue\ occurs in the
 bounds for \var{e2}, it is left unchanged.
 
-\section{Validity of bounds declarations for assignment expressions}
+\section{Bounds for assignment expressions}
 \label{section:checking-assignment-expressions}
 
 For an assignment expression of the form \var{x} \texttt{=} \var{e},
@@ -1109,7 +1109,7 @@ will be determined based on an empirical evaluation of C programs.
 
 \subsection{An example of canonicalization}
 
-Here is how bounds for following statement will be checked:
+Here is how bounds for the following declaration and statement will be checked:
 \begin{verbatim}
 array_ptr<int> x;
 x = malloc(sizeof(int)*5) where x : count(5);
@@ -1200,16 +1200,15 @@ bounds(x, x +\textsubscript{ovf} 20)
 
 We must also show the expected bounds imply that the 
 \verb|rel_align(int)| requirement is met. This is straightforward for
-a constant-sized array. It involves showing given bounds{\var{e1}}{\var{e2}}
-that \verb|(((array_ptr<char>) x) - ((array_ptr<char>)| \var{e1}\verb|)) % 4| canonicalizes to 0, as does
-\arrayptrchar \var{e2}\verb|) - (array_ptr<char>) x)) % 4|.
+a constant-sized array. It involves showing given \bounds{\var{e1}}{\var{e2}}
+that \texttt{(((\arrayptrchar) x) - ((\arrayptrchar) \var{e1})) \% 4} canonicalizes
+to 0, as does \texttt{(((\arrayptrchar) \var{e2}) - ((\arrayptrchar) x)) \% 4}.
 
-For the first expression, \verb|((array_ptr<char>) - x) % 4|
-simplifies to \verb|0 % 4|, which constant-folds to \verb|0|. 
-For the second expression, \verb|((array_ptr<char>) (x+5) - ((array_ptr<char>) x)) % 4|
-simplifies to \verb|((x |+\textsubscript{ovf}\verb|20)| -\textsubscript{ovf\_diff} \verb|x) % 4|. This
-simplifies to \verb|20 % 4|, which constant-folds to \verb|0|.
-
+For the first expression, \texttt{(((\arrayptrchar) x) - ((\arrayptrchar) x)) \% 4}
+simplifies to \texttt{0 \% 4}, which constant-folds to \texttt{0}.
+For the second expression, \texttt{(((\arrayptrchar) (x + 5)) - ((\arrayptrchar) x)) \% 4}
+simplifies to \texttt{((x +\textsubscript{ovf} 20) -\textsubscript{ovf\_diff} x) \% 4}. This
+simplifies to \texttt{20 \% 4}, which constant-folds to \texttt{0}.
 
 If we change the example to make the number of elements variable instead
 of constant, we can see how canonicalization breaks down in the presence
@@ -1240,7 +1239,7 @@ x +\textsubscript{ovf} (4 *\textsubscript{ovf} k)
 \end{alltt}
 
 The expressions are not identically syntactically, so bounds expression
-checking fails. The additional side conditions that \verb|k >= 0 && k <= UINTPTR\_MAX/4|
+checking fails. The additional side conditions that \verb|k >= 0 && k <= UINTPTR_MAX/4|
 are needed to show that the computed upper bound implies the expected upper bound. More
 general techniques from Chapter~\ref{chapter:simple-invariants} are needed to show that the context
 bounds imply the expected bounds.
@@ -1403,8 +1402,8 @@ parameters,
 \item
   A statement of the form
 
-  x\textsubscript{1 =} e\textsubscript{1} \texttt{,} x\textsubscript{2
-  =} e\textsubscript{2} \texttt{,} \ldots{}. x\textsubscript{n =}
+  x\textsubscript{1} = e\textsubscript{1} \texttt{,} x\textsubscript{2} = 
+  e\textsubscript{2} \texttt{,} \ldots{}. x\textsubscript{n} =
   e\textsubscript{n} where \var{conditions} \texttt{;}
 
   is constructed, where \var{conditions} contains all the bounds
