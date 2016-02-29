@@ -100,9 +100,10 @@ Checked C addresses the bounds checking problem for C by:
   bounds for unsafe pointers in function signatures and data structures.
   Because it describes a boundary, it has to be ``safe'' and ``unsafe''
   at the same time, depending on what kind of code is using it. The
-  interface is trusted in safe code (code that uses safe pointer types).
+  interface is trusted in safe code (code that uses only safe pointer types).
   Proper usage is enforced via checking at compile time and runtime. For
-  unsafe code, the interface is descriptive and not enforced by
+  code that uses only unsafe pointer types, the interface is descriptive and 
+  not enforced by
   language checking. This provides a way to upgrade existing code to
   provide a safe interface without breaking existing users of the code.
 \item
