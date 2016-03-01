@@ -556,3 +556,138 @@ void subtle_copy(int *dest,
     memcpy(dest, (void *) src, len * sizeof(int));
 }
 \end{verbatim}
+
+\section{Conversions between pointers and integers}
+\label{section:pointer-integer-conversions}
+
+C allows pointers to be converted to suitably large enough integer
+types and then converted back to pointers.  Integer operations can
+done on the converted values before they are converted back.
+This is one of the features of C that leads people to 
+say that C cannot possibly be made type-safe.  In this section,
+we explain how casts between pointers and integers within 
+expressions can be controlled and reasoned about.
+
+\subsection{Tagged pointers}
+We start with a motivating example, tagged pointers.
+C programs sometimes store information in unused bits of pointers
+to save on space in data structures.  Other times this is done
+to acheive atomicity when reading or writing data.  A
+program might store a tag in the least significant bits or most
+significant bits of some pointers, knowing that those bits are always
+zero otherwise.
+
+The bounds of such a pointer are easy to described: they are the bounds
+of the original pointer. If a pointer variable or member is used in its
+own bounds, the tag must be removed first. This is
+done by masking out the bits that are always 0.
+
+For example, suppose there is the following structure:
+
+\begin{verbatim}
+struct S {
+   array_ptr<int> p : bounds(p, p + 4);
+   int tag : 2;
+}
+\end{verbatim}
+
+A programmer might know that on a machine with 32 bit pointers, the
+least 2 significant bits of p are always 0, so the tag could be stored
+within p. The bounds would be changed to:
+
+\begin{verbatim}
+struct S {
+   array_ptr<int> p : bounds((array_ptr<int>) ((size_t) p & ~3), 
+                             (array_ptr<int>) ((size_t) p & ~3) + 4) rel_align(char);
+}
+\end{verbatim}
+
+There is one important caveat (for now): tags cannot be stored in null pointers. A
+null pointer may have bounds that are not valid. This is fine because
+the null pointer may not be used to access memory. However, tagging a
+null pointer could result in a non-null pointer with bounds that are not
+valid. This non-null pointer could be used to incorrectly access memory.
+
+\subsection{Extending bounds checking rules to integral
+expressions}
+
+The inference of bounds for expressions disregards cast operator: the 
+information flows through the operation, with adjustments if the bounds
+include \exprcurrentvalue.  This makes it straightforward to extend the
+rules for inferring bounds to integral expressions:
+
+\begin{itemize}
+\item
+  Given \texttt{\var{e1} \var{op} \var{e2}}, where \var{op} is an additive, multiplicative, or bitwise
+  binary operator on integral types, the bounds of \var{e1} and \var{e2} can be
+  computed:
+
+  \begin{itemize}
+  \item
+    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsnone, and 
+    \boundsdecl{\var{e2}}{\boundsnone}, and it can be proved that \texttt{\var{e1} != 0}, then
+    \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
+  \item
+    If the special variable \exprcurrentvalue\ occurs in \var{b}:
+    \begin{itemize}
+    \item
+      If \texttt{\var{e1} \var{op} \var{e2}} is invertible, then inverse of \texttt{\var{e1} \var{op} \var{e2}}
+      is substituted \exprcurrentvalue.
+    \item
+      Otherwise the bounds of the expression are altered to be \boundsnone.
+      bounds(none).
+    \end{itemize}
+  \item
+    Similar rules apply for the reverse situation where \boundsdecl{\var{e1}}{\boundsnone}
+    and \boundsdecl{\var{e2}}{\var{b}}, where \var{b} is not \boundsnone.
+  \end{itemize}
+\item
+  Given \texttt{\var{e1} \var{op} \var{e2}} where \var{op} is a shift operator, \var{e1} is the integral value
+  being shifted, and \var{e2} is the shift amount,
+
+  \begin{itemize}
+  \item
+    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsnone, and \var{e2} has
+    \boundsnone, and it can be proved that \texttt{\var{e1} != 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
+  \item
+    If the special variable \exprcurrentvalue occurs in \var{b}.
+    bounds of the expression are altered to be \boundsnone. Shift
+    expressions are not invertible because they lose information.
+  \end{itemize}
+\end{itemize}
+
+\subsection{An example}
+
+The following example shows functions that create a tagged pointer and then set 
+to the pointer to 1.
+
+\begin{verbatim}
+#define untagged_bounds(x) \
+   bounds((array_ptr<int>) ((size_t) x & ~0x3), \
+          (array_ptr<int>) ((size_t) x & ~0x3) + 1) rel_align(char)
+
+array_ptr<int> create() 
+where untagged_bounds(return_value)
+{
+   array_ptr<int> x : bounds(x, x + 1) = malloc(sizeof(int));
+   dynamic_check(x == (array_ptr<int>) ((size_t) x & ~0x3));
+   // follows from substituting the right-hand side in the current bounds
+   where x : untagged_bounds(x); 
+   return x;
+}
+
+// set tag to 1
+array_ptr<int> set(array_ptr<int> x : untagged_bounds(x)) 
+where untagged_bounds(return_value);
+{
+  if (x != NULL) {
+     // ((size_t) x | 1) has the same bounds as x                   
+     array_ptr<int> tmp : untagged_bounds(x) = (array_ptr<int>) ((size_t) x | 1);
+     dynamic_check((size_t) tmp & ~0x3 == (size_t) x & ~0x3);
+     // follows from substituting the right-hand side in the current bounds for tmp
+     where tmp : untagged_bounds(tmp);
+     return tmp;
+  }
+  return x;
+}
+\end{verbatim}
