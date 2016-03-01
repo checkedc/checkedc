@@ -851,6 +851,7 @@ expression holds if:
 \end{itemize}
 
 \subsection{Canonicalization of expressions in bounds expressions}
+\label{section:canonicalization}
 
 Most readers can skip this section safely and come back to it as
 necessary. This section is for compiler implementers and for programmers
@@ -1109,6 +1110,7 @@ limit on the size of canonicalized expressions. A minimum required limit
 will be determined based on an empirical evaluation of C programs.
 
 \subsection{An example of canonicalization}
+\label{section:canonicalization-example}
 
 Here is how bounds for the following declaration and statement will be checked:
 \begin{verbatim}

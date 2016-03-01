@@ -199,6 +199,12 @@ races that tear data structures. Addressing these problems is beyond the
 scope of this technical report. For now, it is assumed that programs are
 correct in these other aspects.
 
+This document is a work-in-progress.  Some material will be missing
+or incomplete because the language design is still being done.
+Readers should be aware that all parts of the document are subject to change. 
+We are interested in feedback and suggestions about ways to improve
+the design.
+
 \section{Principles for extensions}
 \label{chapter:principles}
 
@@ -263,7 +269,17 @@ Two specific design principles are adopted based on these principles:
 
 \section{Organization of this document}
 
-The rest of this document is organized as follows.
+The target audience for this document includes programmers interested in 
+learning about Checked C, compiler writers, and language designers.
+These groups have different and conflicting needs.  Programmers will find that
+some sections have too much detail, while language designers will likely
+find that some sections do not have enough detail.   Language designers
+may be less interested in compiler implementation details.
+We first describe the organization of the document and then provide
+a roadmap for the different audiences.
+
+  
+
 Chapter~\ref{chapter:core-extensions} describes
 the new pointer types and the new array types, including syntax,
 semantics, and error conditions. It also covers other extensions to C
@@ -274,7 +290,7 @@ bounds safety even in the face of integer overflow, which is a
 widespread possibility in C programs. This requires a more nuanced
 requirement on the result of overflow than ``the result is undefined.''
 
-Chapters~\ref{chapter:tracking-bounds} through \ref{chapter:aliased-members}
+Chapters~\ref{chapter:core-extensions} through \ref{chapter:aliased-members}
 present the extensions to C for declaring bounds
 for \arrayptr\ values stored in variables and structures and
 checking the consistency of those declared bounds. The extensions are
@@ -389,4 +405,22 @@ Chapter~\ref{chapter:design-alternatives} discusses design alternatives
 that were considered and not chosen.  It explains why those alternatives were
 not chosen.
 
-\
+Here are the suggest roadmaps for the different audiences of this
+document.  For programmers interested in learning about Checked C, 
+we suggest reading Chapter~\ref{chapter:core-extensions} except 
+Sections~\ref{section:pointer-arithmetic-errors} and \ref{section:changes-to-undefined-behavior},
+Chapter~\ref{chapter:tracking-bounds}
+except Section~\ref{section:extent-of-declarations}, 
+Section~\ref{section:inferring-expression-bounds} of Chapter~\ref{chapter:checking-bounds},
+Chapter~\ref{chapter:interoperation} except for Section~\ref{section:checking-bounds-interfaces},
+Chapter~\ref{chapter:structure-bounds} except for Section~\ref{section:member-bounds-state-extent},
+and Chapter~\ref{chapter:simple-invariants} through the first section.  
+Sections~\ref{section:pointer-cast-results},  \ref{section:integer-overflow-informal},
+and \ref{section:pointer-integer-conversions} are advanced topics that can be read
+after the other material.  
+
+We suggest language designers and compiler writers 
+read most of the document. Language designers can skip Sections~\ref{section:computing-extent},
+\ref{section:canonicalization}, and \ref{section:canonicalization-example}.
+Compiler writers can skip the discussion in Section~\ref{section:programmer-dynamic-checks}
+and Chapters~\ref{chapter:lessons} and \ref{chapter:design-alternatives}

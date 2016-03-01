@@ -322,6 +322,7 @@ The full rules for casting to an \arrayview\ type are covered
 in Section~\ref{section:pointer-casting}.
 
 \section{Pointer arithmetic error conditions}
+\label{section:pointer-arithmetic-errors}
 
 For existing unsafe C pointers, the definition of pointer arithmetic is
 described in terms of addresses of elements of an array object. The C
@@ -702,6 +703,7 @@ checking. We may introduce additional keywords to control specific kinds
 of checking.
 
 \section{Programmer-inserted dynamic checks}
+\label{section:programmer-dynamic-checks}
 
 A bounds check generates a runtime error if it fails. The ability to
 generate a runtime error is not limited to the C implementation. A
