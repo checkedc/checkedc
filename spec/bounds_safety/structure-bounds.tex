@@ -340,15 +340,14 @@ types are expanded to state declarations of the individual members with
 \arrayptr\ type. It is assumed that declarations of automatic
 structure variables without initializers implicitly have suspends
 declarations for the variables. All other declarations of structure
-variables are assumed implicit to have holds declarations for the
+variables are assumed implicitly to have holds declarations for the
 variables. The other declarations are either automatic variables with
 initializers or variables with static storage, which are initialized to
-0. Any array\_ptr members initialized to 0 have \boundsany, so
+0. Any \arrayptr\ members initialized to 0 have \boundsany, so
 they satisfy their member bounds declarations.
 
 For any declaration of member bounds state for \var{v}.\var{mp}, where
 v is variable and \var{mp} is a member path, if
-
 \begin{enumerate}
 \item
   There is some path from the declaration to the function component, and
@@ -358,26 +357,16 @@ v is variable and \var{mp} is a member path, if
   There is no other declaration of member bounds state for \var{v.mp}
   along the path
 \end{enumerate}
+then the declaration of member bounds state applies to the function
+component.
 
-then
-
-\begin{enumerate}
-\item
-  The declaration of member bounds state applies
-\end{enumerate}
-
-This condition ensures the consistency of member bounds state
-declarations for variables:
-
-\begin{enumerate}
-\item
-  \emph{Agreement of bounds declarations}: If a variable occurring in a
-  function component has more than one state declaration that applies to
-  it at the component, then all the state declarations applying to it at
-  the component must be syntactically identical. This avoids ambiguity
-  about which state declaration applies to an occurrence of a variable.
-  It an error for the member bounds state declarations to disagree.
-\end{enumerate}
+Mmeber bounds state declarations must be consistent and agree
+along all paths to a function component.   If a variable occurring in a
+function component has more than one state declaration that applies to
+it at the component, then all the state declarations applying to it at
+the component must be syntactically identical. This avoids ambiguity
+about which state declaration applies to an occurrence of a variable.
+It is an error for the member bounds state declarations to disagree.
 
 The following example illustrates the declaration of member bounds
 state. The structure S represents variable length array, where data
@@ -602,5 +591,112 @@ when converting unsafe pointers data structures, and when reading safe
 pointers from the data structure unsafe functions or uses unsafe data
 structures.
 
+\section{Extending checking validity of bounds}
+\label{section:checking-bounds-with-structures}
 
+This section describes how to extend the checking in Chapter~\ref{chapter:tracking-bounds} 
+to check variables with structure bounds and expressions with structure operations such 
+as member assignment and member access.  This section is primarily of interest to compiler writers.
 
+In Chapter~\ref{chapter:checking-bounds}, contexts map pointer variables to their bounds.
+Contexts are extended to map structure variables to descriptions of bounds for their
+members.  The bounds for members of a variable will be described using a set of pairs,
+where the first element of each pair is a member path whose type is \arrayptr\
+and the second element of each pair is a bounds expression.  The bounds expression may use 
+variable member paths in addition to variables.
+
+In Section~\ref{section:inferring-expression-bounds}, the inference of bounds for expressions
+determines the bounds expression that applies to an expression.   This is generalized for
+structure-typed expressions to determine the bounds expressions that apply to \arrayptr\ members
+of the value of the expression. 
+The same representation is used as for contexts: a
+set of pairs, where the first element is a member path whose type is \arrayptr\
+and the second element is a bounds expression.  Given this representation, it is easy to define
+the rules for inferring bounds for member accesses: a member access prunes the
+set of pairs and shortens the member paths.
+
+In Section~\ref{section:checking-assignment-expressions}, checking of assignment
+expressions updates contexts.  The contexts are then used to check that expression
+statements imply declared bounds.  They are also used to check expressions nested
+within an expression that contain assignment expressions. 
+Given the representation of contexts, the rules for updating contexts
+are extended to update contexts pointwise for structure variable assignments and member 
+assignments.  For a structure variable assignment, the entire set of pairs for a
+variable is updated.  For an assignment to a member of a  structure variable,
+only the set of entries  associated with that member are updated.  Both forms of assignment
+invalidate bounds expressions that use variable member paths that are changed by the
+assignment.
+
+An epression statement is checked by determining the updated context for the
+expression statement, determining the expected context for bounds after 
+the statement, and then checking that the updated context implies the
+validity of the bounds in the expected context (Section ~\ref{section:checking-expression-statements}).
+For each variable in the expected context, it is checked that the bounds expression in
+the updated context implies the expected bounds expression.  This is easily 
+extended to a structure variable by checking for each member path for 
+the variable that the bounds expression in the updated context implies
+the expected bounds expression.
+
+\subsection{Determining contexts}
+
+The context for every statement can be determined by using dataflow analyses extended
+pointwise to structure variables.  Each structure variable is expanded into the set
+of variable member paths that represent all \arrayptr-typed variable member paths beginning
+with the variable.  First, an iterative forward dataflow analysis is done to determine the
+member bounds state at every point in a function, following the rules in
+Section~\ref{section:member-bounds-state-extent}.  The analysis works on the set of variable
+member paths.   It computes for each variable member path whether the member bounds are valid 
+at each program point.  It is a compile-time error if the analysis determines that the state of
+member bounds is inconsistent along different paths.
+
+Second, a generalized version of the extent dataflow analysis of Section~\ref{section:computing-extent}
+is done.  Each structure variable is expanded into the set of variable
+member paths that represent all \arrayptr\ -typed variable member paths begining with 
+the variable.  The analysis assigns one lattice value to each of the variable member path for
+each program point in the function where the variable is in scope.
+
+The context for a statement is computed using the results of the dataflow analyses.
+For each structure variable in scope for the statement, the set of \arrayptr-typed variable member paths 
+beginning at the variable is determined.  The set is mapped to a set of pairs as follows:
+\begin{itemize}
+\item For the first element, the structure variable is removed from the beginning of the
+path to create a member path.
+\item For the second element, the extent dataflow analysis is consulted for the \arrayptr member path.
+   If the bounds expression is not \boundsnone, it is used.   If it is \boundsnone, the result
+   of the dataflow analysis for the member bounds state is examined. If the member bounds
+   state is valid, the member bounds is used.  It is transformed to use variable member
+   bounds by prefixing the member paths that occur in it with the structure variable.
+   Otherwise, \boundsnone is used.
+\end{itemize}
+
+\subsection{Inferring bounds for expressions without assignments}
+
+This section describes extensions to Section~\ref{section:inferring-expression-bounds} for
+determing bounds.   The notation \boundsinfer{\var{e}}{\var{s}} is overloaded for expressions
+with structure types to mean that \var{e} has a set of member paths with individual bounds expressions.
+\begin{itemize}
+\item Variables: If \var{x} has a structure type, the context is consulted for \var{x} for
+the set \var{s} of pairs of member paths and bounds expressions.  \boundsinfer{\var{x}}{\var{s}}.
+\item Member access: Given an expression \texttt{\var{e}.\var{m}}, where \var{m} is 
+a member name and \boundsinfer{\var{e}}{\var{s}},
+\begin{itemize}
+\item If \texttt{\var{e}.\var{m}} has a structure type, then
+\begin{itemize}
+\item The set $\var{s}^{\prime}$ is defined as follows.  For each pair 
+      \texttt{(\var{mp}, \var{b})} in \var{s}, if \var{mp} has the form 
+      \texttt{\var{m}.\var{rp}}, then \texttt{(\var{rp}, \var{b})} is
+      included in $\var{s}^\prime$.
+\item  Given $\var{s}^\prime$, \boundsinfer{\texttt{\var{e}.\var{m}}}{$\var{s}^\prime$}.
+\end{itemize}
+\item Otherwise,
+\begin{itemize}
+\item If $\var{s} = \texttt{\{(\var{m}, \var{b})\}}$, then \boundsinfer{\texttt{\var{e}.\var{m}}}{b}
+\item Otherwise, \boundsinfer{\texttt{\var{e}.\var{m}}}{\boundsnone}
+\end{itemize}
+\end{itemize}
+\item Function calls: {\em TBD}
+\end{itemize}
+
+\subsection{Assignment expressions}
+
+{\em TBD}

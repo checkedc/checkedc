@@ -7,7 +7,7 @@ The C programming language \cite{Ritchie1988, ISO2011} allows programmers to use
 pointers directly. A pointer is an address of a location in memory. Programs may do
 arithmetic on pointers, dereference them to read memory, or assign
 through them to modify memory. The ability to use pointers directly
-makes C well-suited for low-level systems programming that is ``close to
+makes C well-suited for low-level system programming that is ``close to
 the hardware'' and allows programmers to write efficient programs. C
 also unifies pointer types and array types. They can usually be used
 interchangeably and array subscripting is a synonym for equivalent
@@ -278,8 +278,6 @@ may be less interested in compiler implementation details.
 We first describe the organization of the document and then provide
 a roadmap for the different audiences.
 
-  
-
 Chapter~\ref{chapter:core-extensions} describes
 the new pointer types and the new array types, including syntax,
 semantics, and error conditions. It also covers other extensions to C
@@ -413,7 +411,8 @@ Chapter~\ref{chapter:tracking-bounds}
 except Section~\ref{section:extent-of-declarations}, 
 Section~\ref{section:inferring-expression-bounds} of Chapter~\ref{chapter:checking-bounds},
 Chapter~\ref{chapter:interoperation} except for Section~\ref{section:checking-bounds-interfaces},
-Chapter~\ref{chapter:structure-bounds} except for Section~\ref{section:member-bounds-state-extent},
+Chapter~\ref{chapter:structure-bounds} except for Sections~\ref{section:member-bounds-state-extent}
+and \ref{section:checking-bounds-with-structures},
 and Chapter~\ref{chapter:simple-invariants} through the first section.  
 Sections~\ref{section:pointer-cast-results},  \ref{section:integer-overflow-informal},
 and \ref{section:pointer-integer-conversions} are advanced topics that can be read
