@@ -121,7 +121,7 @@ for specific objects while they are being initialized or modified.
 
 The bounds declarations for variables with structure types and the
 suspend and hold declarations will be checked statically for validity.
-Chapter~\ref{chapter:checking-structure-bounds} extends the rules 
+Section~\ref{section:checking-bounds-with-structures} extends the rules 
 from Chapter~\ref{chapter:checking-bounds}
 to variables with structure
 types and to suspends and holds declarations.
@@ -138,7 +138,7 @@ addresses are taken are not used in bounds expressions.
 
 Member bounds declarations have the form:
 \begin{tabbing}
-\var{member}\={-bounds-decl:}\\
+\var{member}\=\var{-bounds-decl:}\\
 \> \var{member-path} : \var{member-bounds-exp} \\
 \\
 \var{member-path:}\\
@@ -627,7 +627,7 @@ only the set of entries  associated with that member are updated.  Both forms of
 invalidate bounds expressions that use variable member paths that are changed by the
 assignment.
 
-An epression statement is checked by determining the updated context for the
+An expression statement is checked by determining the updated context for the
 expression statement, determining the expected context for bounds after 
 the statement, and then checking that the updated context implies the
 validity of the bounds in the expected context (Section ~\ref{section:checking-expression-statements}).
@@ -694,9 +694,9 @@ a member name and \boundsinfer{\var{e}}{\var{s}},
 \item Otherwise, \boundsinfer{\texttt{\var{e}.\var{m}}}{\boundsnone}
 \end{itemize}
 \end{itemize}
-\item Function calls: {\em TBD}
+\item Function calls: {\em To be filled in}
 \end{itemize}
 
 \subsection{Assignment expressions}
 
-{\em TBD}
+{\em To be filled in.}

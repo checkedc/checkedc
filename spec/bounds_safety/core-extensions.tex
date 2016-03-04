@@ -260,6 +260,15 @@ in a more precise answer. The prohibitions against it for \texttt{++}, and
 \texttt{--} operands and the left operand of an assignment operato keeps array
 variables from being modifiable.
 
+\subsection{Variable and member initialization}
+
+Variables and member of variables with new safe pointer types must be initialized
+before they are used.  For \arrayptr s, this is checked as part of checking
+the validity of bounds.  For \ptr s and \arrayview s, this is checked
+using a separate analysis.   A use includes taking the address of a variable
+or member of a variable.  It is often unclear when the resulting pointer is used,
+so the variable must be initialized when its address is taken.
+
 \subsection{\texttt{Array\_view<}\textit{T}\texttt{>} specific operations}
 
 An \arrayviewT\

@@ -1,29 +1,282 @@
-
 % !Tex root = checkedc.tex
 
-\chapter{Bounds for pointer referents that are \arrayptr\ types}
-% use the name pointers-to-pointers because aliased pointer would
-% be ambiguous: is the pointer pointing to something that is aliased,
-% or is the pointer aliased?
-\label{chapter:pointers-to-pointers}
+\chapter{Pointers  to data with \arrayptr s}
+\label{chapter:pointers-to-data-with-arrayptrs}
 
-\emph{\texttt{Under construction -- do not bother reading this yet.}}
+This chapter covers using pointers to data with \arrayptr s.  It also covers rules
+around pointers and bounds expressions.  This includes dereferencing pointers
+in bounds expressions and taking the address of variables within bounds expressions.
+Three important scenarios for using pointers with \arrayptr s to support are:
+\begin{itemize}
+\item Data structures: All linked data structures in 
+C are built with pointers, typically using pointers to structures.   This means
+there need to be ways to create pointers to structures that contain \arrayptr s,
+to assign through pointers to structures, and to read from pointers to structures.
+\item Passing data by-reference to functions.  C does not provide by-reference
+parameters.  Programmers pass data by-reference by using pointers explicitly.
+To pass data of type \var{T} by reference, a programmer creates a parameter
+with type \var{T *}.  Using safe pointers, a programmer create a parameter
+with type \ptrT.
+\item Taking the addresses of variables.  In C, programmers may take the
+addresses of variables.  Typically, this is done to be pass data by-reference.
+If a variable is used in a bounds expression, what can be done with the pointer
+must be constrained so that bounds-safety is not accidentally broken.
+\end{itemize}
 
-A program may have pointers to \arrayptr s. These pointers will be the
-addresses of locations that contain \arrayptr\ s. The \arrayptr\ values
-stored in those location must have bounds declared in order to be used
-to access memory.
+\section{Initialization of contained pointers}
 
-Here are some examples of variable declarations of pointers to
-\arrayptr s:
+The term ``referent data'' will refer to the data that can be accessed
+directly through a pointer.  The data may be an integer or floating-point number, a structure,
+a pointer, or an array of data.   Any safe pointers in data must be initialized
+before the pointers are used.
+
+For variables, this can be enforced using a static 
+analysis of variables with safe pointer types that point to data with safe 
+pointer types. For example, the Cyclone dialect of C \cite{Jim2002} did this
+and languages like Java and C\# have rules for ensuring that variables
+are definitely assigned before they are used.
+For a variable of \arrayptr\ data, the compiler could insert code for 
+initializing safe pointers in the data automatically to \texttt{0}, which is always
+a valid pointer.    
+
+For heap-allocated data, we can require that allocators
+return data that has been zeroed.  The initial implementation of
+Checked C will take this simple approach.  Section~\ref{section:allocation-of-uninitialized-data} 
+describes a proposal for supporting for allocators that return pointers to
+uninitialized data.
+ 
+\section{Pointers to structures}
+
+Pointers to  structures can be supported by ensuring that modifications to members
+preserve type-level bounds invariants, following the approach of the Deputy
+system \cite{Condit2007}.  This in turn means that accesses through structure
+pointers return values that  follow the type-level bounds invariants, provided that modifications
+are not interleaved.  Complicated aliasing problems are avoided because the
+alias relationship of members within a structure is well-known.  Expressions
+and statements that modify members must be relatively simple; they cannot access memory
+that may be aliased.
+
+Just like a member bounds can be suspended for a variable, a member bounds can 
+be suspended for an object that is referenced by a pointer. The syntax is:
+
+\begin{tabbing}
+\var{fact:}\= \\
+\>\texttt{suspends(\var{e}->\var{mp})} \\
+\>\texttt{holds(\var{e}->\var{mp})} \\
+\end{tabbing}
+
+where \var{e} is a pointer to a structure type \var{S} and \var{mp} is a member of
+path.  The syntax \texttt{(*\var{e}).\var{mp}} is equivalent to 
+\texttt{\var{e}->\var{mp}} and can be used in its place.  
+The syntax \texttt{suspends(*\var{e})} suspends all member bounds for 
+the object pointed to by \var{e} and the syntax \texttt{holds(*\var{e})} 
+means that all member bounds for \var{e} must hold.
+
+The expression \var{e} must be a non-modifying expression to ensure that the \var{e}
+refers to the same object at \keyword{suspends} and \keyword{holds} declarations.
+It must meet the following additional restrictions:
+\begin{itemize}
+\item \var{e} cannot access memory via a pointer operation.
+      It cannot contain a \texttt{*}, \texttt{->},  or a \texttt{[]} operation.
+\item No variable used in \var{e} can be modified between the \texttt{suspends}
+and \texttt{holds} declarations.
+\item No variable used in \var{e} can have its address taken.  This is to avoid
+indirect modifications of variables.
+\end{itemize}
+
+There are additional restrictions to avoid problems due to pointer aliasing 
+(when two pointers may point to the same memory).   We propose simple restrictions
+for correctness.
+Function calls are not allowed between \keyword{suspends} and 
+\keyword{holds} declarations for \texttt{\var{e}->\var{mp}}.  The function calls 
+might depend on the object pointed to by \var{e} having a  valid type-level invariant.
+  
+We continue to assume that the addresses of \arrayptr\ members and members
+used in member bounds cannot be taken.  It is undefined behavior for unchecked
+code to create pointers to the memory of those members.   With this assumption, we 
+can allow assignments through and reads via other pointer expressions
+between the \keyword{suspends} and \keyword{holds} declarations for
+\texttt{\var{e}->\var{mp}}.  This is provided that the assignments do not modify 
+\var{S.mp} or members in the bounds of \var{S.mp}.  No pointers should alias
+\var{mp} or the other members, so the only aliases can be other structure
+pointers.  Those can only be created through casting.  It is the programmer's responsibility
+to update bounds-checked members properly in that case (Section~\ref{section:pointer-casting}).
+
+The checking described in Chapter~\ref{chapter:structure-bounds} is extended from
+operating over variable member paths to operating over expression member paths, where
+the initial variable is replaced by a non-modifying expression that dereferences a structure
+pointer.
+
+\section{Speculative idea: support for by-reference parameter passing of \protect\arrayptr s}
+
+It will be important to support by-reference parameter passing of \arrayptr-typed variables
+in C.  It is a common way that multiple values are returned from a function.  By-reference parameter
+passing of \arrayptr s will lead to programs where the addresses of local variables or struct
+members of type \arrayptr are taken.
+
+For example, a function that returns a newly-allocated buffer and its length could be written as:
 \begin{verbatim}
-array_ptr<array_ptr<int>> x;
-ptr<array_ptr<int>> y;
+void create(ptr<array_ptr<char>> pbuf : *len, ptr<int> plen)
+{ ...
+}
+\end{verbatim}
+A caller would take the addresses of local variables to use this function:
+\begin{verbatim}
+void f()
+{
+    int len;
+    array_ptr<char> buf : count(len) = NULL;
+    create(&buf, &len);
+}
 \end{verbatim}
 
-The \arrayptr\ values stored at that location must have bounds
-declared in order to be used to access to memory. The pointer itself may
-be a \ptr\ or an \arrayptr.
+We can gain insight into this problem by considering a related
+problem.   When the address of a variable that occurs in a bounds declaration is 
+taken, it is important to ensure that the invariants for the bounds declaration are not
+broken accidentally.  Consider:
+\begin{verbatim}
+void bad_code(array_ptr<char> buf : count(len), int len) 
+{
+    ptr<int> plen = &len;
+    *plen = 5;
+}
+\end{verbatim}
+The problem with allowing the address of just \texttt{len} to be taken is
+that the lvalue for \texttt{len} actually has additional constraints. This
+suggests that pointer variables that hold addresses of address-taken variables should
+themselves have additional constraints.  For example:
+\begin{verbatim}
+void constrained_code(array_ptr<char> buf : count(len), int len) 
+{
+    ptr<int> plen = NULL;
+    ptr<array_ptr<char>> pbuf = NULL where *pbuf : *plen;
+    bundle {
+       plen = &len;
+       pbuf = &buf;
+    }
+    bundle {
+       array_ptr<int> a = malloc((sizeof(char)*5);
+       *plen = 5;
+       *pbuf = a;
+    }
+}
+\end{verbatim}
+There are some interesting issues that arise from this idea:
+\begin{compactitem}
+\item The bounds on the lvalues for \texttt{len} and
+\texttt{buf} must be invariant throughout the execution of the program.
+While we can put constraints on pointers that use those lvalues,
+we do not know when or where the lvalues will be updated.
+The implication of this is that only local variables with invariant
+bounds declarations (Section~\ref{section:invariant-bounds-declarations})
+can have their addresses taken.   Local variables
+with flow-sensitive bounds declarations cannot have their addresses taken.
+The function could alter the bounds declarations for the local variables
+so that they disagree with constraints on the pointers.
+\item Once the address of a variable involved in a bounds declaration 
+is taken, we cannot add new bounds declarations involving the variable.
+The pointer-level bounds declarations would not reflect the new constraint.
+\item The constraints on the pointers must fully capture 
+all the constraints on the underlying variables.
+\item Finally, constraints on the pointers cannot be dropped.
+\end{compactitem}
 
-We will use the terminology `pointer referent' to describe the value
-stored at an address given a pointer.
+The operations that could be done while updating
+address-taken variables or assigning through pointers with 
+constraints on them must be limited.
+To maintain the bounds declaration, we must ensure that
+variables are not modified unexpectedly via aliases. 
+Without aliasing information, function calls could not
+be allowed.  Updates to address-taken variables could
+not be intermingled with reads or writes through pointers
+with constraints to avoid the possibility of aliasing.
+
+Taking the addresses of members that are used in member
+bounds fits nicely into these constraints for supporting
+by-reference paramters.  The lvalues involved there do have
+invariant bounds through the execution of the program,
+which is the same requirement that we have placed on
+local variables.
+
+\section{Speculative idea: tracking initialization state of data}
+\label{section:allocation-of-uninitialized-data}
+
+In the long run, it is unsatisfactory to require that allocators always
+return zeroed data.  Some allocators such as \texttt{malloc} return pointers to
+uninitialized data.  This improves efficiency when data is
+simply overwritten by the caller.  For example, it is not necessary
+for bounds safety for arrays of characters to be zeroed.
+
+Here we describe a strawman proposal for addressing this issue.  
+We could add a way to track the initialization state of ranges of memory 
+that contain pointers. We already have a way of 
+describing ranges of memory: bounds expressions.  We can add
+predicates that use bounds expression to describe the initialization
+state of memory pointed to by a variable:
+\begin{itemize}
+\item Three predicates can be used in \keyword{where}\ clauses
+to describe the initialization state of a \arrayptr\ or \ptr-typed variable:
+\keyword{\_init\_data}, \keyword{\_uninit\_data}, and \keyword{\_zero\_data}.
+A predicate applies to a variable if it is combined using the \texttt{:}
+notation: \texttt{\var{x} : \_uninit\_data} means that x points to data
+that is uninitialized.
+\item The predicates also have range versions that take \bounds\ expressions
+as arguments by suffixing the predicate name with \texttt{\_range}.  For example, 
+if we want to express that \var{x} the first n elements of are initialized
+and the remaining elements are not, we could have
+\texttt{\var{x} : init\_data(x, x + n)
+\&\& \var{x} : uninit\_data(x + n + 1, x + len)}.
+\item The default state of data is that it is assumed to be initialized.
+Data must explicitly have another state declared for it to be in another
+initialization state.
+\item We need to address aliasing: static checking must ensure
+that areas of memory do not have contradictary initialization states.
+\item There will be local rules for expression and statements that deduce that a new
+initialization state declaration is valid after a statement.  We leave 
+the rules to be worked out later.
+\item Additional static checking rules will be added to ensure the
+safety of casts to safe pointer types that have pointer types embedded
+within them.
+\end{itemize}
+
+Here are potential bounds-safe interfaces for \texttt{malloc} and \texttt{calloc}.
+We omit notation for describing that \texttt{malloc} and \texttt{calloc} produce 
+pointers to new memory:
+\begin{verbatim}
+void *malloc(size_t len) 
+where return_value : byte_count(len) && return_value: _uninit_data;
+
+void *calloc(size_t num, size_t size)
+where return_value : byte_count(num * size)  && return_value : _zero_data
+\end{verbatim}
+A cast from the result of a \texttt{malloc} call to a safe pointer type with pointer types
+would propagate the  \texttt{\_uninit} predicate:
+\begin{verbatim}
+struct S {
+    int len;
+    int array_ptr<char> chars : len;
+}
+
+void f() 
+{
+   S *s = malloc(sizeof(S)) where s : _uninit_data;
+   s->chars = NULL where s : _init_data;
+   ...
+\end{verbatim}
+Of course we might want inference rules that add annotations automatically.  
+
+It might be possible to use ranges to write code that tracks at a fine grain that 
+data is being zeroed:
+\begin{verbatim}
+array_ptr<char> zero_mem(array_ptr<char> x : count(len) where x : _uninit, size_t len) 
+   where x : _zero_init
+{
+   array_ptr<char> p : bounds(x, x + len) = x
+       where p : _init_data(x, p) && p : _uninit_data(p, x + len);
+       
+   while (p < x + len) { 
+       *p++ = 0;
+   }
+   return;
+}
+\end{verbatim}

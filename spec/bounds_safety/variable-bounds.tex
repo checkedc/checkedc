@@ -150,10 +150,10 @@ declaration. This is provided that the resulting address is not used to
 access memory in the bounds declaration (that is, indirectly access the
 value of a variable). For example, given the declaration \texttt{int x},
 the expression \texttt{\&x} may appear in a bounds expression.  
-\omitted{
-Chapter~\ref{chapter:pointers-to-pointers}
-handles pointers to \arrayptr\ types and bounds expressions
-that dereference address-taken variables.}
+Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} extends the
+design to avoid these restrictions.  It covers pointers to data with 
+\arrayptr\ values,  pointers to variables used in bounds, and bounds 
+that use pointers.
 
 \subsection{Using bounds declarations}
 
@@ -424,6 +424,7 @@ array_ptr<char> alloc(size_t size) : count(size);
 \end{verbatim}
 
 \subsection{Invariant bounds declarations}
+\label{section:invariant-bounds-declarations}
 
 Variables that only have bounds declared for them at their definition
 have bounds that are invariants. Any assignments to the variable

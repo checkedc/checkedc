@@ -31,9 +31,9 @@ describes validating function call arguments.
 Because this section covers bounds for \arrayptr\ variables,
 not data structures with \arrayptr\ data, certain expressions
 are not covered here. This includes member references and expressions
-that load or store \arrayptr\ values through pointers. \omitted{These
-expressions are covered in Chapters~\ref{chapter:structure-bounds}, 
-\ref{chapter:aliased-members}, and~\ref{chapter:pointers-to-pointers}.}
+that load or store \arrayptr\ values through pointers. These
+expressions are covered in Chapters~\ref{chapter:structure-bounds} and
+\ref{chapter:pointers-to-data-with-arrayptrs}.
 Section~\ref{section:bounds-checking-indirections} does discuss how to 
 insert bounds checking at uses of the
 indirection operator (\texttt{*}). This is different than discussing the
@@ -775,7 +775,7 @@ new context and the bounds expression for e as follows:
   expression for e.
 \end{itemize}
 
-\section{Checking expression statements}
+\section{Expression statements}
 \label{section:checking-expression-statements}
 
 Expression statements need to be checked for consistency with their
@@ -1254,7 +1254,7 @@ as two's complement arithmetic is available under a compiler flag. In
 this case, the expected arithmetic properties hold, which enables more
 expressions to be canonicalized to the same form.
 
-\section{Checking declarations}
+\section{Declarations}
 \label{section:checking-declarations}
 
 Declarations also need to be checked for consistency with their bounds
@@ -1327,7 +1327,7 @@ verify that all the declarations of a variable in a translation unit
 have the same bounds declaration (or lack of a bounds declarations) for
 the variable.
 
-\section{Checking bundled declarations and statements}
+\section{Bundled declarations and statements}
 \label{section:checking-bundled}
 
 To check bundled declarations and statements, the current context is
@@ -1391,7 +1391,7 @@ bounds are valid. This means that the context before the function call
 must imply that bounds declarations for variables in scope that have
 static storage are valid.
 
-\section{Checking function call arguments}
+\section{Function call arguments}
 \label{section:checking-function-call-arguments}
 
 Function call arguments also need to be checked for consistency with
@@ -1437,7 +1437,7 @@ parameters,
   \end{itemize}
 \end{itemize}
 
- \section{Checking return statements}
+ \section{Return statements}
 
 A return statement has the form \texttt{return} \var{e}, where \var{e}
 is optional. The bounds for \var{e} are computed. If the special
@@ -1447,7 +1447,7 @@ place. It is then checked that the updated bounds for \var{e} imply the
 return bounds for the function using the rules in 
 Section~\ref{section:checking-expression-statements}
 
-\section{Checking other statements}
+\section{Other statements}
 
 There are a variety of other statements in C. These statements are built
 from zero or more expressions, statements, and declarations:
@@ -1567,6 +1567,5 @@ ambiguous variable in an expression e as:
   and the order of evaluation of *e1 and the assignment to the variable
   is undefined.
 \end{itemize}
-
 It is a compile-time error for an expression to have an ambiguous
 variable.

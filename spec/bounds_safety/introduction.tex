@@ -68,8 +68,9 @@ Checked C addresses the bounds checking problem for C by:
   and one for pointer types that carry their dynamic bounds with them
   (\arrayview ).
 \item
-  For array pointer types (\arrayptr), bounds checking is
-  placed under programmer control. This differs from languages like
+  For array pointer types (\arrayptr), in keeping with the low-level
+  nature of C,  bounds checking is placed under programmer control. 
+  This differs from languages like
   Java, where bounds checking is completely automatic. A programmer
   declares \emph{bounds}, where the bounds for an \arrayptr\
   variable are given by non-modifying C expressions. These are a subset
@@ -273,7 +274,7 @@ The target audience for this document includes programmers interested in
 learning about Checked C, compiler writers, and language designers.
 These groups have different and conflicting needs.  Programmers will find that
 some sections have too much detail, while language designers will likely
-find that some sections do not have enough detail.   Language designers
+find that some sections do not have enough detail.  Language designers
 may be less interested in compiler implementation details.
 We first describe the organization of the document and then provide
 a roadmap for the different audiences.
@@ -288,7 +289,8 @@ bounds safety even in the face of integer overflow, which is a
 widespread possibility in C programs. This requires a more nuanced
 requirement on the result of overflow than ``the result is undefined.''
 
-Chapters~\ref{chapter:core-extensions} through \ref{chapter:aliased-members}
+Chapters~\ref{chapter:core-extensions} through 
+\ref{chapter:pointers-to-data-with-arrayptrs}
 present the extensions to C for declaring bounds
 for \arrayptr\ values stored in variables and structures and
 checking the consistency of those declared bounds. The extensions are
@@ -337,11 +339,23 @@ introducing member bounds, which are type-level invariants about members
 of structure types. For now, it assumes that the programmer has done
 concurrency control around shared data properly and ignores the fact
 that data structures may be modified in racy ways such that invariants
-are violated.  Chapter~\ref{chapter:checking-structure-bounds} describes
-the rules that the compiler uses to check programs with member bounds.
+are violated.  The chapter also describes the rules that the compiler
+uses to check programs with member bounds.
 
-Chapter~\ref{chapter:aliased-members} extends these ideas to pointers 
-to structures.
+Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} describes how
+to extend reasoning about bounds to pointers to data that has \arrayptr-typed
+values within it.  This includes pointers to structures with members that
+have \arrayptr\ types and pointers directly to \arrayptr s.  Pointers to 
+structures can be used easily by ensuring that modifications to members
+preserve type-level bounds invariants. 
+This follows the lead of the Deputy system \cite{Condit2007}. 
+Complexity arises for pointers to \arrayptr s where 
+the \arrayptr s have bounds that depend on other variables or members.  The 
+other variables or members need to be abstracted by pointers as well to ensure 
+that invariants for bounds are not violated.  Assignments via pointer
+indirections need to be coordinated to maintain the invariant.  This
+gives rise to constraints on the pointers and the variables or
+members whose addresses have been taken.
 
 Chapter~\ref{chapter:simple-invariants}
 extends the checking of bounds to incorporate simple
@@ -355,8 +369,8 @@ given x == y and the statement \texttt{z = y;} z == x is true after that
 statement). These rules and facts can be used to deduce the correctness
 of bounds declarations that differ from those inferred directly by the
 checking described in Chapters~\ref{chapter:checking-bounds} 
-and~\ref{chapter:checking-structure-bounds}. For example, a programmer
-may wish to narrow the memory that is accessible via an
+and~\ref{chapter:pointers-to-data-with-arrayptrs}. For example, 
+a programmer may wish to narrow the memory that is accessible via an
 \arrayptr\ variable by declaring bounds that are a subrange of
 the bounds inferred by the checking. A programmer may wish to update the
 bounds for an \arrayptr\ variable after an assignment \texttt{x
@@ -370,16 +384,9 @@ example, a fact can be that the range of an integer variable \texttt{i}
 is always between 0 and 10. This can be used to deduce that an array
 access in a crucial inner loop is always in bounds.
 
-\omitted{
-Chapter~\ref{chapter:pointers-to-pointers}
-addresses pointers to \arrayptr\ variables and
-address-taken variables.
-}
-
 Chapter~\ref{chapter:lessons} describes prior work on extending C for safety and some
 lessons that we drew from that work. We are heavily influenced by the
-CCured and Deputy systems.
-
+CCured \cite{Necula2005} and Deputy systems \cite{Feng2006,Condit2007}.
 \omitted{
 Chapter~\ref{chapter:eval} evaluates the design by describing our experience modifying
 an existing C open-source code base by hand to use the Checked C
@@ -395,16 +402,14 @@ Chapter~\ref{chapter:eval} or
 unaddressed by the design. It also describes next steps for implementing
 this in a C compiler.
 }
-
 Chapter~\ref{chapter:open-issues} summarizes open issues that remain to be addressed
 by the design.
-
 Chapter~\ref{chapter:design-alternatives} discusses design alternatives
 that were considered and not chosen.  It explains why those alternatives were
 not chosen.
 
-Here are the suggest roadmaps for the different audiences of this
-document.  For programmers interested in learning about Checked C, 
+Here are the suggested roadmaps for the different groups of reders.
+For programmers interested in learning about Checked C, 
 we suggest reading Chapter~\ref{chapter:core-extensions} except 
 Sections~\ref{section:pointer-arithmetic-errors} and \ref{section:changes-to-undefined-behavior},
 Chapter~\ref{chapter:tracking-bounds}
@@ -416,10 +421,18 @@ and \ref{section:checking-bounds-with-structures},
 and Chapter~\ref{chapter:simple-invariants} through the first section.  
 Sections~\ref{section:pointer-cast-results},  \ref{section:integer-overflow-informal},
 and \ref{section:pointer-integer-conversions} are advanced topics that can be read
-after the other material.  
+after the other recommend chapters and sections.
 
 We suggest language designers and compiler writers 
 read most of the document. Language designers can skip Sections~\ref{section:computing-extent},
 \ref{section:canonicalization}, and \ref{section:canonicalization-example}.
 Compiler writers can skip the discussion in Section~\ref{section:programmer-dynamic-checks}
 and Chapters~\ref{chapter:lessons} and \ref{chapter:design-alternatives}
+
+\section{Acknowledgements}
+
+This design has benefited from many discussions with Weidong Cui, Gabriel Dos Reis, 
+Chris Hawblitzel, Galen Hunt, Shuvendu Lahiri, and Reuben Olinsky.  We thank them 
+for their contributions to the design.
+
+
