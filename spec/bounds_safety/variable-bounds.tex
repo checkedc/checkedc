@@ -650,7 +650,7 @@ Non-modifying expressions do not include:
   effects, these can always be simplified to the second expression)
 \end{compactitem}
 
-It suggested that programmers use simple non-modifying expressions because
+It is suggested that programmers use simple non-modifying expressions because
 the expressions may be fully re-evaluated at every bounds check involving the
 bounds expression. More complicated bounds expressions are allowed
 because programmers might find them useful.
@@ -664,13 +664,13 @@ the pointer has type
 \arrayptrT. The
 bounds specify a range of memory that is exactly the size of some array
 of T and the pointer points exactly at an element of that array. For
-example, support short ints are 2 bytes in size and 
+example, suppose short ints are 2 bytes in size and 
 {\texttt{\boundsdecl{x}{\bounds{y}{z}}}}, where the types of \texttt{x},
 \texttt{y}, \texttt{z} are \arrayptrinst{\texttt{short int}} .
 
 This illustration shows 12 consecutive bytes in memory beginning at
 address a\textsubscript{0}, where \texttt{y} and \texttt{z} bound a
-3-element array and \texttt{z} points to the middle of the array. The
+3-element array and \texttt{x} points to the middle of the array. The
 memory occuped by the 3-element array is shaded in light blue, and the
 element pointed to by x is also cross-hatched. The distances in bytes
 between \texttt{x}, \texttt{y}, and \texttt{z} are all multiples of 2,
@@ -758,18 +758,15 @@ aligned to its bounds for type \var{T}:
 This clause is only added to bounds pairs because (by definition) count
 expressions always describe pointers that are relatively aligned to
 their bounds. The optional relative alignment clause specifies a
-relative alignment type \var{T} or the required relative alignment of
-the pointer and its bounds and bytes. Given 
+relative alignment type \var{T} or the required relative alignment in
+bytes. Given 
 \boundsdecl{\var{x}}{\boundsrel{\var{e1}}{\var{e2}}{\var{T}}},
-\texttt{(((\arrayptrchar) \var{x}) - ((\arrayptrchar) \var{e1})) \%
+\texttt{((\arrayptrchar) \var{x} - (\arrayptrchar) \var{e1}) \%
         \sizeof{\var{T}} == 0} and
-(((\arrayptrchar) \var{e2}\texttt{) -
-(\arrayptrchar\ } \var{x}\texttt{)) \%
-sizeof(}\var{T}\texttt{) == 0} must be true. If the number of bytes is
+\texttt{((\arrayptrchar) \var{e2} - (\arrayptrchar) \var{x}) \%
+sizeof(\var{T}) == 0} must be true. If the number of bytes is
 specified, \sizeof{\var{T}} is replaced by the
-constant expression.
-
-The relative alignment clause \relalign{\var{type}}
+constant expression.  The relative alignment clause \relalign{\var{type}}
 is just short-hand for \relalignval{\texttt{sizeof(\var{type})}}.
 
 \subsection{Examples of uses of bounds declarations that specify relative alignment}
@@ -783,7 +780,8 @@ the relative alignment remains \texttt{char}:
 \begin{verbatim}
 // cast data to be an array_ptr<int> instead
 array_ptr<char> raw_data : bounds(lower, upper) = ...
-array_ptr<int> data : bounds(lower, upper) rel_align(char) = (array_ptr<int>) data;
+array_ptr<int> data : bounds(lower, upper) rel_align(char) =
+    (array_ptr<int>) raw_data;
 \end{verbatim}
 
 In the second example, the code starts with an
@@ -819,13 +817,10 @@ cannot because pointer arithmetic is done at the granularity of
 \texttt{short int}.
 
 The final example illustrates the use of a dynamic check to allow an
-\arrayptrchar\ to be cast to a larger
-type with a larger relative alignment. It assumes that
-\texttt{sizeof(int)} is 4 and that the memory pointed to by
-\texttt{dest} and \texttt{src} does not overlap. The code for a function
-that does a memory copy and uses an optimized aligned copy if possible
-could be written as:
-
+\arrayptrchar\ to be cast to a larger type with a larger relative alignment.
+It is a function that does a memory copy and uses an optimized aligned copy if
+possible.  For simplicity, it is assumed that the memory pointed to by
+\texttt{dest} and \texttt{src} does not overlap and that \texttt{sizeof(int)} is 4:
 \begin{verbatim}
 void copy(array_ptr<char> dest : bounds(dest, dest + num),
           array_ptr<char> src : bounds(src, src + num), 
@@ -837,13 +832,13 @@ void copy(array_ptr<char> dest : bounds(dest, dest + num),
     array_ptr<int> aligned_src : bounds(src, src + num) rel_align(char) =
         (array_ptr<int>) src;
     int n = num / 4;
-    for (int i = 0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
        aligned_dest[i] = aligned_src[i];
     }
  }
  else {
-    for (int i = 0; i<n; i++) {
-       dest[i] = src[i];
+    for (int i = 0; i < num; i++) {
+        dest[i] = src[i];
     }
 }
 \end{verbatim}
@@ -910,17 +905,18 @@ added:
 \boundsbytecount{\var{non-modifying-exp}}
 \end{quote}
 
-The bounds declaration \boundsdecl{\var{x}, \boundsbytecount{\var{e1}}}
+The bounds declaration \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
 describes the number of bytes that are accessible beginning at \var{x}. 
 Only memory that is at or above \var{x} and below \texttt{(\arrayptrchar)}
 \var{x} \texttt{+} \var{e1} can be accessed through \var{x}. The type
 of \var{e1} must be an integral type. This bounds declaration is a synonym for 
 \boundsdecl{\var{x}}
            {\boundsrel{(\arrayptrchar) \var{x}}
-                      {(\arrayptrchar) (\var{x} \texttt{+} \var{e1})}
+                      {(\arrayptrchar) \var{x} \texttt{+} \var{e1}}
                       {\texttt{char}}}
 
-The standard C library functions for malloc, memcmp, and memcpy will be
+The standard C library functions for \texttt{malloc}, \texttt{memcmp}, and
+\texttt{memcpy} will be
 given bounds-safe interfaces to avoid breaking existing code as
 described in Section~\ref{section:function-bounds-safe-interfaces}. 
 However, if they were to return safe pointer
@@ -937,8 +933,8 @@ array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
     byte_count(num);
 \end{verbatim}
 
-The return value of \texttt{memcpy} is \texttt{dest} . The bounds for
-this return value could be more precisely described by:
+The return value of \texttt{memcpy} is \texttt{dest}. The bounds for
+this return value could be described more precisely by:
 
 \begin{verbatim}
 array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
@@ -991,9 +987,9 @@ lead to unexpected bounds checks failures.
 \subsection{Definition of extent}
 \label{section:extent-definition}
 
-We first define the set of flow-sensitive bounds declarations that apply to a component of a function.  A component is an expression statement,
-variable declaration, or part of a compound statement. For any
-flow-sensitive bounds
+We first define the set of flow-sensitive bounds declarations that apply to a 
+component of a function.  A component is an expression statement,
+variable declaration, or a compound statement. For any flow-sensitive bounds
 declaration for a variable \var{v}, if
 
 \begin{compactenum}
@@ -1063,9 +1059,9 @@ rejected by the compiler.
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
-    end = end + 1; // Bounds of start becomes none because a variable in the bounds
-                   // expression is modified
-    start[5]  = 0; // Program is rejected
+    end = end + 1; // bounds(start, end) does not hold after this, so program is
+                   // rejected
+    start[5]  = 0;
    ...
 }
 \end{verbatim}
@@ -1088,7 +1084,8 @@ There are two bounds declaration for \texttt{start} here: one at the
 parameter declaration and one at the first assignment in the function.
 The bounds declaration at the parameter and its extent is highlighted in
 light blue. The bounds declaration at the assignment and its extent is
-highlighted in yellow:
+highlighted in yellow {\em Note: the highlighting was lost in the
+conversion to LaTex.  This is tracked as issue \# 3}:
 
 \begin{verbatim}
 /* sum integers stored between start and end, where end is not included */
@@ -1101,7 +1098,7 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 }
 \end{verbatim}
 
-The following example expands on the choose function earlier. There are
+The following example expands on the \texttt{choose} function earlier. There are
 4 explicit bounds declarations for \texttt{c}. The bounds declarations
 and their extents have been color-coded. Three bounds declarations for c
 have the form \texttt{c : count(clen)}. They must be syntactically
@@ -1170,7 +1167,7 @@ The dataflow analysis uses a lattice of values, assigning one lattice
 value to each variable at each program point in the function. The
 lattice of values includes singleton values consisting of the bounds
 expressions in the flow-sensitive bounds declaration for variables in
-the function, \boundsnone (indicating absence of bounds
+the function, \boundsnone\ (indicating absence of bounds
 information), and \texttt{Top} (indicating contradiction or error):
 
 \begin{tikzpicture}[sibling distance=1in]
@@ -1181,8 +1178,10 @@ information), and \texttt{Top} (indicating contradiction or error):
 \end{tikzpicture}
  
 For an assignment to an \arrayptr\ variable, the existing
-lattice value for the \arrayptr\ variable is killed. A new
-lattice value is generated for the \arrayptr\ variable. If the
+lattice value for the \arrayptr\ variable is killed, unless
+the special conditions described in Section~\ref{section:extent-of-declarations}
+are met. 
+A new lattice value is generated for the \arrayptr\ variable. If the
 assignment declares bounds for the \arrayptr\ variable, the new
 lattice value is the bounds expression in the bounds declaration.
 Otherwise, it is the value \boundsnone.
@@ -1303,7 +1302,7 @@ int sum()
 /* buggy resize function */
 void resize(int len) 
 {
-    array_ptr<int> tmp = malloc(sizeof(int) * len);
+    array_ptr<int> tmp : count(len) = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
     buflen = len;  // fails at compile-time because the bounds are not true
     buf = tmp;
@@ -1389,15 +1388,19 @@ compiler inserts checks before the memory pointed to by \var{e1} is
 read or written that \var{e1} is non-null and that the value of
 \var{e1} is in bounds.
 
-If \boundsdecl{\var{e1}}{\bounds{\var{e2}}{\var{e3}}},
+If \boundsinfer{\var{e1}}{\bounds{\var{e2}}{\var{e3}}},
 the compiler inserts a runtime check that \texttt{\var{e2} <= \var{e1} \&\&
 \var{e1} < \var{e3}}. If the runtime check fails, the program
 will be terminated by the runtime system or in, systems that support it,
-a runtime exception will be raised.
+a runtime exception will be raised.   If \boundsinfer{\var{e1}}{\boundscount{\var{e2}}},
+this is expanded to \boundsinfer{\var{e1}}{\bounds{\var{e1}}{\var{e1} + \var{e2}}}
+before inserting checks.  Of course a temporary variable would be used to hold the
+value of \var{e1}.
 
 If the default relative alignment has been overridden and
 \boundsdecl{\var{e1}}{\boundsrel{\var{e2}}{\var{e3}}{\var{T}}}, the compiler checks whether
-\texttt{sizeof(referent-type(\var{e1})) <= sizeof(\var{T})}. If it is, it inserts the same
+\texttt{sizeof(referent-type(\var{e1}))} is a common factor of \texttt{sizeof(\var{T})}. 
+If it is, it inserts the same
 runtime check as before. Otherwise, it inserts a runtime check that
 \texttt{\var{e2} <= \var{e1} \&\& \var{e1} + sizeof(\var{T}) - 1 < \var{e3}}
 
@@ -1411,22 +1414,16 @@ dynamic_check(x <= x && x < x + c);
 z = *t1;
 \end{verbatim}
 \end{quote}
-
-Suppose \boundsdecl{x}{\boundscount{\texttt{c}}} instead. The bounds declaration 
-\boundsdecl{\var{e1}}{\boundscount{\var{e2}}} is a synonym for 
-\boundsdecl{\var{e1}}{\bounds{\var{e1}}{\var{e1} \texttt{+} \var{e2}}}.
-The runtime check becomes \texttt{e1 <= e1 < e1 + e2}.
-In this example, the check becomes \texttt{x <= x <
-x + c}. The condition \texttt{x <= x} is trivially true. The
+The condition \texttt{x <= x} is trivially true. The
 condition \texttt{x < x + c} simplifies to \texttt{0
-< c}, that is \texttt{c \textgreater{} 0}, which is what one
+< c}, that is \texttt{c > 0}, which is what one
 would expect.
 
-Now suppose pointer arithmetic is involved and \texttt{z = *(x+5)}. The
+Now suppose pointer arithmetic is involved and \texttt{z = *(x + 5)}. The
 bounds of \texttt{x + 5} will be the same as the bounds of \texttt{x}.
 The expression \texttt{x + 5} must point into the same object as
 \texttt{x} for this to be a valid memory access. This means that
-\boundsdecl{\texttt{x + 5}}{\bounds{\texttt{x}}{texttt{x+c}}}.
+\boundsdecl{\texttt{x + 5}}{\bounds{\texttt{x}}{\texttt{x + c}}}.
 The compiler will produce code of the form:
 
 \begin{quote}
@@ -1437,10 +1434,6 @@ dynamic_check(t1 != null && x <= t1 && t1 < x + c);
 z = *t1;
 \end{verbatim}
 \end{quote}
-
-If \verb|x : count(c)|, the compiler will expand this to
-\verb|bounds(x, x + c)| before computing the bounds of \verb|x + 5|
-and proceed as before.
 
 Array subscripting works as expected. For \texttt{e1[e2]}, the
 compiler computes the bounds of \texttt{e1}. The compiler inserts
@@ -1469,16 +1462,16 @@ be particularly problematic when bounds declarations are extended
 to structures.   It also avoids complications when \texttt{x} is
 \texttt{null}. Section~\ref{section:bounds-declarations-alternate-semantics} 
 discusses eager evaluation of bounds expressions at
-bounds declarations in more detail and explains why that was not chosen.
+bounds declarations in more detail and explains why this was not chosen.
 
 \section{Size computations and integer overflow or wraparound}
 \label{section:integer-overflow-informal}
 
 When objects are allocated dynamically in C, programmers have to compute
 the amount of memory to allocate for the objects. It is well-known 
-\cite{Howard2003,Mitre2015-128,Mitre2015-190,Mitre2015-680} 
 that integer overflow or wraparound in these computations can lead to buffer
-overruns . In Checked C, the explicit size computations are not enough
+overruns \cite{Howard2003,Mitre2015-128,Mitre2015-190,Mitre2015-680,Dietz2015}.
+ In Checked C, the explicit size computations are not enough
 to imply that the bounds for a newly-allocated object are valid.
 Additional side conditions that deal with integer overflow or wraparound
 are needed.
@@ -1494,7 +1487,7 @@ extern char *malloc(size_t s) : count(s);
 An array of type T is allocated with:
 
 \begin{verbatim}
-array_ptr<T> p : count(e1) = (T) malloc(sizeof(T) * e1);
+array_ptr<T> p : count(e1) = (arrayptr<T>) malloc(sizeof(T) * e1);
 \end{verbatim}
 
 The size computation in the count expression differs subtly from the
@@ -1557,7 +1550,7 @@ Signed integer & \texttt{e1 >= 0 and e1 <= INT\_MAX/sizeof(T)}\tabularnewline
 
 This has an interesting implication for any function that allocates an
 array of \var{T}. If the count of elements is constant, of course these
-conditions are trivial. If the constant is non-constant, the function
+conditions are trivial. If the count is non-constant, the function
 must do the following checks:
 
 \begin{itemize}
@@ -1565,7 +1558,7 @@ must do the following checks:
   If the count is a signed integer, the function must check that the
   count \textgreater{}= 0 before trying to allocate the array.
 \item
-  If \var{T} is larger than 1 byte, the function must check that the
+  If the size of \var{T} is larger than 1 byte, the function must check that the
   count is less than the upper bound as well.
 \end{itemize}
 

@@ -15,7 +15,7 @@ conversion operations: how different kinds of pointers can
 be converted to other kinds of pointers.  
 Section~\ref{section:function-bounds-safe-interfaces}
 describes how existing code that uses unsafe pointers can be modified
-to present a safe interface.  They key insight there is that the
+to present a safe interface.  The key insight is that the
 the interface must be both safe and unsafe, depending on context.
 For existing code that uses unsafe pointers, the interface is descriptive,
 but correctness is not enforced by the language.  For code that uses safe
@@ -53,7 +53,7 @@ pointer type is valid when the following rules hold:
 \item If the destination pointer is a \ptrT\ type, the range of 
 memory that can be accessed beginning at the source pointer is
 large enough to hold a value of type \var{T}.
-\item If the destination pointer is a \arrayptrT\ or \arrayviewT type, 
+\item If the destination pointer is a \arrayptrT\ or \arrayviewT\ type, 
 the bounds for the destination pointer are equal to or within the range of
 the memory accessible through the source pointer.
 \end{itemize}
@@ -124,14 +124,14 @@ error.
 succeeds.
 \item Otherwise, the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible
 to that form).  It must be statically provable that \texttt{\var{e} >= \var{lb}}
-and that {\texttt{((char *) \var{ub}) - ((char *) e) >= sizeof(\var{T})}}.    
+and that {\texttt{((char *) \var{ub}) - ((char *) \var{e}) >= sizeof(\var{T})}}.    
 \end{itemize}
 \item \arrayptrT: No new rules are needed.   The rules in
 Chapter~\ref{chapter:checking-bounds} already cover this case.
 \item \arrayviewT: It must be statically provable that \var{e}
-and \bounds{lb}{ub} meet the relative alignment requirements of
+and \bounds{\var{lb}}{\var{ub}} meet the relative alignment requirements of
 the destination \arrayview\ type.  At runtime, a new value of
-type \arrayviewT\ with the value of \var{e} and \bounds{lb}{ub} will be created.
+type \arrayviewT\ with the value of \var{e} and \bounds{\var{lb}}{\var{ub}} will be created.
 \item \texttt{\var{T} *}: If the source type \var{S} is
 \begin{itemize}
 \item An unsafe pointer type (\texttt{*}), checking succeeds.
@@ -245,7 +245,7 @@ If an expression that produces a value (rvalue in C terminology)
 has an unsafe pointer type and it occurs where an expression with
 a safe pointer type is expected, the expression will be converted implicitly 
 from an unsafe pointer type to a safe pointer type.  The rules for bounds checking will
-be applied separately after type  checking and will be relied upon  to guarantee
+be applied separately after type  checking and will check
 the bounds-safety of the implicit conversions.  The implicit conversions are
 done by inserting a C cast operator to the desired safe pointer types. 
 
@@ -258,9 +258,10 @@ is deferred for now}.
 
 Implicit conversions  from \unsafeptrvoid\ to safe pointer types are also 
 allowed for now.  There is not a  design for checking type-safety of casts yet.  
-The design will almost certainly affect \unsafeptrvoid\ casts. We wish to avoid
-requiring changes to code that will have to be altered later.  Only
-one implicit pointer conversion is allowed for an expression.  An expression will not be
+The design will almost certainly affect \unsafeptrvoid\ cast and wish to avoid
+requiring changes to code that will have to be altered later.  
+
+Only one implicit pointer conversion is allowed for an expression.  An expression will not be
 coerced implicitly from \unsafeptrinst{\var{S}} to \unsafeptrvoid\ to
 \unsafeptrinst{\var{T}}, where S and T are types.
 
@@ -279,9 +280,8 @@ void f()
 }
 \end{verbatim}
 
-The following example will fail at compile time. The bounds for sp will
-be computed as \texttt{bounds(none)}, which does not match
-\texttt{count(1)}.
+The following example will fail at compile time. The bounds for \texttt{random()} will
+be computed as \boundsnone, which does not match \boundscount{1}.
 \begin{verbatim}
 char *random();
 
