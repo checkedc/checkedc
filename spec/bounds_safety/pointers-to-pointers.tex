@@ -192,7 +192,7 @@ not be intermingled with reads or writes through pointers
 with constraints to avoid the possibility of aliasing.
 
 Taking the addresses of members that are used in member
-bounds fits nicely into these constraints for supporting
+bounds fits nicely into this approach for supporting
 by-reference paramters.  The lvalues involved there do have
 invariant bounds through the execution of the program,
 which is the same requirement that we have placed on
@@ -211,7 +211,7 @@ Here we describe a strawman proposal for addressing this issue.
 We could add a way to track the initialization state of ranges of memory 
 that contain pointers. We already have a way of 
 describing ranges of memory: bounds expressions.  We can add
-predicates that use bounds expression to describe the initialization
+predicates that use bounds expressions to describe the initialization
 state of memory pointed to by a variable:
 \begin{itemize}
 \item Three predicates can be used in \keyword{where}\ clauses

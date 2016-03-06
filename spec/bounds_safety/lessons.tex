@@ -9,7 +9,7 @@ combination of applied type theory, program logics, program
 verification, and dynamic techniques that can be used when static
 checking becomes too complicated. The research has not been productized
 by industry, even though flaws in C and C++ programs have caused
-widespread, costly security problems \emph{(to do: citation).} What
+widespread, costly security problems.  What
 lessons can we learn from existing research?
 
 CCured \cite{Necula2005} uses whole-program static analysis to identify 
@@ -111,14 +111,14 @@ The example has an annotation on the \texttt{buffer\_info} field of
 \texttt{buffer\_info} points at an array element and that at least
 \texttt{info\_count} elements are valid (specifically, it is valid to
 access memory between \texttt{buffer\_info} and \texttt{buffer\_info +
-info\_count -- 1}). This information is part of the type of
+info\_count - 1}). This information is part of the type of
 \texttt{buffer\_info}.
 
 The type checking rule for adding a pointer of \verb|Array| type with an
 integer requires that the integer value be in bounds for the array. To
 type check \texttt{tx\_ring-\textgreater{}buffer\_info[i]}, the type
-checker must show at compile time that \texttt{i \textgreater{}= 0} and
-\texttt{i \textless{}= tx\_ring-\textgreater{}count}. In general, taking
+checker must show at compile time that \texttt{i >= 0} and
+\texttt{i <= tx\_ring->count}. In general, taking
 an arbitrary program and establishing equality between runtime values at
 compile time is undecidable, which means that type checking would be
 undecidable. To make type checking decidable, Deputy examines statements
@@ -128,7 +128,7 @@ checks that establish the relationships are true before the statements.
 If a relationship between runtime values is not true, the checks cause
 the program to fail at run time. Of course, these runtime checks can be
 eliminated by later optimization. In this specific case, the compiler
-injects a runtime check \verb|assert(0 <= i && i < tx\_ring->info\_count);| into the program. 
+injects a runtime check \verb|assert(0 <= i && i < tx_ring->info_count);| into the program. 
 In the example, the runtime checks are italicized assert statements.
 
 \begin{alltt}
@@ -224,8 +224,8 @@ int sum (int * count(end - buf) buf, int * end) \{
 \}
 \end{alltt}
 
-The program now has computations of \texttt{end -- buf} and \texttt{end
--- tmp} that track the bounds of the array \texttt{buf}. A C programmer
+The program now has computations of \texttt{end - buf} and \texttt{end
+- tmp} that track the bounds of the array \texttt{buf}. A C programmer
 would not expect instructions for these computations to be injected into
 the program. This makes the program less efficient and these
 instructions are also not introduced under programmer control. In
@@ -330,7 +330,7 @@ upper bounds on the valid range of memory associated with a pointer.
 used, with safety checks added for various operations. Consider the
 original example in Section~\ref{section:dependent-typing-issues}. 
 Here is the code for the method using
-\arrayview .
+\arrayview.
 
 \begin{verbatim}
 int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
@@ -343,9 +343,6 @@ int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
     return sum;
 }
 \end{verbatim}
-
-Appendix A illustrates how optimizing compilers can make using local
-variables of type \arrayview\ efficient.
 
 \section{Summary of lessons}
 

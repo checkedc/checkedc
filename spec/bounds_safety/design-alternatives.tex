@@ -82,7 +82,7 @@ require interprocedural or whole-program analysis.
 
 \section{Address-of operations and array-to-pointer conversions always produce safe pointer types}
 
-We considered a designed where the address-of operator (\&) and
+We considered a design where the address-of operator (\&) and
 array-to-pointer type conversions always produce safe pointer types. To
 preserve compatibility with existing C code, we would introduce implicit
 conversions from safe pointers to unsafe pointers. We found that we were
@@ -97,7 +97,7 @@ type \var{T} would produce a value of type
 
 Existing C code expects the address-of operator to produce a \var{T} *.
 To allow most code to compile without changes, we add an implicit cast
-rule: \ptrT can be cast
+rule: \ptrT\ can be cast
 implicitly to a \var{T} * in those situations where a \var{T}
 \texttt{*} type is expected, except for pointer arithmetic operators
 that add or subtract a pointer and an integer. Those situations include
@@ -109,10 +109,10 @@ before.
 
 Pointer arithmetic operators are excluded to avoid the silent
 introduction of unsafe pointer types and to preserve the value of having
-the \ptrT type. If
-there were always an implicit cast from \ptrT to \var{T} \texttt{*},
+the \ptrT\ type. If
+there were always an implicit cast from \ptrT\ to \var{T} \texttt{*},
 then any expression that uses pointer arithmetic could do pointer
-arithmetic on \ptrT
+arithmetic on \ptrT\
 values.
 
 Code takes the address of an array element and immediately does pointer
@@ -128,7 +128,7 @@ f()
 \end{verbatim}
 
 We expect this kind of code to be rare because the succinct style is to
-use \texttt{a} instead of \texttt{\&a[0]}, but is nonetheless a
+use \texttt{a} instead of \texttt{\&a[0]}, but it is nonetheless a
 possibility, so this proposal still violates the principle of not
 changing the meaning of existing C code.
 
@@ -146,14 +146,15 @@ f()
 Array types may be complete or incomplete. A complete array type
 specifies the number of elements in the array using a constant
 expression. In incomplete array type does not specify the number of
-elements in the array. Examples of complete array types are int[10]
-and int[10][10]. Examples of incomplete array types are
-int[] and int[][10].
+elements in the array. Examples of complete array types are 
+\texttt{int[10]}
+and \texttt{int[10][10]}. Examples of incomplete array types are
+\texttt{int[]} and \texttt{int[][10]}.
 
 If the type of an expression or a subexpression is an ``array of
 \var{T}'', the following rules would apply. If the array is a complete
 type, the type of the expression is altered to
-\arrayptrT . If it is
+\arrayptrT. If it is
 an incomplete type, the type of the expression is altered to \var{T} *.
 This alteration does not happen if the expression is an operand of an
 address-of operator, \texttt{++}, \texttt{-\/-}, \texttt{sizeof}, or the
@@ -195,8 +196,8 @@ rule that an \arrayptrT\ can be
 implicitly cast to a \var{T} * in situations where a T * type is
 expected. Those situations may include pointer assignment, arguments to
 function calls, return statements, and conditional expressions. For
-onditional, expressions of the form exp1 \texttt{?} exp2 \texttt{:}
-exp3, the implicit coercion occurs when exp2 or exp3 has type T * and
+onditional, expressions of the form \var{exp1} \texttt{?} \var{exp2} \texttt{:}
+\var{exp3}, the implicit coercion occurs when \var{exp2} or \var{exp3} has type T * and
 the other expression has type
 \arrayptrT. These situations do not
 include array references and adding or subtracting a pointer type and an
@@ -327,7 +328,7 @@ avoid, and it could also be error-prone.
 We considered the opposite approach of having only lexically-scoped
 bounds declarations.   However, this introduces the opposite problem of
 redeclaring invariants.  A pointer variable could not have different
-bounds declarations during at different points in the program.  This could
+bounds declarations at different points in the program.  This could
 make modifying existing C code to be bounds-safe more complex: an existing
 variable might need to be replaced with several new variables.
 
@@ -450,7 +451,7 @@ The meaning of this bounds expression would be defined as follows:
 At runtime, given an expression \var{e} with a bounds expression
 \objectbounds{\var{lb}}{\var{ub}}, let the
 runtime values of \var{e}, \var{lb}, and \var{ub} be \var{ev},
-\var{lbv}, and \var{ubv}, respectively. The value ev will have been derived
+\var{lbv}, and \var{ubv}, respectively. The value \var{ev} will have been derived
 via a sequence of operations from a pointer to some object \var{obj}
 with \objectbounds{\var{low}}{\var{high}}.  The following statement 
 will be true at runtime: \texttt{\var{low} <= \var{lbv} \&\&

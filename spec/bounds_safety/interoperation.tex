@@ -577,7 +577,7 @@ program might store a tag in the least significant bits or most
 significant bits of some pointers, knowing that those bits are always
 zero otherwise.
 
-The bounds of such a pointer are easy to described: they are the bounds
+The bounds of such a pointer are easy to describe: they are the bounds
 of the original pointer. If a pointer variable or member is used in its
 own bounds, the tag must be removed first. This is
 done by masking out the bits that are always 0.
@@ -605,14 +605,14 @@ struct S {
 There is one important caveat (for now): tags cannot be stored in null pointers. A
 null pointer may have bounds that are not valid. This is fine because
 the null pointer may not be used to access memory. However, tagging a
-null pointer could result in a non-null pointer with bounds that are not
-valid. This non-null pointer could be used to incorrectly access memory.
+null pointer could result in a non-null pointer with bounds that are
+invalid. This pointer could be used to access memory incorrectly.
 
 \subsection{Extending bounds checking rules to integral
 expressions}
 
-The inference of bounds for expressions disregards cast operator: the 
-information flows through the operation, with adjustments if the bounds
+The inference of bounds for expressions disregards non-narrowing cast operators:
+the  information flows through the operation, with adjustments if the bounds
 include \exprcurrentvalue.  This makes it straightforward to extend the
 rules for inferring bounds to integral expressions:
 
@@ -650,7 +650,7 @@ rules for inferring bounds to integral expressions:
     If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsnone, and \var{e2} has
     \boundsnone, and it can be proved that \texttt{\var{e1} != 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
-    If the special variable \exprcurrentvalue occurs in \var{b}.
+    If the special variable \exprcurrentvalue\ occurs in \var{b}.
     bounds of the expression are altered to be \boundsnone. Shift
     expressions are not invertible because they lose information.
   \end{itemize}
@@ -658,8 +658,8 @@ rules for inferring bounds to integral expressions:
 
 \subsection{An example}
 
-The following example shows functions that create a tagged pointer and then set 
-to the pointer to 1.
+The following example shows functions that create a tagged pointer and 
+that set the tag to 1.
 
 \begin{verbatim}
 #define untagged_bounds(x) \
