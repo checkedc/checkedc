@@ -61,8 +61,12 @@ the memory accessible through the source pointer.
 Casts between safe pointer types should preserve bounds safety
 by default.  The cases where it does not should be the unusual cases.
 For this reason, C cast operations to safe pointer types are 
-required to be provably safe at compile-time.   We add two new
-operators for other cases.  Table~\ref{table:cast-operators}
+required to be provably safe for bounds at compile-time.   It
+is straightforward to check casts between safe pointers to constant-sized
+objects.   The rules that are used to check bounds and lightweight
+invariants are used to check casts as well.   For cases where static
+checking cannot prove bounds safety of casts, we add two new operators. 
+Table~\ref{table:cast-operators}
 describes the operators.
 
 \begin{table}
@@ -242,6 +246,30 @@ can be determined. Only a few kinds of expressions with unsafe pointer
 types have bounds that can be determined: address-of expressions
 involving variables and uses of array variables.
 
+\subsection{Examples}
+\label{section:pointer-cast-examples}
+
+Here are examples of C-style casts to safe pointers to
+constant-sized object. The static checking rules are straightforward
+to apply here.  The examples assume that integers are
+4 bytes in size:
+\begin{verbatim}
+int x = 0;
+ptr<int> px = (ptr<int>) &x;
+array_ptr<char> pax : count(4) : (array_ptr<char>) px;
+array_ptr<char> odd_pax : count(3) = (array_ptr<char>) px;
+
+char data[12];
+ptr<int> pfirst = (ptr<int>) data; // pointed to 1st element as an integer;
+array_ptr<int> pdata : count(3) = (array_ptr<int>) data;
+
+void swizzle(ptr<int> p) {
+   array_ptr<char> bytes : count(4) = (array_ptr<char>) p;
+   char t0 = p[0], t1 = p[1], t2 = p[2]; t3 = p[3];
+   p[0] = t3, p[1] = t2, p[2] = t1, p[3] = t0;
+}
+\end{verbatim}
+
 \subsection{Implicit conversions}
 \label{section:implicit-conversions}
 
@@ -262,34 +290,39 @@ is deferred for now}.
 
 Implicit conversions  from \unsafeptrvoid\ to safe pointer types are also 
 allowed for now.  There is not a  design for checking type-safety of casts yet.  
-The design will almost certainly affect \unsafeptrvoid\ cast and wish to avoid
-requiring changes to code that will have to be altered later.  
+The design will almost certainly affect \unsafeptrvoid\ casts and we wish to avoid
+requiring changes to code that will have to be revised later.  
 
 Only one implicit pointer conversion is allowed for an expression.  An expression will not be
 coerced implicitly from \unsafeptrinst{\var{S}} to \unsafeptrvoid\ to
 \unsafeptrinst{\var{T}}, where S and T are types.
 
-Here are some examples of implicit converisons:
+The prior code for conversions can be even shorter:
 \begin{verbatim}
-void f() 
-{
-    int a;
-    // the type of &a will be int *.  This will be implicitly converted to
-    // ptr<int>.
-    ptr<int> pa = &a;
-    int arr[5];
-    // the type of arr will be int *.  This will be implicitly converted to
-    // array_ptr<int> 
-    array_ptr<int> parr : count(5) = arr;
-}
+int x = 0;
+ptr<int> px = &x;
+array_ptr<char> pax : count(4) : &x;
+array_ptr<char> odd_pax : count(3) = &x;
+
+char data[12];
+ptr<int> pfirst = data; // points to 1st element as an integer;
+array_ptr<int> pdata : count(3) = data;
+\end{verbatim}
+Incorrect conversions of pointers to constant-sized data will be rejected:
+\begin{verbatim}
+int x = 0;
+array_ptr<char> pax : count(5) : &x;     // fails to check: source not large enough
+array_ptr<int> pdata : count(4) = data;
 \end{verbatim}
 
-The following example will fail at compile time. The bounds for \texttt{random()} will
-be computed as \boundsnone, which does not match \boundscount{1}.
+Incorrect conversions of unsafe pointers with no bounds information
+will also be rejected.  In the following example, the bounds for 
+\texttt{random()} will be computed as \boundsnone, which does
+not match \boundscount{1}.
 \begin{verbatim}
 char *random();
 
-f() {
+void f() {
     array_ptr<char> sp : count(1) = random(); 
 }
 \end{verbatim}
