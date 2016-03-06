@@ -11,7 +11,7 @@ the values stored there to be used to access memory. A structure member
 declaration may include a \keyword{where} clauses that declares member
 bounds. The bounds for a member also may be placed inline at the
 declaration of the member. The list of declarations of structure members
-may also include where clauses at top-level. 
+may also include \keyword{where} clauses. 
 
 Here are examples:
 
@@ -83,10 +83,10 @@ void f(int len) {
 
 Making member bounds be invariants provides a way to deal with issues
 causing by aliasing. There can be pointers to data structures or members
-of data structures. There may be multiple pointers to a single object or
-member of an object stored in memory. When there are multiple pointers,
+of data structures. There may be multiple pointers to a single
+structure object in memory. When there are multiple pointers,
 the pointers are said to be aliases because they all name the same
-memory location. The object is aliased. Aliasing makes it hard to reason
+memory location.  Aliasing makes it hard to reason
 about the behavior of the program.
 
 Consider the example:
@@ -253,7 +253,7 @@ variables were allowed:
 \end{tabbing}
 
 The first identifier in a variable member path must be the name of a
-local variable or parameter. The rest of the path, if there is one, must
+variable. The rest of the path, if there is one, must
 describe a member path for the structure type that has an
 \arrayptr\ type. The member path can be used as a name for its
 associated member bounds. Inline bounds declarations are still
@@ -584,8 +584,8 @@ unsafe pointer type, it must be declared for all other members of the
 structure with unsafe pointer types.
 
 It is important to understand that the \emph{semantics of unsafe
-pointers does not change even when bounds are declared for the
-pointers}. The declared bounds are used only by safe code that uses the
+pointers in unchecked contexts does not change even when bounds are declared 
+for the pointers}. The declared bounds are used only by safe code that uses the
 data structure, when storing safe pointers into the data structure, and
 when converting unsafe pointers data structures, and when reading safe
 pointers from the data structure unsafe functions or uses unsafe data
@@ -605,13 +605,13 @@ where the first element of each pair is a member path whose type is \arrayptr\
 and the second element of each pair is a bounds expression.  The bounds expression may use 
 variable member paths in addition to variables.
 
-In Section~\ref{section:inferring-expression-bounds}, the inference of bounds for expressions
-determines the bounds expression that applies to an expression.   This is generalized for
-structure-typed expressions to determine the bounds expressions that apply to \arrayptr\ members
-of the value of the expression. 
-The same representation is used as for contexts: a
-set of pairs, where the first element is a member path whose type is \arrayptr\
-and the second element is a bounds expression.  Given this representation, it is easy to define
+In Section~\ref{section:inferring-expression-bounds}, the inference of bounds for an expression determines the bounds expression that applies to the value of the
+expression.  For structure-typed expressions, inference is generalized to determine
+the bounds expressions that apply to the \arrayptr\ members of the value 
+of the expression.  This information is represented using the same
+representation used for contexts: a set of pairs, where the first element 
+is a member path whose type is \arrayptr\ and the second element is a 
+bounds expression.  Given this representation, it is easy to define
 the rules for inferring bounds for member accesses: a member access prunes the
 set of pairs and shortens the member paths.
 

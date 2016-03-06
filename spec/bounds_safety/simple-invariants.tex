@@ -385,8 +385,8 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
 }
 \end{verbatim}
 
-Here are the steps that the compiler goes through, illustrated using a
-where statements. First, the compiler computes the facts true after
+Here are the steps that the compiler goes through, illustrated using 
+\keyword{where} clauses. First, the compiler computes the facts true after
 \texttt{buf = buf + 1}. The compiler computes the inverse expression for
 \texttt{buf + 1}, which is \texttt{buf - 1}. It substitutes it into the
 bounds expression that is true before the increment, producing the set

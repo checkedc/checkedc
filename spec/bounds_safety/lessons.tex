@@ -234,9 +234,9 @@ failure in this program at runtime when the failure involves a
 synthesized expression such as \verb|end - tmp <= tmplen| that did not
 exist in the original source code.
 
-The conclusion is that the automatic inference and rewriting during
+This suggests that the automatic inference and rewriting during
 compilation that Deputy does is not appropriate for C. We will not do
-this in Autobahn.
+this for Checked C.
 
 \section{Problems with dependently-typed {C}}
 
@@ -258,7 +258,7 @@ programmers can understand dependent types, type checking now becomes a
 complicated exercise: to type check a dependently-typed statement, the
 type checker must prove that certain runtime invariants are true before
 the statement. To illustrate this, consider the type checking rule for
-variable assignment from the Deputy paper (\emph{add citation)}. This
+variable assignment from \cite{Condit2007}. This
 rule requires that the type checker prove that certain invariants must
 be true at runtime before the statement. Type checking becomes entangled
 in general reasoning about program invariants.
@@ -304,8 +304,9 @@ that requires this level of verbosity. In Java and C\#, the checks are
 implicitly done. This was the case in older languages such as FORTRAN
 and Pascal, as well.
 
-The conclusion is that dependently-typed C is not a good idea. Given
-that dependent typing is just one way of enforcing program invariants,
+The conclusion is that dependently-typed C at the source level is
+not a practical approach. Given that dependent typing is just one way of 
+enforcing program invariants,
 it suggests that we should explore other ways to enforce program
 invariants necessary for bounds safety for C.
 

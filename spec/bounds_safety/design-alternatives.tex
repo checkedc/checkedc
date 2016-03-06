@@ -28,8 +28,8 @@ producing \texttt{int ptr pi;}.
 This seems to make code less readable.  This is apparent for type names that 
 consist of several words: \texttt{const unsigned int ptr g} is more
 difficult to parse quickly than \texttt{\ptrinst{const unsigned int} g}.
-The use of a symbol can be recognized visually more quickly than the use 
-of an identifier.  
+The use of symbols like \texttt{<} and \texttt{>} can be recognized 
+visually more quickly than the use  of an identifier.  
 
 Another possible approach is to treat the new kinds
 of pointer types  as new modifiers for pointers.  For example, 
@@ -309,7 +309,7 @@ can be problems if a programmer modifies a variable used in a bounds expression
 within the extent of a bounds declaration.  Static checking could fail if the
 bounds declaration no longer holds.  These would be unexpected errors for
 C progammers.  Second, it is a new concept for C programmers that could
-cause confusion.  We recommend a carefully designed study of
+cause confusion.  We recommend a study of
 programmers to evaluate the difficulty of learning the concept.
 
 Because bounds declarations constrain assignments to variables within the scope

@@ -108,9 +108,13 @@ types to unsafe pointer types that would create a pointer one element past
 the end of the array pointed to by the safe pointer are rejected at compile time.
 A programmer may use an \assumeboundscast\ operation do this instead.
 
-\subsection{Static and runtime checking rules}
+\subsection{Description of cast operators}
 
-Here are the static checking rules for C cast operations of the form \texttt{(\var{D}) \var{e}},
+This section describes each of the cast operators and the static
+and runtime checking that is done for each operator.   
+
+For C cast operators, the checking is only static.
+Here are the rules for cast operators of the form \texttt{(\var{D}) \var{e}},
 where \var{e} has source type \var{S}. If
 \var{D} is not \ptrvoid\ or \unsafeptrvoid\ and \var{D} is
 
@@ -631,8 +635,9 @@ rules for inferring bounds to integral expressions:
     If the special variable \exprcurrentvalue\ occurs in \var{b}:
     \begin{itemize}
     \item
-      If \texttt{\var{e1} \var{op} \var{e2}} is invertible, then inverse of \texttt{\var{e1} \var{op} \var{e2}}
-      is substituted \exprcurrentvalue.
+      If \var{op} has an inverse operation \var{inverse-op}, then 
+      \texttt{\exprcurrentvalue \var{inverse-op} \var{e2}}
+      is substituted for \exprcurrentvalue.
     \item
       Otherwise the bounds of the expression are altered to be \boundsnone.
       bounds(none).
