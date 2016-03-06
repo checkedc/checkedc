@@ -171,11 +171,10 @@ except that any of them can be
 \arrayptrvoid.
 
 A structure consists of a list of member declarations, each of which
-consists of type specifier followed by one or more structure member
-declarators. Structure member declarators are changed to allow an
-optional where clause or in-line specification of member. The in-line
-specification of member follows syntax that is already used for
-declaring bitfields:
+consists of a type specifier followed by one or more structure member
+declarators. Structure member declarators are changed to allow 
+optional in-line specification of member bounds and \keyword{where}
+clauses.
 
 \begin{tabbing}
 \var{struct}\=\var{-member-declarator:}\\
@@ -203,11 +202,11 @@ The remaining syntax for specifying a structure remains unchanged: \\
 \> \var{struct-member-declaration-list struct-member-declaration} \\
 \\
 \var{struct-member-declaration:} \\
-\> \var{specifier-qualifier-list struct-declarator-list} \texttt{;} \\
+\> \var{specifier-qualifier-list struct-member-declarator-list} \texttt{;} \\
 \\
-\var{struct-declarator-list:} \\
-\> \var{struct-declarator} \\
-\> \var{struct-declarator-list} \texttt{,} \var{struct-declarator} 
+\var{struct-member-declarator-list:} \\
+\> \var{struct-member-declarator} \\
+\> \var{struct-declarator-list} \texttt{,} \var{struct-member-declarator} 
 \end{tabbing}
 
 A member bounds expression can use members and child members of the

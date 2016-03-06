@@ -21,12 +21,11 @@ redundant (see Section~\ref{section:avoiding-bounds-checks} for details).
 Bounds are declared using bounds declarations. Bounds declarations have
 the form:
 
-\begin{quote}
-\boundsdecl{\var{x}}{\var{bounds-exp}}
-\end{quote}
-
 \begin{tabbing}
-\var{bounds}\=\var{-exp:} \\
+\var{bounds}\=-\var{decl:} \\
+\> \boundsdecl{\var{x}}{\var{bounds-exp}} \\
+\\
+\var{bounds}\var{-exp:} \\
 \> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
 \> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
 \> \boundsnone \\
