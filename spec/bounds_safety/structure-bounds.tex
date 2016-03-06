@@ -316,13 +316,6 @@ T f(T x where suspends(x.arr1.data)
 where suspends(return_value.arr1.data)
 \end{verbatim}
 
-\begin{quote}
-\emph{One thing to consider is whether to allow functions to be
-parametric with respect to the state of member bounds. This might be
-useful to describe a function that sets one of the members of a
-structure type and does not affect the state of other members.}
-\end{quote}
-
 \subsection{Extent of declarations of member bounds state for variables}
 \label{section:member-bounds-state-extent}
 
@@ -525,24 +518,12 @@ f(S arg where suspends(arg))
 
 does not have an implicit bounds declaration of the form \verb|arg.data :count(arg.len)|.
 
-\subsection{Holds declarations and bounds for variables}\
+\subsection{Holds declarations and bounds for variables}
 
-At a holds declaration for a member path mp of a structure variable x,
-the bounds declarations that are true about members of x, as well as any
-facts that are true at the point of the holds declaration, must imply
-that the member bounds for mp holds.
-
-\begin{quote}
-\emph{To do: this is just a special case of the fact that a member
-bounds for a structure variable must be true after all statements in the
-scope of the variable, unless the member bounds is suspended after the
-statement. }
-
-\emph{To do: it seems that requiring programmers to explicitly call out
-interesting facts involving equality of variables or variable members
-leads to a lot of verbosity in programs. We should reconsider whether
-these must be explicitly declared by the programmer.}
-\end{quote}
+At a \keyword{holds} declaration for a variable member path \var{x.mp},
+the member bounds for \var{x.mp} must be implied by the the bounds
+declarations that are true about members of \var{x} and any facts that 
+true at the point of the \keyword{holds} declaration.
 
 \section{Bounds-safe interfaces}
 \label{section:structure-bounds-safe-interfaces}

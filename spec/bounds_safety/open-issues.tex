@@ -89,5 +89,14 @@ This would allow the system to easily support tagged null pointers.
 The bounds for the untagged pointer would be described. 
 A tagged pointer could not be used to access memory.  It would have to be
 untagged first  to have valid bounds.
+
+\item Consider whether to allow functions to be
+parametric with respect to the state of member bounds. This might be
+useful to describe a function that sets one of the members of a
+structure type and does not affect the state of other members.
+
+\item We could allow signed integer expressions to be invertible
+by trying to prove that the expressions are in range, using the
+checking of facts in \keyword{where} clauses.
 \end{itemize}
 
