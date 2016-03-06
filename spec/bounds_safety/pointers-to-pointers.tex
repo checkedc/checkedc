@@ -116,7 +116,7 @@ members of type \arrayptr are taken.
 
 For example, a function that returns a newly-allocated buffer and its length could be written as:
 \begin{verbatim}
-void create(ptr<array_ptr<char>> pbuf : *len, ptr<int> plen)
+void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len), ptr<int> plen)
 { ...
 }
 \end{verbatim}
@@ -149,7 +149,7 @@ themselves have additional constraints.  For example:
 void constrained_code(array_ptr<char> buf : count(len), int len) 
 {
     ptr<int> plen = NULL;
-    ptr<array_ptr<char>> pbuf = NULL where *pbuf : *plen;
+    ptr<array_ptr<char>> pbuf = NULL where *pbuf : count(*plen);
     bundle {
        plen = &len;
        pbuf = &buf;

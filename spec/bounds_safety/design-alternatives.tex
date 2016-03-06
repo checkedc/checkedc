@@ -211,7 +211,7 @@ is easy to write ``safe'' code that creates undetected buffer overruns:
 
 \begin{verbatim}
 // f looks safe, but does something bad that is undetected before calling unsafe code
-f(array_ptr<int> p where bounds(p) == (p, p + 10))
+f(array_ptr<int> p where p : bounds(p, p + 10))
 {
     // first argument implicitly converted to int *
     poke(p + random_large_value(), 31415);  

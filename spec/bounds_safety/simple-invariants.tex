@@ -150,11 +150,11 @@ switch (x) {
 }
 \end{verbatim}
 
-Here is a simple example that introduces a fact that i is always
+Here is a simple example that introduces the fact that \texttt{i} is always
 \texttt{>=} 0:
 
 \begin{verbatim}
-int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
     where i >= 0;
@@ -166,11 +166,11 @@ int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
 }
 \end{verbatim}
 
-From this fact, it can be deduced that the access to buf is always in
-range. A where clause can be used double check this:
+From this fact, it can be deduced that the access to \texttt{buf} is always in
+range. A \texttt{where} clause can be used double check this:
 
 \begin{verbatim}
-int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
     where i >= 0;

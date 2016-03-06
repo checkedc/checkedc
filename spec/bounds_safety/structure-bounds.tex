@@ -45,15 +45,14 @@ Member bounds are invariants that are assumed to be true by default for
 objects of that type. A member bound may be suspended for a specific
 object to allow for initialization of the object or modification of the
 members involved in the member bounds declarations. The member bound
-must be declared to hold again before \arrayptr\ field covered
-by the bounds can be used to access memory. Here is an example of
-variable of type S being initialized:
+is declared to hold again after the initialization or modification is done.
+Here is an example of variable of type S being initialized:
 
 \begin{verbatim}
 void f(int len) {
     S y 
     where suspends(y.data);
-    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
     y.data = newarr;
     y.num = len
     where holds(y.data);    // the member bounds for y.data now holds
@@ -74,7 +73,7 @@ written as:
 void f(int len) {
     S y 
     where suspends(y);
-    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len))
     y.data = newarr;
     y.num = len
     where holds(y);    // the member bounds for y.data now holds
@@ -382,16 +381,16 @@ struct S {
 };
 \end{verbatim}
 
-Here is a version of f where all member bounds state declarations are
-explicit. For structure variable members whose member bounds is
-suspends, the bounds declarations are explicit as well.
+Here is a version of \texttt{f} where all member bounds state declarations are
+made explicit. For structure variable members whose member bounds are
+suspended, the bounds declarations are made explicit as well.
 
 \begin{verbatim}
 void f(int len) {
     S y where suspends(y.data);
     S z where suspends(z.data);
     int i, j;
-    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
     y.data = newarr
     where y.data : count(len);
     y.num = len
@@ -408,7 +407,7 @@ void f(int len) {
     S y;
     S z;
     int i, j;
-    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len))
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
     y.data = newarr
     where y.data : count(len);
     y.num = len
@@ -484,7 +483,7 @@ For example, given
 
 \begin{verbatim}
  S  copy_and_resize(S arg, int len) {
-    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len)
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
        where suspends(arg);
     for (int i = 0; i < arg.num; i++) {
        newarr[i] = arg.data[i];
@@ -501,7 +500,7 @@ There is implicitly a bounds declaration at the suspension of the member
 bounds for arg:
 
 \begin{verbatim}
-    array_ptr<int> newarr : count(len) = (array_ptr<int>) malloc(sizeof(int) * len)
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
        where suspends(arg) && arg.data : count(arg.num);
 \end{verbatim}
 
