@@ -200,8 +200,47 @@ races that tear data structures. Addressing these problems is beyond the
 scope of this technical report. For now, it is assumed that programs are
 correct in these other aspects.
 
-This document is a work-in-progress.  Some material will be missing
-or incomplete because the language design is still being done.
+This design is being done in an iterative fashion.  To validate the
+design, we mocked up modifying a subset of the OpenSSL 
+code base \cite{OpenSSL2015} to be bounds-safe .  
+We created C++ templates for the new pointer types and modified OpenSSL to 
+compile as valid C++ code.
+We hand-edited about 11,000 lines of the code to use safe pointer
+types with full bounds annotations.  We used macros to encapsulate 
+the bounds annotations so that they could be elided from the code
+and OpenSSL compiled and tested using the new types.  We also modified the
+generic stack type in OpenSSL to use the \texttt{ptr} type, which required
+cross-cutting changes across the code base (in all, about 160 files were changed) 
+as well dealing with complicated macros.   
+
+We learned the following from this
+experience.   First, it was important to have a compact, succinct syntax
+for declaring bounds. 
+Second, in most cases, declaring bounds at declarations was sufficient for 
+tracking the bounds of variables.  Large blocks of code 
+remained unchanged, which matches the observations of the
+Cyclone project \cite{Jim2002}, an earlier research 
+effort to create a safe version of C. .
+Third, the expressions allowed in declaring
+bounds needed to be rich.  Fourth, pointer casts were used
+fairly extensively, but often times it was obvious that the casts were
+safe with respect to bounds.  The existing bounds could be modified
+easily to be appropriate for the new referent type of the pointer.
+Fifth, it was clear that there needed
+to be a graceful way of interoperating with existing libraries that could
+not be changed.   Finally, signed integer overflow was a pervasive
+possibility, which raised questions about the meaning of bounds 
+declarations that used signed integers. 
+
+We revised the design to
+address these issues.  In particular, we paid close attention to
+tracking bounds through pointer casts.  We also made sure that the
+contraints on signed integer expressions used in bounds expressions
+were understood and could be written down in the language of
+simple invariants.
+
+The design is a work-in-progress.  Some material will be missing
+or incomplete because the language design has not yet been done.
 Readers should be aware that all parts of the document are subject to change. 
 We are interested in feedback and suggestions about ways to improve
 the design.
