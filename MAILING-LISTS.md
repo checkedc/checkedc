@@ -4,7 +4,7 @@ There are two mailing lists for following the Checked C project:
 
 * checkedc-announce: this is a low-traffic mailing list for announcements about the
 project. It is used for important announcements and to announce
-the availablity of new versions of specifications  and  implementations.
+the availability of new versions of specifications  and  implementations.
 * checkedc-discussion: this mailing list is for discussing the design of Checked C and for 
 questions about Checked C.
 
