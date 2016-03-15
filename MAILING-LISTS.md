@@ -26,7 +26,7 @@ To email a list, send email to NAME@lists.research.microsoft.com, where NAME is 
 checkedc-announce or checkedc-discussion.
 
 These email lists are for anyone involved in or interested in the Checked C project.
-For specific issues about a specification or implementatino, you can  open an issue using 
+For specific issues about a specification or implementation, you can  open an issue using 
 the Github issue tracking system.  If in doubt, feel free to send an email to the discussion
 list.   If we think something should be tracked using an issue, we'll ask you to open one
 or open one ourselves.
