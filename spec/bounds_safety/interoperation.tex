@@ -256,7 +256,7 @@ to apply here.  The examples assume that integers are
 \begin{verbatim}
 int x = 0;
 ptr<int> px = (ptr<int>) &x;
-array_ptr<char> pax : count(4) : (array_ptr<char>) px;
+array_ptr<char> pax : count(4) = (array_ptr<char>) px;
 array_ptr<char> odd_pax : count(3) = (array_ptr<char>) px;
 
 char data[12];
@@ -301,7 +301,7 @@ The prior code for conversions can be even shorter:
 \begin{verbatim}
 int x = 0;
 ptr<int> px = &x;
-array_ptr<char> pax : count(4) : &x;
+array_ptr<char> pax : count(4) = &x;
 array_ptr<char> odd_pax : count(3) = &x;
 
 char data[12];
