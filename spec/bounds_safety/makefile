@@ -1,8 +1,6 @@
 PAPERNAME=checkedc
 FILES = abstract.tex \
-        aliased-structures.tex \
         array-view-compilation.tex \
-        checking-structure-bounds.tex \
         checking-variable-bounds.tex \
         core-extensions.tex \
         design-alternatives.tex \

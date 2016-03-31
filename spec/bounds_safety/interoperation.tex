@@ -288,14 +288,32 @@ complicated when referent types are function types, array types, or
 pointer types. {\em Discussion of a richer forms of compatibility
 is deferred for now}.
 
-Implicit conversions  from \unsafeptrvoid\ to safe pointer types are also 
-allowed for now.  There is not a  design for checking type-safety of casts yet.  
-The design will almost certainly affect \unsafeptrvoid\ casts and we wish to avoid
-requiring changes to code that will have to be revised later.  
+C allows implicit conversions between \unsafeptrvoid\ and other pointer
+types at assignments, for function call arguments, at conditional expressions,
+and at pointer comparisons. Implicit conversions from \unsafeptrvoid\ to safe pointer
+types in those situations are allowed for now.  There is not a design for
+checking type-safety  of casts yet.   The design will almost certainly affect
+\unsafeptrvoid\ casts and we wish to avoid requiring changes to code that will 
+have to be revised later.  The checking of bounds declarations will cause
+any implicit conversions that do not maintain the correctness of bounds
+information to be rejected.
 
-Only one implicit pointer conversion is allowed for an expression.  An expression will not be
-coerced implicitly from \unsafeptrinst{\var{S}} to \unsafeptrvoid\ to
-\unsafeptrinst{\var{T}}, where S and T are types.
+In general, we want to be very careful about implicit conversions from safe pointer
+types to unsafe pointer types.  These would allow bounds checking to be accidentally
+subverted quietly. Implicit conversions from safe pointer types to unsafe 
+pointer types are only allowed at bounds-safe interfaces
+(Section~\ref{section:function-bounds-safe-interfaces}).  This includes
+implicit conversions from safe pointer types to \unsafeptrvoid.  Other implicit
+conversions from safe pointer types to \unsafeptrvoid\ are not allowed.
+
+For conversions involving one kind of pointer, implicit conversions to \void\ referent
+types are allowed in the same places where implicit conversions from \unsafeptrinst{\var{T}}
+to \unsafeptrvoid\ would be allowed.  Implicit conversions from \void\ referent types
+are not allowed.  For example, implicit conversions from \ptrinst{\var{T}} to \ptrvoid\ and
+from \arrayptrinst{\var{T}} to \arrayptrvoid\ are allowed at assignments.   Implicit
+conversions from \ptrvoid\ to \ptrinst{\var{T}} and \arrayptrvoid\ to \arrayptrinst{\var{T}}
+are not allowed.  The philosophy behind this is the same one that is used in C++:
+places where type-safety can be compromised by a cast should be explicit in the code.
 
 The prior code for conversions can be even shorter:
 \begin{verbatim}
@@ -478,10 +496,16 @@ They may be done at:
    Member assignments: a similar conversion is done for member assignments.
 \end{itemize}
 
-Implicit conversions are allowed from safe pointer types to unsafe pointer
-types of type \unsafeptrvoid, for the same reason that implicit conversions
-are allowed from type \unsafeptrvoid.  Only one implicit pointer conversion
-is allowed for an expression.
+Implicit conversions at bounds-safe interfaces are allowed from safe pointer types to 
+\unsafeptrvoid.  This rule is likelty to change in the future.  There is not a  design for
+checking type-safety of casts yet and the design will amost certainly affect 
+\unsafeptrvoid\ casts.
+
+Only one implicit pointer conversion is allowed for an expression at a bounds-safe
+interface.  For example, an expression will not be
+coerced implicitly from \ptrinst{\var{S}} to \unsafeptrvoid\ to
+\unsafeptrinst{\var{T}}, where \var{S} and \var{T} are different types.
+
 
 \subsection{Checking bounds declarations}
 \label{section:checking-bounds-interfaces}
