@@ -119,9 +119,10 @@ and runtime checking that is done for each operator.
 
 For C cast operators, the checking is only static.
 Here are the rules for cast operators of the form \texttt{(\var{D}) \var{e}},
-where \var{e} has source type \var{S}. If
-\var{D} is not \ptrvoid\ or \unsafeptrvoid\ and \var{D} is
+where \var{e} has source type \var{S}.  The rules are applied in addition
+to any existing C typing rules that apply to the cast.
 
+If \var{D} is not \ptrvoid\ or \unsafeptrvoid\ and \var{D} is
 \begin{itemize}
 \item \ptrT: the bounds of \var{e} are computed using the rules
 in Section~\ref{section:checking-nested-assignment-expressions}.
@@ -161,6 +162,12 @@ succeeds.
 \item Otherwise, the result must be \bounds{\var{lb}}{\var{ub}} (or convertible
 to that form).   It must be statically provable that \texttt{\var{e} >= \var{lb}}
 and that {\texttt{((char *) \var{ub}) - ((char *) e) >= 1}}.   
+\end{itemize}
+\item An unsafe pointer type:
+\begin{itemize}
+\item If \var{D} is \ptrvoid, the prior rule for an \arrayptr\ or \arrayview\ type is
+applied.
+\item If \var{D} is \unsafeptrvoid, checking always succeeds.
 \end{itemize}
 \end{itemize}
 
@@ -270,50 +277,90 @@ void swizzle(ptr<int> p) {
 }
 \end{verbatim}
 
-\subsection{Implicit conversions}
+\subsection{Implicit conversions involving safe pointers}
 \label{section:implicit-conversions}
 
-If an expression that produces a value (rvalue in C terminology)
-has an unsafe pointer type and it occurs where an expression with
-a safe pointer type is expected, the expression will be converted implicitly 
-from an unsafe pointer type to a safe pointer type.  The rules for bounds checking will
-be applied separately after type  checking and will check
-the bounds-safety of the implicit conversions.  The implicit conversions are
-done by inserting a C cast operator to the desired safe pointer types. 
+C allows implicit conversions at assignments, function call arguments,
+conditional expressions, and comparisons.  The purpose of
+implicit conversions is to make programs shorter and easier to
+read.  This section defines implicit conversions that are
+allowed for safe pointer types.
 
-The referent types of the safe pointer types and unsafe pointer types
-must be compatible.  The simplest case is that the referent types are
-syntactically identical.  The definition of compatibility is more
+The rules for checking bounds declarations are applied separately after 
+typechecking to check the integrity of bounds information.  During the 
+application of these rules, the implicit conversions are treated as
+though they were explicit C cast operations.
+
+\subsubsection{From unsafe pointers to safe pointers}
+An expression with an unsafe pointer type can be converted implicitly to an
+expression with a safe pointer type, provided that the referent types of the 
+unsafe pointer and the safe pointer are compatible.
+
+This can be done for the right-hand side of an assignment, a call argument,
+an arm of a conditional expression, and an operand of a comparison.
+The type of the left-hand side of the assignment, the parameter, the other 
+arm of the conditional expression, or the other operand of the comparison
+must be the safe pointer type that is the target of the implicit conversion.
+
+For now, compatibility is defined as the following:
+\begin{itemize}
+\item The referent types are syntactically identical.
+\item The destination referent type is \void\ and the source referent type
+is not a function type.
+\end{itemize}
+The definition of compatibility is more
 complicated when referent types are function types, array types, or
 pointer types. {\em Discussion of a richer forms of compatibility
 is deferred for now}.
 
 C allows implicit conversions between \unsafeptrvoid\ and other pointer
-types at assignments, for function call arguments, at conditional expressions,
-and at pointer comparisons. Implicit conversions from \unsafeptrvoid\ to safe pointer
-types in those situations are allowed for now.  There is not a design for
-checking type-safety  of casts yet.   The design will almost certainly affect
-\unsafeptrvoid\ casts and we wish to avoid requiring changes to code that will 
-have to be revised later.  The checking of bounds declarations will cause
-any implicit conversions that do not maintain the correctness of bounds
-information to be rejected.
+types. For now, implicit conversions from \unsafeptrvoid\ to safe pointer
+types are allowed. This may be revised later when a design
+for checking type-safety of casts is complete.
 
-In general, we want to be very careful about implicit conversions from safe pointer
-types to unsafe pointer types.  These would allow bounds checking to be accidentally
-subverted quietly. Implicit conversions from safe pointer types to unsafe 
-pointer types are only allowed at bounds-safe interfaces
-(Section~\ref{section:function-bounds-safe-interfaces}).  This includes
-implicit conversions from safe pointer types to \unsafeptrvoid.  Other implicit
-conversions from safe pointer types to \unsafeptrvoid\ are not allowed.
+\subsubsection{From safe pointers to unsafe pointers}
 
-For conversions involving one kind of pointer, implicit conversions to \void\ referent
-types are allowed in the same places where implicit conversions from \unsafeptrinst{\var{T}}
-to \unsafeptrvoid\ would be allowed.  Implicit conversions from \void\ referent types
-are not allowed.  For example, implicit conversions from \ptrinst{\var{T}} to \ptrvoid\ and
-from \arrayptrinst{\var{T}} to \arrayptrvoid\ are allowed at assignments.   Implicit
-conversions from \ptrvoid\ to \ptrinst{\var{T}} and \arrayptrvoid\ to \arrayptrinst{\var{T}}
-are not allowed.  The philosophy behind this is the same one that is used in C++:
-places where type-safety can be compromised by a cast should be explicit in the code.
+We must be very careful about implicit conversions from safe pointer
+types to unsafe pointer types.  These kinds of conversions could allow bounds checking to 
+be accidentally subverted in a quiet fashion. Implicit conversions from safe pointer types to 
+unsafe pointer types are allowed only at bounds-safe interfaces 
+(Section~\ref{section:function-bounds-safe-interfaces}).
+
+\subsubsection{From safe pointers to safe pointers}
+
+An expression with a safe pointer type can be converted implicitly to the same kind
+of safe pointer type with a \texttt{void} referent type.   
+This can be done for the right-hand side of an assignment, a call argument, 
+an arm of a conditional expression, and an operand of a comparison.  
+The type of the left-hand side of the assignment, the parameter, the other
+arm of the conditional expression, or the other operand of the comparison
+must be the safe \void\ pointer type that is the target of the implicit
+conversion. For example, implicit conversions from 
+\ptrinst{\var{T}} to \ptrvoid\ and from \arrayptrinst{\var{T}} to \arrayptrvoid\ are allowed 
+at assignments. 
+
+Implicit conversions from safe pointers to \void\ to safe pointers to \var{T} are not allowed.
+The philosophy behind this is the same one that is used in C++: places where type-safety
+can be compromised by a cast should be explicit in the code.
+
+For comparisons, if one operand has type \ptrinst{\var{T}} and the other
+operand has type \arrayptrinst{\var{T}}, the operand with type \ptrinst{\var{T}}
+can be converted implicitly  to \arrayptrinst{\var{T}}.
+
+\subsubsection{Between safe pointers and integers}
+
+The null pointer (0) can be converted implicitly to any safe pointer type.   
+A safe pointer can be converted implicitly to the \texttt{\_Bool} type.
+
+\subsubsection{Illegal implicit conversions}
+
+All other implicit conversions involving safe pointer types are not allowed.
+A compiler must treat a program containing those conversions as erroneous.
+Many C compilers allow implicit conversions between pointers and integers or
+between pointers to incompatible types.  They issue warning messages for
+those conversions.  These extensions are not permitted for safe pointers.
+
+\subsubsection{Examples}
 
 The prior code for conversions can be even shorter:
 \begin{verbatim}
