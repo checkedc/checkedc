@@ -9,7 +9,7 @@ combination of applied type theory, program logics, program
 verification, and dynamic techniques that can be used when static
 checking becomes too complicated. The research has not been productized
 by industry, even though flaws in C and C++ programs have caused
-widespread, costly security problems \emph{(to do: citation).} What
+widespread, costly security problems.  What
 lessons can we learn from existing research?
 
 CCured \cite{Necula2005} uses whole-program static analysis to identify 
@@ -111,14 +111,14 @@ The example has an annotation on the \texttt{buffer\_info} field of
 \texttt{buffer\_info} points at an array element and that at least
 \texttt{info\_count} elements are valid (specifically, it is valid to
 access memory between \texttt{buffer\_info} and \texttt{buffer\_info +
-info\_count -- 1}). This information is part of the type of
+info\_count - 1}). This information is part of the type of
 \texttt{buffer\_info}.
 
 The type checking rule for adding a pointer of \verb|Array| type with an
 integer requires that the integer value be in bounds for the array. To
 type check \texttt{tx\_ring-\textgreater{}buffer\_info[i]}, the type
-checker must show at compile time that \texttt{i \textgreater{}= 0} and
-\texttt{i \textless{}= tx\_ring-\textgreater{}count}. In general, taking
+checker must show at compile time that \texttt{i >= 0} and
+\texttt{i <= tx\_ring->count}. In general, taking
 an arbitrary program and establishing equality between runtime values at
 compile time is undecidable, which means that type checking would be
 undecidable. To make type checking decidable, Deputy examines statements
@@ -128,7 +128,7 @@ checks that establish the relationships are true before the statements.
 If a relationship between runtime values is not true, the checks cause
 the program to fail at run time. Of course, these runtime checks can be
 eliminated by later optimization. In this specific case, the compiler
-injects a runtime check \verb|assert(0 <= i && i < tx\_ring->info\_count);| into the program. 
+injects a runtime check \verb|assert(0 <= i && i < tx_ring->info_count);| into the program. 
 In the example, the runtime checks are italicized assert statements.
 
 \begin{alltt}
@@ -224,8 +224,8 @@ int sum (int * count(end - buf) buf, int * end) \{
 \}
 \end{alltt}
 
-The program now has computations of \texttt{end -- buf} and \texttt{end
--- tmp} that track the bounds of the array \texttt{buf}. A C programmer
+The program now has computations of \texttt{end - buf} and \texttt{end
+- tmp} that track the bounds of the array \texttt{buf}. A C programmer
 would not expect instructions for these computations to be injected into
 the program. This makes the program less efficient and these
 instructions are also not introduced under programmer control. In
@@ -234,9 +234,9 @@ failure in this program at runtime when the failure involves a
 synthesized expression such as \verb|end - tmp <= tmplen| that did not
 exist in the original source code.
 
-The conclusion is that the automatic inference and rewriting during
+This suggests that the automatic inference and rewriting during
 compilation that Deputy does is not appropriate for C. We will not do
-this in Autobahn.
+this for Checked C.
 
 \section{Problems with dependently-typed {C}}
 
@@ -258,7 +258,7 @@ programmers can understand dependent types, type checking now becomes a
 complicated exercise: to type check a dependently-typed statement, the
 type checker must prove that certain runtime invariants are true before
 the statement. To illustrate this, consider the type checking rule for
-variable assignment from the Deputy paper (\emph{add citation)}. This
+variable assignment from \cite{Condit2007}. This
 rule requires that the type checker prove that certain invariants must
 be true at runtime before the statement. Type checking becomes entangled
 in general reasoning about program invariants.
@@ -304,8 +304,9 @@ that requires this level of verbosity. In Java and C\#, the checks are
 implicitly done. This was the case in older languages such as FORTRAN
 and Pascal, as well.
 
-The conclusion is that dependently-typed C is not a good idea. Given
-that dependent typing is just one way of enforcing program invariants,
+The conclusion is that dependently-typed C at the source level is
+not a practical approach. Given that dependent typing is just one way of 
+enforcing program invariants,
 it suggests that we should explore other ways to enforce program
 invariants necessary for bounds safety for C.
 
@@ -330,7 +331,7 @@ upper bounds on the valid range of memory associated with a pointer.
 used, with safety checks added for various operations. Consider the
 original example in Section~\ref{section:dependent-typing-issues}. 
 Here is the code for the method using
-\arrayview .
+\arrayview.
 
 \begin{verbatim}
 int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
@@ -343,9 +344,6 @@ int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
     return sum;
 }
 \end{verbatim}
-
-Appendix A illustrates how optimizing compilers can make using local
-variables of type \arrayview\ efficient.
 
 \section{Summary of lessons}
 

@@ -74,57 +74,43 @@ will need to state the relevant facts to use in inference.
 \section{Facts about program points}
 
 We start with facts about program points that a programmer may use to
-reason about bounds. A fact is a bounds declaration or a relational
-statement about a variable and a non-modifying expression:
+reason about bound.  A  fact is a bounds declaration or a relational
+statement about a variable and a non-modifying expression.
 \begin{tabbing}
 \var{fact:}\=\\
 \>\var{bounds} \\
-\>\var{var relop non-modifying-exp} \\
-\>\var{range-exp relop var}
+\>\var{variable relop non-modifying-exp} \\
+\>\var{non-modifying-exp relop variable}
 \end{tabbing}
 
-where \var{relop} is one of \texttt{<}, \texttt{<=}, \texttt{==},
-\texttt{!=}, \texttt{>=}, or texttt{>}. 
-Recall that range-expressions are a
-subset of C expressions restricted to variables, constant expressions,
-and addition, subtraction, and address-of operations. The variable and
-non-modifying expression in a fact must have pointer types or integral
-types.
+Facts may be declared as part of \keyword{where} clauses.  
+Chapter~\ref{chapter:tracking-bounds} included relational facts in
+the grammar for \keyword{where} clauses but did not say
+anything about them.  For expression statements, the compiler
+will check that relational facts in the \keyword{where} clause are true 
+using the facts true before the expression statement and the effect of
+the expression. For a parameter, the \keyword{where} clause becomes a 
+precondition that must be true at the call site. The compiler will check this precondition at the call sites. 
 
-Facts may be declared at expression statements or in parameter lists
-using \keyword{where} clauses. For expression statements, the compiler
-will check that the where clause is true using the facts true before the
-expression statement and the effect of the expression. For a parameter,
-the where clause becomes a precondition that must be true at the call
-site. The compiler will check this precondition at the call sites. The
-grammar for where clauses is generalized to:
-
-\begin{tabbing}
-\var{express}\=\var{ion-statement}:\\
-\> \var{expression\textsubscript{opt}}\texttt{;} \\
-\> \var{expression\textsubscript{opt} where-clause}\texttt{;} \\
-\\
-\var{where-clause}: \\
-\> \keyword{where} \var{facts} \\
-\\
-\var{facts}:\\
-\> \var{fact}\\
-\> \var{facts} \texttt{\&\&} \var{fact}
-\end{tabbing}
-
-The expression can be omitted, in which case a where clause may stand on
-its own as a set of invariants and bounds declarations:
+A \keyword{where} clause may be used as a stand-alone statement, 
+in which case it stands on its own as a set of invariants and bounds
+declaration:
 \begin{verbatim}
 where x>=0 && x<=10;
 \end{verbatim}
+This is just a special case of an expression statement
+that omits the expression but still has \keyword{where} clause.
 
-Facts are automatically inferred for the clauses of if-statements and
-the cases of switch statements. For if-statements, the test has to have
-the form of a fact. For a switch statement, the fact is deduced from the
-switch expression and the case statement:
+Facts are automatically inferred for the clauses of if-statements, 
+the cases of switch statements, and from assignment statements. 
+For if-statements, the test has to have
+the form of a fact. For a switch statement, a fact is deduced from the
+switch expression and the case statement.  For assignments, the
+left-hand side must be a variable and the right-hand side must be
+a non-modifying expression.
 
 Here are some simple examples where the fact created by a control-flow
-statement is explicitly declared using a (redundant) where clause:
+statement is explicitly declared using redundant \keyword{where} clauses:
 
 \begin{verbatim}
 if (x < 5) {
@@ -150,11 +136,11 @@ switch (x) {
 }
 \end{verbatim}
 
-Here is a simple example that introduces a fact that i is always
+Here is a simple example that introduces the fact that \texttt{i} is always
 \texttt{>=} 0:
 
 \begin{verbatim}
-int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
     where i >= 0;
@@ -166,11 +152,11 @@ int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
 }
 \end{verbatim}
 
-From this fact, it can be deduced that the access to buf is always in
-range. A where clause can be used double check this:
+From this fact, it can be deduced that the access to \texttt{buf} is always in
+range. A \texttt{where} clause can be used double check this:
 
 \begin{verbatim}
-int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
     where i >= 0;
@@ -191,25 +177,26 @@ declared in the \keyword{where} clause can be inferred (easily) from
 known facts and the effect of the assignment statement. The compiler
 finds known facts by examining each path from the beginning of the
 function to the statement and identifying facts that are true along all
-paths. Facts are introduced by where clauses and control-flow
-statements. Facts are removed by assignments to any variable in a fact.
+paths. Facts are introduced by \keyword{where} clauses, control-flow
+statements, and simple assignments. Facts are removed by assignments to any
+variable in a fact.
 
 A programmer can find the facts that are available before an assignment
 statement by looking at assignments that precede the statement. The
 programmer usually only has to look at assignments to variables in the
-where clause for the assignment statement. The programmer can then check
+\keyword{where} clause for the assignment statement. The programmer can then check
 the facts along all paths from those assignments to the statement.
 
 This analysis of facts available before a statement is similar to the
 ``available expression'' analysis done by optimizing compilers for
 common-subexpression elimination. For common-subexpression elimination,
 a compiler looks at all expressions. For analyzing available facts, a
-compiler only looks at expressions in where clauses or inferred from
-control-flow statements.
+compiler only looks at expressions in \keyword{where} clauses, expressions
+inferred from control-flow statements, and simple assigments.
 
 \subsection{Algorithm for checking correctness of facts}
 
-To infer whether a fact is true in a where clause, the compiler first
+To infer whether a fact is true in a \keyword{where} clause, the compiler first
 computes the set of facts that are true after the expression statement.
 We describe the common case where the expression is an assignment of the
 form x:= e1.
@@ -285,9 +272,10 @@ new pointer types. This guarantees that adding \var{x} and \var{k} produces eith
 an in-range value or a runtime error (no value).
 
 \subsection{Integer arithmetic and overflow}
+\label{section:where-clauses-and-overflow}
 
-Integral arithmetic may overflow. This consequence of that is that the
-rules used to check facts do not include the identities 
+Integral arithmetic may overflow or wraparound. A consequence of that is
+that the rules used to check facts do not include the identities 
 \texttt{\var{x} < \var{x} + \var{k}} 
 for positive \var{k} and \texttt{\var{x} + \var{k} < \var{x}} for 
 negative \var{k}, where \var{k} is a
@@ -317,36 +305,30 @@ positive \var{k} that \texttt{\var{x} + \var{k} <= MAXINT} and for negative \var
   is any variable, then \texttt{\var{x} - 1 >= MININT}.
 \end{itemize}
 
-To determine whether an expression \var{e} is invertible, the compiler uses
-the facts that are true before the expression to prove that
-\texttt{MININT >= \var{e}} and \texttt{\var{e} <= MAXINT}.
-
-Note that to invert an integer expression, the compiler also needs to
-prove that it cannot overflow.
-
 \subsection{Checking function calls}
 
 A function call is checked by substituting the actual parameters for the
-formal parameters and checking that the where clauses are true, given
-the facts true before the call. For the where clause for the returned
+formal parameters in the \keyword{where} clause for parameters.  The
+resulting whre clauses must be checked to see if they are true, given
+the facts true before the clause.  For the where clause for the returned
 value, the actual parameters are substituted for the formal parameters.
-The facts in the clause are then added to the set of facts true after
-the call. The programmer still has to declare any interesting facts.
+The set of facts in the clause are then added to the set of facts true
+after the call.
 
 \subsection{Avoiding bounds checks at runtime}
 \label{section:avoiding-bounds-checks}
 
 It can be important to avoid dynamic bounds checks at runtime. The
-built-in method in\_bounds(e1) can be used to do this. It can be applied
-to expression of type \arrayptr. At compile time, the compiler
-checks that the bounds expressions for e1 are always true given the
-facts true before the evaluation of e1. At runtime, in\_bounds(e1)
-simply returns the value of e1. Compilers generate code for
-*in\_bounds(e1) with no dynamic bounds checks. The prior example can be
-written as:
+built-in method \inbounds{\var{e}} can be used to do this. It can be applied
+to expressions of type \arrayptr. At compile time, the compiler
+checks that the bounds expressions for \var{e} are always true given the
+facts true before the evaluation of \var{e}. At runtime, \inbounds{\var{e}}
+simply returns the value of \var{e}. The compilers generates code for
+\texttt{*\inbounds{\var{e}}} with no dynamic bounds checks. The prior example
+can be written as:
 
 \begin{verbatim}
-int sum10(array_ptr<int> buf where bounds(buf) == (buf, buf + 10)) {
+int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
     where i >= 0;
@@ -391,8 +373,8 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
 }
 \end{verbatim}
 
-Here are the steps that the compiler goes through, illustrated using a
-where statements. First, the compiler computes the facts true after
+Here are the steps that the compiler goes through, illustrated using 
+\keyword{where} clauses. First, the compiler computes the facts true after
 \texttt{buf = buf + 1}. The compiler computes the inverse expression for
 \texttt{buf + 1}, which is \texttt{buf - 1}. It substitutes it into the
 bounds expression that is true before the increment, producing the set

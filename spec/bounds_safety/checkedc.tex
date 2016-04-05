@@ -57,6 +57,10 @@
 \newcommand{\sizeof}[1]{\texttt{sizeof(#1)}}
 %
 
+%
+% type macros
+%
+\newcommand{\void}{\texttt{void}}
 % array_ptr type macros
 %
 \newcommand{\arrayptr}{\texttt{array\_ptr}}
@@ -80,6 +84,10 @@
 \newcommand{\ptrint}{\ptrinst{\texttt{int}}}
 \newcommand{\ptrvoid}{\ptrinst{\texttt{void}}}
 
+\newcommand{\unsafeptrinst}[1]{\texttt{#1 *}}
+\newcommand{\unsafeptrT}{\texttt{\var{T} *}}
+\newcommand{\unsafeptrvoid}{\unsafeptrinst{void}}
+
 %
 % bounds expression macros
 %
@@ -93,8 +101,6 @@
 \newcommand{\boundscount}[1]{\texttt{count(#1)}}
 \newcommand{\boundsbytecount}[1]{\texttt{byte\_count(#1)}}
 
-\newcommand{\exprcurrentvalue}{\texttt{expr\_current\_value}}
-
 %
 % bounds declaration macros
 %
@@ -104,6 +110,10 @@
 %
 \newcommand{\boundsinfer}[2]{\texttt{#1}~$\vdash$~\texttt{#2}}
 
+% expression macros
+\newcommand{\inbounds}[1]{\texttt{in\_bounds(#1)}}
+\newcommand{\exprcurrentvalue}{\texttt{expr\_current\_value}}
+
 \begin{document}
 
 \begin{titlepage}
@@ -111,11 +121,12 @@
 \mbox{ }\\
 \vspace{2in}
 {\huge Extending C with pointer safety \par}
-{Version 0.4 -- draft as of \today \par}
+%{Version 0.4 (March 6, 2016) \par}
+{Version 0.5 - Draft as of \today \par}
 \vspace{0.5in}
 {Checked C Technical Report Number 1 \par}
 \vspace{0.25in}
-{Author(s): David Tarditi, Microsoft\par} 
+{Author: David Tarditi, Microsoft\par} 
 \vspace{1in}
 {\it Summary \par}
 \input{abstract}
@@ -155,10 +166,8 @@ This license is available at {\color{blue} \url{http://www.openwebfoundation.org
 \include{checking-variable-bounds}
 \include{interoperation}
 \include{structure-bounds}
-\include{checking-structure-bounds}
-\include{aliased-structures}
+\include{pointers-to-pointers}
 \include{simple-invariants}
-%\include{pointers-to-pointers}
 \include{lessons}
 %\chapter{Experience applying to this to OpenSSL}
 %\label{chapter:eval}
@@ -166,6 +175,7 @@ This license is available at {\color{blue} \url{http://www.openwebfoundation.org
 \include{design-alternatives}
 
 \nocite{Jones2009}
+\nocite{Jim2002}
 \bibliographystyle{plain}
 \bibliography{sources}
 

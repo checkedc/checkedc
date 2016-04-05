@@ -31,9 +31,9 @@ describes validating function call arguments.
 Because this section covers bounds for \arrayptr\ variables,
 not data structures with \arrayptr\ data, certain expressions
 are not covered here. This includes member references and expressions
-that load or store \arrayptr\ values through pointers. \omitted{These
-expressions are covered in Chapters~\ref{chapter:structure-bounds}, 
-\ref{chapter:aliased-members}, and~\ref{chapter:pointers-to-pointers}.}
+that load or store \arrayptr\ values through pointers. These
+expressions are covered in Chapters~\ref{chapter:structure-bounds} and
+\ref{chapter:pointers-to-data-with-arrayptrs}.
 Section~\ref{section:bounds-checking-indirections} does discuss how to 
 insert bounds checking at uses of the
 indirection operator (\texttt{*}). This is different than discussing the
@@ -44,16 +44,16 @@ indirection operator.
 
 To simplify checking, in-line return bounds expressions are replaced
 with the form that uses a name for the return value. The form
-f(\ldots{})\texttt{:} \var{e1} is changed to f(\ldots{}) \keyword{where}
-\texttt{return\_value :} \var{e1}. The \texttt{count} and
-\texttt{byte\_count} bounds expressions are also replaced with their
-equivalent \texttt{bounds} forms. The form \var{x} :
-\texttt{count(}\var{e1}\texttt{)} is replaced with \var{x} \texttt{:}
-\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}} and \var{x} :
-\texttt{byte\_count(}\var{e1}\texttt{)} is replaced with \var{x}
-\texttt{:} \arrayptrchar\
-\var{x}\texttt{,} \texttt{(\arrayptrchar )}
-\var{x} \texttt{+} \var{e1}\texttt{)}. For now, we ignore the
+\boundsdecl{\var{f}(\ldots{})}{\var{e1}} is changed to 
+\texttt{\var{f}(\ldots{}) \keyword{where}
+  \boundsdecl{\texttt{return\_value}}{e1}}.
+The \texttt{count} and
+\texttt{byte\_count} bounds expressions are also expand to bounds expressions.
+The form \boundsdecl{\var{x}}{\boundscount{\var{e1}}}
+is replaced with \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}}}
+and \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
+is replaced with \boundsdecl{\var{x}}{\bounds{(\arrayptrchar) \var{x}}{(\arrayptrchar)
+\var{x} + \var{e1}}}. For now, we ignore the
 additional side conditions on count expressions. Checking of these
 conditions will be addressed in Chapter~\ref{chapter:simple-invariants}.
 
@@ -64,7 +64,7 @@ For code without explicit or implicit casts of \arrayptr s, relative
 alignment can be ignored.
 
 In the rules below, we sometimes use shorter syntactic forms for
-brevity. The shorter forms should be replaced to the full forms before
+brevity. The shorter forms should be replaced with the full forms before
 using the rules.
 
 \section{Inferring valid bounds for expressions without nested assignment expressions}
@@ -140,6 +140,7 @@ an array of one element:
             {\boundsrel{\texttt{\&\var{x}}}{\texttt{\&\var{x} + 1}}{\var{T}}}.
 
 \subsection{Function calls}
+\label{section:inferring-bounds-for-function-calls}
 
 Let \var{f} be the name of a function that returns an
 \arrayptr\ value (pointers to functions will be handled later).
@@ -180,13 +181,13 @@ The following code provides examples of function call expressions where
 bounds need to be computed. In the code, the programmer wraps a call to
 \texttt{malloc} in an allocation helper, \texttt{alloc\_helper}. The
 function \texttt{alloc\_helper} returns an \arrayptr\ value
-that is passed an argument to \texttt{init}, which initializes the array
+that is passed as an argument to \texttt{init}, which initializes the array
 and returns the \arrayptr\ value.
 \begin{verbatim}
 array_ptr<int> alloc_helper(int n) : count(n)
 {
-       array_ptr<int> result : count(n) = malloc((sizeof(int) * n);
-       return result;
+    array_ptr<int> result : count(n) = malloc((sizeof(int) * n);
+    return result;
 }
 
 array_ptr<int> init(array_ptr<int> target : count(s), 
@@ -207,7 +208,7 @@ void go(int size)
 \end{verbatim}
 
 First, syntactic forms for bounds expressions are expanded to eliminate
-count epxressions and in-line return expressions, as well as make
+count expressions and in-line return expressions, as well as make
 relative alignment explicit.
 
 \begin{verbatim}
@@ -219,7 +220,7 @@ where return_value : bounds(return_value, return_value + n) rel_align(int)
        return result;
 }
 
-array_ptr<int> init(array_ptr<int> target :bounds(target, target + s) rel_align(int), 
+array_ptr<int> init(array_ptr<int> target : bounds(target, target + s) rel_align(int), 
                     int s) 
 where return_value : bounds(return_value, return_value + s) rel_align(int)
 {
@@ -254,10 +255,11 @@ expression. The formal parameter \texttt{target} is not used by the
 return bounds expression.
 
 Next, the actual arguments are substituted for the formal parameters and
-\texttt{current\_expr\_value} is substituted for \texttt{return\_value}.
+\exprcurrentvalue\ is substituted for \texttt{return\_value}.
 The argument \texttt{size} is substituted for \texttt{s}, producing
 \begin{alltt}
-    init(alloc\_helper(size), size) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size) rel_align(int)
+    init(alloc\_helper(size), size) \(\vdash\) 
+        bounds(\exprcurrentvalue, \exprcurrentvalue + size) rel_align(int)
 \end{alltt}
 
 It would not be possible to represent the bounds if \texttt{size} were a
@@ -269,7 +271,7 @@ function call too:
 Function calls are not valid in bounds expressions:
 
 \begin{verbatim}
-    bounds(current_expr_value, current_expr_value + getsize())  // illegal
+    bounds(expr_current_value, current_expr_value + getsize())  // illegal
 \end{verbatim}
 
 The solution would be to assign the result of \texttt{getsize(}) to a
@@ -279,8 +281,9 @@ variable:
    array_ptr<int> x = init(alloc_helper(tmp), tmp);
 \end{verbatim}
 
-The parameters to the call to init will need to be validated also. This
-will require determining the valid bounds for \texttt{alloc\_helper(size)}. The
+The parameters to the call to \texttt{init} also need to be validated
+(see Section~\ref{section:checking-function-call-arguments}). This
+requires determining the valid bounds for \texttt{alloc\_helper(size)}. The
 return bounds for \texttt{alloc\_helper} are used:
 \begin{verbatim}
    return_value : bounds(return_value, return_value + n) rel_align(int)
@@ -289,8 +292,8 @@ return bounds for \texttt{alloc\_helper} are used:
 First, there is a check that the actual arguments that correspond to
 formal parameters used in the return bounds are valid non-modifying
 expressions. The only argument is the variable size, so this check
-succeeds. Next, size is substituted for n and current\_expr\_value is
-substituted for return\_value, producing:
+succeeds. Next, \texttt{size} is substituted for \texttt{n} and
+\exprcurrentvalue\ is substituted for \texttt{return\_value}, producing:
 \begin{alltt}
    alloc\_helper(size) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size) 
                          rel_align(int)
@@ -309,7 +312,7 @@ of the object in memory are not changed by the pointer arithmetic.
 
 We first cover the typical situation where the relative alignment type
 for a pointer in a pointer operation matches the referent type of the
-pointer. Given a pointer operation of the form \var{x op e1}, where x
+pointer. Given a pointer operation of the form \var{x op e1}, where [var{x}
 has an \arrayptr\ type, \var{e1} has an integral type, and
 \var{op} is addition or subtraction, the memory that can be accessed
 through \var{x op e1} is the same memory that can be accessed through
@@ -334,7 +337,7 @@ follows:
   then \boundsinfer{\var{e4 op e1}}{\boundsrel{\var{e2}}{\var{e3}}{\var{T}}}
 \end{itemize}
 
-Here are is the full rule that handles the situation where the relative
+Here is the full rule that handles the situation where the relative
 alignment of the pointer differs from the size of the referent type of
 the pointer. GCD computes the greatest common divisor of two integers.
 The prior rules are just special cases of this rule:
@@ -358,8 +361,8 @@ the value is non-null and generates a runtime error if it is. This check
 is important because a null pointer may have invalid bounds (this
 follows from the definition of the meaning of bounds in 
 Section~\ref{section:bounds-declarations}). It
-prevents a null pointer with invalid bounds from being used to create a
-non-null pointer with invalid bounds, which could then be used to access
+prevents a null pointer that has invalid bounds from being used to create a
+non-null pointer with valid bounds, which could then be used to access
 memory.
 
 Because the meaning of unsafe pointers has not changed, pointer
@@ -388,17 +391,17 @@ If the special variable \exprcurrentvalue\ occurs in
 
 \begin{itemize}
 \item
-  If op is \texttt{+}, then substitute \texttt{\exprcurrentvalue\ -}
+  If \var{op} is \texttt{+}, substitute \texttt{\exprcurrentvalue\ -}
   \var{e1} for all occurrences of \exprcurrentvalue\ in
   \bounds{\var{e2}}{\var{e3}}
 \item
-  If op is \texttt{-}, substitute \texttt{\exprcurrentvalue\ +}
+  If \var{op} is \texttt{-}, substitute \texttt{\exprcurrentvalue\ +}
   \var{e1} for all occurrences of \exprcurrentvalue\ in
   \bounds{\var{e2}}{\var{e3}}.
 \end{itemize}
 
-The reasoning behind this that the current value of the expression has
-changed as the result of \texttt{op} \var{e1}. An adjustment in the
+The reasoning behind this is that the current value of the expression has
+changed as the result of \var{op} \var{e1}. An adjustment in the
 opposite direction of equal magnitude must be made for occurrences of
 \exprcurrentvalue.
 
@@ -466,6 +469,7 @@ the bounds to what would be desired when extra padding is inserted:
 \end{alltt}
 
 \subsection{Cast expressions}
+\label{section:cast-expressions}
 
 Given a cast expression of the form \texttt{(\var{T})} \var{e},
 the bounds for \var{e} are determined. The bounds for
@@ -498,7 +502,7 @@ does not change the value returned by one if its branches, so no
 adjustment to \exprcurrentvalue\ is needed.
 
 \emph{This is an expression where a conditional bounds expression could
-be used to represent the resulting range. Another alternative that work
+be used to represent the resulting range.  Another alternative that works
 with current syntax would be to create upper/lower-bound expressions
 that use e1 such as (e1 ? lower-bound(e2) : lower-bound(e3), e1 ?
 upper-bound(e2) : upper-bound(e3). For now, we defer discussion of both
@@ -513,7 +517,7 @@ as the bounds for the entire expression.
 If the special variable \exprcurrentvalue\ occurs in the
 bounds for \var{e2}, it is left unchanged.
 
-\section{Validity of bounds declarations for assignment expressions}
+\section{Bounds for assignment expressions}
 \label{section:checking-assignment-expressions}
 
 For an assignment expression of the form \var{x} \texttt{=} \var{e},
@@ -642,7 +646,7 @@ while (p < high) {
 \end{verbatim}
 
 Bounds safety is preserved when the range of a bounds expression is
-narrowed. \texttt{(p -- 1, high)} implies that \texttt{(p, high)} is a
+narrowed. \texttt{(p - 1, high)} implies that \texttt{(p, high)} is a
 valid bounds expression. This reestablishes the loop bounds invariant
 for \texttt{p} of \texttt{(p, high)}.
 
@@ -656,8 +660,8 @@ while (p < high) {
 The correctness of narrowing depends on safe pointer arithmetic overflow
 being a runtime error. For a lower bound \var{e1} in a bounds
 expression, we can only substitute \var{e2} for \var{e1} as the lower
-bound if \var{e2} \textgreater{}= \var{e1}. The identity \texttt{p
-\textgreater{} p -- 1} holds only if overflow is a runtime error.
+bound if \var{e2} \textgreater{}= \var{e1}. The identity \texttt{p > p - 1} 
+holds only if overflow is a runtime error.
 
 \subsection{Invertible expressions}
 An expression is invertible with respect to a variable x if:
@@ -713,6 +717,7 @@ e = \texttt{-}\var{e1} & \texttt{inverse(-}\var{f},
 \var{e} = \texttt{(}\var{t1}\texttt{)} \var{e1}, where \var{e1} has
 type \var{t2} & \texttt{inverse((}\var{t2}\texttt{)} \var{f},
 \var{e1}\texttt{)}\tabularnewline
+and \texttt{(\var{t1})} is not a narrowing cast & \\
 \var{e} = \var{e1} \texttt{+} \var{e2}, where \texttt{x} occurs in
 \var{e1} & \texttt{inverse(}\var{f} \texttt{-} \var{e2},
 e1)\tabularnewline
@@ -764,8 +769,8 @@ new context and the bounds expression for e as follows:
   context and compute the updated context and the bound expression (if
   any) for the subexpression.
 \item
-  If e is an assignment expression, apply the rules in 
-  Section~\ref{section:checking-assignment-expressions} to
+  If e is an assignment expression, 
+  apply the rules in Section~\ref{section:checking-assignment-expressions} to
   compute an updated context and a bounds expression for e
 \item
   Otherwise, apply the rules in Section~\ref{section:inferring-expression-bounds}
@@ -773,7 +778,7 @@ new context and the bounds expression for e as follows:
   expression for e.
 \end{itemize}
 
-\section{Checking expression statements}
+\section{Expression statements}
 \label{section:checking-expression-statements}
 
 Expression statements need to be checked for consistency with their
@@ -802,7 +807,8 @@ computed:
   expected bounds expression for x.
 \end{itemize}
 
-The bounds expression in the context for \var{x} must imply that the
+We will refer to the bounds expression for \var{x} in the updated context
+as the updated bounds expression.  It must imply that the
 expected bounds expression holds. Implication is checked in this section
 using by placing non-modifying expressions into a canonical form and
 checking for syntactic equality. If two expressions have the same
@@ -811,21 +817,21 @@ identical. Chapter~\ref{chapter:simple-invariants}
 describes more general techniques for checking
 that context bounds imply the expected bounds.
 
-The context bounds expression implies that the expected bounds
+The updated bounds expression implies that the expected bounds
 expression holds if:
 
 \begin{itemize}
 \item
   The expected bounds expression is \boundsnone, or
 \item
-  The context bounds expression is \boundsany, or
+  The updated bounds expression is \boundsany, or
 \item
-  The context bounds expression and the expected bounds expression are
+  The updated bounds expression and the expected bounds expression are
   equal syntactically after placing the expressions into canonical
   forms,
 \item
-  The canonicalized context bounds expression and the expected bounds
-  expression differ syntactically only in their relative alignment, and
+  The canonicalized expressions
+  differ syntactically only in their relative alignment, and
   the context bounds implies the expected relative alignment \var{c}.
   This is true if:
 
@@ -834,21 +840,16 @@ expression holds if:
     The context relative alignment is an integer multiple of the
     expected relative alignment,
   \item
-    or given a context bounds expression of the form
-    \boundsrel{\var{e1}}{\var{e2}}{\var{d}},
-    \texttt{(((\arrayptrchar)}
-    \var{x}\texttt{)} \texttt{-}
-    \texttt{((\arrayptrchar)}
-    \var{e1}\texttt{))} \texttt{\%} \var{c} canonicalizes to
-    \texttt{0}, as does
-    \texttt{(((\arrayptrchar)}
-    \var{e2}\texttt{)} \texttt{-}
-    \texttt{((\arrayptrchar)}
-    \var{x}\texttt{))} \texttt{\%} \var{c}.
+   or given a context bounds expression of the form
+   \boundsrel{\var{e1}}{\var{e2}}{\var{d}},
+   \texttt{((\arrayptrchar) \var{x} - (\arrayptrchar) \var{e1}) \% \var{c}}
+   canonicalizes to \texttt{0}, as does
+   \texttt{((\arrayptrchar) \var{e2} - (\arrayptrchar) \var{x}) \% \var{c}}.
   \end{itemize}
 \end{itemize}
 
 \subsection{Canonicalization of expressions in bounds expressions}
+\label{section:canonicalization}
 
 Most readers can skip this section safely and come back to it as
 necessary. This section is for compiler implementers and for programmers
@@ -892,8 +893,8 @@ for signed integers, it is not guaranteed that \texttt{a - b} =
 The canonicalization rules need to disambiguate between signed and
 unsigned operators for integers, as well as operators that check for
 overflow. All integer operators will be subscripted by whether they
-apply to signed or unsigned integers, or whether they overflow-checking
-operators, using the subscripts \texttt{signed}, \texttt{unsigned}, and
+apply to signed or unsigned integers and whether they check overflow 
+using the subscripts \texttt{signed}, \texttt{unsigned}, and
 \texttt{ovf}. For example, the expression \texttt{(a + b) + c} involving
 signed integers will be written as \texttt{(a
 +}\emph{\textsubscript{signed}} \texttt{b)
@@ -929,8 +930,8 @@ expressions to an initial representation:
 \item
   Implicit cast operations are made explicit.
 \item
-  The pointer dereference (*) and pointer indirection operators
-  (-\textgreater{}) are implicitly annotated with their pointer types.
+  The pointer dereference \texttt{*} and pointer indirection operators
+  \texttt{(->)} are implicitly annotated with their pointer types.
   This is necessary because converting pointer arithmetic to integer
   arithmetic will erase the type information needed by these operators.
 \item
@@ -938,7 +939,7 @@ expressions to an initial representation:
 \item
   Array references of the form
   \var{e1}\texttt{[}\var{e2}\texttt{]} are converted to
-  *\texttt{((}\var{e1}\texttt{)} \texttt{+}
+  \texttt{*((}\var{e1}\texttt{)} \texttt{+}
   \texttt{(}\var{e2}\texttt{))}
 \item
   Pointer arithmetic is expanded to integer-based arithmetic.
@@ -961,8 +962,8 @@ operators are defined
   \begin{itemize}
   \item
     The operators +\texttt{\textsubscript{unsigned}},
-    *\texttt{\textsubscript{unsigned}}, +\texttt{\textsubscript{ovf}},
-    and *\texttt{\textsubscript{ovf}}
+    \texttt{*\textsubscript{unsigned}}, \texttt{+\textsubscript{ovf}},
+    and \texttt{*\textsubscript{ovf}}
   \item
     The bitwise operators \texttt{\textbar{}}, \texttt{\&}, and
     \texttt{\^{}}
@@ -1081,7 +1082,7 @@ The following rules are applied until no further changes occur:
     Rewriting \texttt{(}\var{e1} \texttt{+}\emph{\textsubscript{kind}}
     \var{e2}\texttt{)} \texttt{*}\emph{\textsubscript{kind}} \var{e3}
     to \texttt{(}\var{e1} \texttt{*}\emph{\textsubscript{kind}}
-    e3\texttt{)} \texttt{+}\emph{\textsubscript{kind}}
+    \var{e3}\texttt{)} \texttt{+}\emph{\textsubscript{kind}}
     \texttt{(}\var{e2} \texttt{*}\emph{\textsubscript{kind}}
     \var{e3}\texttt{)}
   \item
@@ -1107,8 +1108,9 @@ limit on the size of canonicalized expressions. A minimum required limit
 will be determined based on an empirical evaluation of C programs.
 
 \subsection{An example of canonicalization}
+\label{section:canonicalization-example}
 
-Here is how bounds for following statement will be checked:
+Here is how bounds for the following declaration and statement will be checked:
 \begin{verbatim}
 array_ptr<int> x;
 x = malloc(sizeof(int)*5) where x : count(5);
@@ -1143,7 +1145,7 @@ call \verb+malloc(sizeof(int)*(size_t) 5)+. The actual argument
 bounds expression for the return value of \verb+malloc+:
 \begin{verbatim}
 return_value : bounds((array_ptr<char>) return_value, 
-                       (array_ptr<char>) return_value + sizeof(int)*(size_t) 5)
+                      (array_ptr<char>) return_value + sizeof(int)*(size_t) 5)
 \end{verbatim}
 
 Next, \verb+expr_current_value+ is substituted for \verb+return_value+ :
@@ -1199,16 +1201,15 @@ bounds(x, x +\textsubscript{ovf} 20)
 
 We must also show the expected bounds imply that the 
 \verb|rel_align(int)| requirement is met. This is straightforward for
-a constant-sized array. It involves showing given bounds{\var{e1}}{\var{e2}}
-that \verb|(((array_ptr<char>) x) - ((array_ptr<char>)| \var{e1}\verb|)) % 4| canonicalizes to 0, as does
-\arrayptrchar \var{e2}\verb|) - (array_ptr<char>) x)) % 4|.
+a constant-sized array. It involves showing given \bounds{\var{e1}}{\var{e2}}
+that \texttt{((\arrayptrchar) x - (\arrayptrchar) \var{e1}) \% 4} canonicalizes
+to 0, as does \texttt{((\arrayptrchar) \var{e2} - (\arrayptrchar) x) \% 4}.
 
-For the first expression, \verb|((array_ptr<char>) - x) % 4|
-simplifies to \verb|0 % 4|, which constant-folds to \verb|0|. 
-For the second expression, \verb|((array_ptr<char>) (x+5) - ((array_ptr<char>) x)) % 4|
-simplifies to \verb|((x |+\textsubscript{ovf}\verb|20)| -\textsubscript{ovf\_diff} \verb|x) % 4|. This
-simplifies to \verb|20 % 4|, which constant-folds to \verb|0|.
-
+For the first expression, \texttt{((\arrayptrchar) x - (\arrayptrchar) x) \% 4}
+simplifies to \texttt{0 \% 4}, which constant-folds to \texttt{0}.
+For the second expression, \texttt{((\arrayptrchar) (x + 5) - (\arrayptrchar) x) \% 4}
+simplifies to \texttt{((x +\textsubscript{ovf} 20) -\textsubscript{ovf\_diff} x) \% 4}. This
+simplifies to \texttt{20 \% 4}, which constant-folds to \texttt{0}.
 
 If we change the example to make the number of elements variable instead
 of constant, we can see how canonicalization breaks down in the presence
@@ -1239,19 +1240,19 @@ x +\textsubscript{ovf} (4 *\textsubscript{ovf} k)
 \end{alltt}
 
 The expressions are not identically syntactically, so bounds expression
-checking fails. The additional side conditions that \verb|k >= 0 && k <= UINTPTR\_MAX/4|
+checking fails. The additional side conditions that \verb|k >= 0 && k <= UINTPTR_MAX/4|
 are needed to show that the computed upper bound implies the expected upper bound. More
 general techniques from Chapter~\ref{chapter:simple-invariants} are needed to show that the context
 bounds imply the expected bounds.
 
 \subsection{Extending canonicalization to two's complement signed integer arithmetic}
 
-In some widely-used C compilers, however signed arithmetic implemented
+In some widely-used C compilers, signed arithmetic implemented
 as two's complement arithmetic is available under a compiler flag. In
 this case, the expected arithmetic properties hold, which enables more
 expressions to be canonicalized to the same form.
 
-\section{Checking declarations}
+\section{Declarations}
 \label{section:checking-declarations}
 
 Declarations also need to be checked for consistency with their bounds
@@ -1266,7 +1267,7 @@ the variable as well. Definitions may have initializers that initialize
 the storage for the variable.
 
 We first describe checking definitions, which is similar to checking
-assignments. For a declaration, we assume that there is ordered list of
+assignments. For a declaration, we assume that there is an ordered list of
 \arrayptr\ variables and their optional initializers, and the
 list of bounds declarations in the where clause for the declaration. The
 list is ordered by the order of variable declarations.
@@ -1324,7 +1325,7 @@ verify that all the declarations of a variable in a translation unit
 have the same bounds declaration (or lack of a bounds declarations) for
 the variable.
 
-\section{Checking bundled declarations and statements}
+\section{Bundled declarations and statements}
 \label{section:checking-bundled}
 
 To check bundled declarations and statements, the current context is
@@ -1350,10 +1351,8 @@ The bounds for \verb|parr| at that point in the program based on the
 current context will be \verb|bounds(parr, parr + size)|.
 \begin{verbatim}
 int arr[DEFAULT_SIZE];
-bundle {
-    array_ptr<int> parr : count(len) = arr;
-    int plen = DEFAULT_SIZE;
-}
+array_ptr<int> parr : count(len) = arr;
+int plen = DEFAULT_SIZE;
 
 f(int size) {
     if (size > DEFAULT_SIZE) {
@@ -1388,7 +1387,7 @@ bounds are valid. This means that the context before the function call
 must imply that bounds declarations for variables in scope that have
 static storage are valid.
 
-\section{Checking function call arguments}
+\section{Function call arguments}
 \label{section:checking-function-call-arguments}
 
 Function call arguments also need to be checked for consistency with
@@ -1402,8 +1401,8 @@ parameters,
 \item
   A statement of the form
 
-  x\textsubscript{1 =} e\textsubscript{1} \texttt{,} x\textsubscript{2
-  =} e\textsubscript{2} \texttt{,} \ldots{}. x\textsubscript{n =}
+  x\textsubscript{1} = e\textsubscript{1} \texttt{,} x\textsubscript{2} = 
+  e\textsubscript{2} \texttt{,} \ldots{}. x\textsubscript{n} =
   e\textsubscript{n} where \var{conditions} \texttt{;}
 
   is constructed, where \var{conditions} contains all the bounds
@@ -1434,7 +1433,7 @@ parameters,
   \end{itemize}
 \end{itemize}
 
- \section{Checking return statements}
+ \section{Return statements}
 
 A return statement has the form \texttt{return} \var{e}, where \var{e}
 is optional. The bounds for \var{e} are computed. If the special
@@ -1444,7 +1443,7 @@ place. It is then checked that the updated bounds for \var{e} imply the
 return bounds for the function using the rules in 
 Section~\ref{section:checking-expression-statements}
 
-\section{Checking other statements}
+\section{Other statements}
 
 There are a variety of other statements in C. These statements are built
 from zero or more expressions, statements, and declarations:
@@ -1486,7 +1485,7 @@ The rules in Section~\ref{section:checking-nested-assignment-expressions}
 are used to determine the updated context after evaluation of the
 expression. The rules in Section~\ref{section:checking-expression-statements}
 are used to check that the updated
-context is valid for the expected bounds declarations.
+context implies the expected bounds declarations.
 
 \section{Avoiding undefined expressions and undefined bounds}
 \label{section:avoiding-undefinedness}
@@ -1564,6 +1563,5 @@ ambiguous variable in an expression e as:
   and the order of evaluation of *e1 and the assignment to the variable
   is undefined.
 \end{itemize}
-
 It is a compile-time error for an expression to have an ambiguous
 variable.

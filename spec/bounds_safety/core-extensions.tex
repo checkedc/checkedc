@@ -260,6 +260,15 @@ in a more precise answer. The prohibitions against it for \texttt{++}, and
 \texttt{--} operands and the left operand of an assignment operato keeps array
 variables from being modifiable.
 
+\subsection{Variable and member initialization}
+
+Variables and member of variables with new safe pointer types must be initialized
+before they are used.  For \arrayptr s, this is checked as part of checking
+the validity of bounds.  For \ptr s and \arrayview s, this is checked
+using a separate analysis.   A use includes taking the address of a variable
+or member of a variable.  It is often unclear when the resulting pointer is used,
+so the variable must be initialized when its address is taken.
+
 \subsection{\texttt{Array\_view<}\textit{T}\texttt{>} specific operations}
 
 An \arrayviewT\
@@ -322,6 +331,7 @@ The full rules for casting to an \arrayview\ type are covered
 in Section~\ref{section:pointer-casting}.
 
 \section{Pointer arithmetic error conditions}
+\label{section:pointer-arithmetic-errors}
 
 For existing unsafe C pointers, the definition of pointer arithmetic is
 described in terms of addresses of elements of an array object. The C
@@ -474,7 +484,7 @@ pointer arithmetic.
 
 To support this expansion, integer arithmetic operators are extended
 with the operators \texttt{+\textsubscript{ovf}},
-\texttt{-\textsubscript{ovf}} , and\texttt{*\textsubscript{ovf}}. The
+\texttt{-\textsubscript{ovf}} , and \texttt{*\textsubscript{ovf}}. The
 operators interpet pointers as unsigned integers in some range 0 to
 \texttt{UINTPTR\_MAX}. An operator produces a runtime error if the value
 of its result cannot be represented by the result type:
@@ -589,10 +599,19 @@ To improve program reliability and to simplify understanding programs,
 it is desirable to limit code to using only safe pointers. To support
 this, we introduce checked program scopes. The \keyword{checked} keyword
 can be attached to blocks and function definitions. In checked program
-scopes, definitions can use only safe pointer types and checked array
-types; they cannot use unsafe pointer types and unsafe arrays. On the
-other hand, declarations can use unsafe pointer types and unsafe arrays,
-provided that the declarations provide a bounds-safe interface.
+scopes, the declared types of variables are allowed to be or use
+safe pointer types or checked array types; unsafe pointer types
+and unsafe array types are not allowed.  Similarly, for functions,
+return types and parameter types are allowed to be or use safe pointer
+types or checked array types.  
+
+On the other hand,  declarations in checked scopes can use unsafe pointer 
+types and unsafe array types, provided that the declarations provide a 
+bounds-safe interface.   These are described in
+Section~\ref{section:function-bounds-safe-interfaces}.
+Variables and functions used in checked scopes are 
+allowed to have or be safe pointer types, checked array types, or unsafe pointer types
+and unsafe array types with bounds declarations. 
 
 A new pragma directive \texttt{BOUNDS\_CHECKED} is introduced to control whether
 the top-level scope is a checked scope:
@@ -693,6 +712,7 @@ checking. We may introduce additional keywords to control specific kinds
 of checking.
 
 \section{Programmer-inserted dynamic checks}
+\label{section:programmer-dynamic-checks}
 
 A bounds check generates a runtime error if it fails. The ability to
 generate a runtime error is not limited to the C implementation. A
