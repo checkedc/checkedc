@@ -864,3 +864,59 @@ void check_call_cv() {
     f3(r_const, val);     // expected-warning {{discards qualifiers}}
                           // param array_ptr<int> arg array_ptr<const int> not OK
 }
+
+void check_pointer_arithmetic()
+{
+   int val[5];
+   int *p = val;
+   ptr<int> q = &val[0];
+   ptr<void> q_void = &val[0];
+   array_ptr<int> r = val;
+   array_ptr<void> r_void = val;
+
+   p + 5;
+   5 + p;
+   p++;
+   p--;
+   ++p;
+   --p;
+   p += 1;
+   p -= 1;
+
+   q + 5;  // expected-error {{arithmetic on 'ptr<int>'}}
+   5 + q;  // expected-error {{arithmetic on 'ptr<int>'}}
+   q++;    // expected-error {{arithmetic on 'ptr<int>'}}
+   q--;    // expected-error {{arithmetic on 'ptr<int>'}}
+   ++q;    // expected-error {{arithmetic on 'ptr<int>'}} 
+   --q;    // expected-error {{arithmetic on 'ptr<int>'}}
+   q += 1; // expected-error {{arithmetic on 'ptr<int>'}}
+   q -= 1; // expected-error {{arithmetic on 'ptr<int>'}}
+
+   r + 5;
+   5 + r;
+   r++;
+   r--;
+   ++r;
+   --r;
+   r += 1;
+   r -= 1;
+
+   // GCC allows arithmetic on void pointers, not allowed for safe pointer types
+   q_void + 5;  // expected-error {{arithmetic on 'ptr<void>'}}
+   5 + q_void;  // expected-error {{arithmetic on 'ptr<void>'}}
+   q_void++;    // expected-error {{arithmetic on 'ptr<void>'}}
+   q_void--;    // expected-error {{arithmetic on 'ptr<void>'}}
+   ++q_void;    // expected-error {{arithmetic on 'ptr<void>'}} 
+   --q_void;    // expected-error {{arithmetic on 'ptr<void>'}}
+   q_void += 1; // expected-error {{arithmetic on 'ptr<void>'}}
+   q_void -= 1; // expected-error {{arithmetic on 'ptr<void>'}}
+
+   r_void + 5;  // expected-error {{arithmetic on a pointer to void}}
+   5 + r_void;  // expected-error {{arithmetic on a pointer to void}}
+   r_void++;    // expected-error {{arithmetic on a pointer to void}}
+   r_void--;    // expected-error {{arithmetic on a pointer to void}}
+   ++r_void;    // expected-error {{arithmetic on a pointer to void}} 
+   --r_void;    // expected-error {{arithmetic on a pointer to void}}
+   r_void += 1; // expected-error {{arithmetic on a pointer to void}}
+   r_void -= 1; // expected-error {{arithmetic on a pointer to void}}
+}
