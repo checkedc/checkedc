@@ -883,14 +883,23 @@ void check_pointer_arithmetic()
    p += 1;
    p -= 1;
 
-   q + 5;  // expected-error {{arithmetic on 'ptr<int>'}}
-   5 + q;  // expected-error {{arithmetic on 'ptr<int>'}}
-   q++;    // expected-error {{arithmetic on 'ptr<int>'}}
-   q--;    // expected-error {{arithmetic on 'ptr<int>'}}
-   ++q;    // expected-error {{arithmetic on 'ptr<int>'}} 
-   --q;    // expected-error {{arithmetic on 'ptr<int>'}}
-   q += 1; // expected-error {{arithmetic on 'ptr<int>'}}
-   q -= 1; // expected-error {{arithmetic on 'ptr<int>'}}
+   q + 5;  // expected-error {{arithmetic on ptr type}}
+   5 + q;  // expected-error {{arithmetic on ptr type}}
+   q++;    // expected-error {{arithmetic on ptr type}}
+   q--;    // expected-error {{arithmetic on ptr type}}
+   ++q;    // expected-error {{arithmetic on ptr type}}
+   --q;    // expected-error {{arithmetic on ptr type}}
+   q += 1; // expected-error {{arithmetic on ptr type}}
+   q -= 1; // expected-error {{arithmetic on ptr type}}
+
+   q_void + 5;  // expected-error {{arithmetic on ptr type}}
+   5 + q_void;  // expected-error {{arithmetic on ptr type}}
+   q_void++;    // expected-error {{arithmetic on ptr type}}
+   q_void--;    // expected-error {{arithmetic on ptr type}}
+   ++q_void;    // expected-error {{arithmetic on ptr type}} 
+   --q_void;    // expected-error {{arithmetic on ptr type}}
+   q_void += 1; // expected-error {{arithmetic on ptr type}}
+   q_void -= 1; // expected-error {{arithmetic on ptr type}}
 
    r + 5;
    5 + r;
@@ -902,14 +911,7 @@ void check_pointer_arithmetic()
    r -= 1;
 
    // GCC allows arithmetic on void pointers, not allowed for safe pointer types
-   q_void + 5;  // expected-error {{arithmetic on 'ptr<void>'}}
-   5 + q_void;  // expected-error {{arithmetic on 'ptr<void>'}}
-   q_void++;    // expected-error {{arithmetic on 'ptr<void>'}}
-   q_void--;    // expected-error {{arithmetic on 'ptr<void>'}}
-   ++q_void;    // expected-error {{arithmetic on 'ptr<void>'}} 
-   --q_void;    // expected-error {{arithmetic on 'ptr<void>'}}
-   q_void += 1; // expected-error {{arithmetic on 'ptr<void>'}}
-   q_void -= 1; // expected-error {{arithmetic on 'ptr<void>'}}
+
 
    r_void + 5;  // expected-error {{arithmetic on a pointer to void}}
    5 + r_void;  // expected-error {{arithmetic on a pointer to void}}
@@ -919,4 +921,439 @@ void check_pointer_arithmetic()
    --r_void;    // expected-error {{arithmetic on a pointer to void}}
    r_void += 1; // expected-error {{arithmetic on a pointer to void}}
    r_void -= 1; // expected-error {{arithmetic on a pointer to void}}
+
+   // adding two pointers is not allowed
+   q + q; // expected-error {{invalid operands}}
+   r + r; // expected-error {{invalid operands}}
+}
+
+void check_pointer_difference()
+{
+    int count;
+    int val_int[5];
+    float val_float[5];
+
+    float *p_float = val_float;
+    int *p_int = val_int;
+    void *p_void = val_int;
+
+    ptr<float> q_float = &val_float[0];
+    ptr<int> q_int = &val_int[0];
+    ptr<void> q_void = &val_int[0];
+
+    array_ptr<float> r_float = val_float;
+    array_ptr<int> r_int = val_int;
+    array_ptr<void> r_void = val_int;
+
+    // check pointer difference using different kinds of pointers to float
+    count = p_float - p_float; // float * - float * OK
+    count = p_float - q_float; // float * - ptr<float> OK
+    count = p_float - r_float; // float * - array_ptr<float> OK
+
+    count = q_float - p_float; // ptr<float> - float * OK
+    count = q_float - q_float; // ptr<float> - ptr<float> OK
+    count = q_float - r_float; // ptr<float> - array_ptr<float> OK.
+
+    count = r_float - p_float; // array_ptr<float> - float * OK.
+    count = r_float - q_float; // array_ptr<float> - ptr<float> OK.
+    count = r_float - r_float; // array_ptr<float> - array_ptr<float> OK.
+
+   // check pointer difference using different kinds of pointers to int
+    count = p_int - p_int; // int * - int * OK
+    count = p_int - q_int; // int * - ptr<int> OK
+    count = p_int - r_int; // int * - array_ptr<int> OK
+
+    count = q_int - p_int; // ptr<int> - int * OK
+    count = q_int - q_int; // ptr<int> - ptr<int> OK
+    count = q_int - r_int; // ptr<int> - array_ptr<int> OK.
+
+    count = r_int - p_int; // array_ptr<int> - int * OK.
+    count = r_int - q_int; // array_ptr<int> - ptr<int> OK.
+    count = r_int - r_int; // array_ptr<int> - array_ptr<int> OK.
+
+    // invalid pointer differences
+    // differences involving safe pointers to different referent types
+    // pointers to int and pointers to float
+    count = p_int - p_float; // expected-error {{not pointers to compatible types}}
+                             // int * - float * not OK
+    count = p_int - q_float; // expected-error {{not pointers to compatible types}}
+                             // int * - ptr<float> not OK
+    count = p_int - r_float; // expected-error {{not pointers to compatible types}}
+                             // int * - array_ptr<float> not OK
+
+    count = q_int - p_float; // expected-error {{not pointers to compatible types}}
+                             // ptr<int> - float * not OK
+    count = q_int - q_float; // expected-error {{not pointers to compatible types}}
+                             // ptr<int> - ptr<float> not OK
+    count = q_int - r_float; // expected-error {{not pointers to compatible types}}
+                             // ptr<int> - array_ptr<float> not OK.
+
+    count = r_int - p_float; // expected-error {{not pointers to compatible types}}
+                             // array_ptr<int> - float * not OK.
+    count = r_int - q_float; // expected-error {{not pointers to compatible types}}
+                             // array_ptr<int> - ptr<float> not OK.
+    count = r_int - r_float; // expected-error {{not pointers to compatible types}}
+                             // array_ptr<int> - array_ptr<float> not OK.
+
+    // pointers to float and pointers to int
+    count = p_float - p_int; // expected-error {{not pointers to compatible types}}
+                             // float * - int * OK
+    count = p_float - q_int; // expected-error {{not pointers to compatible types}}
+                             // float * - ptr<int> OK
+    count = p_float - r_int; // expected-error {{not pointers to compatible types}}
+                             // float * - array_ptr<int> OK
+
+    count = q_float - p_int; // expected-error {{not pointers to compatible types}}
+                             // ptr<float> - int * OK
+    count = q_float - q_int; // expected-error {{not pointers to compatible types}}
+                             // ptr<float> - ptr<int> OK
+    count = q_float - r_int; // expected-error {{not pointers to compatible types}}
+                             // ptr<float> - array_ptr<int> OK.
+
+    count = r_float - p_int; // expected-error {{not pointers to compatible types}}
+                             // array_ptr<float> - int * OK.
+    count = r_float - q_int; // expected-error {{not pointers to compatible types}}
+                             // array_ptr<float> - ptr<int> OK.
+    count = r_float - r_int; // expected-error {{not pointers to compatible types}}
+                             // array_ptr<float> - array_ptr<int> OK.
+
+    // differences involving safe pointers to void
+    count = p_void - q_void; // expected-error {{arithmetic on pointers to void}}
+                             // void * - ptr<void> not OK
+    count = p_void - r_void; // expected-error {{arithmetic on pointers to void}}
+                             // void * - array_ptr<void> not OK
+    count = q_void - p_void; // expected-error {{arithmetic on pointers to void}}
+                             // ptr<void> - void * not OK
+    count = q_void - q_void; // expected-error {{arithmetic on pointers to void}}
+                             // ptr<void> - ptr<void> not OK
+    count = q_void - r_void; // expected-error {{arithmetic on pointers to void}}
+                             // ptr<void> - array_ptr<void> not  OK.
+    count = r_void - p_void; // expected-error {{arithmetic on pointers to void}}
+                             // array_ptr<void> - void * not OK.
+    count = r_void - q_void; // expected-error {{arithmetic on pointers to void}}
+                             // array_ptr<void> - ptr<void> not OK.
+    count = r_void - r_void; // expected-error {{arithmetic on pointers to void}}
+                             // array_ptr<void> - array_ptr<void> not OK.
+}
+
+void check_pointer_relational_compare()
+{
+    int result;
+    int val_int[5];
+    float val_float[5];
+
+    float *p_float = val_float;
+    float *p2_float = val_float;
+    int *p_int = val_int;
+    int *p2_int = val_int;
+    void *p_void = val_int;
+
+    ptr<float> q_float = &val_float[0];
+    ptr<float> q2_float = &val_float[0];
+    ptr<int> q_int = &val_int[0];
+    ptr<int> q2_int = &val_int[0];
+    ptr<void> q_void = &val_int[0];
+    ptr<void> q2_void = &val_int[0];
+
+    array_ptr<float> r_float = val_float;
+    array_ptr<float> r2_float = val_float;
+    array_ptr<int> r_int = val_int;
+    array_ptr<int> r2_int = val_int;
+    array_ptr<void> r_void = val_int;
+    array_ptr<void> r2_void = val_int;
+
+    // relational comparisons using different kinds of pointers to float
+    result = p_float < p2_float; // float * < float * OK
+    result = p_float <= q_float; // float * <= ptr<float> OK
+    result = p_float > r_float;  // float * > array_ptr<float> OK
+
+    result = q_float >= p_float; // ptr<float> >= float * OK
+    result = q_float < q2_float; // ptr<float> < ptr<float> OK
+    result = q_float <= r_float; // ptr<float> <= array_ptr<float> OK.
+
+    result = r_float < p_float;  // array_ptr<float> < float * OK.
+    result = r_float <= p_float; // array_ptr<float> <= ptr<float> OK.
+    result = r_float > r2_float; // array_ptr<float> > array_ptr<float> OK.
+
+    // relational comparisons using different kinds of pointers to int
+    result = p_int >= p2_int; // int * >= int * OK
+    result = p_int < q_int;   // int * < ptr<int> OK
+    result = p_int <= r_int;  // int * <= array_ptr<int> OK
+
+    result = q_int > p_int;   // ptr<int> > int * OK
+    result = q_int >= q2_int; // ptr<int> >= ptr<int> OK
+    result = q_int < r_int;   // ptr<int> < array_ptr<int> OK.
+
+    result = r_int <= p_int;  // array_ptr<int> <= int * OK.
+    result = r_int > q_int;   // array_ptr<int> > ptr<int> OK.
+    result = r_int >= r2_int; // array_ptr<int> >= array_ptr<int> OK.
+
+    // relational comparisons involving safe pointers to void
+    result = p_void < q_void;  // void  * < ptr<void> OK
+    result = p_void <= r_void; // void * <= array_ptr<void> OK
+    result = q_void > p_void;  // ptr<void> > void * OK
+    result = q_void >= q2_void;  // ptr<void> >= ptr<void> OK
+    result = q_void < r_void; // ptr<void> < array_ptr<void>  OK.
+    result = r_void <= p_void; // array_ptr<void> <= void * OK.
+    result = r_void > q_void; // array_ptr<void> > ptr<void> OK.
+    result = r_void >= r2_void;  // array_ptr<void> >= array_ptr<void> OK.
+
+    // invalid relational comparisons
+
+    // comparisons involving safe pointers to different referent types
+    // pointers to int and pointers to float
+    result = p_int < p_float;  // expected-warning {{comparison of distinct pointer types}}
+                               // int * < float * not OK
+    result = p_int <= q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // int * <= ptr<float> not OK
+    result = p_int > r_float;  // expected-warning {{comparison of distinct pointer types}}
+                               // int * > array_ptr<float> not OK
+
+    result = q_int >= p_float; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<int> >= float * not OK
+    result = q_int < q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<int> < ptr<float> not OK
+    result = q_int <= r_float; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<int> <= array_ptr<float> not OK.
+
+    result = r_int > p_float;  // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<int> > float * not OK.
+    result = r_int >= q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<int> >= ptr<float> not OK.
+    result = r_int < r_float;  // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<int> < array_ptr<float> not OK.
+
+    // pointers to float and pointers to int
+    result = p_float <= p_int; // expected-warning {{comparison of distinct pointer types}}
+                               // float * <= int * not OK
+    result = p_float > q_int;  // expected-warning {{comparison of distinct pointer types}}
+                               // float * > ptr<int> not OK
+    result = p_float >= r_int; // expected-warning {{comparison of distinct pointer types}}
+                               // float * >= array_ptr<int> not OK
+
+    result = q_float < p_int;  // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> < int * not OK
+    result = q_float <= q_int; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> <= ptr<int> not OK
+    result = q_float > r_int;  // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> > array_ptr<int> not OK.
+
+    result = r_float >= p_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> >= int * not OK.
+    result = r_float < q_int;  // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> < ptr<int> not OK.
+    result = r_float <= r_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> <= array_ptr<int> not OK.
+
+    // pointers to void compared to pointers to int
+    result = p_void < p_int;  // expected-warning {{comparison of distinct pointer types}}
+                              // void  * < int * not OK
+    result = p_void <= q_int; // expected-warning {{comparison of distinct pointer types}}
+                              // void  * <= ptr<int> not OK
+    result = p_void > r_int;  // expected-warning {{comparison of distinct pointer types}}
+                              // void * > array_ptr<int> not OK
+    result = q_void >= p_int; // expected-warning {{comparison of distinct pointer types}}
+                              // ptr<void> >= int * not OK
+    result = q_void < q_int;  // expected-warning {{comparison of distinct pointer types}}
+                              // ptr<void> < ptr<int> not OK
+    result = q_void <= r_int; // expected-warning {{comparison of distinct pointer types}}
+                              // ptr<void> <= array_ptr<int> not OK.
+    result = r_void > p_int;  // expected-warning {{comparison of distinct pointer types}}
+                              // array_ptr<void> > int * not OK.
+    result = r_void >= q_int; // expected-warning {{comparison of distinct pointer types}}
+                              // array_ptr<void> >= ptr<int> not OK.
+    result = r_void < r_int;  // expected-warning {{comparison of distinct pointer types}}
+                              // array_ptr<void> < array_ptr<int> not OK.
+
+    // pointers to int compared to pointers to void
+    result = p_int < p_void;  // expected-warning {{comparison of distinct pointer types}}
+                              // int  * < void * not OK
+    result = p_int <= q_void; // expected-warning {{comparison of distinct pointer types}}
+                              // int  * <= ptr<void> not OK
+    result = p_int > r_void;  // expected-warning {{comparison of distinct pointer types}}
+                              // int * > array_ptr<void> not OK
+    result = q_int >= p_void; // expected-warning {{comparison of distinct pointer types}}
+                              // ptr<int> >= void * not OK
+    result = q_int < q_void;  // expected-warning {{comparison of distinct pointer types}}
+                              // ptr<int> < ptr<void> not OK
+    result = q_int <= r_void; // expected-warning {{comparison of distinct pointer types}}
+                              // ptr<int> <= array_ptr<void> not OK.
+    result = r_int > p_void;  // expected-warning {{comparison of distinct pointer types}}
+                              // array_ptr<int> > void * not OK.
+    result = r_int >= q_void; // expected-warning {{comparison of distinct pointer types}}
+                              // array_ptr<int> >= ptr<void> not OK.
+    result = r_int < r_void;  // expected-warning {{comparison of distinct pointer types}}
+                              // array_ptr<int> < array_ptr<void> not OK.
+}
+
+void check_pointer_equality_compare()
+{
+    int result;
+    int val_int[5];
+    float val_float[5];
+
+    float *p_float = val_float;
+    float *p2_float = val_float;
+    int *p_int = val_int;
+    int *p2_int = val_int;
+    void *p_void = val_int;
+
+    ptr<float> q_float = &val_float[0];
+    ptr<float> q2_float = &val_float[0];
+    ptr<int> q_int = &val_int[0];
+    ptr<int> q2_int = &val_int[0];
+    ptr<void> q_void = &val_int[0];
+    ptr<void> q2_void = &val_int[0];
+
+    array_ptr<float> r_float = val_float;
+    array_ptr<float> r2_float = val_float;
+    array_ptr<int> r_int = val_int;
+    array_ptr<int> r2_int = val_int;
+    array_ptr<void> r_void = val_int;
+    array_ptr<void> r2_void = val_int;
+
+    // equality/inequality comparisons using different kinds of pointers to float
+    result = p_float == p2_float; // float * == float * OK
+    result = p_float != q_float;  // float * != ptr<float> OK
+    result = p_float == r_float;  // float * == array_ptr<float> OK
+
+    result = q_float != p_float; // ptr<float> != float * OK
+    result = q_float == q2_float; // ptr<float> == ptr<float> OK
+    result = q_float != r_float; // ptr<float> != array_ptr<float> OK.
+
+    result = r_float == p_float;  // array_ptr<float> == float * OK.
+    result = r_float != p_float; // array_ptr<float> != ptr<float> OK.
+    result = r_float == r2_float; // array_ptr<float> == array_ptr<float> OK.
+
+    // equality/inquality comparisons using different kinds of pointers to int
+    result = p_int != p2_int; // int * != int * OK
+    result = p_int == q_int;  // int * == ptr<int> OK
+    result = p_int != r_int;  // int * != array_ptr<int> OK
+
+    result = q_int == p_int;   // ptr<int> == int * OK
+    result = q_int != q2_int; // ptr<int> != ptr<int> OK
+    result = q_int == r_int;   // ptr<int> == array_ptr<int> OK.
+
+    result = r_int != p_int;  // array_ptr<int> != int * OK.
+    result = r_int == q_int;   // array_ptr<int> == ptr<int> OK.
+    result = r_int == r2_int; // array_ptr<int> == array_ptr<int> OK.
+
+    // equality/inequality comparisons involving safe pointers to void
+
+    result = p_void != q_void;  // void  * != ptr<void> OK
+    result = p_void == r_void; // void * == array_ptr<void> OK
+    result = q_void != p_void;  // ptr<void> != void * OK
+    result = q_void == q2_void;  // ptr<void> == ptr<void> OK
+    result = q_void != r_void; // ptr<void> != array_ptr<void>  OK.
+    result = r_void == p_void; // array_ptr<void> == void * OK.
+    result = r_void != q_void; // array_ptr<void> != ptr<void> OK.
+    result = r_void == r2_void;  // array_ptr<void> == array_ptr<void> OK.
+
+    // pointers to void compared to pointers to int
+    result = p_void != p_int; // void  * != int * OK
+    result = p_void == q_int; // void  * == ptr<int> OK
+    result = p_void == r_int; // void * == array_ptr<int> OK
+    result = q_void != p_int; // ptr<void> != int * OK
+    result = q_void == q_int; // ptr<void> == ptr<int> OK
+    result = q_void != r_int; // ptr<void> != array_ptr<int>  OK.
+    result = r_void == p_int; // array_ptr<void> == int * OK.
+    result = r_void != q_int; // array_ptr<void> != ptr<int> OK.
+    result = r_void == r_int; // array_ptr<void> == array_ptr<int> OK.
+
+    // pointers to int compared to pointers to void
+    result = p_int != p_void; // int  * != void * OK
+    result = p_int == q_void; // int  * == ptr<void> OK
+    result = p_int != r_void; // int * != array_ptr<void> OK
+    result = q_int == p_void; // ptr<int> == void * OK
+    result = q_int != q_void; // ptr<int> != ptr<void> OK
+    result = q_int == r_void; // ptr<int> == array_ptr<void>  OK.
+    result = r_int != p_void; // array_ptr<int> != void * OK.
+    result = r_int == q_void; // array_ptr<int> == ptr<void> OK.
+    result = r_int != r_void; // array_ptr<int> != array_ptr<void> OK.
+
+    // equality/inequality comparisons using different kinds of pointers to float and 0
+    result = p_float == 0; // float * == 0 OK
+    result = p_float != 0; // float * != ptr<float> OK
+
+    result = q_float == 0; // ptr<float> == 0 OK
+    result = q_float != 0; // ptr<float> != 0 OK
+
+    result = r_float == 0; // array_ptr<float> == 0 OK.
+    result = r_float != 0; // array_ptr<float> != 0 OK.
+
+    result = 0 != p_float; // 0 != float * OK
+    result = 0 == p_float; // 0 == ptr<float> OK
+
+    result = 0 != q_float; // 0 != ptr<float> OK
+    result = 0 == q_float; // 0  == ptr<float> OK
+
+    result = 0 == r_float; // 0 == array_ptr<float> OK.
+    result = 0 != r_float; // 0 != array_ptr<float> OK.
+
+    // spot check pointers to int and pointers to void
+
+    result = p_void == 0; // void * == 0 OK
+    result = p_int != 0;  // int * != 0 OK
+
+    result = q_int == 0;  // ptr<int> == 0 OK
+    result = q_void != 0; // ptr<fvoid> == 0 OK
+
+    result = r_void == 0; // array_ptr<void> == 0 OK.
+    result = r_int != 0;  // array_ptr<int> != 0 OK.
+
+    result = 0 != p_int;  // 0 != int * OK
+    result = 0 == p_void; // 0 == void * OK
+
+    result = 0 != q_int;  // 0 == ptr<int> OK
+    result = 0 == q_void; // 0 == ptr<void> OK
+
+    result = 0 != r_void; // 0 != array_ptr<void>
+    result = 0 == r_int;  // 0  == array_ptr<int>.
+
+    // invalid equality/inquality comparisons
+
+    // comparisons involving safe pointers to different referent types
+    // pointers to int and pointers to float
+    result = p_int != p_float; // expected-warning {{comparison of distinct pointer types}}
+                               // int * != float * not OK
+    result = p_int == q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // int * == ptr<float> not OK
+    result = p_int != r_float; // expected-warning {{comparison of distinct pointer types}}
+                               // int * != array_ptr<float> not OK
+
+    result = q_int == p_float; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<int> == float * not OK
+    result = q_int != q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<int> != ptr<float> not OK
+    result = q_int == r_float; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<int> <= array_ptr<float> not OK.
+
+    result = r_int != p_float; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<int> != float * not OK.
+    result = r_int == q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<int> == ptr<float> not OK.
+    result = r_int != r_float; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<int> != array_ptr<float> not OK.
+
+                               // pointers to float and pointers to int
+    result = p_float == p_int; // expected-warning {{comparison of distinct pointer types}}
+                               // float * == int * not OK
+    result = p_float != q_int; // expected-warning {{comparison of distinct pointer types}}
+                               // float * != ptr<int> not OK
+    result = p_float == r_int; // expected-warning {{comparison of distinct pointer types}}
+                               // float * == array_ptr<int> not OK
+
+    result = q_float != p_int; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> != int * not OK
+    result = q_float == q_int; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> == ptr<int> not OK
+    result = q_float != r_int; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> != array_ptr<int> not OK.
+
+    result = r_float == p_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> == int * not OK.
+    result = r_float != q_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> != ptr<int> not OK.
+    result = r_float == r_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> == array_ptr<int> not OK.
 }
