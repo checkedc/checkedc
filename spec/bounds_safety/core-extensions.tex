@@ -183,7 +183,9 @@ The following operations involving pointer-typed values are allowed:
   Pointers to objects of the same type can be compared for equality or
   inequality. The pointers do not have to be the same kind of pointer.
   To support reasoning about program behavior, the result of comparing
-  pointers to different objects must be defined.
+  pointers to different objects must be defined.  Safe pointers can also
+  be compared for equality or inequality with 0 and void pointers, 
+  just like unsafe pointers.
 \item
   Pointers to objects of the same type can be compared relationally. Relational comparisons are the
   \verb|<|, \verb|<=|, \verb|>|, \verb|>=| operators. The pointers do not have to be
