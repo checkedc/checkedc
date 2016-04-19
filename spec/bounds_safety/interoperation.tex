@@ -281,7 +281,7 @@ void swizzle(ptr<int> p) {
 \label{section:implicit-conversions}
 
 C allows implicit conversions at assignments, function call arguments,
-conditional expressions, and comparisons.  The purpose of
+and conditional expressions.  The purpose of
 implicit conversions is to make programs shorter and easier to
 read.  This section defines implicit conversions that are
 allowed for safe pointer types.
@@ -297,10 +297,10 @@ expression with a safe pointer type, provided that the referent types of the
 unsafe pointer and the safe pointer are compatible.
 
 This can be done for the right-hand side of an assignment, a call argument,
-an arm of a conditional expression, and an operand of a comparison.
-The type of the left-hand side of the assignment, the parameter, the other 
-arm of the conditional expression, or the other operand of the comparison
-must be the safe pointer type that is the target of the implicit conversion.
+or an arm of a conditional expression.
+The type of the left-hand side of the assignment, the parameter, or the other 
+arm of the conditional expression must be the safe pointer type that is the
+target of the implicit conversion.
 
 For now, compatibility is defined as the following:
 \begin{itemize}
@@ -331,9 +331,9 @@ unsafe pointer types are allowed only at bounds-safe interfaces
 An expression with a safe pointer type can be converted implicitly to the same kind
 of safe pointer type with a \texttt{void} referent type.   
 This can be done for the right-hand side of an assignment, a call argument, 
-an arm of a conditional expression, and an operand of a comparison.  
-The type of the left-hand side of the assignment, the parameter, the other
-arm of the conditional expression, or the other operand of the comparison
+and an arm of a conditional expression.  
+The type of the left-hand side of the assignment, the parameter, or the other
+arm of the conditional expression
 must be the safe \void\ pointer type that is the target of the implicit
 conversion. For example, implicit conversions from 
 \ptrinst{\var{T}} to \ptrvoid\ and from \arrayptrinst{\var{T}} to \arrayptrvoid\ are allowed 
@@ -343,22 +343,19 @@ Implicit conversions from safe pointers to \void\ to safe pointers to \var{T} ar
 The philosophy behind this is the same one that is used in C++: places where type-safety
 can be compromised by a cast should be explicit in the code.
 
-For comparisons, if one operand has type \ptrinst{\var{T}} and the other
-operand has type \arrayptrinst{\var{T}}, the operand with type \ptrinst{\var{T}}
-can be converted implicitly  to \arrayptrinst{\var{T}}.
-
 \subsubsection{Between safe pointers and integers}
 
 The null pointer (0) can be converted implicitly to any safe pointer type.   
 A safe pointer can be converted implicitly to the \texttt{\_Bool} type.
 
-\subsubsection{Illegal implicit conversions}
+Some C compilers extend C by allowing implicit conversions between pointers
+and integers or between pointers to incompatible types.  Implicit conversions
+from integers to safe pointers are typically not useful in Checked C because
+the checking of bounds declarations fails or the resulting pointer cannot
+be used to access memory.   The rules for checking bounds declarations only
+allow the target type to be \arrayptr\ type and the bounds of the expression to be
+\boundsnone.
 
-All other implicit conversions involving safe pointer types are not allowed.
-A compiler must treat a program containing those conversions as erroneous.
-Many C compilers allow implicit conversions between pointers and integers or
-between pointers to incompatible types.  They issue warning messages for
-those conversions.  These extensions are not permitted for safe pointers.
 
 \subsubsection{Examples}
 
