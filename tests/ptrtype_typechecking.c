@@ -1261,20 +1261,20 @@ void check_pointer_relational_compare()
     result = r_int < r_void;  // expected-warning {{comparison of distinct pointer types}}
                               // array_ptr<int> < array_ptr<void> not OK.
 
-	// Relational copmarisons involving 0
-	// The C11 specification technically doesn't allow this to typecheck for unsafe pointers.  
-	// clang allows it anyway, so it is allowed for Checked C.  Note that according to the
-	// Checked C spec, this has well-defined behavior.  According to the C11 spec, the behavior
-	// is undefined because 0 doesn't point into the object array.
-	result = 0 < p_void; // 0 < void * OK
-	result = p_int <= 0; // int  * <= 0 OK
-	result = p_int > 0;  // int * > 0  OK
-	result = q_int >= 0; // ptr<int> >= 0 OK
-	result = 0 < q_void; // 0 < ptr<void> OK
-	result = q_int <= 0; // ptr<int> <= 0 OK.
-	result = r_int > 0;  // array_ptr<int> > 0 OK.
-	result = 0 > r_int;  // 0 < array_ptr<int> OK.
-	result = 0 < r_void; // 0 < array_ptr<void> OK.
+    // Relational comparisons involving 0
+    // The C11 specification technically doesn't allow this to typecheck for unsafe pointers.  
+    // clang allows it anyway, so it is allowed for Checked C.  Note that according to the
+    // Checked C spec, this has well-defined behavior.  According to the C11 spec, the behavior
+    // is undefined because 0 doesn't point into the object array.
+    result = 0 < p_void; // 0 < void * OK
+    result = p_int <= 0; // int  * <= 0 OK
+    result = p_int > 0;  // int * > 0  OK
+    result = q_int >= 0; // ptr<int> >= 0 OK
+    result = 0 < q_void; // 0 < ptr<void> OK
+    result = q_int <= 0; // ptr<int> <= 0 OK.
+    result = r_int > 0;  // array_ptr<int> > 0 OK.
+    result = 0 > r_int;  // 0 < array_ptr<int> OK.
+    result = 0 < r_void; // 0 < array_ptr<void> OK.
 }
 
 void check_pointer_equality_compare()
