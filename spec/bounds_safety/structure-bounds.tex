@@ -530,12 +530,12 @@ true at the point of the \keyword{holds} declaration.
 Just as existing functions can have bounds-safe interfaces declared for
 them, existing structure types can have bounds-safe interfaces declared
 for them. This allows safe code to use those data structures and for
-those uses to be checked. Existing unsafe code is unchanged.
+those uses to be checked. Existing unchecked code is unchanged.
 
 To create a bound-safe interface for a structure type, a programmer
-declares member bounds for structure members with unsafe pointer types.
-A programmer may also declare whether an unsafe pointer should be
-treated as \ptr\ type by safe code.
+declares member bounds for structure members with unchecked pointer types.
+A programmer may also declare whether an unchecked pointer should be
+treated as \ptr\ type by checked code.
 
 Here is a bound-safe interface for a structure that is a counted buffer
 of characters:
@@ -560,16 +560,16 @@ struct BinaryNode {
 \end{verbatim}
 
 If bounds information is declared for one member of a structure with an
-unsafe pointer type, it must be declared for all other members of the
-structure with unsafe pointer types.
+unchecked pointer type, it must be declared for all other members of the
+structure with unchecked pointer types.
 
-It is important to understand that the \emph{semantics of unsafe
+It is important to understand that the \emph{semantics of unchecked
 pointers in unchecked contexts does not change even when bounds are declared 
-for the pointers}. The declared bounds are used only by safe code that uses the
-data structure, when storing safe pointers into the data structure, and
-when converting unsafe pointers data structures, and when reading safe
-pointers from the data structure unsafe functions or uses unsafe data
-structures.
+for the pointers}. The declared bounds are used only by checked code that uses the
+data structure, when storing checked pointers into the data structure, and when converting
+unchecked pointers read from the data structure to checked pointers.  Code in unchecked
+contexts that uses only unchecked pointer types is compiled as though the bounds-safe
+interface has been stripped from the source code.
 
 \section{Extending checking validity of bounds}
 \label{section:checking-bounds-with-structures}

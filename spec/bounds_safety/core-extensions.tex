@@ -14,7 +14,7 @@ Finally, it describes changes to
 undefined behavior needed for bounds safety.
 
 \section{New kinds of pointer types}
-Three new safe pointer types are added to C. Each pointer type can be
+Three new checked pointer types are added to C. Each pointer type can be
 used in place of `*'
 
 \begin{enumerate}
@@ -45,8 +45,8 @@ used in place of `*'
   \arrayptrT .
 \end{enumerate}
 
-Unsafe C pointer types that use \texttt{*} and are unchecked in their
-ranges continue to exist. Pointer arithmetic is not forbidden on unsafe
+Unchecked C pointer types that use \texttt{*} and are unchecked in their
+ranges continue to exist. Pointer arithmetic is not forbidden on unchecked
 pointer types because it would break existing C code. C compilers will
 have an error or warning mode that flags unexpected uses of `*'.
 
@@ -63,8 +63,8 @@ support decrementing the \spanptr.
 
 \section{New kinds of array types}
 
-A new safe array type is added to C. Just as there are safe pointer
-types, there are safe array types. They are declared by placing the
+A new checked array type is added to C. Just as there are checked pointer
+types, there are checked array types. They are declared by placing the
 modifier \keyword{checked} before the declaration of the bound of the
 array\footnote{We can just as easily adopt the syntax that the checked
 annotation is postfix and propagates from the inner most array to the
@@ -190,13 +190,13 @@ The following operations involving pointer-typed values are allowed:
   Pointers to objects of the same type can be compared for equality or
   inequality. The pointers do not have to be the same kind of pointer.
   To support reasoning about program behavior, the result of comparing
-  pointers to different objects must be defined.  Safe pointers can also
+  pointers to different objects must be defined.  Checked pointers can also
   be compared for equality or inequality with 0 and void pointers, 
-  just like unsafe pointers.
+  just like unchecked pointers.
 \item
   Pointers to objects of the same type can be compared relationally. Relational comparisons are the
   \verb|<|, \verb|<=|, \verb|>|, \verb|>=| operators. The pointers do not have to be
-  the same kind of pointer. For example, an \unsafeptrT\ can be compared with an
+  the same kind of pointer. For example, an \uncheckedptrT\ can be compared with an
   \arrayptrT . To support bounds checking and reasoning about program behavior, the
   result of comparing pointers to different objects must be defined.
   Section~\ref{section:changes-to-undefined-behavior} describes this requirement in detail.
@@ -209,7 +209,7 @@ The following operations involving pointer-typed values are allowed:
 \end{itemize}
 
 A value of one pointer type may be converted to a value of another
-pointer type. For casts to or from safe pointer types where
+pointer type. For casts to or from checked pointer types where
 bounds-safety can be checked at compile-time, a cast operator can be
 used. If bounds safety cannot be checked at compile-time, bounds cast
 operators must be used. There are two kinds of bounds cast operators:
@@ -268,14 +268,14 @@ variables from being modifiable.
 
 \subsection{Variable and member initialization}
 
-Variables and member of variables with new safe pointer types must be initialized
+Variables and members of variables with checked pointer types must be initialized
 before they are used.  For \arrayptr s, this is checked as part of checking
 the validity of bounds.  For \ptr s and \spanptr s, this is checked
 using a separate analysis.   A use includes taking the address of a variable
 or member of a variable.  It is often unclear when the resulting pointer is used,
 so the variable must be initialized when its address is taken.
 
-\subsection{\texttt{Span}\textit{T}\texttt{>} specific operations}
+\subsection{\texttt{Span<}\textit{T}\texttt{>} specific operations}
 
 A \spanptrT\
 pointer carries three values with it: the memory location that will be
@@ -339,7 +339,7 @@ in Section~\ref{section:pointer-casting}.
 \section{Pointer arithmetic error conditions}
 \label{section:pointer-arithmetic-errors}
 
-For existing unsafe C pointers, the definition of pointer arithmetic is
+For existing unchecked C pointers, the definition of pointer arithmetic is
 described in terms of addresses of elements of an array object. The C
 Standard \cite{ISO2011} states, that given a pointer p that points to some element i of
 an array object, p + j points to the (i+j)th element of that object.
@@ -571,7 +571,7 @@ processors to never fail.
 \section{Relative alignment of \arrayptr\ and \spanptr\ values}
 \label{section:relative-alignment}
 
-\arrayptrT\ and \spanptrT\ pointers provide safe
+\arrayptrT\ and \spanptrT\ pointers provide
 pointer arithmetic on arrays. The bounds for these pointers usually
 describe a range of memory that is exactly the size of some array of \var{T}.
 The pointers point to an element of the array. In other words, the lower
@@ -599,25 +599,25 @@ increase the cost of bounds checking throughout the program.
 Section~\ref{section:design-alternatives:always-unaligned} explains
 this choice in more detail.
 
-\section{Program scopes for safe pointer types}
+\section{Program scopes for checked pointer types}
 
 To improve program reliability and to simplify understanding programs,
-it is desirable to limit code to using only safe pointers. To support
+it is desirable to limit code to using only checked pointers. To support
 this, we introduce checked program scopes. The \keyword{checked} keyword
 can be attached to blocks and function definitions. In checked program
 scopes, the declared types of variables are allowed to be or use
-safe pointer types or checked array types; unsafe pointer types
-and unsafe array types are not allowed.  Similarly, for functions,
-return types and parameter types are allowed to be or use safe pointer
+checked pointer types or checked array types; unchecked pointer types
+and unchecked array types are not allowed.  Similarly, for functions,
+return types and parameter types are allowed to be or use checked pointer
 types or checked array types.  
 
-On the other hand,  declarations in checked scopes can use unsafe pointer 
-types and unsafe array types, provided that the declarations provide a 
+On the other hand,  declarations in checked scopes can use unchecked pointer
+types and unchecked array types, provided that the declarations provide a
 bounds-safe interface.   These are described in
 Section~\ref{section:function-bounds-safe-interfaces}.
 Variables and functions used in checked scopes are 
-allowed to have or be safe pointer types, checked array types, or unsafe pointer types
-and unsafe array types with bounds declarations. 
+allowed to have or use checked pointer types, checked array types, or
+unchecked pointer types and unchecked array types with bounds declarations.
 
 A new pragma directive \texttt{BOUNDS\_CHECKED} is introduced to control whether
 the top-level scope is a checked scope:
@@ -650,7 +650,7 @@ checked
 \end{verbatim}
 
 It is rarer for a programmer to need to introduce an unchecked scope. It
-is usually needed to allow the use of unsafe pointers within a checked
+is needed usually to allow the use of unchecked pointers within a checked
 block. The \keyword{unchecked} keyword can be used in all the places where the
 checked keyword can be used. This example shows the use of an unchecked
 block:
@@ -680,7 +680,7 @@ checked  block. A checked function definition is declared by placing the
 unchecked function definitions:
 
 \begin{verbatim}
-// checked at the function level: no unsafe pointers can appear in argument
+// checked at the function level: no unchecked pointers can appear in argument
 // types, the return type, or the body of the function.
 checked int f(ptr<int> p) 
 {
@@ -689,8 +689,8 @@ checked int f(ptr<int> p)
     ...
 }
 
-// unchecked at the function level: Safe and unsafe pointer types can occur 
-// in argument types, the return type, or the body of the function
+// unchecked at the function level: checked and unchecked pointer types can 
+// occur in argument types, the return type, or the body of the function
 unchecked int f(int *p, ptr<int> r)
 {
     int a = 5;
@@ -743,9 +743,9 @@ for these reasons:
   checking cannot prove the fact, the programmer can use
   \texttt{dynamic\_check} to show that the condition is true.
 \item
-  It maintains programmer control: programmers can use unsafe ponters
+  It maintains programmer control: programmers can use unchecked pointers
   and \texttt{dynamic\_check} to write the same code that the compiler
-  would generate for safe pointers.
+  would generate for checked pointers.
 \item
   It gives programmers more control over bounds checks. A programmer can
   place a pre-condition before a loop that ensures that the loop is free
@@ -755,7 +755,7 @@ for these reasons:
 
 The following example illustrates why having an escape hatch from static
 checking is useful. Suppose a decoder from a compressed representation
-to an uncompressed representation is being converted to use safe
+to an uncompressed representation is being converted to use checked
 pointers. This example is based on code patterns seen in the Abstract
 Syntax Notation (ASN1) parsing code of OpenSSL \cite{OpenSSL2015}.
 
@@ -792,10 +792,10 @@ invariants cannot be expressed using lightweight invariants. These are
 complicated high-level invariants that require the use of techniques for
 proving functional correctness.
 
-To use safe pointers, the size of the destination buffer must be passed
+To use checked pointers, the size of the destination buffer must be passed
 in and there must be a check before the memcpy that the destination
 buffer and source buffer have enough room. We ignore the details of how
-the bounds are described for now.    The new code for safe pointers is italicized
+the bounds are described for now.    The new code for checked pointers is italicized
 and highlighted in yellow:
 
 \begin{alltt}
@@ -1021,15 +1021,15 @@ meaning of an expression is undefined:
 
 \begin{itemize}
 \item
-  Unsafe pointer arithmetic only has defined behavior when the resulting
-  pointer points to the same object as the original pointer, or one
+  Pointer arithmetic for unchecked pointer types only has defined behavior when
+  the resulting pointer points to the same object as the original pointer, or one
   element past the object.
 \item
-  Unsafe pointer comparison only has defined behavior when comparing
+  Pointer comparison for unchecked pointer types only has defined behavior when comparing
   pointers to the same object (where one or both pointers may point one
   element past the same object).
 \item
-  Unsafe pointer subtraction only has defined behavior when subtracting
+  Pointer subtraction for unchecked pointer types only has defined behavior when subtracting
   pointers to the same object (where one or both pointers may point one
   element past the object).
 \item
@@ -1081,19 +1081,19 @@ implementation-defined behavior, one has to reason about the
 implementation-specific behavior or have reasoning that is independent
 of the details.
 
-A careful reading of the rules for unsafe pointer comparison implies
-that it is impossible to detect an out-of-bounds unsafe pointer in C,
-for example. If an unsafe pointer \var{p} is not in the valid range for an
+A careful reading of the rules for unchecked pointer comparison implies
+that it is impossible to detect an out-of-bounds unchecked pointer in C,
+for example. If an unchecked pointer \var{p} is not in the valid range for an
 object, the pointer comparison is undefined.
 
 To provide for pointer bounds safety, we require that C implementations
-provide defined behaviors for unsafe pointer arithmetic operations and
+provide defined behaviors for unchecked pointer arithmetic operations and
 signed integer overflow:
 
 \begin{itemize}
 \item
-  Unsafe pointers shall be treated as addresses of locations in memory,
-  just as safe pointers are treated as addressses. The addresses shall
+  Unchecked pointers shall be treated as addresses of locations in memory,
+  just as checked pointers are treated as addressses. The addresses shall
   be unsigned integers with a defined range of 0 to
   \texttt{UINTPTR\_MAX}:
 
@@ -1104,9 +1104,9 @@ signed integer overflow:
   \item
     Subtraction \var{p} \texttt{-} \var{r} of two pointers \var{p} and \var{r}
     of type \var{T} where one
-    pointer is a safe pointer and the other is an unsafe pointer shall
-    be done following the rules for subtraction of safe pointers,
-    treating the unsafe pointer as a safe pointer in those rules.
+    pointer is a checked pointer and the other is an unchecked pointer shall
+    be done following the rules for subtraction of checked pointers,
+    treating the unchecked pointer as a checked pointer in those rules.
   \end{itemize}
 \end{itemize}
 
@@ -1157,9 +1157,9 @@ The aim is to be able to show partial correctness of programs for the
 first item (avoiding out-of-bounds pointer accesses). A
 partial correctness guarantee has the form ``assuming X holds, then Y is
 true''. Informally, one might say ``assuming that memory allocation and
-type casts are correct and that unsafe code never reads or write though
-out-of-bounds pointers, then safe code never reads or writes through
+type casts are correct and that unchecked code never reads or write though
+out-of-bounds pointers, then checked code never reads or writes through
 out-of-bounds pointers.'' These assumptions can be turned into formal
 statements about program behavior at runtime. Given those assumptions,
-we might then prove that at runtime safe code never reads or writes
+we might then prove that at runtime checked code never reads or writes
 through out-of-bounds pointers.

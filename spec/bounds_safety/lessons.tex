@@ -47,16 +47,16 @@ systems. First, it is not feasible in practice to require widespread
 data layout changes, as CCured did. Second, this means that use of
 program invariants and/or runtime system support will be required to
 establish that pointer uses are in bounds. Third, it can be arbitrarily
-hard to show the type safety statically of unsafe low-level systems
-code. The code may be safe at runtime. A programmer may intuitively know
-that it is safe and be able to argue informally for correctness.
+hard to show the type safety statically of low-level systems
+code. The code may be type-safe at runtime. A programmer may intuitively know
+that it is type-safe and be able to argue informally for correctness.
 However, writing down the invariants may be hard and may require deep
 knowledge of program verification techniques. It may also lead to
 invariants that are longer and more complicated than the original code.
 It may be better for a programmer to just rewrite the code to be type
 safe.
 
-Extensions for safe pointer operations will require a trade-off between
+Extensions for checked pointer operations will require a trade-off between
 dynamic techniques for checking pointer bounds (which are easy to reason
 about and understand, but require data layout changes) and static
 techniques (which may not be easy to reason about and understand, but do
@@ -354,7 +354,7 @@ safety requirements. This would be an easy and low-risk improvement to
 the safety of C programs.
 
 For pointers where pointer arithmetic is allowed, a combination of
-dynamic and static techniques will be needed to ensure safe pointer
+dynamic and static techniques will be needed to ensure bounds-safe pointer
 operations. Dynamic techniques that change pointer representations allow
 succinct and clear code, at the expense of changing data layout and
 causing problems with interoperation and likely efficiency. Static

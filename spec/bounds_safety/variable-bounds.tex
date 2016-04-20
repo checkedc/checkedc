@@ -919,7 +919,7 @@ The standard C library functions for \texttt{malloc}, \texttt{memcmp}, and
 \texttt{memcpy} will be
 given bounds-safe interfaces to avoid breaking existing code as
 described in Section~\ref{section:function-bounds-safe-interfaces}. 
-However, if they were to return safe pointer
+However, if they were to return checked pointer
 types, their bounds declarations would be:
 
 \begin{verbatim}
@@ -1562,7 +1562,7 @@ must do the following checks:
   count is less than the upper bound as well.
 \end{itemize}
 
-When retrofitting existing code to use safe pointers, the code may be
+When retrofitting existing code to use checked pointers, the code may be
 unprepared for overflow or wraparound to happen during allocation. This
 suggests that uses of \texttt{malloc} should be replaced by slightly
 higher-level functions that takes the element count and the size of

@@ -77,15 +77,15 @@ assume that some undefined behaviors do not occur in some parts of code.
 We would be able to prove given this assumption that other undefined
 behaviors do not occur in other parts of the program. For example, we
 might assume memory allocation and type casts are in fact correct. We
-might also assume that unsafe code never reads or writes through
-out-of-bounds pointers. We would then be able to provide that safe code
+might also assume that unchecked code never reads or writes through
+out-of-bounds pointers. We would then be able to provide that checked code
 is guaranteed to never read or write through out-of-bounds pointers.
 
 To arrive at more complete correctness guarantees about systems, we will
 use the approaches of narrowing the amount of code about which
 assumptions have to be made and narrowing the types of assumptions that
 have to be made (that type casts are correct and memory allocation is
-correct). For example, we will narrow the amount of unsafe code so that
+correct). For example, we will narrow the amount of unchecked code so that
 assumptions are needed about less and less code.
 
 \section{Discussion of facts involving members}

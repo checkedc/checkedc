@@ -80,12 +80,12 @@ and bounds are relatively aligned in order to eliminate the upper bounds
 check. It would be hard for a compiler to prove this because it would
 require interprocedural or whole-program analysis.
 
-\section{Address-of operations and array-to-pointer conversions always produce safe pointer types}
+\section{Address-of operations and array-to-pointer conversions always produce checked pointer types}
 
 We considered a design where the address-of operator (\&) and
-array-to-pointer type conversions always produce safe pointer types. To
+array-to-pointer type conversions always produce checked pointer types. To
 preserve compatibility with existing C code, we would introduce implicit
-conversions from safe pointers to unsafe pointers. We found that we were
+conversions from checked pointers to unchecked pointers. We found that we were
 not able to preserve backwards compatibility for the address-of operator
 and that implicit array-to-pointer conversions required bounds checking.
 
@@ -104,11 +104,11 @@ that add or subtract a pointer and an integer. Those situations include
 pointer assignment, arguments to function calls, return statements, and
 conditional expressions. In all these situations a \var{T} \texttt{*}
 type must have been declared explicitly in the code already, so this
-implicit cast does not introduce unsafe pointer types where none existed
+implicit cast does not introduce unchecked pointer types where none existed
 before.
 
 Pointer arithmetic operators are excluded to avoid the silent
-introduction of unsafe pointer types and to preserve the value of having
+introduction of unchecked pointer types and to preserve the value of having
 the \ptrT\ type. If
 there were always an implicit cast from \ptrT\ to \var{T} \texttt{*},
 then any expression that uses pointer arithmetic could do pointer
@@ -206,11 +206,12 @@ type for those operations and a coercion to T * is not needed.
 
 We allow \arrayptr\ values to not be within bounds. Because of
 this, any implicit conversion of an \arrayptr\ value with a
-bounds to an unsafe pointer type must be bounds checked. Otherwise, it
-is easy to write ``safe'' code that creates undetected buffer overruns:
+bounds to an unchecked pointer type must be bounds checked. Otherwise, it
+is easy to write ``checked'' code that creates undetected buffer overruns:
 
 \begin{verbatim}
-// f looks safe, but does something bad that is undetected before calling unsafe code
+// f looks like it is correct, but does something bad that is
+// undetected before calling unchecked code
 f(array_ptr<int> p where p : bounds(p, p + 10))
 {
     // first argument implicitly converted to int *

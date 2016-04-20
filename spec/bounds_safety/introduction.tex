@@ -61,7 +61,7 @@ Checked C addresses the bounds checking problem for C by:
 \begin{itemize}
 \item
   Introducing different pointer types to capture the different ways in
-  which pointers are used. The unsafe C pointer type \texttt{*} is kept
+  which pointers are used. The unchecked C pointer type \texttt{*} is kept
   and three new pointer types are added: one for pointers that are never
   used in pointer arithmetic (\ptr), one for \emph{array pointer
   types} (\arrayptr) that are involved in pointer arithmetic,
@@ -96,22 +96,22 @@ Checked C addresses the bounds checking problem for C by:
   to members maintain the member bounds.
 \item
   Introducing bounds-safe interfaces to address the problem of
-  interoperation between safe code and unsafe code. A bounds-safe
-  interface describes the safe interface to unsafe code by declaring
-  bounds for unsafe pointers in function signatures and data structures.
-  Because it describes a boundary, it has to be ``safe'' and ``unsafe''
+  interoperation between checked code and unchecked code. A bounds-safe
+  interface describes the checked interface to unchecked code by declaring
+  bounds for unchecked pointers in function signatures and data structures.
+  Because it describes a boundary, it has to be ``checked'' and ``unchecked''
   at the same time, depending on what kind of code is using it. The
-  interface is trusted in safe code (code that uses only safe pointer types).
+  interface is trusted in checked code (code that uses only checked pointer types).
   Proper usage is enforced via checking at compile time and runtime. For
-  code that uses only unsafe pointer types, the interface is descriptive and 
+  code that uses only unchecked pointer types, the interface is descriptive and
   not enforced by
   language checking. This provides a way to upgrade existing code to
-  provide a safe interface without breaking existing users of the code.
+  provide a checked interface without breaking existing users of the code.
 \item
   Introducing checked program scopes, where bounds checking is the
   default behavior. In a checked program scope, definitions of variables
-  and functions can use safe pointer types and cannot use unsafe pointer
-  types. Declarations involving unsafe pointer types must provide
+  and functions can use checked pointer types and cannot use unchecked pointer
+  types. Declarations involving unchecked pointer types must provide
   bounds-safe interfaces. Checked program scopes avoid problems with
   subtle misuse of bounds-safe interfaces.
 \item
@@ -192,10 +192,10 @@ statements later that \texttt{x == z}, even though it may be true at
 that point in the program. This is taking advantage of the fact that
 checking a proof is usually much easier than creating the proof.
 
-Establishing the safety of pointer operations is just the first step in
+Establishing the bounds-safety of pointer operations is just the first step in
 establishing type safety for C programs. There are other ways which C
 programs may fail. C programs may incorrectly deallocate memory that is
-still in use, do incorrect unsafe pointer casts, or have concurrency
+still in use, do incorrect type-unsafe pointer casts, or have concurrency
 races that tear data structures. Addressing these problems is beyond the
 scope of this technical report. For now, it is assumed that programs are
 correct in these other aspects.
@@ -205,7 +205,7 @@ design, we mocked up modifying a subset of the OpenSSL
 code base \cite{OpenSSL2015} to be bounds-safe .  
 We created C++ templates for the new pointer types and modified OpenSSL to 
 compile as valid C++ code.
-We hand-edited about 11,000 lines of the code to use safe pointer
+We hand-edited about 11,000 lines of the code to use checked pointer
 types with full bounds annotations.  We used macros to encapsulate 
 the bounds annotations so that they could be elided from the code
 and OpenSSL compiled and tested using the new types.  We also modified the
@@ -220,11 +220,11 @@ Second, in most cases, declaring bounds at declarations was sufficient for
 tracking the bounds of variables.  Large blocks of code 
 remained unchanged, which matches the observations of the
 Cyclone project \cite{Jim2002}, an earlier research 
-effort to create a safe version of C.
+effort to create a type-safe version of C.
 Third, the expressions allowed in declaring
 bounds needed to be rich.  Fourth, pointer casts were used
 fairly extensively, but often times it was obvious that the casts were
-safe with respect to bounds.  The existing bounds could be modified
+correct with respect to bounds.  The existing bounds could be modified
 easily to be appropriate for the new referent type of the pointer.
 Fifth, it was clear that there needed
 to be a graceful way of interoperating with existing libraries that could
@@ -277,14 +277,14 @@ Here are the principles that are followed to extend C to support bounds checking
 \item
   Enable incremental use. Real systems are large and complicated, with
   hundreds of thousands and millions of lines of code. The teams that
-  work on those systems will adopt safe pointer operations over time,
-  not all at once, so incremental use of safe pointer operations will be
+  work on those systems will adopt checked pointer operations over time,
+  not all at once, so incremental use of checked pointer operations will be
   supported. Teams will prefer incremental conversion paths because of
   practical matters such as reducing risk, fixing existing bugs
   identified by introducing bounds checking, maintaining system
   stability, and understanding performance effects. Even though
   incremental use will be supported, it is not the end goal. We believe
-  that benefits of using safe pointer operations will be modest until
+  that benefits of using checked pointer operations will be modest until
   almost an entire system is converted. At that point, we expect a
   qualitative increase in system reliability and programmer
   productivity.
@@ -321,8 +321,8 @@ a roadmap for the different audiences.
 Chapter~\ref{chapter:core-extensions} describes
 the new pointer types and the new array types, including syntax,
 semantics, and error conditions. It also covers other extensions to C
-semantics. One extension is the introduction of safe program scopes to
-prevent inadvertent use of unsafe types. Another extension is a
+semantics. One extension is the introduction of checked program scopes to
+prevent inadvertent use of unchecked types. Another extension is a
 refinement of C's notion of undefined behavior. We wish to maintain
 bounds safety even in the face of integer overflow, which is a
 widespread possibility in C programs. This requires a more nuanced
@@ -367,10 +367,10 @@ This inferred information is then used to validate that declarations and
 statements correctly declare bounds and maintain the bounds information.
 
 Chapter~\ref{chapter:interoperation} covers interoperation between 
-safe and unsafe code. It covers
-conversions between safe and unsafe pointers, as well as the new kinds
-of pointers. It pins down the notion of safe code and unsafe code.
-Finally, it covers bounds-safe interfaces in depth.
+checked and unchecked code. It covers conversions between checked and
+unchecked pointers, as well as conversions between the new kinds of checked pointers.
+It pins down the notion of checked code  and unchecked code. Finally, it covers
+bounds-safe interfaces in depth.
 
 Chapter~\ref{chapter:structure-bounds} extends these ideas from variables to data 
 structures by
@@ -471,7 +471,8 @@ and Chapters~\ref{chapter:lessons} and \ref{chapter:design-alternatives}.
 \section{Acknowledgements}
 
 This design has benefited from many discussions with Weidong Cui, Gabriel Dos Reis, 
-Chris Hawblitzel, Galen Hunt, Shuvendu Lahiri, and Reuben Olinsky.  We thank them 
-for their contributions to the design.
+Chris Hawblitzel, Galen Hunt, Shuvendu Lahiri, and Reuben Olinsky.  The design has
+benefited also from feedback from Michael Hicks, Greg Morrisett, Andrew Ruef, and Jonghyun
+Park. We thank them for their contributions to the design.
 
 
