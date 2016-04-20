@@ -66,7 +66,7 @@ Checked C addresses the bounds checking problem for C by:
   used in pointer arithmetic (\ptr), one for \emph{array pointer
   types} (\arrayptr) that are involved in pointer arithmetic,
   and one for pointer types that carry their dynamic bounds with them
-  (\arrayview ).
+  (\spanptr ).
 \item
   For array pointer types (\arrayptr), in keeping with the low-level
   nature of C,  bounds checking is placed under programmer control. 
@@ -145,14 +145,14 @@ write this knowledge down, to formalize existing practices, such as
 array pointer parameters being paired with length parameters, and to
 check this information.
 
-To simplify bounds and reasoning about bounds, for \arrayview\
+To simplify bounds and reasoning about bounds, for \spanptr\
 and \arrayptr\ types, pointer arithmetic overflow for these
 types is considered a runtime error. Pointer arithmetic involving a null
 pointer for these types is also a runtime error.
 
 Efficiency is addressed by extending the static checking so that it can
 guarantee that specific bounds checks will always succeed at runtime for
-\arrayptr\ and \arrayview\ types. The static checking
+\arrayptr\ and \spanptr\ types. The static checking
 supports the scenario of simple control-flow enclosing the bounds check
 guaranteeing that the bounds check will succeed. For example, a for-loop
 may iterate only over values within the declared bounds of an
@@ -447,7 +447,7 @@ Chapter~\ref{chapter:design-alternatives} discusses design alternatives
 that were considered and not chosen.  It explains why those alternatives were
 not chosen.
 
-Here are the suggested roadmaps for the different groups of reders.
+Here are the suggested roadmaps for the different groups of readers.
 For programmers interested in learning about Checked C, 
 we suggest reading Chapter~\ref{chapter:core-extensions} except 
 Sections~\ref{section:pointer-arithmetic-errors} and \ref{section:changes-to-undefined-behavior},

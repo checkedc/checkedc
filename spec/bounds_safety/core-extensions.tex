@@ -39,7 +39,7 @@ used in place of `*'
   done on these pointer types. The resulting pointers do not need to be
   in bounds.
 \item
-  \arrayviewT: this
+  \spanptrT: this
   is a pointer that dynamically carries its bounds information with it.
   These pointers follow the same rules as
   \arrayptrT .
@@ -53,6 +53,13 @@ have an error or warning mode that flags unexpected uses of `*'.
 The same syntax as C++ template instantiations is used for building
 instances of these types because this syntax is well-known and
 understood. The parameter to these type constructors must be a type.
+
+The \spanptr\ pointer type is inspired by the proposed \spanptr\ type for 
+the C++ Standard Library \cite{Macintosh2016}.   There is an important
+difference between the the types, though.  In this design, \spanptr\
+values carry lower and upper bounds.  In the proposed C++ design,
+\spanptr\ values carry counts of elements.  The C++ proposal does not
+support decrementing the \spanptr.
 
 \section{New kinds of array types}
 
@@ -166,11 +173,11 @@ The following operations involving pointer-typed values are allowed:
   \var{T} \texttt{*},
   \ptrT,
   \arrayptrT, or
-  \arrayviewT. It
+  \spanptrT. It
   produces a value of type \var{T}.
 \item
   Array reference: the \texttt{[]} operator can be applied to a
-  value of type \var{T} \texttt{*}, \arrayptrT, or \arrayviewT. It
+  value of type \var{T} \texttt{*}, \arrayptrT, or \spanptrT. It
   cannot be applied to a value of type \ptrT.
   \texttt{\var{e1}[\var{e2}]} is equivalent to
   \texttt{*(\var{e1} + \var{e2})}
@@ -178,7 +185,7 @@ The following operations involving pointer-typed values are allowed:
   Assignment: two pointers of the same type can be assigned.
 \item
   Adding or subtracting a pointer type and an integer. This is allowed
-  for \var{T} \texttt{*}, \arrayptrT, and \arrayviewT\ types.
+  for \var{T} \texttt{*}, \arrayptrT, and \spanptrT\ types.
 \item
   Pointers to objects of the same type can be compared for equality or
   inequality. The pointers do not have to be the same kind of pointer.
@@ -263,17 +270,17 @@ variables from being modifiable.
 
 Variables and member of variables with new safe pointer types must be initialized
 before they are used.  For \arrayptr s, this is checked as part of checking
-the validity of bounds.  For \ptr s and \arrayview s, this is checked
+the validity of bounds.  For \ptr s and \spanptr s, this is checked
 using a separate analysis.   A use includes taking the address of a variable
 or member of a variable.  It is often unclear when the resulting pointer is used,
 so the variable must be initialized when its address is taken.
 
-\subsection{\texttt{Array\_view<}\textit{T}\texttt{>} specific operations}
+\subsection{\texttt{Span}\textit{T}\texttt{>} specific operations}
 
-An \arrayviewT\
+A \spanptrT\
 pointer carries three values with it: the memory location that will be
 accessed by dereferencing the
-\arrayviewT, a lower
+\spanptrT, a lower
 bound on the memory that can be accessed via the current pointer value,
 and an upper bound on accessible memory. Those values can be accessed
 using the \texttt{.} operator combined with the special field names
@@ -284,49 +291,49 @@ special field names can only be read and cannot be modified by
 assignments.
 
 \begin{verbatim}
-array_view<int> p = ...
+span<int> p = ...
 array_ptr<int> low = p.lower_bound;
 array_ptr<int> high = p.upper_bound;
 array_ptr<int> current = p.current;
 \end{verbatim}
 
-An \arrayviewT\ value
+A \spanptrT\ value
 is created by casting a value of another pointer type to the
-\arrayviewT type. A
+\spanptrT type. A
 value of another pointer type may be converted implicitly to an
-\arrayviewT\ in
+\spanptrT\ in
 situations where an
-\arrayviewT\ value is
+\spanptrT\ value is
 expected, the referent type of the other pointer type is \var{T}, and
 the bounds of the value can be determined automatically.
 
 For example, a variable of array type can be converted automatically to
-an \arrayview. First, the array type will be converted to a
+a \spanptr. First, the array type will be converted to a
 pointer type of either \var{T} \texttt{*} or
 \arrayptrT , depending
 on whether the array type is checked or unchecked. This pointer type
 will then be converted to an
-\arrayviewT. The
+\spanptrT. The
 bounds of a variable of array type are easily determined at compile
 time, so the pointer type will then be converted to an
-\arrayviewT:
+\spanptrT:
 
 \begin{verbatim}
 int x[10]
-array_view<int> p = x; 
+span<int> p = x; 
 // p.current = x; p.lower_bound = x; p.upper_bound = x + 10;
 
 \end{verbatim}
 
 Similarly, an \arrayptr\ value with declared bounds can be
-converted to an \arrayview\ value:
+converted to a \spanptr\ value:
 
 \begin{verbatim}
 array_ptr<int> src = ...
-array_view<int> p = src;
+span<int> p = src;
 \end{verbatim}
 
-The full rules for casting to an \arrayview\ type are covered
+The full rules for casting to a \spanptr\ type are covered
 in Section~\ref{section:pointer-casting}.
 
 \section{Pointer arithmetic error conditions}
@@ -561,10 +568,10 @@ overflow. The checks are also inexpensive on superscalar processors:
 they can be placed so that they are statically predicted by 
 processors to never fail.
 
-\section{Relative alignment of \arrayptr\ and \arrayview\ values}
+\section{Relative alignment of \arrayptr\ and \spanptr\ values}
 \label{section:relative-alignment}
 
-\arrayptrT\ and \arrayviewT\ pointers provide safe
+\arrayptrT\ and \spanptrT\ pointers provide safe
 pointer arithmetic on arrays. The bounds for these pointers usually
 describe a range of memory that is exactly the size of some array of \var{T}.
 The pointers point to an element of the array. In other words, the lower
@@ -582,7 +589,7 @@ relative alignment type can be overridden by specifying it explicitly as
 part of the bounds.  This is described in 
 Section~\ref{section:representing-relative-alignment}.
 This can be used for bounds for the results of pointers casts and 
-for  \arrayptrvoid\ and \arrayviewvoid\ pointers. The type
+for  \arrayptrvoid\ and \spanptrvoid\ pointers. The type
 \texttt{void} has no defined size, so the default relative alignment is
 undefined for \texttt{void}.
 

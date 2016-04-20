@@ -70,12 +70,14 @@
 \newcommand{\arrayptrint}{\arrayptrinst{\texttt{int}}}
 \newcommand{\arrayptrvoid}{\arrayptrinst{\texttt{void}}}
 
-\newcommand{\arrayview}{\texttt{array\_view}}
-\newcommand{\arrayviewinst}[1]{\texttt{array\_view<#1>}}
-\newcommand{\arrayviewT}{\arrayviewinst{\var{T}}}
-\newcommand{\arrayviewchar}{\arrayviewinst{\texttt{char}}}
-\newcommand{\arrayviewint}{\arrayviewinst{\texttt{int}}}
-\newcommand{\arrayviewvoid}{\arrayviewinst{\texttt{void}}}
+% use the name spanptr because span is already a command
+% in tex
+\newcommand{\spanptr}{\texttt{span}}
+\newcommand{\spanptrinst}[1]{\texttt{span<#1>}}
+\newcommand{\spanptrT}{\spanptrinst{\var{T}}}
+\newcommand{\spanptrchar}{\spanptrinst{\texttt{char}}}
+\newcommand{\spanptrint}{\spanptrinst{\texttt{int}}}
+\newcommand{\spanptrvoid}{\spanptrinst{\texttt{void}}}
 
 \newcommand{\ptr}{\texttt{ptr}}
 \newcommand{\ptrinst}[1]{\texttt{ptr<#1>}}

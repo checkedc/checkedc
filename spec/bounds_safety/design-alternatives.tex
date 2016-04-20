@@ -290,14 +290,14 @@ if (result != NULL) {
 \end{verbatim}
 
 We considered eager evaluation, but rejected it because it would turn \arrayptr\
-types into \arrayview\ types.  When bounds expressions are always eagerly
+types into \spanptr\ types.  When bounds expressions are always eagerly
 evaluated, the results need to be stored somewhere so that they can be used
 when \var{v} is used.  For local variables, hidden temporary variables could be
 introduced.  This breaks the design principle of not introducing hidden
 costs, though.  To avoid introducing hidden costs, the semantics of \arrayptr\ types could 
 be changed so that they carry their bounds with them.   This just turns \arrayptr\ types into 
-\arrayview\ types.   For structures, introducing hidden state or converting \arrayptr\ types to 
-\arrayview\ types is especially problematic because it breaks data layout compatibility.
+\spanptr\ types.   For structures, introducing hidden state or converting \arrayptr\ types to 
+\spanptr\ types is especially problematic because it breaks data layout compatibility.
 
 For these reasons, we think it is better to think of bounds declarations as being
 program invariants describing the bounds of variables.   Normally, 
