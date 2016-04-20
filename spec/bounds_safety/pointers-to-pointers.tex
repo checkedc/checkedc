@@ -16,7 +16,7 @@ to assign through pointers to structures, and to read from pointers to structure
 \item Passing data by-reference to functions.  C does not provide by-reference
 parameters.  Programmers pass data by-reference by using pointers explicitly.
 To pass data of type \var{T} by reference, a programmer creates a parameter
-with type \var{T *}.  Using safe pointers, a programmer create a parameter
+with type \var{T *}.  Using checked pointers, a programmer create a parameter
 with type \ptrT.
 \item Taking the addresses of variables.  In C, programmers may take the
 addresses of variables.  Typically, this is done to be pass data by-reference.
@@ -28,16 +28,16 @@ must be constrained so that bounds-safety is not accidentally broken.
 
 The term ``referent data'' will refer to the data that can be accessed
 directly through a pointer.  The data may be an integer or floating-point number, a structure,
-a pointer, or an array of data.   Any safe pointers in data must be initialized
+a pointer, or an array of data.   Any checked pointers in data must be initialized
 before the pointers are used.
 
 For variables, this can be enforced using a static 
-analysis of variables with safe pointer types that point to data with safe 
+analysis of variables with checked pointer types that point to data with checked
 pointer types. For example, the Cyclone dialect of C \cite{Jim2002} did this
 and languages like Java and C\# have rules for ensuring that variables
 are definitely assigned before they are used.
 For a variable of \arrayptr\ data, the compiler will insert code for 
-initializing safe pointers in the data automatically to \texttt{0}, which is always
+initializing checked pointers in the data automatically to \texttt{0}, which is always
 a valid pointer.    
 
 For heap-allocated data, we can require that allocators
@@ -239,7 +239,7 @@ a unique pointer to memory that no one else has \cite{Jim2002}.
 initialization state declaration is valid after a statement.  We leave 
 the rules to be worked out later.
 \item Additional static checking rules will be added to ensure the
-safety of casts to safe pointer types that have pointer types embedded
+correctness with respect to bounds of casts to checked pointer types that have pointer types embedded
 within them.
 \end{itemize}
 
@@ -253,7 +253,7 @@ where return_value : byte_count(len) && return_value: _uninit_data;
 void *calloc(size_t num, size_t size)
 where return_value : byte_count(num * size)  && return_value : _zero_data
 \end{verbatim}
-A cast from the result of a \texttt{malloc} call to a safe pointer type with pointer types
+A cast from the result of a \texttt{malloc} call to a checked pointer type with pointer types
 would propagate the  \texttt{\_uninit} predicate:
 \begin{verbatim}
 struct S {

@@ -8,17 +8,17 @@
 \chapter{Interoperation}
 \label{chapter:interoperation}
 
-Code that uses safe pointer types must be able to interoperate with
-code that uses unsafe pointer types.  This chapter describes support
+Code that uses checked pointer types must be able to interoperate with
+code that uses unchecked pointer types.  This chapter describes support
 for this.  Section~\ref{section:pointer-casting} starts with
 conversion operations: how different kinds of pointers can
 be converted to other kinds of pointers.  
 Section~\ref{section:function-bounds-safe-interfaces}
-describes how existing code that uses unsafe pointers can be modified
-to present a safe interface.  The key insight is that the
-the interface must be both safe and unsafe, depending on context.
-For existing code that uses unsafe pointers, the interface is descriptive,
-but correctness is not enforced by the language.  For code that uses safe
+describes how existing code that uses unchecked pointers can be modified
+to present a safe interface.  The key insight is that
+the interface must be both checked and unchecked, depending on context.
+For existing code that uses unchecked pointers, the interface is descriptive,
+but correctness is not enforced by the language.  For code that uses checked
 pointers, proper usage of the interface is checked and enforced.
 
 \section{Conversions between pointers to objects of different types}
@@ -34,20 +34,20 @@ bounds safety.
 
 Type safety is not addressed by this technical report. Of course, violating
 type safety can lead to violations of bounds safety. This can happen
-when there is a conversion between a safe pointer to an object of
-structure type that contains a bounds-checked member and a safe pointer
+when there is a conversion between a checked pointer to an object of
+structure type that contains a bounds-checked member and a pointer
 to an object of another type. A programmer can use the pointer to the
 other type to modify the bounds-checked member or its bounds in an
 inconsistent fashion. For now, it is the programmer's responsibility to
 update bounds-checked members and their bounds properly when using a
-safe pointer that results from such a conversion. Conversions between
-safe pointers to integral types, floating-point types, or structures that
+checked pointer that results from such a conversion. Conversions between
+checked pointers to integral types, floating-point types, or structures that
 contain only integral types or floating-point types cannot lead to
 violations of bounds safety by themselves.
 
 \subsection{Cast operators}
 This section describes casts to pointer types.
-A conversion of a value from one safe pointer type to a value of another safe
+A conversion of a value from one checked pointer type to a value of another checked
 pointer type is valid when the following rules hold:
 \begin{itemize}
 \item If the destination pointer is a \ptrT\ type, the range of 
@@ -58,11 +58,11 @@ the bounds for the destination pointer are equal to or within the range of
 the memory accessible through the source pointer.
 \end{itemize}
 
-Casts between safe pointer types should preserve bounds safety
+Casts between checked pointer types should preserve bounds safety
 by default.  The cases where it does not should be the unusual cases.
-For this reason, C cast operations to safe pointer types are 
-required to be provably safe for bounds at compile-time.   It
-is straightforward to check casts between safe pointers to constant-sized
+For this reason, C cast operations to checked pointer types are
+required to be provably correct with respect to bounds at compile-time.   It
+is straightforward to check casts between checked pointers to constant-sized
 objects.   The rules that are used to check bounds and lightweight
 invariants are used to check casts as well.   For cases where static
 checking cannot prove bounds safety of casts, we add two new operators. 
@@ -74,11 +74,11 @@ describes the operators.
 \toprule
 Operator & Description \\
 \texttt{(T *)} & The C cast operator.  Additional static checking rules
-ensure pointer casts to safe pointer types are safe with respect to bounds.\\
+ensure pointer casts to checked pointer types are correct with respect to bounds.\\
 \dynamicboundscast\ & Does dynamic checks to ensure bounds
 safety.  It produces a runtime error if the checks fail.\\
 \assumeboundscast\ & Declares new bounds for the value that are trusted without verification.  
-Because it is unsafe, it is not allowed in \keyword{checked} blocks.\\
+Because it is unchecked, it is not allowed in \keyword{checked} blocks.\\
 \bottomrule
 \end{tabular}
 \caption{Cast operators for pointer types}
@@ -93,23 +93,24 @@ specified using an optional second argument:
 \dynamicboundscastinst{\var{T}, \var{A}}{} or \assumeboundscastinst{\var{T, \var{A}}}{}.
 Of course, macro-like syntax could be used as well.
 
-For C cast operations from safe pointer types to unsafe pointer types,
-it is not possible to prove that they are safe at compile-time.   At the same
-time, it is desirable catch the programming error of converting an out-of-range
-safe pointer to an unsafe pointer and then trying to use the unsafe
+For C cast operations from checked pointer types to unchecked pointer types,
+it is not possible to prove that the uses of the resulting unchecked pointers
+are correct at compile-time.   At the same
+time, it is desirable to  catch the programming error of converting an out-of-range
+checked pointer to an unchecked pointer and then trying to use the unchecked
 pointer to access memory.  For this reason, we take the stance that if the
-destination pointer is a \unsafeptrT\ type, the range of memory that can be accessed
-beginning at the safe pointer should be provably large enough at compile time 
+destination pointer is a \uncheckedptrT\ type, the range of memory that can be accessed
+beginning at the checked pointer should be provably large enough at compile time
 to hold a value of type \var{T}.
 
-C does allow an unsafe pointer to point one element past the end of an array.
+C does allow an unchecked pointer to point one element past the end of an array.
 However, it is illegal to dereference that pointer.  This case mainly arises
 from loops that stride through an array and end up creating a pointer one past
 an element of an array.  It would be unusual for a programmer to
-convert a safe pointer to an unsafe pointer and then stride downwards through an array, 
-predecrementing the pointer.  Because of that, C cast operations from safe pointer
-types to unsafe pointer types that would create a pointer one element past
-the end of the array pointed to by the safe pointer are rejected at compile time.
+convert a checked pointer to an unchecked pointer and then stride downwards through an array,
+predecrementing the pointer.  Because of that, C cast operations from checked pointer
+types to unchecked pointer types that would create a pointer one element past
+the end of the array pointed to by the checked pointer are rejected at compile time.
 A programmer may use an \assumeboundscast\ operation do this instead.
 
 \subsection{Description of cast operators}
@@ -122,7 +123,7 @@ Here are the rules for cast operators of the form \texttt{(\var{D}) \var{e}},
 where \var{e} has source type \var{S}.  The rules are applied in addition
 to any existing C typing rules that apply to the cast.
 
-If \var{D} is not \ptrvoid\ or \unsafeptrvoid\ and \var{D} is
+If \var{D} is not \ptrvoid\ or \uncheckedptrvoid\ and \var{D} is
 \begin{itemize}
 \item \ptrT: the bounds of \var{e} are computed using the rules
 in Section~\ref{section:checking-nested-assignment-expressions}.
@@ -143,14 +144,14 @@ the destination \spanptr\ type.  At runtime, a new value of
 type \spanptrT\ with the value of \var{e} and \bounds{\var{lb}}{\var{ub}} will be created.
 \item \texttt{\var{T} *}: If the source type \var{S} is
 \begin{itemize}
-\item An unsafe pointer type (\texttt{*}), checking succeeds.
+\item An unchecked pointer type (\texttt{*}), checking succeeds.
 \item \ptrT, the checking succeeds. This handles the case where \var{T}
 is an incomplete type.
 \item Otherwise, the same rules are followed as for \ptrT.
 \end{itemize}
 \end{itemize}
 
-If \var{D} is \ptrvoid\ or \unsafeptrvoid\ and \var{S} is:
+If \var{D} is \ptrvoid\ or \uncheckedptrvoid\ and \var{S} is:
 \begin{itemize}
 \item A \ptr\ type, static checking always succeeds.
 \item An \arrayptr\ or \spanptr\ type: The bounds of \var{e} are computed:
@@ -163,11 +164,11 @@ succeeds.
 to that form).   It must be statically provable that \texttt{\var{e} >= \var{lb}}
 and that {\texttt{((char *) \var{ub}) - ((char *) e) >= 1}}.   
 \end{itemize}
-\item An unsafe pointer type:
+\item An unchecked pointer type:
 \begin{itemize}
 \item If \var{D} is \ptrvoid, the prior rule for an \arrayptr\ or \spanptr\ type is
 applied.
-\item If \var{D} is \unsafeptrvoid, checking always succeeds.
+\item If \var{D} is \uncheckedptrvoid, checking always succeeds.
 \end{itemize}
 \end{itemize}
 
@@ -247,16 +248,16 @@ to check at compile-time.
 
 A subtle point about the C cast operator and \dynamicboundscast\
 are that they allow {\em bounds-safe casts} of an expression
-\var{e} of unsafe pointer type to a \spanptr\ or
+\var{e} of unchecked pointer type to a \spanptr\ or
 \arrayptr\ type. This is provided that the bounds for \var{e}
-can be determined. Only a few kinds of expressions with unsafe pointer
+can be determined. Only a few kinds of expressions with unchecked pointer
 types have bounds that can be determined: address-of expressions
 involving variables and uses of array variables.
 
 \subsection{Examples}
 \label{section:pointer-cast-examples}
 
-Here are examples of C-style casts to safe pointers to
+Here are examples of C-style casts to checked pointers to
 constant-sized object. The static checking rules are straightforward
 to apply here.  The examples assume that integers are
 4 bytes in size:
@@ -277,29 +278,29 @@ void swizzle(ptr<int> p) {
 }
 \end{verbatim}
 
-\subsection{Implicit conversions involving safe pointers}
+\subsection{Implicit conversions involving checked pointers}
 \label{section:implicit-conversions}
 
 C allows implicit conversions at assignments, function call arguments,
 and conditional expressions.  The purpose of
 implicit conversions is to make programs shorter and easier to
 read.  This section defines implicit conversions that are
-allowed for safe pointer types.
+allowed for checked pointer types.
 
 The rules for checking bounds declarations are applied separately after 
 typechecking to check the integrity of bounds information.  During the 
 application of these rules, the implicit conversions are treated as
 though they were explicit C cast operations.
 
-\subsubsection{From unsafe pointers to safe pointers}
-An expression with an unsafe pointer type can be converted implicitly to an
-expression with a safe pointer type, provided that the referent types of the 
-unsafe pointer and the safe pointer are compatible.
+\subsubsection{From unchecked pointers to checked pointers}
+An expression with an unchecked pointer type can be converted implicitly to an
+expression with a checked pointer type, provided that the referent types of the
+unchecked pointer and the checked pointer are compatible.
 
 This can be done for the right-hand side of an assignment, a call argument,
 or an arm of a conditional expression.
 The type of the left-hand side of the assignment, the parameter, or the other 
-arm of the conditional expression must be the safe pointer type that is the
+arm of the conditional expression must be the checked pointer type that is the
 target of the implicit conversion.
 
 For now, compatibility is defined as the following:
@@ -313,44 +314,44 @@ complicated when referent types are function types, array types, or
 pointer types. {\em Discussion of a richer forms of compatibility
 is deferred for now}.
 
-C allows implicit conversions between \unsafeptrvoid\ and other pointer
-types. For now, implicit conversions from \unsafeptrvoid\ to safe pointer
+C allows implicit conversions between \uncheckedptrvoid\ and other pointer
+types. For now, implicit conversions from \uncheckedptrvoid\ to checked pointer
 types are allowed. This may be revised later when a design
 for checking type-safety of casts is complete.
 
-\subsubsection{From safe pointers to unsafe pointers}
+\subsubsection{From checked pointers to unchecked pointers}
 
-We must be very careful about implicit conversions from safe pointer
-types to unsafe pointer types.  These kinds of conversions could allow bounds checking to 
-be accidentally subverted in a quiet fashion. Implicit conversions from safe pointer types to 
-unsafe pointer types are allowed only at bounds-safe interfaces 
+We must be very careful about implicit conversions from checked pointer
+types to unchecked pointer types.  These kinds of conversions could allow bounds checking to
+be subverted accidentally in a quiet fashion. Implicit conversions from checked pointer types to
+unchecked pointer types are allowed only at bounds-safe interfaces
 (Section~\ref{section:function-bounds-safe-interfaces}).
 
-\subsubsection{From safe pointers to safe pointers}
+\subsubsection{From checked pointers to checked pointers}
 
-An expression with a safe pointer type can be converted implicitly to the same kind
-of safe pointer type with a \texttt{void} referent type.   
+An expression with a checked pointer type can be converted implicitly to the same kind
+of checked pointer type with a \texttt{void} referent type.
 This can be done for the right-hand side of an assignment, a call argument, 
 and an arm of a conditional expression.  
 The type of the left-hand side of the assignment, the parameter, or the other
 arm of the conditional expression
-must be the safe \void\ pointer type that is the target of the implicit
+must be the checked \void\ pointer type that is the target of the implicit
 conversion. For example, implicit conversions from 
 \ptrinst{\var{T}} to \ptrvoid\ and from \arrayptrinst{\var{T}} to \arrayptrvoid\ are allowed 
 at assignments. 
 
-Implicit conversions from safe pointers to \void\ to safe pointers to \var{T} are not allowed.
+Implicit conversions from checked pointers to \void\ to checked pointers to \var{T} are not allowed.
 The philosophy behind this is the same one that is used in C++: places where type-safety
 can be compromised by a cast should be explicit in the code.
 
-\subsubsection{Between safe pointers and integers}
+\subsubsection{Between checked pointers and integers}
 
-The null pointer (0) can be converted implicitly to any safe pointer type.   
-A safe pointer can be converted implicitly to the \texttt{\_Bool} type.
+The null pointer (0) can be converted implicitly to any checked pointer type.
+A checked pointer can be converted implicitly to the \texttt{\_Bool} type.
 
 Some C compilers extend C by allowing implicit conversions between pointers
 and integers or between pointers to incompatible types.  Implicit conversions
-from integers to safe pointers are typically not useful in Checked C because
+from integers to checked pointers are typically not useful in Checked C because
 the checking of bounds declarations fails or the resulting pointer cannot
 be used to access memory.   The rules for checking bounds declarations only
 allow the target type to be \arrayptr\ type and the bounds of the expression to be
@@ -377,7 +378,7 @@ array_ptr<char> pax : count(5) : &x;     // fails to check: source not large eno
 array_ptr<int> pdata : count(4) = data;
 \end{verbatim}
 
-Incorrect conversions of unsafe pointers with no bounds information
+Incorrect conversions of unchecked pointers with no bounds information
 will also be rejected.  In the following example, the bounds for 
 \texttt{random()} will be computed as \boundsnone, which does
 not match \boundscount{1}.
@@ -389,7 +390,7 @@ void f() {
 }
 \end{verbatim}
 
-\section{Bounds-safe interfaces to existing unsafe functions and variables}
+\section{Bounds-safe interfaces to existing unchecked functions and variables}
 \label{section:function-bounds-safe-interfaces}
 
 The new pointer types capture specific properties of pointers. One would
@@ -422,47 +423,47 @@ The code will no longer compile. C does not have method overloading, so
 we cannot simply define multiple overloaded versions of \texttt{memcpy}. That
 would also duplicate code and potentially increase program sizes.
 The reverse problem also exists: suppose the signature for \texttt{memcpy} is not
-updated. Then every ``safe'' method that calls memcpy would need to cast
-the arguments to unsafe pointer types.
+updated. Then every ``checked'' method that calls memcpy would need to cast
+the arguments to unchecked pointer types.
 
 Given that we may not be able to change the pointer types of existing
 APIs, we need to adopt an approach that supports backwards
-compatibility, enables new safe code to be written easily, and maintains
-the safety of new code.
+compatibility, enables new checked code to be written easily, and maintains
+the checking of new code.
 
 We address this by:
 
 \begin{enumerate}
 \item
   Allowing programmers to declare bounds-safe interfaces to code and
-  data structures that use unsafe pointers. A bounds-safe interface for
-  a function, for example, describes bounds for unsafe pointer
+  data structures that use unchecked pointers. A bounds-safe interface for
+  a function, for example, describes bounds for unchecked pointer
   parameters.   Type checking is altered to insert implicit conversions
   between pointer types when needed.
 \item
   In checked scopes, code is limited to using pointer types that are 
-  safe pointer types or unsafe pointer types that have bounds-safe interfaces.  
+  checked pointer types or unchecked pointer types that have bounds-safe interfaces.
   This makes the code in checked scopes straightforward to understand:
-  the unsafe pointer types are regarded as safe pointer types, all memory 
+  the unchecked pointer types are regarded as checked pointer types, all memory
   accesses are bounds checked or in bounds, and bounds-safe interfaces are trusted
   and respected.
 \item
-  In unchecked scopes, safe and unsafe pointer types can be
+  In unchecked scopes, checked and unchecked pointer types can be
   be intermixed within expressions.  When that happens, the bounds-safe
   interfaces are used during checking of bounds for determining bounds
   of expressions and the required bounds for expressions. 
   Section~\ref{section:implicit-conversions} already
-  explained when implicit conversions from unsafe pointer types to safe pointer
+  explained when implicit conversions from unchecked pointer types to checked pointer
   types may be inserted.   Implicit conversions of rvalue expressions 
-  from safe pointer types to unsafe pointer types are also inserted when
+  from checked pointer types to unchecked pointer types are also inserted when
   there are bounds-safe interfaces that describe the bounds requirements.
 \end{enumerate}
 
-Functions that have parameters with unsafe pointer types or that return
-values with unsafe pointer types can have bounds declared for the unsafe
-pointer parameters or the unsafe pointer return value. Bounds must be
-declared for all parameters with unsafe pointer types and the return
-value, if it has an unsafe pointer type. In the case where a parameter
+Functions that have parameters with unchecked pointer types or that return
+values with unchecked pointer types can have bounds declared for the unchecked
+pointer parameters or the unchecked pointer return value. Bounds must be
+declared for all parameters with unchecked pointer types and the return
+value, if it has an unchecked pointer type. In the case where a parameter
 has \texttt{ptr} type, this can be declared specially.
 
 Here is a bounds-safe interface for \texttt{memcpy}:
@@ -473,13 +474,13 @@ void *memcpy(void *dest : byte_count(len), const void *src : byte_count(len),
 \end{verbatim}
 
 The correctness of bounds information is enforced at compile-time when
-memcpy is passed safe pointer arguments. It is not enforced when memcpy
-is passed unsafe pointer arguments.
+memcpy is passed checked pointer arguments. It is not enforced when memcpy
+is passed unchecked pointer arguments.
 
-Similarly, for data structures, members with unsafe pointer types can
+Similarly, for data structures, members with unchecked pointer types can
 have bounds declared. If bounds are declared for one member of a
-structure with an unsafe pointer type, they must be declared for all
-members with unsafe pointer types.
+structure with an unchecked pointer type, they must be declared for all
+members with unchecked pointer types.
 
 Here are the bounds for a structure that is a counted buffer of
 characters.
@@ -492,63 +493,63 @@ struct S {
 
 We may have a method that takes a counted buffer of characters and
 counts the number of instances of a specific character. The \texttt{ptr}
-declaration can be used to declare an unsafe pointer to a singleton
+declaration can be used to declare an unchecked pointer to a singleton
 object of a type:
 \begin{verbatim}
 int count_char(S *str where ptr, char arg);
 \end{verbatim}
 
-Variables at external scope with unsafe pointer types may also have 
+Variables at external scope with unchecked pointer types may also have
 bounds declared for them.   The declarations must follow the 
 rules in Section~\ref{section:external-scope-variables}.
 
-It is important to understand that the \emph{semantics of unsafe
+It is important to understand that the \emph{semantics of unchecked
 pointers does not change in unchecked scopes even when bounds are
 declared for the pointers}. The declared bounds are used  for expressions
-that mix safe and unsafe pointer types. Unsafe pointer dereferences do not
+that mix checked and unchecked pointer types. Unchecked pointer dereferences do not
 have bounds checks added to them. A function that declares a bounds-safe 
-interface and whose body does not use safe pointer
+interface and whose body does not use checked pointer
 types is compiled as though the bounds-safe interface has been
 stripped from its source code.
 
 \subsection{Type checking}
 
-Bounds-safe interfaces allow unsafe pointer types to be used
-where safe pointer types with compatible referent types are expected
+Bounds-safe interfaces allow unchecked pointer types to be used
+where checked pointer types with compatible referent types are expected
 and {\it vice versa}.
 To handle this, implicit pointer conversions are inserted during type checking.
-Section~\ref{section:implicit-conversions} covered implicit conversions from unsafe pointer types to safe pointer types.
+Section~\ref{section:implicit-conversions} covered implicit conversions from unchecked pointer types to checked pointer types.
 
-Implicit conversions from safe pointer types to unsafe pointer types
+Implicit conversions from checked pointer types to unchecked pointer types
 with compatible referent types are allowed exactly at the uses of functions,
-variables, or members with a  bounds-safe interface.  The conversions are done for rvalue expressions by inserting C cast operators to the desired unsafe types.
+variables, or members with a  bounds-safe interface.  The conversions are done for rvalue expressions by inserting C cast operators to the desired unchecked types.
 They may be done at:
 \begin{itemize}
 \item Function call arguments: If the function being called has a 
-      bounds-safe interface for unsafe pointer type arguments, a parameter type 
-      has an unsafe pointer type, and the corresponding argument expression has a safe
+      bounds-safe interface for unchecked pointer type arguments, a parameter type
+      has an unchecked pointer type, and the corresponding argument expression has a checked
       pointer type whose referent type is compatible with the parameter
       referent type, the argument expression will be converted implicitly to the 
-      unsafe pointer type.
+      unchecked pointer type.
 \item Assignments to a variable with external scope: if the variable being
-     assigned to has an unsafe pointer type and a bound-safe interface and the
-     right-hand side expression has a safe pointer whose referent type is
+     assigned to has an unchecked pointer type and a bound-safe interface and the
+     right-hand side expression has a checked pointer whose referent type is
      compatible with the
      variable referent type, the right-hand side expression will be converted
-     implicitly to the unsafe pointer type.
+     implicitly to the unchecked pointer type.
 \item
    Member assignments: a similar conversion is done for member assignments.
 \end{itemize}
 
-Implicit conversions at bounds-safe interfaces are allowed from safe pointer types to 
-\unsafeptrvoid.  This rule is likelty to change in the future.  There is not a  design for
+Implicit conversions at bounds-safe interfaces are allowed from checked pointer types to
+\uncheckedptrvoid.  This rule is likely to change in the future.  There is not a  design for
 checking type-safety of casts yet and the design will amost certainly affect 
-\unsafeptrvoid\ casts.
+\uncheckedptrvoid\ casts.
 
 Only one implicit pointer conversion is allowed for an expression at a bounds-safe
 interface.  For example, an expression will not be
-coerced implicitly from \ptrinst{\var{S}} to \unsafeptrvoid\ to
-\unsafeptrinst{\var{T}}, where \var{S} and \var{T} are different types.
+coerced implicitly from \ptrinst{\var{S}} to \uncheckedptrvoid\ to
+\uncheckedptrinst{\var{T}}, where \var{S} and \var{T} are different types.
 
 
 \subsection{Checking bounds declarations}
@@ -559,16 +560,16 @@ only small changes to check code with bounds-safe interfaces.  The
 checking is done after any implicit pointer conversions have been
 inserted.
 \begin{itemize}
-\item Contexts are extended to include unsafe pointer variables with
+\item Contexts are extended to include unchecked pointer variables with
       bounds-safe interfaces
 \item Inference of bounds of expressions (Section~\ref{section:inferring-expression-bounds}) incorporates information from bounds-safe interfaces:
 \begin{itemize}
 \item Uses of variables (Section~\ref{section:checking-variables}): 
-      if a variable with an unsafe pointer type is used and the context has
+      if a variable with an unchecked pointer type is used and the context has
       a bounds for the variable, the bounds in the context are used as the bounds
       for the variable.
 \item Function calls (Section~\ref{section:inferring-bounds-for-function-calls}): 
-      the rules in this section are also applied when a function returns an unsafe 
+      the rules in this section are also applied when a function returns an unchecked
       pointer value and the return value has a bounds-safe interface.
 \end{itemize}
 \item The checking that an expression statement, declaration, or bundled
@@ -578,7 +579,7 @@ inserted.
 \item In unchecked contexts, all variables with bounds-safe interfaces
       that are modified by an assignment within the statement, declaration,
       or bundled block, where the right-hand side expression
-      is implicitly converted from a safe pointer type to an unsafe pointer type.
+      is implicitly converted from a checked pointer type to an unchecked pointer type.
 \end{itemize}
 For the included variables, bounds are tracked through the statement or
 bundled block.
@@ -588,7 +589,7 @@ bundled block.
 \begin{itemize}
 \item In checked contexts.
 \item In unchecked contexts, when one or more argument expressions have been 
-      converted implicitly to unsafe pointer types.
+      converted implicitly to unchecked pointer types.
 \end{itemize}
 The parameters are included by adding their bounds-safe interfaces to the
 declared bounds in the constructed \keyword{where} clauses.
@@ -598,14 +599,14 @@ The checking for assignments and function calls has some interesting
 implications in unchecked contexts.  It is possible to have a statement, 
 a declaration, or a bundled block that mixes different kinds of pointers
 in assignments to the same  variable.  
-Some right-hand sides could have safe pointer types and others
-could have unsafe pointer types.  This is a programming practice that is discouraged.
+Some right-hand sides could have checked pointer types and others
+could have unchecked pointer types.  This is a programming practice that is discouraged.
 Nevertheless, the bounds declarations will be checked no matter which
 kind of assignment is the last one.  This implies that if the last 
 assignment has an unasfe pointer-typed right-hand side, it will still need
 to have valid bounds.   It is also possible to mix argument expressions with 
-safe and unsafe  pointer types in one function call.  The checking of bounds
-for function arguments is done for all arguments, so this also implies that the unsafe
+checked and unchecked  pointer types in one function call.  The checking of bounds
+for function arguments is done for all arguments, so this also implies that the unchecked
 pointer-typed expressions will need to have valid bounds.
 
 \subsection{Examples}
@@ -619,7 +620,7 @@ void copy(array_ptr<int> dest : count(len),
     // Even though this is an unchecked context, the function call
     // arguments will be checked to make sure that they meet the
     // bounds requirements of memcpy.  This is because the argument
-    // expressions have safe pointer types.
+    // expressions have checked pointer types.
     memcpy(dest, src, len * sizeof(int));
 }
  
@@ -640,7 +641,7 @@ void bad_copy(int *dest,
               array_ptr<int> src : count(len), int len)
 {
     // dest, src will be converted implicitly to void * pointers.
-    // Because an argument had a safe pointer type, the function call
+    // Because an argument had a checked pointer type, the function call
     // will be checked to make sure parameters meet the bounds
     // requirements.  This will fail because dest has no bounds.
     memcpy(dest, src, len * sizeof(int));
@@ -653,10 +654,10 @@ void subtle_copy(int *dest,
                  array_ptr<int> src : count(len), int len)
 {
     // This function call will not be checked for bounds
-    // requirements because no arguments have safe pointer
+    // requirements because no arguments have checked pointer
     // types.  This shows both that the programmer has control
     // over checking by using types and why checked contexts
-    // should be used with safe pointers when possible (perhaps
+    // should be used with checked pointers when possible (perhaps
     // the programmer did not want to do this).
     memcpy(dest, (void *) src, len * sizeof(int));
 }

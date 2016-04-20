@@ -354,7 +354,7 @@ then \boundsinfer{\var{e4 op e1}}
                             {\texttt{GCD(\var{c}, sizeof(\var{T}))}}}.
 \end{quote}
 
-\subsubsection{Unsafe pointer arithmetic}
+\subsubsection{Pointer arithmetic for unchecked pointer types}
 
 Pointer arithmetic involving an \arrayptr\ value checks that
 the value is non-null and generates a runtime error if it is. This check
@@ -365,10 +365,10 @@ prevents a null pointer that has invalid bounds from being used to create a
 non-null pointer with valid bounds, which could then be used to access
 memory.
 
-Because the meaning of unsafe pointers has not changed, pointer
-arithmetic involving a null unsafe pointer may not generate a runtime
+Because the meaning of unchecked pointers has not changed, pointer
+arithmetic involving a null unchecked pointer may not generate a runtime
 error. The rules for array\_ptr pointer arithmetic can be applied to
-unsafe pointer arithmetic, however, provided that a side condition that
+unchecked pointer arithmetic, however, provided that a side condition that
 the pointer expression is non-null is added:
 
 \begin{quote}
@@ -645,7 +645,7 @@ while (p < high) {
 }
 \end{verbatim}
 
-Bounds safety is preserved when the range of a bounds expression is
+Bounds ty is preserved when the range of a bounds expression is
 narrowed. \texttt{(p - 1, high)} implies that \texttt{(p, high)} is a
 valid bounds expression. This reestablishes the loop bounds invariant
 for \texttt{p} of \texttt{(p, high)}.
@@ -657,8 +657,8 @@ while (p < high) {
 }
 \end{verbatim}
 
-The correctness of narrowing depends on safe pointer arithmetic overflow
-being a runtime error. For a lower bound \var{e1} in a bounds
+The correctness of narrowing depends on pointer arithmetic overflow
+for checked pointer types being a runtime error. For a lower bound \var{e1} in a bounds
 expression, we can only substitute \var{e2} for \var{e1} as the lower
 bound if \var{e2} \textgreater{}= \var{e1}. The identity \texttt{p > p - 1} 
 holds only if overflow is a runtime error.
@@ -687,7 +687,7 @@ An expression is invertible with respect to a variable x if:
   \end{enumerate}
 \end{enumerate}
 
-The addition and subtraction operations must be for safe pointer
+The addition and subtraction operations must be for checked pointer
 arithmetic or unsigned integer arithmetic. An implementation may allow
 integral addition and subtraction operations to be invertible if
 integral addition and subtraction are defined as two's complement
@@ -1123,7 +1123,7 @@ array_ptr<void> malloc(size_t num) : byte_count(num);
 \end{verbatim}
 
 even though in practice it will have a bounds-safe interface that does
-not use a safe pointer type.
+not use a checked pointer type.
 
 First, the implicit casts are made explicit and count is expanded to bounds:
 

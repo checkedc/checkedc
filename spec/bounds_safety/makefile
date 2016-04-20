@@ -1,6 +1,5 @@
 PAPERNAME=checkedc
 FILES = abstract.tex \
-        array-view-compilation.tex \
         checking-variable-bounds.tex \
         core-extensions.tex \
         design-alternatives.tex \
@@ -11,10 +10,11 @@ FILES = abstract.tex \
         open-issues.tex \
         pointers-to-pointers.tex \
         simple-invariants.tex \
+        span-compilation.tex \
         structure-bounds.tex \
         variable-bounds.tex \
         sources.bib \
-	checkedc.tex
+        checkedc.tex
 
 all: $(PAPERNAME).pdf
 

@@ -86,9 +86,9 @@
 \newcommand{\ptrint}{\ptrinst{\texttt{int}}}
 \newcommand{\ptrvoid}{\ptrinst{\texttt{void}}}
 
-\newcommand{\unsafeptrinst}[1]{\texttt{#1 *}}
-\newcommand{\unsafeptrT}{\texttt{\var{T} *}}
-\newcommand{\unsafeptrvoid}{\unsafeptrinst{void}}
+\newcommand{\uncheckedptrinst}[1]{\texttt{#1 *}}
+\newcommand{\uncheckedptrT}{\texttt{\var{T} *}}
+\newcommand{\uncheckedptrvoid}{\uncheckedptrinst{void}}
 
 %
 % bounds expression macros
@@ -122,7 +122,7 @@
 {\center
 \mbox{ }\\
 \vspace{2in}
-{\huge Extending C with pointer safety \par}
+{\huge Extending C with bounds safety \par}
 %{Version 0.4 (March 6, 2016) \par}
 {Version 0.5 - Draft as of \today \par}
 \vspace{0.5in}
@@ -183,6 +183,6 @@ This license is available at {\color{blue} \url{http://www.openwebfoundation.org
 
 \appendix
 % \include{fragments}
-% \include{array-view-compilation}
+% \include{span-compilation}
 
 \end{document}
