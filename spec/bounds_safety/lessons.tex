@@ -324,18 +324,18 @@ pointers could be used as an alternative to program invariants for local
 variables, in cases where using program invariants makes code too
 verbose and there is not a constraint on data layout.
 
-Suppose there is a \arrayview\ type constructor where
-\arrayview\ is a struct that has a pointer field and lower and
+Suppose there is a \spanptr\ type constructor where
+\spanptr\ is a struct that has a pointer field and lower and
 upper bounds on the valid range of memory associated with a pointer.
-\arrayview\ values can be used where pointer values can be
+\spanptr\ values can be used where pointer values can be
 used, with safety checks added for various operations. Consider the
 original example in Section~\ref{section:dependent-typing-issues}. 
 Here is the code for the method using
-\arrayview.
+\spanptr.
 
 \begin{verbatim}
 int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
-    array_view<int> buf = new array_view(tmpbuf, tmpbuf, end);
+    span<int> buf = new span(tmpbuf, tmpbuf, end);
     int sum = 0;
     while (buf < end) {
         sum += *buf;   // checks that buf is in  bounds before dereferencing it        
