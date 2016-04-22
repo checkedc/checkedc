@@ -62,11 +62,11 @@ Checked C addresses the bounds checking problem for C by:
 \item
   Introducing different pointer types to capture the different ways in
   which pointers are used. The unchecked C pointer type \texttt{*} is kept
-  and three new pointer types are added: one for pointers that are never
-  used in pointer arithmetic (\ptr), one for \emph{array pointer
-  types} (\arrayptr) that are involved in pointer arithmetic,
-  and one for pointer types that carry their dynamic bounds with them
-  (\spanptr ).
+  and three new {\it checked} pointer types are added: one for pointers that
+  are never used pointer arithmetic and do not need bounds checking (\ptr) , 
+  one for \emph{array pointer types} that are involved in pointer
+  arithmetic and need bounds checking (\arrayptr) , and one for pointer types 
+  that carry their bounds with them dynamically (\spanptr).
 \item
   For array pointer types (\arrayptr), in keeping with the low-level
   nature of C,  bounds checking is placed under programmer control. 
@@ -99,8 +99,8 @@ Checked C addresses the bounds checking problem for C by:
   interoperation between checked code and unchecked code. A bounds-safe
   interface describes the checked interface to unchecked code by declaring
   bounds for unchecked pointers in function signatures and data structures.
-  Because it describes a boundary, it has to be ``checked'' and ``unchecked''
-  at the same time, depending on what kind of code is using it. The
+  It describes a boundary that is ``checked'' or ``unchecked''
+  depending on what kind of code is using it. The
   interface is trusted in checked code (code that uses only checked pointer types).
   Proper usage is enforced via checking at compile time and runtime. For
   code that uses only unchecked pointer types, the interface is descriptive and
@@ -472,7 +472,7 @@ and Chapters~\ref{chapter:lessons} and \ref{chapter:design-alternatives}.
 
 This design has benefited from many discussions with Weidong Cui, Gabriel Dos Reis, 
 Chris Hawblitzel, Galen Hunt, Shuvendu Lahiri, and Reuben Olinsky.  The design has
-benefited also from feedback from Michael Hicks, Greg Morrisett, Andrew Ruef, and Jonghyun
-Park. We thank them for their contributions to the design.
+benefited also from feedback from Michael Hicks, Greg Morrisett, Jonghyun
+Park, and Andrew Ruef. We thank them for their contributions to the design.
 
 
