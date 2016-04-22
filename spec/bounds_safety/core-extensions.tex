@@ -52,14 +52,65 @@ have an error or warning mode that flags unexpected uses of `*'.
 
 The same syntax as C++ template instantiations is used for building
 instances of these types because this syntax is well-known and
-understood. The parameter to these type constructors must be a type.
+understood.  The new pointer types are added to the syntax for {\it type specifiers} 
+\cite[Section 6.7.2]{ISO2011}. The parameters to these type constructors 
+must be types, which are described syntactically by {\it type names} \cite[Section 6.7.7]{ISO2011}.
 
-The \spanptr\ pointer type is inspired by the proposed \spanptr\ type for 
+The \spanptr\ pointer type is similar to the proposed \spanptr\ type for 
 the C++ Standard Library \cite{Macintosh2016}.   There is an important
-difference between the the types, though.  In this design, \spanptr\
+difference between the types, though.  In this design, \spanptr\
 values carry lower and upper bounds.  In the proposed C++ design,
 \spanptr\ values carry counts of elements.  The C++ proposal does not
-support decrementing the \spanptr.
+support decrementing the \spanptr.  While the name \spanptr\ is new,
+the idea itself dates back to the early days of computer science.
+A \spanptr\ is an instance of a  dope vector, which is a data structure 
+that describes the shape of an array.  Dope vectors were used in
+implementations of ALGOL60 \cite{Sattley1961}.
+
+Here are  examples of declarations using pointer types.   These declare variables that
+are all pointers to integers:
+\begin{verbatim}
+int *p;
+ptr<int> q;
+span<int> r;
+array_ptr<int> s;
+\end{verbatim}
+
+The new checked pointer types can have \keyword{const} and \keyword{volatile}
+modifiers, just like unchecked pointer types.   They can be applied to the type
+of the object to which the pointers points or to the pointer itself.  Here are examples
+of pointers to constant integers:
+\begin{verbatim}
+const int *p;
+ptr<const int> q;
+span<const int> r;
+array_ptr<const int> s;
+\end{verbatim}
+A pointer to a constant integer cannot be used to modify the value of
+the integer.
+
+Here are examples of constant pointers to modifiable integers:
+\begin{verbatim}
+int x;
+int *const p = &x;
+const ptr<int> q = &x;
+const span<int> r = &x;
+const array_ptr<int> s = &x;
+\end{verbatim}
+In this case, the pointers cannot be modified after they are defined, but 
+the integer that they point to can be modified.   The checked pointer declarations 
+have simpler syntax than the unchecked pointer declaration, where \keyword{const}
+must be placed after the \verb+*+.   The checked pointer declarations are all analogous 
+to \verb+const double y = 5.0;+ declaring a  variable \verb+y+ that is \keyword{const}.
+In the declaration of \keyword{y}, \keyword{double} specifies a type.
+The \keyword{const} keyword is placed before it to declare that
+the variable in the declaration is \keyword{const}.  In the examples, \ptrint,
+\spanptrint, and \arrayptrint\ all specify types too.
+
+The checked pointer types follow the same rules that apply to modifiers for
+unchecked pointer types.  For example, a variable that is a pointer to a
+\keyword{const} value can be assigned a pointer to a non-const value.  
+The reverse is not allowed.
 
 \section{New kinds of array types}
 
@@ -689,7 +740,7 @@ checked int f(ptr<int> p)
     ...
 }
 
-// unchecked at the function level: checked and unchecked pointer types can 
+// unchecked at the function level: checked and unchecked pointer types can
 // occur in argument types, the return type, or the body of the function
 unchecked int f(int *p, ptr<int> r)
 {
