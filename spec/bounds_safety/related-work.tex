@@ -486,8 +486,9 @@ CFI as described in \cite{Abadi2005} has several drawbacks.  First, full CFI
 that includes checking return addresses can be expensive.  
 For example, it increased
 the execution time of SPEC 2000 programs by 16\% \cite{Abadi2005}.  
-Second, the checks are imprecise, making it possible for
-determined attackers to still construct attacks \cite{Goktas2014}.
+Second, the checks are imprecise because the control-flow graph
+is an approximation, making it possible for
+determined attackers to still construct attacks \cite{Goktas2014}, \cite{Evans2015}.
 A compiler computes the target addresses of each indirect 
 function call and each return instruction.  The
 compiler groups address into equivalence classes: addresses are in the same 
@@ -498,7 +499,9 @@ control-flow graph for object-oriented programs,  dynamically-loaded libraries, 
 the practical difficulties of implementing CFI for object-oriented programs with
 dynamically-loaded libraries that have not been compiled with CFI.  Return instructions can have hundreds or
 thousands of targets.  The grouping into equivalence classes also introduces 
-imprecision.  Because of the imprecision, an attacker could create mismatched call/return sequences.  See \cite{Horwitz1990}
+imprecision. Evans {\it et al} \cite{Evans2015} explain how the imprecision of pointer 
+analysis necessarily leads
+to imprecise control-flow graphs in practice.  Because of the imprecision, an attacker could create mismatched call/return sequences.  See \cite{Horwitz1990}
 for an explanation of how interprocedural control-flow graphs differ from
  intraprocedural control-flow graphs. This issue is not relevant in practice because production compilers do not protect return instructions using CFI.
  
