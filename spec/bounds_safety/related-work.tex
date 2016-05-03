@@ -8,9 +8,8 @@ bounds checking in C and related languages such as C++ has had
 enormous practical consequences for computer security and software 
 reliability.  Because of this, there has been a large amount of
 research and industrial work on addressing the lack of bounds
-checking in C.  In this section, we present an abridged version of 
-releated work,  highlighting key lines of work and
-describing how Checked C relates to them. 
+checking in C.  In this section, we discuss related work,  
+highlighting key lines of work and describing how Checked C relates to them. 
 
 We begin by discussing the most closely related work to Checked C:
 type-safe dialects of C.  These address the underlying problem of
@@ -393,22 +392,55 @@ corrupt memory through out-of-bounds writes or that access memory through
 out-of-bounds reads can be exploited in several ways:
 \begin{enumerate}
 \item  Execution of arbitrary code: An attacker may be able to inject arbitrary machine code into a process and have the process  execute that code.
-\item Return-oriented programing: this is a more subtle attack that avoids the need to inject arbitrary machine.  An attacker manipulates program state to
-stitch together  execution of an arbitrary program using existing machine code.
-In this approach, an attacker finds segments of useful machine code that end in
-return instructions. The attacker manipulates the state of the program call 
-stack to execute a series of small pieces of machine code and execute a
-arbitrary program.    A variant on this attack is to manipulate program state to
-change the target of an indirect function call.  This can be done by 
+\item Control-flow attacks: this a more subtle attack that avoids the need to inject arbitrary machine.  An attacker manipulates program state to
+stitch together execution of a program of the attacker's choosing
+using existing machine code.
+For example, in return-oriented programming, an attacker finds segments of useful
+machine code that end in return instructions. The attacker manipulates the state of 
+the program call  stack to execute a series of small pieces of machine code and execute
+a arbitrary program.  There are other ways to manpulate program state to
+change control-flow, such as changing the target of an indirect function call.  
+This can be done by 
 ovewriting a function pointer or the virtual table of an object.
 \item Data modification: an attacker may be able to write data to a process, causing the process to take an incorrect action on behalf of an attacker.
 \item  Data disclosure: an attacker may be able to read data from a process 
 and obtain data, including data that is meant to be confidential.  
-
 \end{enumerate}
-This has motivated a series of measures and counter-measures aimed at controlling the dynamic execution of programs and overcoming those controls. 
-The goal is to close off avenues of attack and make it increasingly difficult 
-to attack systems remotely.
+
+Security mitigations used in practice such as Address-Space Layout Randomization
+(ASLR), Data Execution Prevention (DEP), and Control-Flow Integrity (CFI)
+focus on preventing execution of arbitrary code and control-flow modification.  
+However, the underlying attack is a data modification attack, often
+combined with a data diclosure attack.  ASLR, DEP, and CFI
+can be defeated by determined attackers using data modification and data disclosure
+attacks.
+
+Checked C complements existing security mitigations by providing
+protection against data modification and data disclosure attacks,
+just as other language-based approaches do.  Checked C goes beyond
+these existing mitigations by addressing data modification and data
+disclosure attacks.  Chen {\it et al.} \cite{Chen2005} show that data modification
+attacks that do not alter control-flow pose a serious long-term threat.
+The Heartbleed attack on OpenSSL illustrates the threat posed by
+data disclosure attacks.
+
+If a C program and the libraries that it uses have been converted to use 
+only checked pointers and checked arrays and the program is free of type 
+cast or memory management errors, Checked C provides a strong
+guarantee about memory reads and writes. Any pointer must have been constructed
+via a  series of operations from a pointer to an object.   Checked C ensures 
+that the constructed ponter only accesses memory within that object.  
+
+Because Checked C addresses only bounds safety at this point, Checked C programs 
+remain vulnerable  to incorrect type casts, memory management errors such as use-after-free bugs, and race conditions that invalidate bounds information.  Of course,
+Checked C programs are also vulnerable to data modification by unchecked code
+in the same address space and logical errors.
+
+In the remainder of this section, we review security mitigations that
+have been deployed in practice or proposed and we explain how Checked C
+relates to them.  There have been a series of measures and counter-measures
+aimed at controlling the dynamic execution of programs and overcoming
+attacks.
 
 Hardware and OS-based approaches can prevent some attacks that inject and
 execute machine code.  At the hardware level, virtual memory support may provide
@@ -417,8 +449,8 @@ of instructions located on that page of virtual memory.  This bit can be set by
 default for program stacks and for memory when it is first allocated. A process
 may have to request specifically that an area of virtual memory be made
 executable.  This approach does not defend against other attacks, such as
-return-oriented programming, data modification, or data disclosure.  
-Return-oriented programming can be used to execute a system call and disable
+control-flow attacks,  data modification, or data disclosure.  
+Control-flow attacks can be used to execute a system call and disable
 no execution protection.    
 
 Hardware and OS support for ``no execute'' is widely deployed in production.
@@ -430,29 +462,58 @@ with the Microsoft Visual C++ compiler, however.
 
 Software can emulate ``no execute'' support or provide approximiations of it
 when hardware support is not available. Software fault isolation
-\cite{Wahbe1993} relies on compiler support to inject checks into machine code.
+\cite{Castro2009, McCamant2006,Wahbe1993} relies on compiler support to inject
+checks into machine code.
 It implements address spaces in software  for fault isolation. Software components communicate via remote-procedure calls. By implementing address
 spaces in software, this avoids expensive hardware context switches.
 Wahbe {\it et al} \cite{Wahbe1993} describe how execution of data can be
 prevented by placing code and data in separate areas of memory and checking the
 targets of  indirect jumps.  Software fault isolation, like hardware-based
-approaches,  is vulnerable to return-oriented programming, data modification, 
-or data disclosure attacks.
+approaches,  is vulnerable to control-flow attacks, data modification, 
+and data disclosure attacks.
 
-Address-space layout randomization (ASLR) \cite{PaX2003,WikipediaASLR} provides
-some protection against return-oriented programming attacks.  In ASLR, code
-sections from an executable file are loaded in random locations in the
+ASLR \cite{PaX2003,WikipediaASLR} provides some protection against 
+control-flow attacks.   All major production operating systems provide
+some form of ASLR. In ASLR, code
+sections from executable files are loaded in random locations in the
 address space of a process.  In addition, data sections, stacks, and
 dynamically-allocated data are also placed in random locations in the address
-space of a process. This makes it harder for an attacker to identify the locations of fragments of code to be used in return-oriented programming.  However, ASLR may not offer protection against data modification or data disclosure attacks. For example, data may be located on the stack adjacent to a
+space of a process. This makes it harder for an attacker to identify the locations of fragments of code to be used in return-oriented programming.  However, ASLR does
+not protect against data modification or data disclosure attacks. For example, data 
+may be located on the stack adjacent to a
 variable that is subject to a buffer overrun; the buffer overrrun can be
-be used reliability to overwrite or read the data.   ASLR can be compromised by
-data disclosure attacks.  An attacker can obtain the location of a code section by reading data from the stack, for example, and obtaining function return
-addresses.     The attacker can then craft an attack based on that data.  
-All major production operating systems provide some form of ASLR.
+be used reliability to overwrite or read the data.   
 
-Stack canaries \cite{Cowan1998} provide some protection against injection of 
-arbitrary code and return-oriented programming attacks.
+ASLR can be compromised by data disclosure attacks.  An attacker can obtain the
+location of a code section by reading data from the stack, for example, and obtaining function return addresses.  The attacker can then craft an attack based on that data. 
+A number of proposals suggested finer-grained  randomization of code layout
+\cite{Bhatkar2005, Hiser2012, Kil2006, Pappas2012,Wartell2012}.
+For example, code layout can be randomized at the instruction level or
+basic-block level. These too are vulnerable to 
+data disclosure attacks \cite{Snow2013}.
+
+The idea behind ASLR is to use randomization to protect
+code and data addresses.  For randomization of addresses to be effective, 
+it requires hardware  architectures that have 64-bit addresses and 
+virtual memory support \cite{Shacham2004}.  With 32-bit addresses, 
+there is typically  at most 16 bits of entropy available for
+virtual memory allocation.  Data is allocated at virtual memory
+page granularities or multiples of virtual memory page granularities
+and using upper bits fragments the virtual address space, which
+could cause large virtual memory allocations to fail.  This
+amount of entropy is not enough to defend systems deployed at scale on
+the Internet.  An attacker only needs on average 32,768 probes for one system or 
+conversely 32,768 target systems to compromise one of them through a
+brute force attack.
+This limits the usefulness of ASLR in embedded domains where 
+the use of 64-bit address spaces is uncommon.  
+
+Another set of ideas is to protect the data that contains 
+code addresses.  Some ideas aim to protect against modification;
+others aim to protect against disclosure of the code addresses.
+Stack canaries \cite{Cowan1998, Dang2015, Petsio2015} provide 
+some protection against injection of 
+arbitrary code and control-flow attacks.
 They protect against attacks that modify return addresses
 on call stacks by overrunning the bounds of a stack-allocated array.  
 This kind of overrun can happen when using C string functions that do
@@ -472,13 +533,67 @@ precisely modify return addresses, or that modify other areas
 of memory such as the heap and global variables. They also do not
 provide protection against data disclosure attacks. 
 
-Control-flow integrity (CFI) \cite{Abadi2005} also provides some protection
-against return-oriented programming attacks.  In a system implementing CFI, runtime checks are added to machine code to ensure that a program follows an approximation of the valid control-flow of the program.  CFI does not defend against data modification or data disclosure attacks.  It is vulnerable to data
+An alternative to stack canaries is shadow stacks \cite{Abadi2005, 
+Baratloo2000, Bhatkar2005, Chiueh2001, Corliss2005, Frantzen2001, Kuznetsov2014}.
+With shadow stacks,
+the stack is split into two stacks.  One stack is the secure stack. It
+is accessible via a dedicated hardware register and placed at a random
+location in memory.   The location of the secure stack is protected
+against disclosure by guaranteeing that all memory accesses
+to the secure stack are in bounds.  For example, only scalar variables whose
+addresses are not taken may be stored on the secure stack. In addition, 
+the addresses of locations on the secure stack are only stored on the secure
+stack.   The other stack is the insecure stack.  Its location is not
+protected against disclosure.
+
+In some approaches, the secure stack is used to only hold return addresses.
+A return address is stored on the regular stack as well and there is a
+check that the return address is unmodified before doing a return.
+This incurs an overhead of about 10\% because of the cost of having two
+stacks and checking return addresses \cite{Dang2015}.   The
+the regular stack can be used as the secure stack and that variables
+that may have out-of-bounds memory accesses or whose addresses are taken
+can be stored on the insecure stack \cite{Bhatkar2005, Kuznetsov2014}.  
+Kuznetsov {\it et al.}
+\cite{Kuznetsov2014} observe that improves performance because
+many small stack frames do not even need shadow stack frames.  For
+SPEC CPU 2006 benchmarks, they found that the performance cost 
+ranges from -4.2\% to 4.1\%,
+with an average cost of less than 0.1\%.  They speculate
+that performance improvements are due to improved data locality for
+stack accesses from the placement of large arrays on the insecure stack.
+This form of stack protection is available as a compiler option 
+for the LLVM compiler.
+
+Shadow stacks do not prevent data modification and data disclosure attacks
+against the insecure stack or other areas of memory such as the heap 
+and global variables.  Shadow stacks also have backwards compatibility
+problems; all code used by a thread must be converted to prevent disclosure
+of the shadow stack location for the thread.  
+
+Like ASLR, shadow stacks that use the regular call stack may be vulnerable to 
+brute-force data disclosure attacks on systems with 32-bit addresses.
+For example, on a 32-bit Windows system, the smallest possible
+stack size is 64K and the uppermost 1 GByte of virtual address space
+is not available by default.  If an attacker is able to read a byte 
+in memory at an attacker-selected location and the attack randomly picks
+the location,  an attacker has a 1 in 49,152 
+chance of reading a byte that is on a virtual memory page that contains a 
+shadow stack location.  With reads of nearby locations, an attacker can likely 
+determine if the page containing the byte contains part of a stack.  
+
+Control-flow integrity (CFI) also provides some protection
+against return-oriented programming attacks \cite{Abadi2005}.  There
+have been many follow-up papers \cite{Akritidis2008, 
+Erlingsson2006, Hawkins2016, Li2010, Li2011, Mashtizadeh2015,
+NiuCCS2014,NiuPLDI2014,Niu2015, Sadeghi2015, Tice2014, 
+vanderVeen2015, Wang2010,Wang2015, ZhangSP2013,ZhangSEC2013,Zhang2015}.
+In a system implementing CFI, runtime checks are added to machine code to ensure that a program follows an approximation of the valid control-flow of the program.  CFI does not defend against data modification or data disclosure attacks.  It is vulnerable to data
 modification attacks where an attacker manipulates the state of the program to
 execute a system call that makes memory containing code writeable.  CFI 
 been applied in production C and C++ compilers to indirect function
-calls and not applied to return instructions \cite{Tice2014}, 
-\cite{LLVMCFG2016}, \cite{GCCCFG2016}, \cite{MicrosoftCFG2016}.  It 
+calls and not applied to return instructions
+\cite{GCCCFG2016,LLVMCFG2016,MicrosoftCFG2016, Tice2014}.  It 
 is available as a compiler option for the GCC, LLVM, and Microsoft Visual C++
 compilers.
 
@@ -488,7 +603,8 @@ For example, it increased
 the execution time of SPEC 2000 programs by 16\% \cite{Abadi2005}.  
 Second, the checks are imprecise because the control-flow graph
 is an approximation, making it possible for
-determined attackers to still construct attacks \cite{Goktas2014}, \cite{Evans2015}.
+determined attackers to still construct attacks \cite{Carlini2015,
+Conti2015, Evans2015, Goktas2014}.
 A compiler computes the target addresses of each indirect 
 function call and each return instruction.  The
 compiler groups address into equivalence classes: addresses are in the same 
@@ -505,13 +621,7 @@ to imprecise control-flow graphs in practice.  Because of the imprecision, an at
 for an explanation of how interprocedural control-flow graphs differ from
  intraprocedural control-flow graphs. This issue is not relevant in practice because production compilers do not protect return instructions using CFI.
  
-Checked C complements all of these approaches by providing some protection against data modification and data disclosure attacks.  If a C program has 
-been converted to use only checked pointers and checked array sand the program
-is free of type cast or memory management errors, Checked C provides a strong
-guarantee about memory reads and writes. Any pointer must have been constructed
-via a  series of operations from a pointer to an object.   Checked C ensures 
-that the constructed ponter only accesses memory within that object.  Of
-course, in practice Checked C programs are vulnerable to incorrect type casts
- that result in memory being read at a type incompatible with the type of the memory when it was written, memory management errors such as use-after-free
- bugs, data modification by unchecked code in the same address space, and
- logical errors.
+ To do:discuss code pointer integrity, address-guardpapers.
+ 
+ 
+
