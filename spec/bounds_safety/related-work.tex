@@ -511,7 +511,7 @@ the use of 64-bit address spaces is uncommon.
 Another set of ideas is to protect the data that contains 
 code addresses.  Some ideas aim to protect against modification;
 others aim to protect against disclosure of the code addresses.
-Stack canaries \cite{Cowan1998, Dang2015, Petsio2015} provide 
+Stack canaries \cite{Cowan1998, Dang2015, Petsios2015} provide 
 some protection against injection of 
 arbitrary code and control-flow attacks.
 They protect against attacks that modify return addresses
@@ -587,41 +587,54 @@ against return-oriented programming attacks \cite{Abadi2005}.  There
 have been many follow-up papers \cite{Akritidis2008, 
 Erlingsson2006, Hawkins2016, Li2010, Li2011, Mashtizadeh2015,
 NiuCCS2014,NiuPLDI2014,Niu2015, Sadeghi2015, Tice2014, 
-vanderVeen2015, Wang2010,Wang2015, ZhangSP2013,ZhangSEC2013,Zhang2015}.
-In a system implementing CFI, runtime checks are added to machine code to ensure that a program follows an approximation of the valid control-flow of the program.  CFI does not defend against data modification or data disclosure attacks.  It is vulnerable to data
-modification attacks where an attacker manipulates the state of the program to
-execute a system call that makes memory containing code writeable.  CFI 
-been applied in production C and C++ compilers to indirect function
+vanderVeen2015, Wang2010,Wang2015, Zeng2011, ZhangSP2013,ZhangSEC2013,Zhang2015}.
+In a system implementing CFI, runtime checks are added to machine code to ensure
+that a program follows an approximation of the valid control-flow of the program. 
+In the description in \cite{Abadi2005}, a compiler computes the target addresses of each 
+indirect  function call and each return instruction.  The
+compiler groups addresses into equivalence classes: addresses are in the same 
+class if they may be the target of the same call or return instruction.  This is
+used to generate unique identifiers for the runtime control-flow check. 
+Many different variants of CFI have been proposed, including coarse-grained CFI
+implementations that are less precise than the original description, as well
+as fine-grained CFI implementations and even context-sensitive CFI implementations.
+CFI been applied in production C and C++ compilers to indirect function
 calls and not applied to return instructions
-\cite{GCCCFG2016,LLVMCFG2016,MicrosoftCFG2016, Tice2014}.  It 
+\cite{GCCCFG2016,LLVMCFG2016,MicrosoftCFG2016, Tice2014}.   Return instructions
+are protected via other means such as stack canaries or shadow stacks.  It 
 is available as a compiler option for the GCC, LLVM, and Microsoft Visual C++
 compilers.
 
-CFI as described in \cite{Abadi2005} has several drawbacks.  First, full CFI
-that includes checking return addresses can be expensive.  
-For example, it increased
-the execution time of SPEC 2000 programs by 16\% \cite{Abadi2005}.  
-Second, the checks are imprecise because the control-flow graph
-is an approximation, making it possible for
-determined attackers to still construct attacks \cite{Carlini2015,
-Conti2015, Evans2015, Goktas2014}.
-A compiler computes the target addresses of each indirect 
-function call and each return instruction.  The
-compiler groups address into equivalence classes: addresses are in the same 
-class if they may be the target of the same call or return instruction.  This is
-used to generate unique identifiers for the control-flow check.  There are
-multiple kinds of imprecision.   It is well-known to be difficult to compute the 
-control-flow graph for object-oriented programs,  dynamically-loaded libraries,  and just-in-time compiled code.  For example, \cite{Tice2014} discusses
-the practical difficulties of implementing CFI for object-oriented programs with
-dynamically-loaded libraries that have not been compiled with CFI.  Return instructions can have hundreds or
-thousands of targets.  The grouping into equivalence classes also introduces 
-imprecision. Evans {\it et al} \cite{Evans2015} explain how the imprecision of pointer 
-analysis necessarily leads
-to imprecise control-flow graphs in practice.  Because of the imprecision, an attacker could create mismatched call/return sequences.  See \cite{Horwitz1990}
-for an explanation of how interprocedural control-flow graphs differ from
- intraprocedural control-flow graphs. This issue is not relevant in practice because production compilers do not protect return instructions using CFI.
- 
- To do:discuss code pointer integrity, address-guardpapers.
- 
+CFI does not defend against data modification or data disclosure attacks. 
+It is also vulnerable to a data modification attack.  Determined attackers can
+use a data odification attack to still construct a control-flow attack
+\cite{Carlini2015, Conti2015, Evans2015, Goktas2014}.
+The runtime control-flow checks are imprecise because the control-flow graph (CFG)
+is an approximation of the actual control-flow that is possible for
+the program.  The computed CFG must allow at least all legal executions of the
+program. In fact it allows invalid executions of the program too.  The
+attacker can take advantage of that difference to control execution of the program
+via a data modification attack.
+
+CFI is based on the assumption that a precise control-flow graph can be
+constructed for C and C++ programs.  According to \cite{Evans2015},
+``this assumption is tenuous at best''.  It is difficult to construct
+a precise CFG for programs with pointers that also make use of function pointers
+or object-oriented language features.  Coarse-grained CFI implementations make the
+checked CFG even less precise to reduce  the cost of runtime checking, allowing even 
+more invalid executions.  They were  first shown to vulnerable to an attack on the
+imprecision of the checks.  Fine-grained CFI implementations are also vulnerable
+to the same kind of attack.   
+
+Evans {\it et al} \cite{Evans2015} explain how constructing the CFG relies on a points-to
+analysis for pointers.  Sound and complete points-to analysis is undecidable, so
+points-to analyses implemented in compilers must approximate the the actual points-to behavior
+of programs.  This leads to imprecise CFGs in practice.
+
+It is also difficult to construct a precise CFG in the presence of separately-compiled
+dynamically-loaded libraries or just-in-time compiled code.  For example, \cite{Tice2014} discusses
+the practical difficulties of implementing CFI for programs that use 
+dynamically-loaded libraries.
+
  
 
