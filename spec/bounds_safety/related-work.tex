@@ -5,10 +5,10 @@
 
 The C family of programming language is widely used.  The lack of
 bounds checking in C and related languages such as C++ has had
-enormous practical consequences for computer security and software 
-reliability.  Because of this, there has been a large amount of
-research and industrial work on addressing the lack of bounds
-checking in C.  In this section, we discuss related work,  
+serious practical consequences for computer security and software 
+reliability.   There has been extensive work in industry and the
+research community addressing the lack of bounds checking in C.
+In this section, we discuss related work,  
 highlighting key lines of work and describing how Checked C relates to them. 
 
 We begin by discussing the most closely related work to Checked C:
@@ -22,6 +22,196 @@ security problems that arise from a lack of bounds checking.
 These mitigations are widely used in practice.   Checked C
 complements these mitigations by providing protection against data
 modification and data disclosure attacks.
+
+\section{Runtime-only bounds checking}
+
+The C specification leaves the semantics of out-of-bounds pointer
+arithmetic undefined, except for the case of a pointer to one element
+past the last element of an array.  It also leaves the semantics of out-of-bounds
+pointer access undefined.  This means that it is possible to implement
+runtime-only bounds checking that is consistent with the semantics of
+C and that do not require source code changes.
+Many such systems have been implemented.  They work for testing
+purposes, but they have issues that prevent them from being used for production systems.
+The issues include backward-compatibility problems, performance problems such as
+increases in execution time and memory footprint, and constraints on memory 
+management and memory layout.
+
+The bcc source-to-source translator \cite{Kendall1983} and the rtcc
+compiler \cite{Steffen1992} were used to find bounds errors and
+other errors during debugging.  Each changed the representations of pointers to use 
+3 words: the pointer itself and an upper and lower bound.   
+Steffen \cite{Steffen1992} reports that the rtcc compiler generated code
+that was 3 times larger and ran about 10 times slower than the original code, 
+likely reflecting the simple nature of  the optimizer for the PCC compiler.  Data
+layout compatability is an issue.  Bounds information has to be removed at calls to
+standard library  functions and added at returns from standard library functions.
+Austin {\it et al.} \cite{Austin1994} describe a pointer representation that
+adds a capability in addition to bounds information.  The capability is used to
+prevent accesses to de-allocated memory.  The runtime system tracks capabilities that
+are valid (memory that has not been deallocated).  Patil and Fischer \cite{Patil1997}
+implement bounds checking using a second process that follows the execution 
+of the original process.  They separate the bounds and lifetime information
+from the original pointer and use shadow heaps and shadow stacks in the
+second process to track it.
+
+The Purify tool \cite{Hastings1992, Unicom2016} detects some bounds checking problems
+as well as uses of uninitialized memory and memory leaks.  It is meant for
+use during development and debugging.  Purify uses a table that keeps track
+of the state of each byte in memory, using 2-bits to represent the state of
+memory.  It inserts a small ``red zone'' before and after each dynamically
+allocated object and between statically-allocated objects.   It also
+inserts red zones between stack frames.  All memory accesses are instrumented to 
+check or update the state for a byte. 
+The instrumentation is inserted by rewriting binary code before linking.
+Purify detects out-of-bounds memory reads and writes involving red-zone
+memory.   It does not detect out-of-bounds
+reads or writes that occur entirely within valid memory for other objects
+or stack frames. It cannot detect out-of-bounds memory accesses at
+the sub-object level.
+Hastings {\it et al.} report a slowdown of more than 2 times due to
+the instrumentation.  However, this includes additional checking for memory leaks 
+and the use of uninitialized memory.
+
+There are a number of other similar commercial or open-source tools available
+that detect out-of-bounds memory accesses.
+Tools based on binary rewriting include Bounds Checker \cite{BoundsChecker2016}, 
+Dr. Memory \cite{Bruening2011,DrMemory2016}, Intel Inspector \cite{Intel2016},
+Oracle Solaris Studio Code Analyzer \cite{CodeAnalyzer2016},
+and Valgrind Memcheck  \cite{Nethercote2007, Valgrind2016}.  Insure++ 
+\cite{Insure2016}
+inserts instrumentation using source-to-source rewriting.  It also provides
+a mode that does not require recompilation, although details of how that
+works are not described.
+
+AddressSanitizer \cite{Serebryany2012} is a tool similar to Purify that is
+incorporated into the LLVM and GCC compilers.  It uses a table
+stored in shadow memory that tracks that state of 8-byte chunks of memory, using
+1/8 of the virtual address space.  It also relies on inserting ``red zones''.
+Because it has been implemented in a compiler, it is able to place red zones
+around stack-allocated objects.   It cannot detect out-of-bounds memory
+accesses at the sub-object level and cannot reliably track out-of-bounds accesses
+for objects smaller than 8 bytes.  For SPEC CPU2006, average program execution time
+increases by 73\% when checking reads and writes and 26\%
+when only checking writes. For SPEC CPU2006, average memory usage is 
+3.37 times larger.
+
+Light-weight Bounds Checking \cite{} is an optimized implementation of bound
+checking similar to Purify.   It relies on inserting ``red zones''.
+It is implemented in a compiler and can guard stack objects.  It uses a bitmap to track
+which bytes in memory correspond to allocated objects and which do not.
+It uses a two-level table to avoid allocating a table equal to 1/8 of the
+address space.  It optimizes memory reads by filling red zones with special
+values.  If a memory read returns a special value, then a check is done to
+ensure that the address was not a red zone address.  For SPECINt 200, average 
+program execution time increases by 23\%. For SPECINT 2000, its memory 
+overhead ranges between 0.2\% and 44\% with an average of 8.5\%.
+
+Jones and Kelly \cite{Jones1997} handle the problem of where to place bounds
+information by storing the bounds for objects in a side data structure (a
+splay tree).   This avoids changing the representation of pointers or
+tracking pointer information at the per-memory location level.  They insert 
+checks for pointer arithmetic to make sure that pointers stay within valid bounds for
+objects.  If a pointer goes out of bounds, it is converted to a value that cannot
+be dereferenced and that is not allowed to go back in bounds. 
+They change checked code to call modified versions of \keyword{malloc}
+and \keyword{free}  as well as system-level allocator.  The compiler modifies
+code generation for stack allocate objects to call funtions that update the 
+bounds information. In a production system, all custom allocators would have to be
+modified to update the object bounds information.  
+
+Jones and Kelly implememented their approach in GCC.   The approach easily allows
+interoperation between checked and unchecked code.  Objects that are not allocated by
+checked code are not tracked.  Untracked and tracked objects are treated as distinct memory regions.  Operations in checked code on untracked objects are not allowed to produce pointers to checked objects, providing some protection to untracked objects.  
+
+Their implementation increases program running
+times by a factor of 7.7 to 12 \cite{Nagarakatte2009} for  a set of
+23 benchmarks that includes programs from SPEC and the Olden benchmark.
+There are other drawbacks to this approach.
+Because bounds are tracked at the granularity of objects, it
+cannot track bounds for arrays nested within structures.  It also cannot
+track bounds for objects produced by custom allocators.  There are also
+issues with handling pointers to one element past the last element of
+an array.  The approach inserts padding between objects to have a gap.  In some
+cases, such as parameters passed on the stack, this is not possible.
+
+The C Range Error Detector (CRED) \cite{Ruwase2004} extends the Jones and Kelly
+approach to tolerate out-of-bounds pointers.  They observe that 12 out of
+20 open source programs totalling 1.2 million lines of C code break when
+out-of-bounds pointers are not allowed.   This observation supports the
+design decision in Checked C to allow out-of-bounds pointers and only
+check bounds at memory dereferences.
+
+CRED uses a proxy object that
+tracks the original pointer value and the object with which it is associated
+os that the pointer can go in back bounds.  When a pointer goes out of
+bounds, it is replaced with the proxy object address.  This requires
+additional checks on comparisons and pointer arithmetic computations.
+They find similar increase in program running times.  They suggest
+limiting bounds checking to only character pointers. With this restriction,
+the increase in execution time  ranges from 1\% to 130\% on a set of real-world
+programs.  They do not report on changes in memory usage.
+
+Dhurjati and Adve \cite{Dhurjati2006} describe an optimized implementation of
+CRED.  It relies on a whole-program analysis to partition
+objects into separate pools.  The pool information is used to partition
+the splay tree and  to avoid having to create entries for single-element arrays 
+or scalar objects in the splay tree.
+
+Baggy Bounds Checking \cite{Akritidi2008} provides a faster implementation
+of the side data structure in Jones and Kelly.  The implementation 
+calculates the bounds for any pointer in constant-time.   To acheive this,
+the implementation constrains object sizes to be powers of 2.  It also reserves 
+1/var{n} of the virtual address space for a table, where \var{n} is the smallest 
+allowed object size (16 in the implementation).  The table stores the size of the
+enclosing object (if any) for each \var{n}-byte chunk of memory.   Baggy Bounds 
+Checking increases the average execution time for SPECINT 2000 benchmarks by 60\%. 
+It increases average memory usage by 20\%.
+
+Paricheck \cite{Younan2010} stores a 2-byte label for each 32-byte chunk of memory.
+It reserves 1/16 of the virtual address space for a table and increases
+the memory object allocation size to 32 bytes.
+It checks that pointer arithmetic stays in bounds by checking that the
+original pointer and the pointer computed by pointer arithmetic have the
+same label. For SPEC CPU2000, it increases average execution time 49\% and
+average  memory usage by 9.5\%.
+
+SoftBound \cite{Nagarakatte2009} tracks bounds information
+for each  memory location that contains a pointer by using a side table.  
+As an example, given a pointer variable,
+the system tracks the bounds based on the address of the pointer variable.
+This allows the system to track sub-bounds within objects.  The calling
+convention for values passed in registers is modified to have an additional
+parameters for bounds.  SoftBound uses either a hash table or
+a shadow copy of memory to track the bounds information.   The shadow
+copy of memory generally has better performance.  With the shadow
+copy of memory, SoftBound increases average program execution time for
+a set of benchmarks by 67\%.   SoftBound can check only writes, in which
+case average program execution time increases by 22\%.   SoftBound increases 
+average memory footprint by 64\%, although it can increase it by up to 200\%.
+
+Low Fat Pointers \cite{Duck2016} encode bounds information into 64-bit pointers by
+dividing memory into \var{m} regions of 4 GBytes each and storing
+the region information in the upper 32-bits of the pointer.  Each
+region contains objects of some size $k$ that are aligned to $k$.
+A table maps regions to their sizes.  They measure the performance of 
+SPEC 2006 programs and find that checking all pointer reads and writes
+increases average program execution time by 56\% and checking only writes 
+increases average execution time by 13\%.
+
+Checked C has several potential performance advantages over runtime-only approaches.
+First, it allows existing program data to be used to specify bounds.
+This avoids the need for side tables or fat-pointer representations.
+Second, some pointers (\keyword{ptr} types) never need to be checked
+at runtime.
+Third, for pointers that do need array bounds checking, Checked C
+gives programmers control of the checking. 
+Runtime-only checking {\em always} checks, unless the check can be proven 
+redundant by compiler optimization.   With Checked C, programmers have
+a range of options   The default behavior is to always check. For performance-critical
+code, programmers can rely on static checking that proves the checks
+are unnecessary or omit checks entirely.
+
 
 \section{Type-safe dialects of C}
 
@@ -407,40 +597,42 @@ ovewriting a function pointer or the virtual table of an object.
 and obtain data, including data that is meant to be confidential.  
 \end{enumerate}
 
-Security mitigations used in practice such as Address-Space Layout Randomization
-(ASLR), Data Execution Prevention (DEP), and Control-Flow Integrity (CFI)
-focus on preventing execution of arbitrary code and control-flow modification.  
-However, the underlying attack is a data modification attack, often
-combined with a data diclosure attack.  ASLR, DEP, and CFI
+A number of security mitigations have been developed and deployed
+in practice to address the computer security problems caused by incorrect
+C and C++ programs. 
+The mitigations include Address-Space Layout Randomization (ASLR), Data Execution
+Prevention (DEP), stack canaries,
+shadow stacks, and Control-Flow Integrity (CFI).   ASLR, DEP, and CFI focus
+on preventing execution of arbitrary code and control-flow modification.  
+Stack protection mechanisms focus on protecting data or return addresses
+on the stack. ASLR, DEP, CFI, and stack canaries can be 
 can be defeated by determined attackers using data modification and data disclosure
-attacks.
+attacks.  Shadow stacks do not protect stack-allocated buffers or arrays, 
+heap data, and statically-allocated data.
 
 Checked C complements existing security mitigations by providing
-protection against data modification and data disclosure attacks,
-just as other language-based approaches do.  Checked C goes beyond
-these existing mitigations by addressing data modification and data
-disclosure attacks.  Chen {\it et al.} \cite{Chen2005} show that data modification
+protection against data modification and data disclosure attacks.
+Chen {\it et al.} \cite{Chen2005} show that data modification
 attacks that do not alter control-flow pose a serious long-term threat.
-The Heartbleed attack on OpenSSL illustrates the threat posed by
-data disclosure attacks.
+The Heartbleed attack on OpenSSL illustrates the damage this is
+possible from even data disclosure attacks.
 
-If a C program and the libraries that it uses have been converted to use 
+If a C program and libraries that it uses have been converted to use 
 only checked pointers and checked arrays and the program is free of type 
 cast or memory management errors, Checked C provides a strong
 guarantee about memory reads and writes. Any pointer must have been constructed
 via a  series of operations from a pointer to an object.   Checked C ensures 
 that the constructed ponter only accesses memory within that object.  
 
-Because Checked C addresses only bounds safety at this point, Checked C programs 
-remain vulnerable  to incorrect type casts, memory management errors such as use-after-free bugs, and race conditions that invalidate bounds information.  Of course,
-Checked C programs are also vulnerable to data modification by unchecked code
-in the same address space and logical errors.
+Because Checked C addresses only bounds safety, Checked C programs 
+remain vulnerable  to incorrect type casts, memory management errors, 
+and race conditions that invalidate bounds information. They are also
+vulnerable to data modification by unchecked code in the same address space.
 
 In the remainder of this section, we review security mitigations that
-have been deployed in practice or proposed and we explain how Checked C
-relates to them.  There have been a series of measures and counter-measures
-aimed at controlling the dynamic execution of programs and overcoming
-attacks.
+have been deployed in practice. We discuss what they protect against
+and how the mitigations can be defeated by data modification and data 
+disclosure attacks.
 
 Hardware and OS-based approaches can prevent some attacks that inject and
 execute machine code.  At the hardware level, virtual memory support may provide
@@ -462,14 +654,14 @@ with the Microsoft Visual C++ compiler, however.
 
 Software can emulate ``no execute'' support or provide approximiations of it
 when hardware support is not available. Software fault isolation
-\cite{Castro2009, McCamant2006,Wahbe1993} relies on compiler support to inject
-checks into machine code.
-It implements address spaces in software  for fault isolation. Software components communicate via remote-procedure calls. By implementing address
+\cite{Castro2009, Erlingsson2006,McCamant2006,Wahbe1993} injects checks
+into machine code, either during compilation or by rewriting binaries.
+It implements address spaces in software for fault isolation. Software components communicate via remote-procedure calls. By implementing address
 spaces in software, this avoids expensive hardware context switches.
 Wahbe {\it et al} \cite{Wahbe1993} describe how execution of data can be
 prevented by placing code and data in separate areas of memory and checking the
 targets of  indirect jumps.  Software fault isolation, like hardware-based
-approaches,  is vulnerable to control-flow attacks, data modification, 
+approaches, is vulnerable to control-flow attacks, data modification, 
 and data disclosure attacks.
 
 ASLR \cite{PaX2003,WikipediaASLR} provides some protection against 
@@ -506,7 +698,7 @@ the Internet.  An attacker only needs on average 32,768 probes for one system or
 conversely 32,768 target systems to compromise one of them through a
 brute force attack.
 This limits the usefulness of ASLR in embedded domains where 
-the use of 64-bit address spaces is uncommon.  
+64-bit address spaces are uncommon.  
 
 Another set of ideas is to protect the data that contains 
 code addresses.  Some ideas aim to protect against modification;
@@ -534,7 +726,8 @@ of memory such as the heap and global variables. They also do not
 provide protection against data disclosure attacks. 
 
 An alternative to stack canaries is shadow stacks \cite{Abadi2005, 
-Baratloo2000, Bhatkar2005, Chiueh2001, Corliss2005, Frantzen2001, Kuznetsov2014}.
+Baratloo2000, Bhatkar2005, Chiueh2001, Corliss2005, Erlingsson2006,
+Frantzen2001, Kuznetsov2014}.
 With shadow stacks,
 the stack is split into two stacks.  One stack is the secure stack. It
 is accessible via a dedicated hardware register and placed at a random
@@ -554,8 +747,8 @@ stacks and checking return addresses \cite{Dang2015}.   The
 the regular stack can be used as the secure stack and that variables
 that may have out-of-bounds memory accesses or whose addresses are taken
 can be stored on the insecure stack \cite{Bhatkar2005, Kuznetsov2014}.  
-Kuznetsov {\it et al.}
-\cite{Kuznetsov2014} observe that improves performance because
+Kuznetsov {\it et al.}.   
+\cite{Kuznetsov2014} observe that this improves performance because
 many small stack frames do not even need shadow stack frames.  For
 SPEC CPU 2006 benchmarks, they found that the performance cost 
 ranges from -4.2\% to 4.1\%,
@@ -571,6 +764,14 @@ and global variables.  Shadow stacks also have backwards compatibility
 problems; all code used by a thread must be converted to prevent disclosure
 of the shadow stack location for the thread.  
 
+A shadow stack that uses the regular stack can be attacked in
+a subtle way, even if all memory accesses to the stack
+are guaranteed to be in bounds.  An attacker can cause a calling convention
+mismatch, where the caller of a function and the called function disagree on
+the size of argument data that is passed on the stack or who is expected to
+make adjustments to the stack pointer.  This corrupts the stack pointer, 
+allowing a data modification or data disclosure attack against the shadow stack, including overwriting return addresses \cite{Goktas2014}.
+
 Like ASLR, shadow stacks that use the regular call stack may be vulnerable to 
 brute-force data disclosure attacks on systems with 32-bit addresses.
 For example, on a 32-bit Windows system, the smallest possible
@@ -580,15 +781,14 @@ in memory at an attacker-selected location and the attack randomly picks
 the location,  an attacker has a 1 in 49,152 
 chance of reading a byte that is on a virtual memory page that contains a 
 shadow stack location.  With reads of nearby locations, an attacker can likely 
-determine if the page containing the byte contains part of a stack.  
+determine if the page containing the byte contains part of a stack.
 
 Control-flow integrity (CFI) also provides some protection
 against return-oriented programming attacks \cite{Abadi2005}.  There
-have been many follow-up papers \cite{Akritidis2008, 
-Erlingsson2006, Hawkins2016, Li2010, Li2011, Mashtizadeh2015,
-NiuCCS2014,NiuPLDI2014,Niu2015, Sadeghi2015, Tice2014, 
-vanderVeen2015, Wang2010,Wang2015, Zeng2011, ZhangSP2013,ZhangSEC2013,Zhang2015}.
-In a system implementing CFI, runtime checks are added to machine code to ensure
+have been many follow-up papers \cite{Akritidis2008, Li2011, Li2010, Mashtizadeh2015,
+NiuPLDI2014, NiuCCS2014, Niu2015, Sadeghi2015, Tice2014, 
+vanderVeen2015, Wang2015, Wang2010, Zeng2011, ZhangSP2013,Zhang2015, ZhangSEC2013}.
+CFI adds runtime checks to machine code to ensure
 that a program follows an approximation of the valid control-flow of the program. 
 In the description in \cite{Abadi2005}, a compiler computes the target addresses of each 
 indirect  function call and each return instruction.  The
@@ -596,45 +796,49 @@ compiler groups addresses into equivalence classes: addresses are in the same
 class if they may be the target of the same call or return instruction.  This is
 used to generate unique identifiers for the runtime control-flow check. 
 Many different variants of CFI have been proposed, including coarse-grained CFI
-implementations that are less precise than the original description, as well
-as fine-grained CFI implementations and even context-sensitive CFI implementations.
-CFI been applied in production C and C++ compilers to indirect function
+implementations that are less precise than the original description \cite{Wang2015,
+ZhangSP2013, ZhangSEC2013} 
+as well as fine-grained CFI implementations \cite{Tice2014,Wang2010} 
+and even context-sensitive CFI implementations \cite{vanderVeen2015}.
+CFI has been applied in production C and C++ compilers to indirect function
 calls and not applied to return instructions
 \cite{GCCCFG2016,LLVMCFG2016,MicrosoftCFG2016, Tice2014}.   Return instructions
-are protected via other means such as stack canaries or shadow stacks.  It 
-is available as a compiler option for the GCC, LLVM, and Microsoft Visual C++
-compilers.
+are protected via other means such as stack canaries or shadow stacks.  
+CFI is implemented in various forms in production versions of the
+GCC, LLVM, and Microsoft Visual C++ compilers.
 
 CFI does not defend against data modification or data disclosure attacks. 
-It is also vulnerable to a data modification attack.  Determined attackers can
-use a data odification attack to still construct a control-flow attack
+It is also vulnerable to data modification attacks.  Determined attackers can
+use a data modification attack to still construct a control-flow attack
 \cite{Carlini2015, Conti2015, Evans2015, Goktas2014}.
 The runtime control-flow checks are imprecise because the control-flow graph (CFG)
 is an approximation of the actual control-flow that is possible for
-the program.  The computed CFG must allow at least all legal executions of the
-program. In fact it allows invalid executions of the program too.  The
+a program.  The computed CFG must allow at least all legal executions of a
+program. In fact it allows invalid executions of a program too.  The
 attacker can take advantage of that difference to control execution of the program
 via a data modification attack.
 
 CFI is based on the assumption that a precise control-flow graph can be
-constructed for C and C++ programs.  According to \cite{Evans2015},
+constructed for C and C++ programs.  According to Evans {\it et al.} \cite{Evans2015},
 ``this assumption is tenuous at best''.  It is difficult to construct
-a precise CFG for programs with pointers that also make use of function pointers
-or object-oriented language features.  Coarse-grained CFI implementations make the
-checked CFG even less precise to reduce  the cost of runtime checking, allowing even 
-more invalid executions.  They were  first shown to vulnerable to an attack on the
-imprecision of the checks.  Fine-grained CFI implementations are also vulnerable
-to the same kind of attack.   
+a precise CFG for programs with pointers that use function pointers and
+object-oriented language features.  Coarse-grained CFI implementations make the
+checked CFG even less precise.  They do this to reduce  the cost of runtime checking or 
+because of difficulties computing a precise CFG.  For example, binary rewriting
+approaches have difficulty precisely computing possible targets for indirect jumps.
+This allows even more invalid executions.  Coarse-grained CFI implementations
+were  first shown to be vulnerable to an 
+attack based on the imprecision of the checks \cite{Carlini2014,Davi2014,Goktas2014}. 
+Fine-grained CFI implementations are also vulnerable to the same kind of attack
+\cite{Carlini2015,Evans2015}.
 
-Evans {\it et al} \cite{Evans2015} explain how constructing the CFG relies on a points-to
-analysis for pointers.  Sound and complete points-to analysis is undecidable, so
-points-to analyses implemented in compilers must approximate the the actual points-to behavior
-of programs.  This leads to imprecise CFGs in practice.
+Evans {\it et al} \cite{Evans2015} explain how constructing the CFG relies on a
+points-to analysis for pointers.  Sound and complete points-to analysis is 
+undecidable \cite{Ramalingam1994}, so points-to analyses implemented in compilers 
+must approximate the the actual points-to behavior of programs.  This leads to 
+imprecise CFGs in practice.
 
-It is also difficult to construct a precise CFG in the presence of separately-compiled
-dynamically-loaded libraries or just-in-time compiled code.  For example, \cite{Tice2014} discusses
-the practical difficulties of implementing CFI for programs that use 
-dynamically-loaded libraries.
-
- 
-
+It is also difficult to construct a precise CFG in the presence of 
+separately-compiled dynamically-loaded libraries \cite{NiuPLDI2014} or just-in-time
+compiled code \cite{NiuCCS2014}.  Tice {\it et al.} \cite{Tice2014} discuss the difficulties of implementing CFI for programs that use dynamically-loaded libraries. 
+Hand-written assembly code also causes problems for constructing a precise CFG.

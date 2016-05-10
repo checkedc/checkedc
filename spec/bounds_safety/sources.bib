@@ -41,7 +41,7 @@
 
 @inproceedings{Akritidis2008,
  author = {Akritidis, Periklis and Cadar, Cristian and Raiciu, Costin and Costa, Manuel and Castro, Miguel},
- title = {Preventing Memory Error Exploits with WIT},
+ title = {Preventing Memory Error Exploits with {WIT}},
  booktitle = {Proceedings of the 2008 IEEE Symposium on Security and Privacy},
  series = {SP '08},
  year = {2008},
@@ -59,7 +59,7 @@
 @inproceedings{Akritidis:2009:BBC:1855768.1855772,
  author = {Akritidis, Periklis and Costa, Manuel and Castro, Miguel and Hand, Steven},
  title = {Baggy Bounds Checking: An Efficient and Backwards-compatible Defense Against Out-of-bounds Errors},
- booktitle = {Proceedings of the 18th Conference on USENIX Security Symposium},
+ booktitle = {Proceedings of the 18th Conference on {USENIX} Security Symposium},
  series = {SSYM'09},
  year = {2009},
  location = {Montreal, Canada},
@@ -89,7 +89,7 @@
  keywords = {just-in-time compilation, sandboxing, security, self-modifying code, software fault isolation},
 }
 
-@inproceedings{Austin:1994:EDP:178243.178446,
+@inproceedings{Austin1994,
  author = {Austin, Todd M. and Breach, Scott E. and Sohi, Gurindar S.},
  title = {Efficient Detection of All Pointer and Array Access Errors},
  booktitle = {Proceedings of the ACM SIGPLAN 1994 Conference on Programming Language Design and Implementation},
@@ -109,7 +109,7 @@
 @inproceedings{Baratloo2000,
  author = {Baratloo, Arash and Singh, Navjot and Tsai, Timothy},
  title = {Transparent Run-time Defense Against Stack Smashing Attacks},
- booktitle = {Proceedings of the Annual Conference on USENIX Annual Technical Conference},
+ booktitle = {Proceedings of the Annual Conference on {USENIX} Annual Technical Conference},
  series = {ATEC '00},
  year = {2000},
  location = {San Diego, California},
@@ -186,6 +186,29 @@
  address = {Washington, DC, USA},
 } 
 
+@Misc{BoundsChecker2016,
+  author="{MicroFocus}",
+  title="DevPartner",
+  year="2016",
+  howpublished={\url{http://www.borland.com/en-GB/Products/Software-Testing/Automated-Testing/Devpartner-Studio}},
+  note="Accessed May 6, 2016"
+}
+
+@inproceedings{Bruening2011,
+ author = {Bruening, Derek and Zhao, Qin},
+ title = {Practical Memory Checking with {Dr. Memory}},
+ booktitle = {Proceedings of the 9th Annual IEEE/ACM International Symposium on Code Generation and Optimization},
+ series = {CGO '11},
+ year = {2011},
+ isbn = {978-1-61284-356-8},
+ pages = {213--223},
+ numpages = {11},
+ url = {http://dl.acm.org/citation.cfm?id=2190025.2190067},
+ acmid = {2190067},
+ publisher = {IEEE Computer Society},
+ address = {Washington, DC, USA},
+} 
+
 @inproceedings{Bletsch:2011:JPN:1966913.1966919,
  author = {Bletsch, Tyler and Jiang, Xuxian and Freeh, Vince W. and Liang, Zhenkai},
  title = {Jump-oriented Programming: A New Class of Code-reuse Attack},
@@ -219,9 +242,9 @@
  address = {Berlin, Heidelberg},
 } 
 
-@inproceedings{Carlini:2014:RSD:2671225.2671250,
+@inproceedings{Carlini2014,
  author = {Carlini, Nicholas and Wagner, David},
- title = {ROP is Still Dangerous: Breaking Modern Defenses},
+ title = {{ROP} is Still Dangerous: Breaking Modern Defenses},
  booktitle = {Proceedings of the 23rd USENIX Conference on Security Symposium},
  series = {SEC'14},
  year = {2014},
@@ -328,6 +351,14 @@
  publisher = {USENIX Association},
  address = {Berkeley, CA, USA},
 } 
+
+@Misc{CodeAnalyzer2016,
+  author="{Oracle Corporation}",
+  title="Oracle Solaris Studio",
+  year="2016",
+  howpublished={\url{http://www.oracle.com/technetwork/server-storage/solarisstudio/overview/index.html}},
+  note="Accessed May 6, 2016"
+}
 
 @InProceedings{Condit2007,
   author="Jeremy Condit and Matthew Harren and Zachary Anderson and David Gay
@@ -474,7 +505,7 @@
  keywords = {binary instrumentation, detection, return-oriented programming},
 }
 
-@inproceedings{Davi:2014:SGI:2671225.2671251,
+@inproceedings{Davi2014,
  author = {Davi, Lucas and Sadeghi, Ahmad-Reza and Lehmann, Daniel and Monrose, Fabian},
  title = {Stitching the Gadgets: On the Ineffectiveness of Coarse-grained Control-flow Integrity Protection},
  booktitle = {Proceedings of the 23rd USENIX Conference on Security Symposium},
@@ -508,6 +539,24 @@
  keywords = {C programming language, spatial memory safety},
 } 
 
+@inproceedings{Dhurjati2006,
+ author = {Dhurjati, Dinakar and Adve, Vikram},
+ title = {Backwards-compatible Array Bounds Checking for {C} with Very Low Overhead},
+ booktitle = {Proceedings of the 28th International Conference on Software Engineering},
+ series = {ICSE '06},
+ year = {2006},
+ isbn = {1-59593-375-1},
+ location = {Shanghai, China},
+ pages = {162--171},
+ numpages = {10},
+ url = {http://doi.acm.org/10.1145/1134285.1134309},
+ doi = {10.1145/1134285.1134309},
+ acmid = {1134309},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {array bounds checking, automatic pool allocation, compilers, programming languages, region management},
+} 
+
 @inproceedings{Dhurjati:2006:SEA:1133981.1133999,
  author = {Dhurjati, Dinakar and Kowshik, Sumant and Adve, Vikram},
  title = {SAFECode: Enforcing Alias Analysis for Weakly Typed Languages},
@@ -538,9 +587,9 @@
 }
 
 @inproceedings{Erlingsson2006,
- author = {Erlingsson, \'{U}lfar and Valley, Silicon and Abadi, Mart\'{\i}n and Vrable, Michael and Budiu, Mihai and Necula, George C.},
- title = {XFI: Software Guards for System Address Spaces},
- booktitle = {Proceedings of the 7th USENIX Symposium on Operating Systems Design and Implementation - Volume 7},
+ author = {Erlingsson, \'{U}lfar and Abadi, Mart\'{\i}n and Vrable, Michael and Budiu, Mihai and Necula, George C.},
+ title = {{XFI}: Software Guards for System Address Spaces},
+ booktitle = {Proceedings of the 7th {USENIX} Symposium on Operating Systems Design and Implementation - Volume 7},
  series = {OSDI '06},
  year = {2006},
  location = {Seattle, WA},
@@ -551,6 +600,31 @@
  publisher = {USENIX Association},
  address = {Berkeley, CA, USA},
 } 
+
+@Misc{DrMemory2016,
+  author="{Dr. Memory}",
+  title="Dr. {M}emory: Memory Debugger for {Windows}, {Linux}, and {Mac}",
+  year="2016",
+  howpublished={\url{http://www.drmemory.org/}},
+  note="Accessed May 6, 2016"
+}
+
+@inproceedings{Duck2016,
+ author = {Duck, Gregory J. and Yap, Roland H. C.},
+ title = {Heap Bounds Protection with Low Fat Pointers},
+ booktitle = {Proceedings of the 25th International Conference on Compiler Construction},
+ series = {CC 2016},
+ year = {2016},
+ isbn = {978-1-4503-4241-4},
+ location = {Barcelona, Spain},
+ pages = {132--142},
+ numpages = {11},
+ url = {http://doi.acm.org/10.1145/2892208.2892212},
+ doi = {10.1145/2892208.2892212},
+ acmid = {2892212},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
 
 @inproceedings{Evans2015,
  author = {Evans, Isaac and Long, Fan and Otgonbaatar, Ulziibayar and Shrobe, Howard and Rinard, Martin and Okhravi, Hamed and Sidiroglou-Douskos, Stelios},
@@ -576,7 +650,7 @@
   title="{SafeDrive}: Safe and Recoverable Extensions Using Language-Based Techniques",
   year=2006,
   booktitle="7th Symposium on Operating System Design and Implementation (OSDI'06)",
-  publisher="{USENIX} Association",
+  publisher="USENIX Association",
   address="Seattle, Washington"
 }
 
@@ -647,7 +721,7 @@
   publisher="{CMP} Media {LLC}"
 }
 
-@inproceedings{Hasabnis:2012:LBC:2259016.2259034,
+@inproceedings{Hasabnis2012,
  author = {Hasabnis, Niranjan and Misra, Ashish and Sekar, R.},
  title = {Light-weight Bounds Checking},
  booktitle = {Proceedings of the Tenth International Symposium on Code Generation and Optimization},
@@ -660,13 +734,23 @@
  url = {http://doi.acm.org/10.1145/2259016.2259034},
  doi = {10.1145/2259016.2259034},
  acmid = {2259034},
- publisher = {ACM},
+ publisher = {{ACM}},
  address = {New York, NY, USA},
 }
 
+@Inproceedings{Hastings1992,
+ author = {Reed Hastings and Bob Joyce},
+ title = {Purify: Fast detection of memory leaks and access errors},
+ booktitle = {Proceedings of the Winter 1992 USENIX Conference},
+ year = {1992},
+ pages = {125--138},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA}
+}
+    
 @inproceedings{Hawkins2016,
  author = {Hawkins, Byron and Demsky, Brian and Taylor, Michael B.},
- title = {BlackBox: Lightweight Security Monitoring for COTS Binaries},
+ title = {BlackBox: Lightweight Security Monitoring for {COTS} Binaries},
  booktitle = {Proceedings of the 2016 International Symposium on Code Generation and Optimization},
  series = {CGO 2016},
  year = {2016},
@@ -684,7 +768,7 @@
 
 @inproceedings{Hiser2012,
  author = {Hiser, Jason and Nguyen-Tuong, Anh and Co, Michele and Hall, Matthew and Davidson, Jack W.},
- title = {ILR: Where'D My Gadgets Go?},
+ title = {{ILR}: Where'D My Gadgets Go?},
  booktitle = {Proceedings of the 2012 IEEE Symposium on Security and Privacy},
  series = {SP '12},
  year = {2012},
@@ -760,6 +844,22 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
  keywords = {Address Space Layout Randomization, Timing Attacks, Kernel Vulnerabilities, Exploit Mitigation},
 } 
 
+@Misc{Insure2016,
+  author="{Parasoft}",
+  title="Memory Error Detection",
+  year="2016",
+  howpublished={\url{https://www.parasoft.com/capability/memory-error-detection/}},
+  note="Accessed May 6, 2016"
+}
+
+@Misc{Intel2016,
+  author="Intel Corporation",
+  title="Intel Inspector",
+  howpublished={\url{https://software.intel.com/en-us/intel-inspector-xe}},
+  year=2016,
+  note="Accessed May 6, 2016"
+}
+
 @Misc{ISO2011,
   author="ISO",
    title="{ISO/IEC} 9899:2011 - {I}nformation {T}echnology - {P}rogramming {L}anguages -
@@ -773,7 +873,7 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
   author="Trevor Jim and Greg Morrisett and Dan Grossman and Michael Hicks and James Cheney and and Yanling Wang",
   title="Cyclone: A Safe Dialect of {C}",
   year=2002,
-  booktitle="{USENIX} Annual Technical Conference",
+  booktitle="USENIX Annual Technical Conference",
   publisher="{USENIX}",
   pages="275--288",
   address="Monterey, CA",
@@ -798,6 +898,15 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
   year=2009,
   publisher="Knowledge Software Ltd"
 }
+
+@inproceedings{Kendall1983,
+ author = {Kendall, Samuel C.},
+ title = {Bcc: runtime checking for {C} programs},
+ booktitle = {USENIX Toronto 1983 Summer Conference},
+ year = {1983},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA}
+} 
 
 @inproceedings{Kil2006,
  author = {Kil, Chongkyung and Jun, Jinsuk and Bookholt, Christopher and Xu, Jun and Ning, Peng},
@@ -955,7 +1064,7 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
 
 @inproceedings{McCamant2006,
  author = {McCamant, Stephen and Morrisett, Greg},
- title = {Evaluating SFI for a CISC Architecture},
+ title = {Evaluating {SFI} for a {CISC} Architecture},
  booktitle = {Proceedings of the 15th Conference on USENIX Security Symposium - Volume 15},
  series = {USENIX-SS'06},
  year = {2006},
@@ -999,9 +1108,9 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
   note="Accessed December 23, 2015"
 }
 
-@inproceedings{Nagarakatte:2009:SHC:1542476.1542504,
+@inproceedings{Nagarakatte2009,
  author = {Nagarakatte, Santosh and Zhao, Jianzhou and Martin, Milo M.K. and Zdancewic, Steve},
- title = {SoftBound: Highly Compatible and Complete Spatial Memory Safety for C},
+ title = {SoftBound: Highly Compatible and Complete Spatial Memory Safety for {C}},
  booktitle = {Proceedings of the 30th ACM SIGPLAN Conference on Programming Language Design and Implementation},
  series = {PLDI '09},
  year = {2009},
@@ -1047,6 +1156,25 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
   address="New York, New York",
 }
 
+@inproceedings{Nethercote2007,
+ author = {Nethercote, Nicholas and Seward, Julian},
+ title = {Valgrind: A Framework for Heavyweight Dynamic Binary Instrumentation},
+ booktitle = {Proceedings of the 28th ACM SIGPLAN Conference on Programming Language Design and Implementation},
+ series = {PLDI '07},
+ year = {2007},
+ isbn = {978-1-59593-633-2},
+ location = {San Diego, California, USA},
+ pages = {89--100},
+ numpages = {12},
+ url = {http://doi.acm.org/10.1145/1250734.1250746},
+ doi = {10.1145/1250734.1250746},
+ acmid = {1250746},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {Memcheck, Valgrind, dynamic binary analysis, dynamic binary instrumentation, shadow values},
+} 
+
+
 @inproceedings{NiuPLDI2014,
  author = {Niu, Ben and Tan, Gang},
  title = {Modular Control-flow Integrity},
@@ -1067,7 +1195,7 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
 
 @inproceedings{NiuCCS2014,
  author = {Niu, Ben and Tan, Gang},
- title = {RockJIT: Securing Just-In-Time Compilation Using Modular Control-Flow Integrity},
+ title = {{RockJIT}: Securing Just-In-Time Compilation Using Modular Control-Flow Integrity},
  booktitle = {Proceedings of the 2014 ACM SIGSAC Conference on Computer and Communications Security},
  series = {CCS '14},
  year = {2014},
@@ -1112,7 +1240,7 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
 
 @Misc{ODonell2015,
   author="Carlos {O'Donell} and Martin Sebor",
-  title="Updated Field Experience with Annex K -- Bounds Checking Interfaces",
+  title="Updated Field Experience with {Annex K} -- Bounds Checking Interfaces",
   year=2015,
   publisher="ISO/IEC, Geneva: ISO/IEC JTC1/SC22/WG14 - C",
   howpublished={\url{http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1969.htm}},
@@ -1140,6 +1268,23 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
  acmid = {2310681},
  publisher = {IEEE Computer Society},
  address = {Washington, DC, USA},
+} 
+
+@article{Patil1997,
+ author = {Patil, Harish and Fischer, Charles},
+ title = {Low-cost, Concurrent Checking of Pointer and Array Accesses in {C} Programs},
+ journal = {Software: Practice \& Experience},
+ issue_date = {Jan. 1997},
+ volume = {27},
+ number = {1},
+ month = jan,
+ year = {1997},
+ issn = {0038-0644},
+ pages = {87--110},
+ numpages = {24},
+ acmid = {250910},
+ publisher = {John Wiley \& Sons, Inc.},
+ address = {New York, NY, USA},
 } 
 
 
@@ -1219,7 +1364,7 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
  address = {New York, NY, USA},
 } 
 
-@article{Ramalingam:1994:UA:186025.186041,
+@article{Ramalingam1994,
  author = {Ramalingam, G.},
  title = {The Undecidability of Aliasing},
  journal = {ACM Trans. Program. Lang. Syst.},
@@ -1248,7 +1393,18 @@ inproceedings{Hund:2009:RRB:1855768.1855792,
   address="Englewood Cliffs, New Jersey, USA"
 }
 
-inproceedings{Saeed:2016,
+@inproceedings{Ruwase2004,
+    author = {Olatunji Ruwase and Monica S. Lam},
+    title = {A Practical Dynamic Buffer Overflow Detector},
+    booktitle = {Proceedings of the 11th Annual Network and Distributed System Security Symposium},
+    year = {2004},
+    pages = {159--169},
+    publisher="Internet Society",
+    address = {Reston, VA, USA},
+    note={\url{http://www.internetsociety.org/doc/practical-dynamic-buffer-overflow-detector}}
+}
+
+@Inproceedings{Saeed:2016,
  author = {Saeed, Ahmed and Ahmadinia, Ali and Just, Mike},
  title = {Tag-Protector: An Effective and Dynamic Detection of Out-of-bound Memory Accesses},
  booktitle = {Proceedings of the Third Workshop on Cryptography and Security in Computing Systems},
@@ -1319,9 +1475,9 @@ inproceedings{Saeed:2016,
  keywords = {address space layout randomization, code diversity, information leakage, memory disclosure, side-channel attacks},
 }
 
-inproceedings{Serebryany:2012:AFA:2342821.2342849,
+@inproceedings{Serebryany2012,
  author = {Serebryany, Konstantin and Bruening, Derek and Potapenko, Alexander and Vyukov, Dmitry},
- title = {AddressSanitizer: A Fast Address Sanity Checker},
+ title = {{AddressSanitizer}: A Fast Address Sanity Checker},
  booktitle = {Proceedings of the 2012 USENIX Conference on Annual Technical Conference},
  series = {USENIX ATC'12},
  year = {2012},
@@ -1387,6 +1543,26 @@ inproceedings{Serebryany:2012:AFA:2342821.2342849,
  address = {Washington, DC, USA},
 }
 
+@article{Steffen1992,
+ author = {Steffen, Joseph L.},
+ title = {Adding Run-time Checking to the {Portable C Compiler}},
+ journal = {Softw. Pract. Exper.},
+ issue_date = {April 1992},
+ volume = {22},
+ number = {4},
+ month = apr,
+ year = {1992},
+ issn = {0038-0644},
+ pages = {305--316},
+ numpages = {12},
+ url = {http://dx.doi.org/10.1002/spe.4380220403},
+ doi = {10.1002/spe.4380220403},
+ acmid = {138718},
+ publisher = {John Wiley \& Sons, Inc.},
+ address = {New York, NY, USA},
+ keywords = {PCC, error checking, range checking},
+} 
+
 @inproceedings{Strackx:2009:BMS:1519144.1519145,
  author = {Strackx, Raoul and Younan, Yves and Philippaerts, Pieter and Piessens, Frank and Lachmund, Sven and Walter, Thomas},
  title = {Breaking the Memory Secrecy Assumption},
@@ -1424,7 +1600,7 @@ inproceedings{Serebryany:2012:AFA:2342821.2342849,
 @inproceedings{Tice2014,
  author = {Caroline Tice and Toeder and Peter Collingbourne and Stephen Checkoway
           and \'{U}lfar Erlingsson and Luis Lozano and Rob Pike},
- title = {Enforcing Forward-Edge Control-flow Integrity in {GCC} \& LLVM},
+ title = {Enforcing Forward-Edge Control-flow Integrity in {GCC} \& {LLVM}},
  booktitle = {Proceedings of the 23rd {USENIX} Security Symposium},
  month = aug,
  year = {2014},
@@ -1452,9 +1628,17 @@ inproceedings{Serebryany:2012:AFA:2342821.2342849,
  keywords = {return-into-libc, return-oriented programming, turingcomplete},
 } 
 
+@Misc{Unicom2016,
+  author="Unicom Systems, Inc.",
+  title="PurifyPlus",
+  howpublished={\url{http://unicomsi.com/products/purifyplus/}},
+  year=2016,
+  note="Accessed May 6, 2016"
+}
+
 @inproceedings{vanderVeen2015,
  author = {van der Veen, Victor and Andriesse, Dennis and G\"{o}kta\c{s}, Enes and Gras, Ben and Sambuc, Lionel and Slowinska, Asia and Bos, Herbert and Giuffrida, Cristiano},
- title = {Practical Context-Sensitive CFI},
+ title = {Practical Context-Sensitive {CFI}},
  booktitle = {Proceedings of the 22Nd ACM SIGSAC Conference on Computer and Communications Security},
  series = {CCS '15},
  year = {2015},
@@ -1469,6 +1653,14 @@ inproceedings{Serebryany:2012:AFA:2342821.2342849,
  address = {New York, NY, USA},
  keywords = {context-sensitive CFI, control-flow integrity},
 } 
+
+@Misc{Valgrind2016,
+  author="Valgrind",
+  title="Valgrind",
+  howpublished={\url{http://valgrind.org/}},
+  year=2016,
+  note="Accessed May 6, 2016"
+}
 
 @inproceedings{Wahbe1993,
  author = {Robert Wahbe and Steven Lucco and Thoma E. Anderson and Susan L. Graham},
@@ -1565,6 +1757,24 @@ inproceedings{Serebryany:2012:AFA:2342821.2342849,
  keywords = {Security, World Wide Web},
 }
 
+@inproceedings{Younan2010,
+ author = {Younan, Yves and Philippaerts, Pieter and Cavallaro, Lorenzo and Sekar, R. and Piessens, Frank and Joosen, Wouter},
+ title = {PAriCheck: An Efficient Pointer Arithmetic Checker for C Programs},
+ booktitle = {Proceedings of the 5th ACM Symposium on Information, Computer and Communications Security},
+ series = {ASIACCS '10},
+ year = {2010},
+ isbn = {978-1-60558-936-7},
+ location = {Beijing, China},
+ pages = {145--156},
+ numpages = {12},
+ url = {http://doi.acm.org/10.1145/1755688.1755707},
+ doi = {10.1145/1755688.1755707},
+ acmid = {1755707},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {bounds checking, buffer overflows},
+} 
+
 @inproceedings{Zeng2011,
  author = {Zeng, Bin and Tan, Gang and Morrisett, Greg},
  title = {Combining Control-flow Integrity and Static Analysis for Efficient and Validated Data Sandboxing},
@@ -1616,9 +1826,9 @@ inproceedings{Serebryany:2012:AFA:2342821.2342849,
 }
 
 @inproceedings{ZhangSEC2013,
- author = {ZhangSEC2013, Mingwei and Sekar, R.},
- title = {Control Flow Integrity for COTS Binaries},
- booktitle = {Proceedings of the 22Nd USENIX Conference on Security},
+ author = {Zhang, Mingwei and Sekar, R.},
+ title = {Control Flow Integrity for {COTS} Binaries},
+ booktitle = {Proceedings of the 22nd {USENIX} Conference on Security},
  series = {SEC'13},
  year = {2013},
  isbn = {978-1-931971-03-4},
@@ -1633,7 +1843,7 @@ inproceedings{Serebryany:2012:AFA:2342821.2342849,
 
 @inproceedings{Zhang2015,
  author = {Zhang, Mingwei and Sekar, R.},
- title = {Control Flow and Code Integrity for COTS Binaries: An Effective Defense Against Real-World ROP Attacks},
+ title = {Control Flow and Code Integrity for {COTS} Binaries: An Effective Defense Against Real-World ROP Attacks},
  booktitle = {Proceedings of the 31st Annual Computer Security Applications Conference},
  series = {ACSAC 2015},
  year = {2015},
