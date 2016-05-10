@@ -38,8 +38,8 @@ The first approach is to change the representation of pointers to carry
 bounds with them.  The second approach uses a side-data structure to
 hold bounds information.   There are several different kinds of side-data
 structures used.  One kind tracks blocks of memory that are valid to
-use.  The block are typically powers of 2 and can range from bytes 
-up to 32-byte.  This is used to track ``red zones'' around objects that
+use.  The blocks are typically powers of 2 and can range in size
+from a byte to up to 32 bytes. This is used to track ``red zones'' around objects that
 are invalid to access.  These are useful for detecting buffer overruns caused
 by loops, but may not detect other out-of-bounds access.  Another kind tracks the
 start and end locations of objects and can be used to provide object-level bounds checking.   A third approach uses a shadow memory to track bounds information for individual pointers, splitting the bounds information from the pointer.
@@ -81,7 +81,7 @@ adds a capability in addition to bounds information.  The capability is used to
 prevent accesses to de-allocated memory.  The runtime system tracks capabilities that
 are valid (memory that has not been deallocated).  
 
-Fail-Safe C is a memory-safe compiler for ANSI C cite{Oiwa2009}.  It
+Fail-Safe C is a memory-safe compiler for ANSI C \cite{Oiwa2009}.  It
 supports all operations in ANSI C,including cast operations.
 It represents pointers as pairs, where each pair consist of the base address
 of an object and an integer offset from the base address. 
