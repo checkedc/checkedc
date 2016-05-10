@@ -28,18 +28,48 @@ modification and data disclosure attacks.
 The C specification leaves the semantics of out-of-bounds pointer
 arithmetic undefined, except for the case of a pointer to one element
 past the last element of an array.  It also leaves the semantics of out-of-bounds
-pointer access undefined.  This means that it is possible to implement
+pointer access undefined.  This makes it possible to implement
 runtime-only bounds checking that is consistent with the semantics of
-C and that do not require source code changes.
-Many such systems have been implemented.  They work for testing
-purposes, but they have issues that prevent them from being used for production systems.
-The issues include backward-compatibility problems, performance problems such as
-increases in execution time and memory footprint, and constraints on memory 
-management and memory layout.
+C and that dooes not require source code changes.  Many such systems have been implemented.  
 
+There are two general approaches used 
+for runtime-only bounds checking.
+The first approach is to change the representation of pointers to carry
+bounds with them.  The second approach uses a side-data structure to
+hold bounds information.   There are several different kinds of side-data
+structures used.  One kind tracks blocks of memory that are valid to
+use.  The block are typically powers of 2 and can range from bytes 
+up to 32-byte.  This is used to track ``red zones'' around objects that
+are invalid to access.  These are useful for detecting buffer overruns caused
+by loops, but may not detect other out-of-bounds access.  Another kind tracks the
+start and end locations of objects and can be used to provide object-level bounds checking.   A third approach uses a shadow memory to track bounds information for individual pointers, splitting the bounds information from the pointer.
+
+These approaches work well for testing purposes, but they have issues that
+prevent them from being used for production systems.  There are issues
+with performance, backwards-compatibility, and constraints on memory
+management and layout.  Most fundamentally, all of these approaches add
+runtime data to programs, which in turn increases memory accesses, processing 
+times, and memory footprint.  They have to pay for generality regardless of
+whether it is needed or not. In contrast, Checked C allows re-use of existing data.
+It incurs no data overhead for constant-sized arrays or pointers on which no pointer arithmetic is done.   Approaches that change
+pointer representations have difficulty interoperating with existing
+systems because that changes the layout of data that must be passed
+across boundaries.  Approaches that track data on the side generally
+requiring hooking memory allocators.  Furthermore, a number of them
+constrain memory layout and object sizes to speed up the lookup of
+the side data.
+
+These approaches also take control of checking away from the programmer.
+Runtime-only checking {\em always} checks, unless the check can be proven 
+redundant by compiler optimization.   With Checked C, programmers have
+a range of options   The default behavior is to always check. For performance-critical
+code, programmers can rely on static checking that proves the checks
+are unnecessary or omit checks entirely.
+
+We first describe approaches that change the representation of pointers.
 The bcc source-to-source translator \cite{Kendall1983} and the rtcc
 compiler \cite{Steffen1992} were used to find bounds errors and
-other errors during debugging.  Each changed the representations of pointers to use 
+other errors during debugging.  Each changed the representations of pointers to be 
 3 words: the pointer itself and an upper and lower bound.   
 Steffen \cite{Steffen1992} reports that the rtcc compiler generated code
 that was 3 times larger and ran about 10 times slower than the original code, 
@@ -49,20 +79,34 @@ standard library  functions and added at returns from standard library functions
 Austin {\it et al.} \cite{Austin1994} describe a pointer representation that
 adds a capability in addition to bounds information.  The capability is used to
 prevent accesses to de-allocated memory.  The runtime system tracks capabilities that
-are valid (memory that has not been deallocated).  Patil and Fischer \cite{Patil1997}
-implement bounds checking using a second process that follows the execution 
-of the original process.  They separate the bounds and lifetime information
-from the original pointer and use shadow heaps and shadow stacks in the
-second process to track it.
+are valid (memory that has not been deallocated).  
 
-The Purify tool \cite{Hastings1992, Unicom2016} detects some bounds checking problems
+Fail-Safe C is a memory-safe compiler for ANSI C cite{Oiwa2009}.  It
+supports all operations in ANSI C,including cast operations.
+It represents pointers as pairs, where each pair consist of the base address
+of an object and an integer offset from the base address. 
+It changes the representation of integers to be pairs as well so that pointers can 
+be cast to integers and back.  It also changes the representation of memory blocks in
+C to dynamically track their types.  This
+supports the C notion that memory locations are dynamically typed; the type
+of the value in a memory location depends on the type of the last value stored there.
+It use conservative garbage collection to ensure the safety of memory
+deallocations.   With the data layout changes, programmers no longer 
+directly control memory representations.  This makes Fail-Safe C unsuitable for low-level  systems programming.
+It is suitable for applications programs, provided the wrappers for system
+calls are provided.  Bytemark benchmarks are 2 to 4 times slower.  OpenSSL RSA
+speed tests are 2 to 4 times slower, while AES speed tests are 5 times slower.
+
+We next describe approaches that use side-data structures.    We first
+describe approaches that track what memory is valid to access.
+Purify \cite{Hastings1992, Unicom2016} detects some bounds checking problems
 as well as uses of uninitialized memory and memory leaks.  It is meant for
 use during development and debugging.  Purify uses a table that keeps track
 of the state of each byte in memory, using 2-bits to represent the state of
 memory.  It inserts a small ``red zone'' before and after each dynamically
 allocated object and between statically-allocated objects.   It also
-inserts red zones between stack frames.  All memory accesses are instrumented to 
-check or update the state for a byte. 
+inserts red zones between stack frames.  All memory accesses are instrumented 
+to  check or update the state for a byte. 
 The instrumentation is inserted by rewriting binary code before linking.
 Purify detects out-of-bounds memory reads and writes involving red-zone
 memory.   It does not detect out-of-bounds
@@ -96,21 +140,21 @@ increases by 73\% when checking reads and writes and 26\%
 when only checking writes. For SPEC CPU2006, average memory usage is 
 3.37 times larger.
 
-Light-weight Bounds Checking \cite{} is an optimized implementation of bound
-checking similar to Purify.   It relies on inserting ``red zones''.
-It is implemented in a compiler and can guard stack objects.  It uses a bitmap to track
+Light-weight Bounds Checking \cite{Hasabnis2012} is an optimized implementation of bound
+checking that uses ``red zones''.
+it focuses solely on bounds checking.  It uses a bitmap to track
 which bytes in memory correspond to allocated objects and which do not.
 It uses a two-level table to avoid allocating a table equal to 1/8 of the
 address space.  It optimizes memory reads by filling red zones with special
 values.  If a memory read returns a special value, then a check is done to
-ensure that the address was not a red zone address.  For SPECINt 200, average 
+ensure that the address was not a red zone address.  It is implemented in a compiler and can guard stack objects.  For SPECINT 2000, average 
 program execution time increases by 23\%. For SPECINT 2000, its memory 
 overhead ranges between 0.2\% and 44\% with an average of 8.5\%.
 
-Jones and Kelly \cite{Jones1997} handle the problem of where to place bounds
-information by storing the bounds for objects in a side data structure (a
-splay tree).   This avoids changing the representation of pointers or
-tracking pointer information at the per-memory location level.  They insert 
+Next, we describe approaches that use side-data structures to track
+object bounds.   
+Jones and Kelly \cite{Jones1997} use a splay tree to track the bounds for
+objects in a side data structure.  They insert 
 checks for pointer arithmetic to make sure that pointers stay within valid bounds for
 objects.  If a pointer goes out of bounds, it is converted to a value that cannot
 be dereferenced and that is not allowed to go back in bounds. 
@@ -158,7 +202,7 @@ objects into separate pools.  The pool information is used to partition
 the splay tree and  to avoid having to create entries for single-element arrays 
 or scalar objects in the splay tree.
 
-Baggy Bounds Checking \cite{Akritidi2008} provides a faster implementation
+Baggy Bounds Checking \cite{Akritidis2008} provides a faster implementation
 of the side data structure in Jones and Kelly.  The implementation 
 calculates the bounds for any pointer in constant-time.   To acheive this,
 the implementation constrains object sizes to be powers of 2.  It also reserves 
@@ -176,6 +220,21 @@ original pointer and the pointer computed by pointer arithmetic have the
 same label. For SPEC CPU2000, it increases average execution time 49\% and
 average  memory usage by 9.5\%.
 
+Low Fat Pointers \cite{Duck2016} encode bounds information into 64-bit pointers by
+dividing memory into \var{m} regions of 4 GBytes each and storing
+the region information in the upper 32-bits of the pointer.  Each
+region contains objects of some size $k$ that are aligned to $k$.
+A table maps regions to their sizes.  They measure the performance of 
+SPEC 2006 programs and find that checking all pointer reads and writes
+increases average program execution time by 56\% and checking only writes 
+increases average execution time by 13\%.
+
+Finally, we describe shadow memory approaches.
+Patil and Fischer \cite{Patil1997}
+implement bounds checking using a second process that follows the execution 
+of the original process.  They separate the bounds and lifetime information
+from the original pointer and use shadow heaps and shadow stacks in the
+second process to track it.  
 SoftBound \cite{Nagarakatte2009} tracks bounds information
 for each  memory location that contains a pointer by using a side table.  
 As an example, given a pointer variable,
@@ -189,29 +248,6 @@ copy of memory, SoftBound increases average program execution time for
 a set of benchmarks by 67\%.   SoftBound can check only writes, in which
 case average program execution time increases by 22\%.   SoftBound increases 
 average memory footprint by 64\%, although it can increase it by up to 200\%.
-
-Low Fat Pointers \cite{Duck2016} encode bounds information into 64-bit pointers by
-dividing memory into \var{m} regions of 4 GBytes each and storing
-the region information in the upper 32-bits of the pointer.  Each
-region contains objects of some size $k$ that are aligned to $k$.
-A table maps regions to their sizes.  They measure the performance of 
-SPEC 2006 programs and find that checking all pointer reads and writes
-increases average program execution time by 56\% and checking only writes 
-increases average execution time by 13\%.
-
-Checked C has several potential performance advantages over runtime-only approaches.
-First, it allows existing program data to be used to specify bounds.
-This avoids the need for side tables or fat-pointer representations.
-Second, some pointers (\keyword{ptr} types) never need to be checked
-at runtime.
-Third, for pointers that do need array bounds checking, Checked C
-gives programmers control of the checking. 
-Runtime-only checking {\em always} checks, unless the check can be proven 
-redundant by compiler optimization.   With Checked C, programmers have
-a range of options   The default behavior is to always check. For performance-critical
-code, programmers can rely on static checking that proves the checks
-are unnecessary or omit checks entirely.
-
 
 \section{Type-safe dialects of C}
 
