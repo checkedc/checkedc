@@ -524,8 +524,57 @@ separately-compiled dynamically-loaded libraries \cite{NiuPLDI2014} or just-in-t
 compiled code \cite{NiuCCS2014}.  Tice {\it et al.} \cite{Tice2014} discuss the difficulties of implementing CFI for programs that use dynamically-loaded libraries. 
 Hand-written assembly code also causes problems for constructing a precise CFG.
 
-\section{Type-safe dialects of C}
+\section{Static analysis}
 
+Static analysis tools are used widely to identify defects in C and C++ programs.
+The tools take the source code for a program (or, less frequently, binary
+code) and attempt to find possible bugs.  They do so by analyzing the source
+code for the program.  Available commercial static analysis tools include CodeSonar, Coverity Static Analysis,  Klocwork, Polyspace Static Analysis, Microsoft Visual Studio Code Analysis for C/C++ \cite{Bessey2010,Bush2000,Emanuelsson2008}.    
+These tools find many different kinds of bugs, including out-of-bounds array accesses.
+
+Static analysis tools use several different approaches to identify bugs,
+including dataflow analysis \cite{Aho2007}, simulating program execution \cite{Bush2000},  abstract interpretation, and model checking
+\cite{Larus2004}. At a high level, they build a  model of the program and 
+prove properties about the model.  This is a large area of study and describing 
+it is well beyond the scope of this related work section.  Here we focus only on 
+Checked C relates to static analysis.
+
+Static analysis tools are imprecise.   They may report that a program
+may have a defect, when it does not have that defect.  The imprecision
+is inherent in static analysis.  Deciding whether a program has a specific defect is
+undecidable in general.  When a static analysis tool reports that a program has a 
+defect  and it does not, that is called false positive.
+
+False positives are a significant problem for static analysis tools. Programmers need
+to spend time investigating them and consider it a waste of time when they discover
+that a ``bug'' is a not actually a bug.   Future runs of the tool still report
+the potential defect, so programmers need to suppress or ignore the defect.
+More problematically, programmers cannot distinguish easily between false positives
+and true positives, so they  ignore or suppress genuine bugs \cite{Bessey2010}.
+
+Commercial static analysis tools typically make unsound assumptions about programs.
+For example, they may inspect only a limited number of paths through
+a function \cite{Bush2000}.  They may also assume that signed integer arithmetic
+expressions in C do not overflow.  This is because it would be very difficult to
+prove in general that C arithmetic stays within bounds.   
+
+In short, static analysis tools may miss errors and report errors that do not exist
+or errors that are ignored by programmers.  They do not provide a solid foundation for
+establishing that all pointer accesses are bounds checked.
+
+Checked C occupies a different design point than commercial static analysis tools.
+First, it does not miss bounds errors for checked pointer types. 
+It does static checking of bounds information in a sound fashion for sequential
+C programs.  It inserts runtime check at all uses of checked pointer unless
+checks are proven to be unecessary.  Second, it avoids problems with false positives
+by deferring bounds checks to runtime.  It minimizes the information that
+must be checked statically by limiting it to bounds information.
+Third, for cases where bounds checking failures are unacceptable, it allows
+programmers to opt-in to completely static checking.
+
+\section{Programming languages}
+
+Several projects have proposed new type-safe dialects of C.
 CCured \cite{Necula2005} uses whole-program static analysis to identify 
 different uses of pointers in C programs. It identifies pointers that are used to
 read or write values only (safe pointers), pointers that are used in pointer
@@ -535,9 +584,7 @@ word representation for sequence pointers and wild pointers. It also
 changes the representation of data pointed to by wild pointers. This
 changes data layouts and causes interoperation problems. The CCured
 results clear show that many pointers are never used with pointer
-arithmetic. It suggests that new types of pointers should be introduced
-into C for pointers that have different safety requirements. This would
-be an easy and low-risk way to improve the safety of C programs.
+arithmetic. 
 
 Deputy \cite{Condit2007,Feng2006} uses dependent types to avoid runtime layout changes
 in pointers involved in pointer arithmetic. The dependent types allow the bounds of
@@ -550,62 +597,7 @@ program type check. The runtime checks enforce that pointer values stay
 in bounds. The checks apply to pointer arithmetic and pointer
 dereferencing.
 
-Havoc \cite{Condit2009} goes beyond Deputy and allows types to be combined with program
-verification. It allows a programmer to specify program invariants that
-imply type safety and can verify these invariants statically. It can
-handle unsafe code such as using a pointer to a field to access a prior
-field in a data structure.
-
-There are some high-level conclusions that we can draw from these
-systems. First, it is not feasible in practice to require widespread
-data layout changes, as CCured did. Second, this means that use of
-program invariants and/or runtime system support will be required to
-establish that pointer uses are in bounds. Third, it can be arbitrarily
-hard to show the type safety statically of low-level systems
-code. The code may be type-safe at runtime. A programmer may intuitively know
-that it is type-safe and be able to argue informally for correctness.
-However, writing down the invariants may be hard and may require deep
-knowledge of program verification techniques. It may also lead to
-invariants that are longer and more complicated than the original code.
-It may be better for a programmer to just rewrite the code to be type
-safe.
-
-Extensions for checked pointer operations will require a trade-off between
-dynamic techniques for checking pointer bounds (which are easy to reason
-about and understand, but require data layout changes) and static
-techniques (which may not be easy to reason about and understand, but do
-not require data layout changes).
-
-We can draw the following chart of principles versus techniques:
-
-\begin{longtable}[c]{@{}lll@{}}
-\toprule
-& Dynamic techniques & Static techniques\tabularnewline
-\midrule
-\endhead
-Minimal & \texttt{Yes} & \texttt{No}\tabularnewline
-Succinct and clear & \texttt{Yes} & \texttt{Sometimes}\tabularnewline
-Incremental & \texttt{No} & \texttt{Yes}\tabularnewline
-\bottomrule
-\end{longtable}
-
-One concern about the work is that the more applied work, such as
-CCured, Deputy, and SAL, has not been adopted by programmers
-enthusiastically. SAL is widely used within Microsoft because it is a
-mandated part of the software development process, not because
-programmers are enthusiastic about it. It has not been adopted widely
-outside of Microsoft. It is unclear why these approaches have not been
-adopted. There are many plausible possible reasons, including inertia,
-lack of a product-quality toolchain, lack of perceived benefit relative
-to the effort, and perhaps being difficult to use. It is important to
-aim for something that programmers like. When we are facing design
-choices, we recommend using user studies of programmers to evaluate the
-choices, instead of relying on hunches or opinions.
-
-\subsection{Using dependent types to enforce checking of pointer bounds}
-
-Deputy adds dependent types to C to specify and track pointer bounds. A
-dependent type is a type that may depend on a value at runtime.
+A dependent type is a type that may depend on a value at runtime.
 Dependent types are built using type constructors that are applied to
 types and values. The type constructors capture specific properties of
 runtime values. For example, Deputy introduces a type constructor
@@ -616,7 +608,7 @@ applied to a program variable or an expression, so the type can depend
 on a runtime value. For example, \verb|Array n int| describes the type
 of integer arrays with n elements.
 
-The following example illustrates the use of dependent types in Deputy.
+The following example illustrates the use of dependent types.
 It is adapted from Figure 3 of the Deputy OSDI paper , which in turn was
 adapted from the Deputy version of the Linux e1000 network card driver.
 
@@ -634,15 +626,8 @@ type check \texttt{tx\_ring-\textgreater{}buffer\_info[i]}, the type
 checker must show at compile time that \texttt{i >= 0} and
 \texttt{i <= tx\_ring->count}. In general, taking
 an arbitrary program and establishing equality between runtime values at
-compile time is undecidable, which means that type checking would be
-undecidable. To make type checking decidable, Deputy examines statements
-whose type checking rules require establishing facts at compile-time
-that involve runtime values. Deputy systematically inserts run time
-checks that establish the relationships are true before the statements.
-If a relationship between runtime values is not true, the checks cause
-the program to fail at run time. Of course, these runtime checks can be
-eliminated by later optimization. In this specific case, the compiler
-injects a runtime check \verb|assert(0 <= i && i < tx_ring->info_count);| into the program. 
+compile time is undecidable.  To make checking decidable, there
+must be run time checks that establish that the values are equal.
 In the example, the runtime checks are italicized assert statements.
 
 \begin{alltt}
@@ -673,97 +658,6 @@ e1000_clean_tx_irq(
 \}
 \end{alltt}
 
-\subsection{Problems with making {C} function bodies dependently-typed}
-\label{section:dependent-typing-issues}
-
-C function bodies need to be rewritten to use dependent types and to be
-properly typed according to dependent typing rules. Local pointer
-variables must be modified to be dependently-typed. As explained
-earlier, this means that runtime checks must be added to the code.
-Dependently-typing local pointer variables also requires the addition of
-computations to track array bounds and local variables to hold the
-results of those computations.
-
-Deputy proposes the use of an inference and rewriting step for C
-function bodies automatically during compilation to make C function
-bodies dependently-typed. Deputy takes a C program, does inference, and
-rewrites the programs so that local variables are properly
-dependently-typed. Deputy is able to do this automatically given
-programs where method parameters, data structures, and global variables
-are annotated with dependent types. Deputy introduces local variables
-and computations to track missing dependent information. It also
-introduces runtime assertions that check that pointers remain within
-range. It is an impressive technical feat that this can be done
-automatically.
-
-The rewriting step, however, breaks the principle of preserving the
-efficiency and control of C. It introduces computations into the program
-that may have significant cost and that are not under programmer
-control. For C, it is highly desirable that programmers control the
-computations that are added to programs to enforce bounds checking. The
-rewriting step also potentially violates the principle of clarity
-because understanding program failures may require understanding these
-computations.
-
-The following code example from Figure 1 of the Deputy ESOP paper shows
-this. Here is the original code:
-\begin{verbatim}
-int sum (int * buf, int * end) {
-    int sum = 0;
-    while (buf < end) {
-        sum += * buf;
-        buf = buf + 1;
-    }
-    return sum;
-}
-\end{verbatim}
-
-Here is the Deputy-generated code, assuming that the function parameters
-are annotated with dependent types. The new code inserted by Deputy has
-been italicized:
-
-\begin{alltt}
-int sum (int * count(end - buf) buf, int * end) \{
-    int sum = 0;
-    while (buf < end) \{
-        \textit{assert(0 < end - buf);}
-        sum += * buf;
-        int tmplen = (end - buf) - 1;
-        \textit{assert(0 <= 1 <= end - buf);}
-        int * count(tmplen) tmp = buf + 1;
-        \textit{assert(0 <= end - tmp <= tmplen);  // how to explain this failure??}
-        buf = tmp;
-    \}
-    return sum;
-\}
-\end{alltt}
-
-The program now has computations of \texttt{end - buf} and \texttt{end
-- tmp} that track the bounds of the array \texttt{buf}. A C programmer
-would not expect instructions for these computations to be injected into
-the program. This makes the program less efficient and these
-instructions are also not introduced under programmer control. In
-addition it might be difficult for a programmer to understand a bounds
-failure in this program at runtime when the failure involves a
-synthesized expression such as \verb|end - tmp <= tmplen| that did not
-exist in the original source code.
-
-This suggests that the automatic inference and rewriting during
-compilation that Deputy does is not appropriate for C. We will not do
-this for Checked C.
-
-\subsection{Problems with dependently-typed {C}}
-
-We have ruled out using an automatic inference and rewriting step during
-compilation. If we want to use dependent types to enforce bounds
-checking in C, this means that programmers will have to write code
-directly in a variant of C that is dependently-typed. It would be
-possible to use a Deputy-like to automatically rewrite existing C
-programs into this dependently-typed C, provided that dependent-type
-annotations have been provided for parameters, global variables, and
-data structures. Code could be converted and then programmers could
-continue developing their software in a dependently-typed C.
-
 There are several problems with using a dependently-typed variant of C
 directly for programming. First, dependent types are a big change to the
 C type system and C type checking. Dependent types are a rather abstract
@@ -783,106 +677,22 @@ dependent-typing rules. To address this, Deputy introduced a programming
 operator that may seem odd to a C programmer: a new parallel assignment
 operator.
 
-Consider a structure with a pointer field whose size depends on another
-field:
-\begin{verbatim}
-struct S {
-   int * count(len) arr;
-   int len;
-}
-\end{verbatim}
-
-If there is a local variable of type S, neither field of the variable
-can be updated independently of the other field:
-
-\begin{verbatim}
-S y;
-int * count(5) tmp = malloc(sizeof(int) 5);
-y.arr = tmp;
-y.len = 5;
-\end{verbatim}
-
-The assignment to y.arr will fail to type check because y.len is
-out-of-date. Reversing the order of assignments does not help. The
-solution in Deputy was to introduce a parallel assignment operator. This
-is just a specific instance of the problem of initializing a data
-structure that satisfies an invariant. In an imperative language,
-programmers expect to be able to initialize a data structure using
-several assignments and only assert an invariant at the end of
-initialization.
-
-Finally, using dependent types makes programs too verbose: explicit
+Finally, using dependent types makes programs verbose: explicit
 checks to enforce safety have to be inserted all over the code. To our
 knowledge, there are no widely-used languages with array-bounds checking
 that requires this level of verbosity. In Java and C\#, the checks are
 implicitly done. This was the case in older languages such as FORTRAN
 and Pascal, as well.
 
-The conclusion is that dependently-typed C at the source level is
-not a practical approach. Given that dependent typing is just one way of 
-enforcing program invariants,
-it suggests that we should explore other ways to enforce program
-invariants necessary for bounds safety for C.
+Havoc \cite{Condit2009} goes beyond Deputy and allows types to be combined with program
+verification. It allows a programmer to specify program invariants that
+imply type safety and can verify these invariants statically. It can
+handle unsafe code such as using a pointer to a field to access a prior
+field in a data structure.    Havoc shows that it can be very difficult
+to show the type safety statically of  low-level systems code. 
+The code may be type-safe at runtime and a programmer may intuitively know that it is type-safe.  However, writing down the invariants may be hard and may require deep
+knowledge of program verification techniques. For this reason,
+Checked C adopts an opt-in model for bounds checking, where code
+can be incrementally modified to use bounds checking.
 
-\subsection{Tracking pointer bounds dynamically}
-
-A requirement that local variable array bounds be tracked by program
-invariants could lead to many invariants. The Deputy authors observe
-that the Deputy inference algorithm for local variables produces a
-result similar to fat pointers: ``Deputy introduces a fat representation
-for locals, whereas for data structures, function parameters, and global
-parameters, the programmer must specify how to compute the metadata from
-data already existing in the program.'' The bounds for a pointer are
-tracked explicitly using other local variables. This suggests that fat
-pointers could be used as an alternative to program invariants for local
-variables, in cases where using program invariants makes code too
-verbose and there is not a constraint on data layout.
-
-Suppose there is a \spanptr\ type constructor where
-\spanptr\ is a struct that has a pointer field and lower and
-upper bounds on the valid range of memory associated with a pointer.
-\spanptr\ values can be used where pointer values can be
-used, with safety checks added for various operations. Consider the
-original example in Section~\ref{section:dependent-typing-issues}. 
-Here is the code for the method using
-\spanptr.
-
-\begin{verbatim}
-int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
-    span<int> buf = new span(tmpbuf, tmpbuf, end);
-    int sum = 0;
-    while (buf < end) {
-        sum += *buf;   // checks that buf is in  bounds before dereferencing it        
-        buf = buf + 1; // new struct with updated pointer, same bounds
-    }
-    return sum;
-}
-\end{verbatim}
-
-\subsection{Summary of lessons}
-
-It is clear from the CCured results that many C pointers are never used
-with pointer arithmetic. This suggests strongly that new types of
-pointers should be introduced into C for pointers that have different
-safety requirements. This would be an easy and low-risk improvement to
-the safety of C programs.
-
-For pointers where pointer arithmetic is allowed, a combination of
-dynamic and static techniques will be needed to ensure bounds-safe pointer
-operations. Dynamic techniques that change pointer representations allow
-succinct and clear code, at the expense of changing data layout and
-causing problems with interoperation and likely efficiency. Static
-annotations allow programmers to express bounds information for existing
-data structures and parameters and support interoperation. The use of
-static annotations for local variables is not required: automatic
-inference and insertion of computations to maintain bounds information
-and check bounds can be done instead. However, the inference and
-automatic insertion of computation compromises the control, efficiency,
-and clarity desired by C programmers. This suggests that this approach
-should not be used. A more suitable approach for C seems to be to embed
-the bounds information for local variables directly into programs.
-
-Static annotations that introduce the complex notion of dependent types
-into C programs are problematic. We should explore other formulations of
-programs invariants may fit better with C.
 
