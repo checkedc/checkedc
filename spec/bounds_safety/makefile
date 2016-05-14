@@ -9,6 +9,7 @@ FILES = abstract.tex \
         lessons.tex \
         open-issues.tex \
         pointers-to-pointers.tex \
+        related-work.tex \
         simple-invariants.tex \
         span-compilation.tex \
         structure-bounds.tex \
