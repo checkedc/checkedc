@@ -3,47 +3,85 @@
 \chapter{Related work}
 \label{chapter:lessons}
 
-The C family of programming language is widely used.  The lack of
+The C family of programming languages is used widely for system
+programming.  The lack of
 bounds checking in C and related languages such as C++ has had
 serious practical consequences for computer security and software 
-reliability.   There has been extensive work in industry and the
-research community addressing the lack of bounds checking in C.
-In this section, we discuss related work,  
-highlighting key lines of work and describing how Checked C relates to them. 
+reliability.   There has been extensive research and work in industry 
+addressing the lack of bounds checking in C. 
+In this section, we discuss related work and explain how
+Checked C relates to it. 
 
-We begin by discussing the most closely related work to Checked C:
-type-safe dialects of C.  These address the underlying problem of
-a lack of bounds checking as well as other aspects of type safety.
-These dialects are not used in practice, so we look closely at why
-this is true for lessons for the Checked C effort.
+The work falls into 5 categories:
+\begin{itemize}
+\item Runtime-based approaches.  The compiler or
+runtime system or both are changed to detect out-of-bounds access at runtime.
+No source code changes are made.  These approaches rely on general mechanisms for
+detecting bounds errors, such as side-data structures or altering
+the representation of pointers.  These approaches
+are attractive from an ``ease-of-adoption'' perspective, but they have
+performance  and compatibility issues that make them unsuitable for use 
+for production code.  They are widely used for testing purposes.
+Checked C requires program source code changes,
+but avoids the overhead of general-purpose mechanisms, making it suitable
+for production code.
+\item Security mitigations.  These attempt to detect memory
+corruption after it has happened or prevent an attacker from taking over a system
+after a memory corruption.
+Some of them are used widely in practice, such as data-execution prevention,
+stack canaries, and address-space layout randomization.  They do not protect
+against data modification or data disclosure attacks in general and are 
+vulnerable to being circumvented using those attacks.  Checked C addresses
+the underlying issue of data modification or data disclosure via
+out-of-bounds memory accesses, closing off an entire line of attack.
+Checked C programs remain vulnerable to memory management errors and
+incorrect pointer type casts, so Checked C complements these mitigations; 
+it does not replace them.
+\item Static analysis.  These analyze programs without running
+them and identify potential out-of-bounds memory accesses.  They are
+attractive from an ``ease-of-adoption'' perspective.  However, they
+may both miss errors and report errors that do not exist (false positives).
+False positives are a problem because programmers end up ignoring or missing
+genuine errors.  Checked C provides a way to write code in C that is guaranteed
+to be bounds-checked.
+\item Program verification: this is a general-purpose approach
+that can be used to guarantee that programs only access in-bounds memory. 
+Widespead adoption of verification technology for C has its own hurdles,
+requiring that programmers integrate the use of a theorem prover into
+development. In contrast, Checked C can be integrated directly into compilers.
+Most programming languages rely on runtime checking of bounds.  Checked C
+matches this level of functionality and does not require changes at uses of
+pointers and arrays.  
+In contrast, programmers using verification technology who merely want runtime
+checking of bounds would have to manually put checks in at uses of pointers and arrays.
+\item Programming languages: several projects have proposed type-safe 
+dialects of C.  The Cyclone and CCured projects propose changes that
+break compatibility, either by changing the meaning of existing programs
+or changing data layout.  The Deputy project proposes using dependent types
+to declare the bounds of pointers without changing data layout.  Checked C
+builds on the Deputy approach, but decouples bounds information from types.
+This avoids the complexity of modifying the C type system to support
+dependent types.  Dependent types would likely be difficult for programmers to understand.
+\end{itemize}
 
-We then discuss security mitigations that address
-security problems that arise from a lack of bounds checking.
-These mitigations are widely used in practice.   Checked C
-complements these mitigations by providing protection against data
-modification and data disclosure attacks.
-
-\section{Runtime-only approaches}
+\section{Runtime-based approaches}
 
 The C specification leaves the semantics of out-of-bounds pointer
-arithmetic undefined, except for the case of a pointer to one element
-past the last element of an array.  It also leaves the semantics of out-of-bounds
-pointer access undefined.  This makes it possible to implement
-runtime-only bounds checking that is consistent with the semantics of
-C and that dooes not require source code changes.   It is also possible
+arithmetic and out-of-bounds pointer access undefined.  This makes it possible 
+to implement runtime-based approaches that are consistent with the semantics of
+C and that do not require source code changes.   It is also possible
 use probabilistic or fault-tolerant approaches to tolerate out-of-bounds
 memory accesses.
 
-There are two general approaches used 
-for runtime-only bounds checking.
-The first approach is to change the representation of pointers to carry
-bounds with them.  The second approach uses a side-data structure to
+There are two general approaches used in runtime-based approaches.
+The first is to change the representation of pointers to carry
+bounds with them.  The second uses a side-data structure to
 hold bounds information.   There are several different kinds of side-data
-structures used.  One kind tracks blocks of memory that are valid to
+structures that can be used.  One kind tracks blocks of memory that are valid to
 use.  The blocks are typically powers of 2 and can range in size
 from a byte to up to 32 bytes. This is used to track ``red zones'' around objects that
 are invalid to access.  These are useful for detecting buffer overruns caused
-by loops, but may not detect other out-of-bounds access.  Another kind tracks the
+by loops, but may not detect other out-of-bounds accesses.  Another kind tracks the
 start and end locations of objects and can be used to provide object-level bounds checking.   A third approach uses a shadow memory to track bounds information for individual pointers, splitting the bounds information from the pointer.
 
 These approaches work well for testing purposes, but they have issues that
@@ -51,20 +89,20 @@ prevent them from being used for production systems.  There are issues
 with performance, backwards-compatibility, and constraints on memory
 management and layout.  Most fundamentally, all of these approaches add
 runtime data to programs, which in turn increases memory accesses, processing 
-times, and memory footprint.  They have to pay for generality regardless of
+time, and memory footprint.  They have to pay for generality regardless of
 whether it is needed or not. In contrast, Checked C allows re-use of existing data.
 It incurs no data overhead for constant-sized arrays or pointers on which no pointer arithmetic is done.   Approaches that change
 pointer representations have difficulty interoperating with existing
 systems because that changes the layout of data that must be passed
 across boundaries.  Approaches that track data on the side generally
-requiring hooking memory allocators.  Furthermore, a number of them
-constrain memory layout and object sizes to speed up the lookup of
+require modifying memory allocators.  A number of these
+approaches constrain memory layout and object sizes to speed up the lookup of
 the side data.
 
 These approaches also take control of checking away from the programmer.
-Runtime-only checking {\em always} checks, unless the check can be proven 
+Runtime-based checking {\em always} checks, unless the check can be proven 
 redundant by compiler optimization.   With Checked C, programmers have
-a range of options   The default behavior is to always check. For performance-critical
+a range of options   The default behavior is to check. For performance-critical
 code, programmers can rely on static checking that proves the checks
 are unnecessary or omit checks entirely.
 
@@ -76,7 +114,7 @@ other errors during debugging.  Each changed the representations of pointers to 
 Steffen \cite{Steffen1992} reports that the rtcc compiler generated code
 that was 3 times larger and ran about 10 times slower than the original code, 
 likely reflecting the simple nature of  the optimizer for the PCC compiler.  Data
-layout compatability is an issue.  Bounds information has to be removed at calls to
+layout compatibility is an issue.  Bounds information has to be removed at calls to
 standard library  functions and added at returns from standard library functions.
 Austin {\it et al.} \cite{Austin1994} describe a pointer representation that
 adds a capability in addition to bounds information.  The capability prevents
@@ -84,8 +122,8 @@ accesses to de-allocated objects.  The runtime system tracks capabilities that
 are valid (memory that has not been deallocated).  
 
 Fail-Safe C is a memory-safe compiler for ANSI C \cite{Oiwa2009}.  It
-supports all operations in ANSI C,including cast operations.
-It represents pointers as pairs, where each pair consist of the base address
+supports all operations in ANSI C, including cast operations.
+It represents pointers as pairs, where each pair consists of the base address
 of an object and an integer offset from the base address. 
 It changes the representation of integers to be pairs as well so that pointers can 
 be cast to integers and back.  It also changes the representation of memory blocks in
@@ -94,14 +132,14 @@ supports the C notion that memory locations are dynamically typed; the type
 of the value in a memory location depends on the type of the last value stored there.
 It use conservative garbage collection to ensure the safety of memory
 deallocations.   With the data layout changes, programmers no longer 
-directly control memory representations.  This makes Fail-Safe C unsuitable for low-level  systems programming.
-It is suitable for applications programs, provided the wrappers for system
+directly control memory representations.  This makes Fail-Safe C unsuitable for low-level  system programming.
+It is suitable for applications programs, provided that wrappers for system
 calls are provided.  Bytemark benchmarks are 2 to 4 times slower.  OpenSSL RSA
 speed tests are 2 to 4 times slower, while AES speed tests are 5 times slower.
 
 Grimmer {\it et al.} \cite{Grimmer2015} propose executing C programs within a Java
-Virtual Machine.   They represent pointers as pairs consting of the base address of an
-object and the element count offset from the base address.  They do not allow
+Virtual Machine.   They represent pointers as pairs consisting of the base address 
+of an object and the element count offset from the base address.  They do not allow
 pointers produced by casting integers to pointers to be used to access
 memory.
 
@@ -166,9 +204,9 @@ objects in a side data structure.  They insert
 checks for pointer arithmetic to make sure that pointers stay within valid bounds for
 objects.  If a pointer goes out of bounds, it is converted to a value that cannot
 be dereferenced and that is not allowed to go back in bounds. 
-They change checked code to call modified versions of \keyword{malloc}
-and \keyword{free}  as well as system-level allocator.  The compiler modifies
-code generation for stack allocate objects to call funtions that update the 
+They change checked code to call modified versions of \keyword{malloc},
+\keyword{free}, and system-level allocators.  The compiler modifies
+code generation for stack allocated objects to call functions that update the 
 bounds information. In a production system, all custom allocators would have to be
 modified to update the object bounds information.  
 
@@ -181,10 +219,9 @@ times by a factor of 7.7 to 12 \cite{Nagarakatte2009} for  a set of
 23 benchmarks that includes programs from SPEC and the Olden benchmark.
 There are other drawbacks to this approach.
 Because bounds are tracked at the granularity of objects, it
-cannot track bounds for arrays nested within structures.  It also cannot
-track bounds for objects produced by custom allocators.  There are also
+cannot track bounds for arrays nested within structures. There are also
 issues with handling pointers to one element past the last element of
-an array.  The approach inserts padding between objects to have a gap.  In some
+an array.  Their approach inserts padding between objects to have a gap.  In some
 cases, such as parameters passed on the stack, this is not possible.
 
 The C Range Error Detector (CRED) \cite{Ruwase2004} extends the Jones and Kelly
@@ -196,10 +233,11 @@ check bounds at memory dereferences.
 
 CRED uses a proxy object that
 tracks the original pointer value and the object with which it is associated
-os that the pointer can go in back bounds.  When a pointer goes out of
+so that the pointer can go back in bounds.  When a pointer goes out of
 bounds, it is replaced with the proxy object address.  This requires
 additional checks on comparisons and pointer arithmetic computations.
-They find similar increase in program running times.  They suggest
+They find similar increases in program running times to those of Jones and
+Kelly.  They suggest
 limiting bounds checking to only character pointers. With this restriction,
 the increase in execution time  ranges from 1\% to 130\% on a set of real-world
 programs.  They do not report on changes in memory usage.
@@ -212,12 +250,12 @@ or scalar objects in the splay tree.
 
 Baggy Bounds Checking \cite{Akritidis2008} provides a faster implementation
 of the side data structure in Jones and Kelly.  The implementation 
-calculates the bounds for any pointer in constant-time.   To acheive this,
+calculates the bounds for any pointer in constant-time.   To achieve this,
 the implementation constrains object sizes to be powers of 2.  It also reserves 
-1/var{n} of the virtual address space for a table, where \var{n} is the smallest 
+1/\var{n} of the virtual address space for a table, where \var{n} is the smallest 
 allowed object size (16 in the implementation).  The table stores the size of the
 enclosing object (if any) for each \var{n}-byte chunk of memory.   Baggy Bounds 
-Checking increases the average execution time for SPECINT 2000 benchmarks by 60\%. 
+Checking increases average execution time for SPECINT 2000 benchmarks by 60\%. 
 It increases average memory usage by 20\%.
 
 Paricheck \cite{Younan2010} stores a 2-byte label for each 32-byte chunk of memory.
@@ -248,7 +286,7 @@ for each  memory location that contains a pointer by using a side table.
 As an example, given a pointer variable,
 the system tracks the bounds based on the address of the pointer variable.
 This allows the system to track sub-bounds within objects.  The calling
-convention for values passed in registers is modified to have an additional
+convention for values passed in registers is modified to have additional
 parameters for bounds.  SoftBound uses either a hash table or
 a shadow copy of memory to track the bounds information.   The shadow
 copy of memory generally has better performance.  With the shadow
@@ -271,7 +309,7 @@ An alternate approach to dealing with out-of-bounds memory accesses is to
 use probabilistic techniques that allow programs to tolerate out-of-bounds
 memory writes.   DieHard \cite{Berger2006} randomizes the location and spacing of 
 objects on the heap.  It allocates a heap at least as twice as large as needed for
-program data.    This causes out-of-bounds writes to modify memory in gaps
+program data.    This causes some out-of-bounds writes to modify memory in gaps
 between objects.  This provides good protection against modest buffer overflows. 
 To protect against out-of-bounds memory reads, programs
 can be replicated, run in parallel, and text outputs compared.  The replicated
@@ -280,10 +318,10 @@ unclear how it would work for programs that are interactive.
 
 \section{Security mitigations}
 Security mitigations are another approach to dealing with programs that corrupt memory
-through out-of-bounds writes or the expose data through out-of-bounds
-read.   These employ runtime-only mechanisms to detect that memory has been
-corrupted or to prevent something bad from happening after memory has been
-corrupted.
+through out-of-bounds writes or that expose data through out-of-bounds
+reads.   These employ runtime-only mechanisms to detect that memory has been
+corrupted or to prevent an attacker from taking control of a system after
+memory has been corrupted.
 
 Attackers can use incorrect programs to attack the security of 
 computer systems in the following ways:
@@ -295,7 +333,7 @@ using existing machine code.
 For example, in return-oriented programming, an attacker finds segments of useful
 machine code that end in return instructions. The attacker manipulates the state of 
 the program call  stack to execute a series of small pieces of machine code and execute
-a arbitrary program.  There are other ways to manpulate program state to
+a arbitrary program.  There are other ways to manipulate program state to
 change control-flow, such as changing the target of an indirect function call.  
 This can be done by 
 ovewriting a function pointer or the virtual table of an object.
@@ -305,9 +343,9 @@ and obtain data, including data that is meant to be confidential.
 \end{enumerate}
 
 Security mitigations that have been developed and deployed in
-practice include Data Execution Prevention (DEP), 
-Address-Space Layout Randomization (ASLR), stack canaries,
-shadow stacks, and Control-Flow Integrity (CFI).   DEP, ASLR, and CFI focus
+practice include data execution prevention (DEP), 
+address-space layout randomization (ASLR), stack canaries,
+shadow stacks, and control-flow integrity (CFI).   DEP, ASLR, and CFI focus
 on preventing execution of arbitrary code and control-flow modification.  
 Stack protection mechanisms focus on protecting data or return addresses
 on the stack. 
@@ -316,32 +354,32 @@ Checked C provides protection against data modification and
 data disclosure attacks, which the other approaches do not.
 Chen {\it et al.} \cite{Chen2005} show that data modification
 attacks that do not alter control-flow pose a serious long-term threat.
-The Heartbleed attack on OpenSSL illustrates the damage this is
+The Heartbleed attack on OpenSSL illustrates the damage that is
 possible from even data disclosure attacks.
 
-Checked C addresses the fundamental problem, which are incorrect programs
+Checked C addresses the fundamental problem, which is incorrect programs
 with undetected errors. Checked C enhances existing security mitigations by
 providing protection against data modification and data modification attacks.
 ASLR, DEP, CFI, and stack canaries can be 
-can be defeated by determined attackers using data modification and data disclosure
+defeated by determined attackers using data modification and data disclosure
 attacks.  Shadow stacks do not protect stack-allocated buffers or arrays, 
 heap data, and statically-allocated data.
 
 If a C program and its libraries use only checked pointers and checked arrays and 
-the program is free of type 
+the program is free of pointer type 
 cast or memory management errors, Checked C provides a strong
 guarantee about memory reads and writes. Any pointer must have been constructed
 via a  series of operations from a pointer to an object.   Checked C ensures 
 that the constructed ponter only accesses memory within that object.  
 
-Because Checked C addresses only bounds safety, Checked C programs 
-remain vulnerable  to incorrect type casts, memory management errors, 
+Checked C programs 
+remain vulnerable  to incorrect pointer type casts, memory management errors, 
 and race conditions that invalidate bounds information. They are also
 vulnerable to data modification by unchecked code in the same address space.
 
 In the remainder of this section, we review security mitigations that
 have been deployed in practice. We discuss what they protect against
-and they can be defeated by data modification and data disclosure attacks.
+and how they can be defeated by data modification and data disclosure attacks.
 
 Data execution prevention (DEP) relies on hardware and OS-based approaches
 to prevent attacks that inject machine code into a process and then
@@ -353,32 +391,32 @@ may have to request specifically that an area of virtual memory be made
 executable.  
 DEP does not defend against control-flow,  data modification, and data disclosure
 attacks.  Control-flow attacks can be used to execute a system call and disable 
-ndata execution protection.    
+data execution protection.    
 
-Data execution prevention is deployed widely in production.  It has been very
+DEP is deployed widely in production.  It has been very
 successful protecting against ``classic'' buffer overrun attacks that overwrite 
 stack contents with machine code and also overwrite the return address to jump to 
 the machine code.
-For example, hardware support was incorporated into 32 and 64-bit processors
+Hardware support was incorporated into 32 and 64-bit processors
 for the Intel x86 architecture in 2005 and 2003, respectively.  Windows
 and Linux have supported it from that time as well.  For 32-bit programs on
 Windows, programs must opt-in.  That is the default for programs compiled
-with the Microsoft Visual C++ compiler, however.
+with the Microsoft Visual C++ compiler.
 
-Software can emulate ``no execute'' support or provide approximiations of it
+Software can emulate ``no execute'' support or provide approximations of it
 when hardware support is not available. Software fault isolation
 \cite{Castro2009, Erlingsson2006,McCamant2006,Wahbe1993,Yee2009} injects checks
 into machine code, either during compilation or by rewriting binaries.
-It implements address spaces in software for fault isolation. Software components communicate via remote-procedure calls. By implementing address
-spaces in software, this avoids expensive hardware context switches.
-Wahbe {\it et al} \cite{Wahbe1993} describe how execution of data can be
+It implements address spaces for fault isolation in software. Software components communicate via remote-procedure calls. Implementing address
+spaces in software avoids expensive hardware context switches.
+Wahbe {\it et al.} \cite{Wahbe1993} describe how execution of data can be
 prevented by placing code and data in separate areas of memory and checking the
 targets of  indirect jumps.  Code running in a software-fault isolated address
 space, like code running in a hardware-supported address space, is vulnerable to 
-control-flow attacks, data modification,  and data disclosure attacks.
+control-flow, data modification,  and data disclosure attacks.
 
 ASLR \cite{PaX2003,WikipediaASLR} provides protection against 
-control-flow attacks.   All major production operating systems provide
+control-flow attacks.   All major operating systems provide
 some form of ASLR. In ASLR, code
 sections from executable files are loaded in random locations in the
 address space of a process.  In addition, data sections, stacks, and
@@ -387,7 +425,7 @@ space of a process. This makes it harder for an attacker to identify the locatio
 not protect against data modification or data disclosure attacks. For example, data 
 may be located on the stack adjacent to a
 variable that is subject to a buffer overrun; the buffer overrrun can be
-be used reliability to overwrite or read the data.   
+be used reliably to overwrite or read the data.   
 
 ASLR can be compromised by data disclosure attacks.  An attacker can obtain the
 location of a code section by reading data from the stack, for example, and obtaining function return addresses.  The attacker can then craft an attack based on that data. 
@@ -422,7 +460,7 @@ arbitrary code and control-flow attacks.
 They protect against attacks that modify return addresses
 on call stacks by overrunning the bounds of a stack-allocated array.  
 This kind of overrun can happen when using C string functions that do
-not valid parameter lengths, for example.   A
+not validate parameter lengths, for example.   A
 compiler injects code at function entry points and return
 points. Entry point code places a token on the call stack
 next to the return address.  Return point code checks that
@@ -457,10 +495,10 @@ A return address is stored on the regular stack as well and there is a
 check that the return address is unmodified before doing a return.
 This incurs an overhead of about 10\% because of the cost of having two
 stacks and checking return addresses \cite{Dang2015}.   The
-the regular stack can be used as the secure stack and that variables
+regular stack can be used as the secure stack and variables
 that may have out-of-bounds memory accesses or whose addresses are taken
 can be stored on the insecure stack \cite{Bhatkar2005, Kuznetsov2014}.  
-Kuznetsov {\it et al.}.   
+Kuznetsov {\it et al.}   
 \cite{Kuznetsov2014} observe that this improves performance because
 many small stack frames do not even need shadow stack frames.  For
 SPEC CPU 2006 benchmarks, they found that the performance cost 
@@ -490,19 +528,19 @@ brute-force data disclosure attacks on systems with 32-bit addresses.
 For example, on a 32-bit Windows system, the smallest possible
 stack size is 64K and the uppermost 1 GByte of virtual address space
 is not available by default.  If an attacker is able to read a byte 
-in memory at an attacker-selected location and the attack randomly picks
+in memory at an attacker-selected location and the attacker randomly picks
 the location,  an attacker has a 1 in 49,152 
 chance of reading a byte that is on a virtual memory page that contains a 
 shadow stack location.  With reads of nearby locations, an attacker can likely 
 determine if the page containing the byte contains part of a stack.
 
 Control-flow integrity (CFI) also provides some protection
-against return-oriented programming attacks \cite{Abadi2005}.  There
-have been many follow-up papers \cite{Akritidis2008, Li2011, Li2010, Mashtizadeh2015,
-NiuPLDI2014, NiuCCS2014, Niu2015, Sadeghi2015, Tice2014, 
-vanderVeen2015, Wang2015, Wang2010, Zeng2011, ZhangSP2013,Zhang2015, ZhangSEC2013}.
+against return-oriented programming attacks \cite{Abadi2005}.  
 CFI adds runtime checks to machine code to ensure
 that a program follows an approximation of the valid control-flow of the program. 
+There have been many follow-up papers \cite{Akritidis2008, Li2011, Li2010,
+Mashtizadeh2015, NiuPLDI2014, NiuCCS2014, Niu2015, Sadeghi2015, Tice2014, 
+vanderVeen2015, Wang2015, Wang2010, Zeng2011, ZhangSP2013,Zhang2015, ZhangSEC2013}.
 In the description in \cite{Abadi2005}, a compiler computes the target addresses of each 
 indirect  function call and each return instruction.  The
 compiler groups addresses into equivalence classes: addresses are in the same 
@@ -527,7 +565,7 @@ use a data modification attack to still construct a control-flow attack
 The runtime control-flow checks are imprecise because the control-flow graph (CFG)
 is an approximation of the actual control-flow that is possible for
 a program.  The computed CFG must allow at least all legal executions of a
-program. In fact it allows invalid executions of a program too.  The
+program. In fact it allows invalid executions of a program too.  An
 attacker can take advantage of that difference to control execution of the program
 via a data modification attack.
 
@@ -548,7 +586,7 @@ Fine-grained CFI implementations are also vulnerable to the same kind of attack
 Evans {\it et al} \cite{Evans2015} explain how constructing the CFG relies on a
 points-to analysis for pointers.  Sound and complete points-to analysis is 
 undecidable \cite{Ramalingam1994}, so points-to analyses implemented in compilers 
-must approximate the the actual points-to behavior of programs.  This leads to 
+must approximate the actual points-to behavior of programs.  This leads to 
 imprecise CFGs in practice.
 
 It is also difficult to construct a precise CFG in the presence of 
@@ -563,7 +601,7 @@ The tools take the source code for a program (or, less frequently, binary
 code) and attempt to find possible bugs.  They do so by analyzing the source
 code for the program.  There are many available commercial static analysis tools
 available for C and C++, incuding CodeSonar, Coverity Static Analysis, HP Fortify, 
-IBM Security AppScan Klocwork, Microsoft Visual Studio Code Analysis for C/C++, and Polyspace Static Analysis \cite{Bessey2010,Bush2000,Emanuelsson2008}.    
+IBM Security AppScan, Klocwork, Microsoft Visual Studio Code Analysis for C/C++, and Polyspace Static Analysis \cite{Bessey2010,Bush2000,Emanuelsson2008}.    
 These tools find many different kinds of bugs, including out-of-bounds array accesses.
 
 Static analysis tools use several different approaches to identify bugs,
@@ -614,13 +652,13 @@ or errors that are ignored by programmers.  They also function as ``black
 boxes'' not subject to independent verification.
 
 Checked C occupies a different design point than static analysis tools.
-First, it does not miss bounds errors for checked pointer types. 
-It does static checking of bounds information in a sound fashion for sequential
-C programs.  It inserts runtime checks at all uses of checked pointer unless
-checks are proven to be unecessary.  Second, it avoids problems with false positives
+It provides a way to write C code that is guaranteed to to be bounds-checked.
+It does not miss bounds errors for checked pointer types and it does static 
+checking of bounds information in a sound fashion for sequential
+C programs.  Checked C avoids problems with false positives
 by deferring bounds checks to runtime.  It minimizes the information that
 must be checked statically by limiting it to bounds information.
-Third, for cases where bounds checking failures are unacceptable, it allows
+For cases where bounds checking failures are unacceptable, it allows
 programmers to opt-in to completely static checking.  Finally, the checking is
 done using rules that are part of the language definition.
 
@@ -630,9 +668,9 @@ Static analysis tools take programs ``as is'' and try to prove
 facts about them.  Sound static analysis tools that produce no or few false
 positives act as program verifiers, of course.  Program verification 
 adds a specification of program behavior and programmer involvement
-in constructing a proof of that the program satisfies the specification.
+in constructing a proof that the program satisfies the specification.
 Program verification efforts range in practice from simple efforts to
-show that a program is free from runtime faults to costly effort 
+show that a program is free from runtime faults to costly  
 efforts to show full functional correctness.
 
 Checked C aims at a level that does not even exist for most higher-level
@@ -640,44 +678,74 @@ languages, where bounds checking is a built-in part of the language
 implementation.  The goal is to show that information for checking runtime
 faults (that is, bounds information) is correct. Checked C also aims to
 support showing parts of programs are free of bounds failures or null
-check failures (for performance or correctness reasons).
+check failures for performance or correctness reasons.
 
 Extended static checking \cite{Flanagan2002} aims to show that programs are 
 free of runtime errors such as null check failures and array bounds errors
 and free of concurrency errors.  ESC/Java \cite{Flanagan2002}
 uses a modular checking approach
 where parts of the program (methods) are checked individually.  This enables 
-the checking to scale to large code bases or separately compiled code.
-In ESC/Java, a programmer add annotations in first-order logic to  Java programs to specify invariants 
+the checking to scale to large code bases or separately-compiled code.
+In ESC/Java, a programmer adds annotations in first-order logic to  Java programs to specify invariants 
 that assist in showing the correctness of programs.  ESC/Java generates verification
 conditions for functions that imply that statements with runtime checks in the
 functions will not fail. It then invokes a theorem prover to attempt to 
 show that the verification condition is true.  The theorem prover may construct
 a proof, construct a counterexample, or not terminate within a desired time bound.
-ESC/Java is unsound; it ignores integer overflow, for example.  ESC/Java uses 
-a limited language of annotations and is not suitable for showing full correctness.
+ESC/Java is unsound; it ignores integer overflow, for example.
 
 Checked C, like ESC/Java, uses a modular checking approach.  It checks 
 individual functions.  Checked C is intended to be sound for single-threaded 
-programs.  Checked C does not
-provide quantifiers in the language of assertions and uses a propositional
-logic, instead of a first-order logic. Given that variables may only have 
-finite-sized values, it is decidable whether program invariants for Checked C 
-functions are true.  However, it is an NP-complete problem and  Checked C uses
-heuristics to check program invariants.
+programs.   Unlike ESC/Java, Checked C uses a propositional logic, instead
+of a first-order logic.  Checked C does not have quantifiers such as ``forall''
+and ``there exists'' in the language of program invariants.
+This means that some statements about data structures
+cannot be expressed in Checked C.  Because Checked C uses a propositional
+logic, it is decidable whether program invariants for Checked C functions are true.
+The variables used in the propositional logic range over finite-sized integers.
+Even though checking is decidable, it is NP-complete.  Checked C uses a heuristic-based
+approach to check program invariants in reasonable time. Some program invariants that
+are true will not be shown to be true.
+
+Checked C proposes extending C with types and static checking to ensure
+that pointer and array accesses are always in-bounds or checked to be in-bounds. 
+An alternate approach would be to use a general-purpose program verifier.
+A C program would be annotated using program invariants about bounds and a 
+theorem prover could be used to verify that pointer and array accesses are
+always in bounds or checked to be in bounds.  Two program verifiers
+for C are Frama-C \cite{FramaC2016} and EscherC \cite{Escher2016}.   
+
+There are two issues with using this approach.  First, it changes how software
+development is done by adding a theorem prover to the development process.
+This loses the immediacy of having the checking integrated into the compiler.
+Theorem provers are slow and prone to long running times and time outs.
+Second, most languages with bounds checking rely on runtime checking.  It is difficult
+to prove that code always stays in bounds.  The runtime checking would have to be
+inserted by the programmer at every use of a pointer produced via pointer 
+arithmetic, making programs more verbose and requiring sweeping changes.
 
 \section{Programming languages}
+
+A number of programming languages include pointer types and the ability
+to do pointer arithmetic.  This includes languages designed for system
+programming such as D \cite{D2016} and Rust \cite{Rust2016}, as well as languages 
+that can be  used for system programming if garbage collection is acceptable, 
+such as Go \cite{Go2016} and C\# \cite{Csharp2016}.   
+These languages strongly discourage the use of ``raw'' pointer
+types because of the potential for error.  For example, in C\# and Rust, 
+raw pointer types can be used only in \keyword{unsafe} blocks.  Checked C shows
+how these languages might be extended to support checked pointer operations.
 
 The Cyclone, CCured, and Deputy projects have proposed new type-safe dialects 
 of C.   Cyclone \cite{Jim2002} is a dialect of C that restricts C and also extends it.  The goal is to create a type-safe system programming
 language.  Cyclone has language changes that break existing C programs and
-cause them to no longer to compile.  For example, Cyclone does not allow pointer
+cause them to no longer compile.  For example, Cyclone does not allow pointer
 arithmetic on unchecked C types.   In contrast, Checked C supersets C. This
 makes it possible to use Checked C extensions incrementally, while Cyclone
-requires that a program to be converted in it entirely.  Cyclone changes the representation of pointer types that allow arithmetic.  It introduces a new 
+requires that a program to be converted in its entirety.  Cyclone changes the representation of pointer types that allow arithmetic.  It introduces a new 
 pointer type that carries bounds information with it, similar to the \spanptr\
-in Checked C. The causes compatibility problems when interoperating with existing 
-code.   Checked C allows programmers to declare bounds information separately from pointers for \arrayptr\ types.
+type in Checked C. This causes compatibility problems when interoperating with existing 
+code.   Checked C allows programmers to declare bounds information separately from pointers using \arrayptr\ types.
 Cyclone also changes memory management in C.  It extends C with regions
 to allow arena-based memory management.  Checked C is addressing the
 safety problems in C one at a time, starting with bounds checking. 
@@ -692,9 +760,9 @@ changes the representation of data pointed to by wild pointers. This
 changes data layouts and causes interoperation problems.
 
 Deputy \cite{Condit2007,Feng2006} extends C with dependent types to avoid runtime 
-layout changes for pointers involved pointer arithmetic.  Checked C is directly
+layout changes for pointers involved in pointer arithmetic.  Checked C is directly
 inspired by Deputy, although Checked C uses program invariants instead of
-dependent types to track bounds information.   The dependent types in Checked C
+dependent types to track bounds information.   The dependent types in Deputy
 allow the bounds of
 the pointers to be specified as part of the types of the pointers and
 the bounds to depend on runtime values. Deputy requires programmers to
@@ -712,17 +780,17 @@ runtime values. For example, Deputy introduces a type constructor
 \verb|Array| that can be applied to an integer value (the length of the
 array) and an element type. \verb|Array 5 int| describes the type of
 integer arrays with 5 elements. The \verb|Array| type constructor can be
-applied to a program variable or an expression, so the type can depend
+applied to a program expression, so the type can depend
 on a runtime value. For example, \verb|Array n int| describes the type
-of integer arrays with n elements.
+of integer arrays with \var{n} elements.
 
 There are several problems with using dependent types in C.
 First, dependent types are a big change to the
 C type system and C type checking. Dependent types are an abstract
 concept that may be hard for many programmers to understand. 
 Second, even if
-programmers can understand dependent types, type checking now becomes a
-complicated exercise: to type check a dependently-typed statement, the
+programmers can understand dependent types, it makes type checking a
+complicated exercise.  To type check a dependently-typed statement, the
 type checker must prove that certain runtime invariants are true before
 the statement. To illustrate this, consider the type checking rule for
 variable assignment from \cite{Condit2007}. This
@@ -730,19 +798,29 @@ rule requires that the type checker prove that certain invariants must
 be true at runtime before the statement. Type checking becomes entangled
 in general reasoning about program invariants.
 Finally, using dependent types makes programs verbose: explicit
-checks to enforce bounds safety have to be inserted through out the code. There
+checks to enforce bounds safety have to be inserted throughout the code. There
 are no widely-used languages with array-bounds checking
-that requires that level of verbosity. In Java and C\#, the checks are
+that requires this level of verbosity. In Java and C\#, the checks are
 done implicitly. This is the case in older languages such as FORTRAN
 and Pascal, as well.  For these reasons, Checked C uses program invariants
 instead of dependent types.
+
+The C11 Standard supports variable-length arrays optionally.  This is a
+form of dependent type.  However, type checking for variable-length arrays
+in C is weak.  It does not enforce that runtime 
+values for lengths in types are equal. Program behavior is undefined if two variable 
+length array types are supposed to be compatible and their length expressions differ at
+runtime \cite[Section 6.7.6.2]{ISO2011}. In addition, C ignores the variable length 
+for function
+parameters.  The current support for variable-length arrays does not set a precedent 
+for using dependent types to represent bounds information in C.
 
 Havoc \cite{Condit2009} goes beyond Deputy and allows types to be combined with program
 verification. It allows a programmer to specify program invariants that
 imply type safety and can verify these invariants statically. It can
 handle unsafe code such as using a pointer to a field to access a prior
 field in a data structure.    Havoc shows that it can be very difficult
-to show the type safety statically of  low-level systems code. 
+to show the type safety statically of  low-level system code. 
 The code may be type-safe at runtime and a programmer may intuitively know that it is type-safe.  However, writing down the invariants may be hard and may require deep
 knowledge of program verification techniques. For this reason,
 Checked C adopts an opt-in model for bounds checking, where code
@@ -762,7 +840,7 @@ access.  Yarra places objects of critical type in separate areas of memory from
 non-critical types. For calls to unmodified libraries, Yarra uses virtual memory
 protection to prevent the libraries from accessing critical data.
 
-Failure-oblivious computing \cite{Rinard2004} proposes different approach for
+Failure-oblivious computing \cite{Rinard2004} proposes a different approach for
 handling out-of-bounds memory accesses than what is propposed for Checked C.  
 With Checked C,
 the program will be terminated or an error handler will be invoked.  If the
@@ -770,6 +848,4 @@ program terminates, this converts data modification and data disclosure attacks 
 writes and converting out-of-bounds reads to small integer values, cycling
 through a sequence of small integer values.   They implement the runtime
 bounds checking suggested by \cite{Ruwase2004} and show that their approach
-approach improves the availablity of servers with memory 
-corruption errors.
-
+improves the availablity of servers with memory corruption errors.

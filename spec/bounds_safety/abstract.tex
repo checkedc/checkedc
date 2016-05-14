@@ -5,8 +5,8 @@ System programmers need a system programming language that
 detects or prevents common programming errors involving pointers. This
 will improve the reliability and security of system software and
 the productivity of system programmers. This technical report describes
-Checked C, an extended version of C that provides bounds-checking for
-pointers and arrays.
+Checked C, an extended version of C that provides a way to write C code that
+is guaranteed to be bounds-checked.
 }
 \vspace{11pt}
 
@@ -22,7 +22,7 @@ integrity of memory accesses at runtime when static checking cannot.
 Checked C is backwards-compatible: existing C programs work
 ``as is''. Programmers incrementally opt-in to bounds checking, while
 maintaining binary compatibility. Checked C builds on extensions to C
-proposed by the CCured and Deputy projects.
+proposed by the Deputy project.
 }
 
 
