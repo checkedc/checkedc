@@ -154,7 +154,7 @@ extern int Multiply2(ptr<struct Vector> vec1p, ptr<struct Vector> vec2p) {
 // Declaring pointers to functions
 //
 
-// An unchecked pointer to a function that takes two integer paramemters and returns an integer.
+// An unchecked pointer to a function that takes two integer parameters and returns an integer.
 int (*unchecked_ptr_to_func)(int x, int y);
 // A ptr to a function that takes two integer parameters and returns an integer
 ptr<int (int x, int y)> ptrfunc;
@@ -195,7 +195,7 @@ ptr<array_ptr<int>[5]> ptr_to_array_of_array_ptrs;
 // Declare ptr to an array of function pointers
 ptr<int (*[5])(int x, int y)> ptr_to_array_of_unchecked_func_ptrs;
 ptr<ptr<int (int x, int y)>[5]> ptr_to_array_of_checked_func_ptrs;
-// Make paramemter and return types be ptrs too.
+// Make parameter and return types be ptrs too.
 ptr<ptr<ptr<int> (ptr<int> x, ptr<int> y)>[5]> ptr_to_array_of_checked_func_ptrs_with_ptr_parameters;
 
 //
