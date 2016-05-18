@@ -150,6 +150,25 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
     array_ptr<int> t43 = 0;
     ptr<float> t44 = 0;
     array_ptr<float> t45 = 0;
+
+    // Check assignments of pointers with different levels of indirection.
+    ptr<int> *unchecked_ptr_to_ptr= &q;
+    ptr<ptr<int>> ptr_to_ptr = &q;  
+    array_ptr<ptr<int>> array_ptr_to_ptr = &q;
+
+    ptr<int> t50 = unchecked_ptr_to_ptr;  // expected-error {{incompatible type}}
+    ptr<int> t51 = ptr_to_ptr;            // expected-error {{incompatible type}}
+    ptr<int> t52 = array_ptr_to_ptr;      // expected-error {{incompatible type}}
+
+    array_ptr<int> t53 = unchecked_ptr_to_ptr;  // expected-error {{incompatible type}}
+    array_ptr<int> t54 = ptr_to_ptr;            // expected-error {{incompatible type}}
+    array_ptr<int> t56 = array_ptr_to_ptr;      // expected-error {{incompatible type}}
+
+    unchecked_ptr_to_ptr = q;             // expected-error {{incompatible type}}
+    ptr_to_ptr = p;                       // expected-error {{incompatible type}}
+    ptr_to_ptr = q;                       // expected-error {{incompatible type}}
+    array_ptr_to_ptr = p;                 // expected-error {{incompatible type}}
+    array_ptr_to_ptr = q;                 // expected-error {{incompatible type}}
 }
 
 // Test assignments between different kinds of pointers where the
@@ -1447,4 +1466,291 @@ void check_pointer_equality_compare()
                                // array_ptr<float> != ptr<int> not OK.
     result = r_float == r_int; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<float> == array_ptr<int> not OK.
+}
+
+void check_logical_operators()
+{
+    int val[5];
+    int *p = val;
+    ptr<int> q = &val[0];
+    ptr<void> q_void = &val[0];
+    array_ptr<int> r = 0;
+    array_ptr<void> r_void = val;
+    _Bool b;
+
+    b = !p;
+    b = !q;
+    b = !q_void;
+    b = !r;
+    b = !r_void;
+
+    b = p || b;
+    b = q || b;
+    b = q_void || b;
+    b = r || b;
+    b = r_void || b;
+    b = b || p;
+    b = b || q;
+    b = b || q_void;
+    b = b || r;
+    b = b || r_void;
+
+    b = p || q;
+    b = q || p;
+    b = q_void || r_void;
+    b = r || r_void;
+    b = r_void || p;
+    b = r || p;
+    b = r || q;
+    b = r_void || q_void;
+    b = p || r;
+    b = p || r_void;
+
+    b = p && b;
+    b = q && b;
+    b = q_void && b;
+    b = r && b;
+    b = r_void && b;
+    b = b && p;
+    b = b && q;
+    b = b && q_void;
+    b = b && r;
+    b = b && r_void;
+
+    b = p && q;
+    b = q && p;
+    b = q_void && r_void;
+    b = r && r_void;
+    b = r_void && p;
+    b = r && p;
+    b = r && q;
+    b = r_void && q_void;
+    b = p && r;
+    b = p && r_void;
+}
+
+// spot check operators that aren't supposed to be used with pointer types:
+//   *, /, %, <<, >>, |, &, ^, ~, unary -, and unary +
+void check_illegal_operators()
+{
+    int val[5];
+    int *p = val;
+    ptr<int> q = &val[0];
+    array_ptr<int> r = val;
+
+    p * 5;  // expected-error {{invalid operands to binary expression}}
+    5 * p;  // expected-error {{invalid operands to binary expression}}
+    p *= 5; // expected-error {{invalid operands to binary expression}}
+
+    q * 5;  // expected-error {{invalid operands to binary expression}}
+    5 * q;  // expected-error {{invalid operands to binary expression}}
+    q *= 5; // expected-error {{invalid operands to binary expression}}
+
+    r * 5;  // expected-error {{invalid operands to binary expression}}
+    5 * r;  // expected-error {{invalid operands to binary expression}}
+    r *= 5; // expected-error {{invalid operands to binary expression}}
+
+    p * p;  // expected-error {{invalid operands to binary expression}}
+    p *= p; // expected-error {{invalid operands to binary expression}}
+
+    q * q;  // expected-error {{invalid operands to binary expression}}
+    q *= q; // expected-error {{invalid operands to binary expression}}
+
+    r * r;  // expected-error {{invalid operands to binary expression}}
+    r *= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test /
+    //
+
+    p / 5;  // expected-error {{invalid operands to binary expression}}
+    5 / p;  // expected-error {{invalid operands to binary expression}}
+    p /= 5; // expected-error {{invalid operands to binary expression}}
+
+    q / 5;  // expected-error {{invalid operands to binary expression}}
+    5 / q;  // expected-error {{invalid operands to binary expression}}
+    q /= 5; // expected-error {{invalid operands to binary expression}}
+
+    r / 5;  // expected-error {{invalid operands to binary expression}}
+    5 / r;  // expected-error {{invalid operands to binary expression}}
+    r /= 5; // expected-error {{invalid operands to binary expression}}
+
+    p / p;  // expected-error {{invalid operands to binary expression}}
+    p /= p; // expected-error {{invalid operands to binary expression}}
+
+    q / q;  // expected-error {{invalid operands to binary expression}}
+    q /= q; // expected-error {{invalid operands to binary expression}}
+
+    r / r;  // expected-error {{invalid operands to binary expression}}
+    r /= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test %
+    //
+
+    p % 5;  // expected-error {{invalid operands to binary expression}}
+    5 % p;  // expected-error {{invalid operands to binary expression}}
+    p %= 5; // expected-error {{invalid operands to binary expression}}
+
+    q % 5;  // expected-error {{invalid operands to binary expression}}
+    5 % q;  // expected-error {{invalid operands to binary expression}}
+    q %= 5; // expected-error {{invalid operands to binary expression}}
+
+    r % 5;  // expected-error {{invalid operands to binary expression}}
+    5 % r;  // expected-error {{invalid operands to binary expression}}
+    r %= 5; // expected-error {{invalid operands to binary expression}}
+
+    p % p;  // expected-error {{invalid operands to binary expression}}
+    p %= p; // expected-error {{invalid operands to binary expression}}
+
+    q % q;  // expected-error {{invalid operands to binary expression}}
+    q %= q; // expected-error {{invalid operands to binary expression}}
+
+    r % r;  // expected-error {{invalid operands to binary expression}}
+    r %= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test <<
+    //
+
+    p << 5;  // expected-error {{invalid operands to binary expression}}
+    5 << p;  // expected-error {{invalid operands to binary expression}}
+    p <<= 5; // expected-error {{invalid operands to binary expression}}
+
+    q << 5;  // expected-error {{invalid operands to binary expression}}
+    5 << q;  // expected-error {{invalid operands to binary expression}}
+    q <<= 5; // expected-error {{invalid operands to binary expression}}
+
+    r << 5;  // expected-error {{invalid operands to binary expression}}
+    5 << r;  // expected-error {{invalid operands to binary expression}}
+    r <<= 5; // expected-error {{invalid operands to binary expression}}
+
+    p << p;  // expected-error {{invalid operands to binary expression}}
+    p <<= p; // expected-error {{invalid operands to binary expression}}
+
+    q << q;  // expected-error {{invalid operands to binary expression}}
+    q <<= q; // expected-error {{invalid operands to binary expression}}
+
+    r << r;  // expected-error {{invalid operands to binary expression}}
+    r <<= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test >>
+    //
+    p >> 5;  // expected-error {{invalid operands to binary expression}}
+    5 >> p;  // expected-error {{invalid operands to binary expression}}
+    p >>= 5; // expected-error {{invalid operands to binary expression}}
+
+    q >> 5;  // expected-error {{invalid operands to binary expression}}
+    5 >> q;  // expected-error {{invalid operands to binary expression}}
+    q >>= 5; // expected-error {{invalid operands to binary expression}}
+
+    r >> 5;  // expected-error {{invalid operands to binary expression}}
+    5 >> r;  // expected-error {{invalid operands to binary expression}}
+    r >>= 5; // expected-error {{invalid operands to binary expression}}
+
+    p >> p;  // expected-error {{invalid operands to binary expression}}
+    p >>= p; // expected-error {{invalid operands to binary expression}}
+
+    q >> q;  // expected-error {{invalid operands to binary expression}}
+    q >>= q; // expected-error {{invalid operands to binary expression}}
+
+    r >> r;  // expected-error {{invalid operands to binary expression}}
+    r >>= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test |
+    //
+
+    p | 5;  // expected-error {{invalid operands to binary expression}}
+    5 | p;  // expected-error {{invalid operands to binary expression}}
+    p |= 5; // expected-error {{invalid operands to binary expression}}
+
+    q | 5;  // expected-error {{invalid operands to binary expression}}
+    5 | q;  // expected-error {{invalid operands to binary expression}}
+    q |= 5; // expected-error {{invalid operands to binary expression}}
+
+    r | 5;  // expected-error {{invalid operands to binary expression}}
+    5 | r;  // expected-error {{invalid operands to binary expression}}
+    r |= 5; // expected-error {{invalid operands to binary expression}}
+
+    p | p;  // expected-error {{invalid operands to binary expression}}
+    p |= p; // expected-error {{invalid operands to binary expression}}
+
+    q | q;  // expected-error {{invalid operands to binary expression}}
+    q |= q; // expected-error {{invalid operands to binary expression}}
+
+    r | r;  // expected-error {{invalid operands to binary expression}}
+    r |= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test &
+    //
+
+    p & 5;  // expected-error {{invalid operands to binary expression}}
+    5 & p;  // expected-error {{invalid operands to binary expression}}
+    p &= 5; // expected-error {{invalid operands to binary expression}}
+
+    q & 5;  // expected-error {{invalid operands to binary expression}}
+    5 & q;  // expected-error {{invalid operands to binary expression}}
+    q &= 5; // expected-error {{invalid operands to binary expression}}
+
+    r & 5;  // expected-error {{invalid operands to binary expression}}
+    5 & r;  // expected-error {{invalid operands to binary expression}}
+    r &= 5; // expected-error {{invalid operands to binary expression}}
+
+    p & p;  // expected-error {{invalid operands to binary expression}}
+    p &= p; // expected-error {{invalid operands to binary expression}}
+
+    q & q;  // expected-error {{invalid operands to binary expression}}
+    q &= q; // expected-error {{invalid operands to binary expression}}
+
+    r & r;  // expected-error {{invalid operands to binary expression}}
+    r &= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test ^
+    //
+
+    p ^ 5;  // expected-error {{invalid operands to binary expression}}
+    5 ^ p;  // expected-error {{invalid operands to binary expression}}
+    p ^= 5; // expected-error {{invalid operands to binary expression}}
+
+    q ^ 5;  // expected-error {{invalid operands to binary expression}}
+    5 ^ q;  // expected-error {{invalid operands to binary expression}}
+    q ^= 5; // expected-error {{invalid operands to binary expression}}
+
+    r ^ 5;  // expected-error {{invalid operands to binary expression}}
+    5 ^ r;  // expected-error {{invalid operands to binary expression}}
+    r ^= 5; // expected-error {{invalid operands to binary expression}}
+
+    p ^ p;  // expected-error {{invalid operands to binary expression}}
+    p ^= p; // expected-error {{invalid operands to binary expression}}
+
+    q ^ q;  // expected-error {{invalid operands to binary expression}}
+    q ^= q; // expected-error {{invalid operands to binary expression}}
+
+    r ^ r;  // expected-error {{invalid operands to binary expression}}
+    r ^= r; // expected-error {{invalid operands to binary expression}}
+
+    //
+    // Test ~
+    //
+    ~p;  // expected-error {{invalid argument type}}
+    ~q;  // expected-error {{invalid argument type}}
+    ~r;  // expected-error {{invalid argument type}}
+
+    //
+    // Test unary -
+    //
+    -p;  // expected-error {{invalid argument type}}
+    -q;  // expected-error {{invalid argument type}}
+    -r;  // expected-error {{invalid argument type}}
+
+    //
+    // Test unary +
+    //
+    +p;  // expected-error {{invalid argument type}}
+    +q;  // expected-error {{invalid argument type}}
+    +r;  // expected-error {{invalid argument type}}
 }
