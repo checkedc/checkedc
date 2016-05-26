@@ -123,22 +123,54 @@ Suppose there is a use of some variable \var{x}.
                                   {\var{x}\texttt{.upper\_bound}}
                                   {\var{T}}}
 \item
-  If \var{x} has an array type with a known number of elements \var{n}
-  such that the variable is being converted implicitly to a pointer
-  type, the bounds are  \boundsinfer{\var{x}}{\boundscount{\var{n}}}.
-\item
-  Otherwise \var{x} has \boundsnone.
+  If \var{x} has an array type, the rules depend on whether \var{x}  is a parameter
+  variable.  Typechecking in C treats a parameter variable with the type ``array of \var{T}''
+   as though it has the type ``pointer to \var{T}''.   It does not enforce 
+  at function calls that actual arguments have the required dimension size.  This means
+  that the declared outermost bounds cannot be trusted for parameters with unchecked
+  array types.  In contrast, local variables and externally-scoped variables are allocated 
+  space for their declared types.  Declared dimension information for them can be trusted 
+  regardless of whether they have checked or unchecked array types.  Checking of bounds 
+  declarations for checked arrays  enforces that actual arguments meet the required
+  dimension size.
+\begin{itemize}
+\item If 
+\begin{itemize} 
+\item \var{x} is a local variable or an externally scoped variable 
+\item or \var{x} is a parameter variable with a checked array type
+\end{itemize}
+and \var{x} has a known number of elements \var{n}, then  
+  \boundsinfer{\var{x}}{\boundscount{\var{n}}}.
+\item Otherwise, the bounds are the result of the analysis in 
+  Section~\ref{section:extent-definition} for this occurrence of \var{x}.
+\end{itemize}
+\item  Otherwise \var{x} has \boundsnone.
 \end{itemize}
 
+\subsection{Address-of expressions}
 
-\subsection{Addresses of variables}
-
-A variable with type \var{T} whose address is taken is considered to be
-an array of one element:
+There are three kinds of address-of expressions:
+\begin{itemize}
+\item Address of a variable (\texttt{\&\var{x}}): a variable \var{x} with type \var{T} 
+whose address is taken is considered to be an array of one element:
 
 \boundsinfer{\texttt{\&\var{x}}} 
             {\boundsrel{\texttt{\&\var{x}}}{\texttt{\&\var{x} + 1}}{\var{T}}}.
+            
+\item Address of a pointer dereference operation ({\texttt{\&*\var{e}}}):
+The address-of operation and the pointer dereference operation cancel. 
+The bounds are the bounds of the underlying expression. 
+If \boundsinfer{\var{e}}{\var{bounds-exp}}, then
+\boundsinfer{\texttt{\&*\var{e}}}{\var{bounds-exp}}.
 
+\item Address-of a subscripting expression (\texttt{\&\var{e1}[\var{e2}]}):
+This is the same as taking the address of a pointer dereference operation.
+According to the C semantics, \texttt{\var{e1}[\var{e2}]} is equivalent
+to \texttt{*(\var{e1} + \var{e2})}.  If 
+\boundsinfer{\var{e1} + \var{e2}}{\var{bounds-exp}}, then
+\boundsinfer{\texttt{\&\var{e1}[\var{e2}]}}{\var{bounds-exp}}.
+\end{itemize}
+   
 \subsection{Function calls}
 \label{section:inferring-bounds-for-function-calls}
 
