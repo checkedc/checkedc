@@ -1,7 +1,7 @@
 // Unit tests for typechecking new Checked C pointer types.
 //
 // The following line is for the LLVM test harness:
-// RUN: %clang_cc1 -fcheckedc-extension -Wno-unused-value -verify -verify-ignore-unexpected=note %s
+// RUN: %clang_cc1 -fcheckedc-extension -Wno-unused-value -Wno-pointer-bool-conversion -verify -verify-ignore-unexpected=note %s
 //
 
 extern void check_indirection_unsafe_ptr(int *p, const int *const_p, int y) {
@@ -151,24 +151,63 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
     ptr<float> t44 = 0;
     array_ptr<float> t45 = 0;
 
-    // Check assignments of pointers with different levels of indirection.
-    ptr<int> *unchecked_ptr_to_ptr= &q;
-    ptr<ptr<int>> ptr_to_ptr = &q;  
-    array_ptr<ptr<int>> array_ptr_to_ptr = &q;
+    // Check assignments of pointers to pointers.
+    //
+    // There are language extensions where only warnings are issued when pointer
+    // referent types are mismatched or have different levels of indirection. Except
+    // for conversions of unchecked pointer to T to checked pointers to T, these
+    // should be errors for checked pointers.  Otherwise the integrity of bounds checking 
+    // can be compromised accidentally.
 
-    ptr<int> t50 = unchecked_ptr_to_ptr;  // expected-error {{incompatible type}}
-    ptr<int> t51 = ptr_to_ptr;            // expected-error {{incompatible type}}
-    ptr<int> t52 = array_ptr_to_ptr;      // expected-error {{incompatible type}}
+    int **unchecked_ptr_to_unchecked_ptr = &p;
+    ptr<int> *unchecked_ptr_to_checked_ptr= &q;
+    ptr<int *> checked_ptr_to_unchecked_ptr = &p;
+    ptr<ptr<int>> checked_ptr_to_checked_ptr = &q;  
+    array_ptr<ptr<int>> array_ptr_to_checked_ptr = &q;
+    array_ptr<int *> array_ptr_to_unchecked_ptr = &p;
 
-    array_ptr<int> t53 = unchecked_ptr_to_ptr;  // expected-error {{incompatible type}}
-    array_ptr<int> t54 = ptr_to_ptr;            // expected-error {{incompatible type}}
-    array_ptr<int> t56 = array_ptr_to_ptr;      // expected-error {{incompatible type}}
+    // First check pointers with different levels of indirection.
+    ptr<int> t50 = unchecked_ptr_to_checked_ptr;  // expected-error {{incompatible type}}
+    ptr<int> t51 = checked_ptr_to_checked_ptr;    // expected-error {{incompatible type}}
+    ptr<int> t52 = array_ptr_to_checked_ptr;      // expected-error {{incompatible type}}
 
-    unchecked_ptr_to_ptr = q;             // expected-error {{incompatible type}}
-    ptr_to_ptr = p;                       // expected-error {{incompatible type}}
-    ptr_to_ptr = q;                       // expected-error {{incompatible type}}
-    array_ptr_to_ptr = p;                 // expected-error {{incompatible type}}
-    array_ptr_to_ptr = q;                 // expected-error {{incompatible type}}
+    array_ptr<int> t53 = unchecked_ptr_to_checked_ptr;  // expected-error {{incompatible type}}
+    array_ptr<int> t54 = checked_ptr_to_checked_ptr;    // expected-error {{incompatible type}}
+    array_ptr<int> t56 = array_ptr_to_checked_ptr;      // expected-error {{incompatible type}}
+
+    unchecked_ptr_to_checked_ptr = q;      // expected-error {{incompatible type}}
+    checked_ptr_to_checked_ptr = p;        // expected-error {{incompatible type}}
+    checked_ptr_to_checked_ptr = q;        // expected-error {{incompatible type}}
+    array_ptr_to_checked_ptr = p;          // expected-error {{incompatible type}}
+    array_ptr_to_checked_ptr = q;          // expected-error {{incompatible type}}
+
+    // Check assignments of pointers to pointers with the same level of indirection
+    // but different checked qualities.
+
+    unchecked_ptr_to_unchecked_ptr = unchecked_ptr_to_unchecked_ptr; // OK
+    unchecked_ptr_to_unchecked_ptr = unchecked_ptr_to_checked_ptr;   // expected-error {{incompatible type}}
+    unchecked_ptr_to_unchecked_ptr = checked_ptr_to_unchecked_ptr;   // expected-error {{incompatible type}}
+    unchecked_ptr_to_unchecked_ptr = checked_ptr_to_checked_ptr;     // expected-error {{incompatible type}}
+
+    unchecked_ptr_to_checked_ptr = unchecked_ptr_to_unchecked_ptr; // expected-error {{incompatible type}}
+    unchecked_ptr_to_checked_ptr = unchecked_ptr_to_checked_ptr;   // OK
+    unchecked_ptr_to_checked_ptr = checked_ptr_to_unchecked_ptr;   // expected-error {{incompatible type}}
+    unchecked_ptr_to_checked_ptr = checked_ptr_to_checked_ptr;     // expected-error {{incompatible type}}
+
+    checked_ptr_to_checked_ptr = unchecked_ptr_to_unchecked_ptr; // expected-error {{incompatible type}}
+    checked_ptr_to_checked_ptr = unchecked_ptr_to_checked_ptr;   // OK
+    checked_ptr_to_checked_ptr = checked_ptr_to_unchecked_ptr;   // expected-error {{incompatible type}}
+    checked_ptr_to_checked_ptr = checked_ptr_to_checked_ptr;     // OK
+
+    array_ptr_to_checked_ptr = unchecked_ptr_to_unchecked_ptr; // expected-error {{incompatible type}}
+    array_ptr_to_checked_ptr = unchecked_ptr_to_checked_ptr;   // OK
+    array_ptr_to_checked_ptr = checked_ptr_to_unchecked_ptr;   // expected-error {{incompatible type}}
+    array_ptr_to_checked_ptr = checked_ptr_to_checked_ptr;     // expected-error {{incompatible type}}
+
+    array_ptr_to_unchecked_ptr = unchecked_ptr_to_unchecked_ptr; // OK
+    array_ptr_to_unchecked_ptr = unchecked_ptr_to_checked_ptr;   // expected-error {{incompatible type}}
+    array_ptr_to_unchecked_ptr = checked_ptr_to_unchecked_ptr;   // expected-error {{incompatible type}}
+    array_ptr_to_unchecked_ptr = checked_ptr_to_checked_ptr;     // expected-error {{incompatible type}}
 }
 
 // Test assignments between different kinds of pointers where the
