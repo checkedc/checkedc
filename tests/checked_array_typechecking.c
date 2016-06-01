@@ -1239,6 +1239,7 @@ void check_illegal_operators() {
 }
 
 extern void check_vla(int i) {
-  int y[i];
-  int z checked[i]; // expected-error {{checked variable-length array not allowed}}
+  int x[i];
+  int y checked[i];     // expected-error {{checked variable-length array not allowed}}
+  int z checked[10][i]; // expected-error {{checked variable-length array not allowed}}
 }
