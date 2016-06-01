@@ -180,7 +180,7 @@ void parse_operators_with_types() {
     int s16 = _Alignof(array_ptr<int>checked[5]);
 
     // Test parsing of some cast operations that should pass checking
-    // of bounds declaration
+    // of bounds declarations
     int x = 0;
     int arr checked[5];
     ptr<int> px = (ptr<int>) &x;
@@ -189,6 +189,8 @@ void parse_operators_with_types() {
     // ptr to array type
     ptr<int checked[5]> parr = 0;
     parr = &arr;
+    parr = (int (*)checked[5]) &arr;
+    parr = (int (*)checked[5]) ((int (*)checked[]) &arr);
     // ptr to function type
     ptr<int (int x, int y)> pfunc = (ptr<int (int x, int y)>) 0;
     ptr<ptr<int (int x, int y)>checked [5]> ptr_to_pfunc_arr = (ptr<ptr<int (int x, int y)>checked[5]>) 0;

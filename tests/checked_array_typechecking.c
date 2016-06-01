@@ -1074,7 +1074,36 @@ void check_logical_operators() {
   b = p && r;
 }
 
-// spot check operators that aren't supposed to be used with pointer types:
+void check_cast_operator() {
+  int x = 0;
+  int arr checked[5];
+
+  // casts involving array types
+  array_ptr<int> pax = (array_ptr<int>) &x;
+  pax = (int checked[]) &x;   // expected-error {{cast to incomplete type}}
+  pax = (int checked[1]) &x;  // expected-error {{arithmetic or pointer type is required}}
+
+  // casts involving pointers to array types
+
+  // unchecked pointer to array
+  ptr<int checked[5]> parr = 0;
+  parr = (int(*)checked[5]) &arr;
+  parr = (int(*)checked[5]) ((int(*)checked[]) &arr);
+  parr = (int(*)checked[3]) &arr; // expected-error {{incompatible type}}
+
+  // ptr to array
+  parr = (ptr<int checked[5]>) &arr;
+  parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr);
+  parr = (ptr<int checked[3]>) &arr; // expected-error {{incompatible type}}
+
+  // array_ptr to array
+  array_ptr<int checked[5]> aparr = 0;
+  aparr = (array_ptr<int checked[5]>) &arr;
+  aparr = (array_ptr<int checked[5]>) ((array_ptr<int checked[]>) &arr);
+  aparr = (array_ptr<int checked[3]>) &arr; // expected-error {{incompatible type}}
+}
+
+// spot check operators that aren't supposed to be used with array types:
 //   *, /, %, <<, >>, |, &, ^, ~, unary -, and unary +
 void check_illegal_operators() {
   int p[5];
