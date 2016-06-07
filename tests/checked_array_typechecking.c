@@ -61,14 +61,14 @@ typedef int unchecked_arr_type[10];
 typedef int checked_arr_type[10];
 
 // Test assignments between pointers and arrays, excluding const/volatile attributes.
-extern void check_assign(int val, int p[10], int q[], int r checked[10], int s checked[]) {
+extern void check_assign(int val, int p[10], int q[], int r checked[10], int s checked[],
+                         int s2d checked[10][10]) {
   int t[10];
   int t2d[10][10];
   int u checked[10];
   int u2d checked[10][10]; // This is a checked array of checked arrays. checked propagates
                             // to immediately nested array types in array declarators.  It does
                             // not propagate through typedefs
-  unchecked_arr_type u2d_mixed checked[10]; // This is a checked array of unchecked arrays
 
   // Single-dimensional array type conversions to pointer types.
   int *t1 = p;          // T *  = T[constant] OK
@@ -92,24 +92,28 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   array_ptr<int> t10  = s;
   array_ptr<int> t11 = t;
   array_ptr<int> t12 = u;
-  array_ptr<int> t13 = t2d[0];
-  array_ptr<int> t14 = u2d[0];
+  array_ptr<int> t13 = s2d[0];
+  array_ptr<int> t14 = t2d[0];
+  array_ptr<int> t15 = u2d[0];
+
 
   // Multi-dimensional array type conversions to pointer types.
-  int *t15 = t2d[0];
-  int *t16 = u2d[0];     // expected-error {{expression of incompatible type 'int checked[10]'}}
-  int (*t17)[10] = t2d;  
-  int (*t18)[10] = u2d;  // expected-error {{expression of incompatible type 'int checked[10][10]'}}
-                          // assignment of checked array to unchecked array not allowed
-  int(*t19)[10] = u2d_mixed;  // expected-error {{expression of incompatible type}}
-                              // cannot assigned outer checked array to an unchecked pointer type
-  array_ptr<int[10]> t20 = t2d;
-  array_ptr<int[10]> t21 = u2d; // expected-error {{expression of incompatible type 'int checked[10][10]'}}
+  int *t16 = s2d[0];     // expected-error {{expression of incompatible type 'int checked[10]'}}
+  int *t17 = t2d[0];
+  int *t18 = u2d[0];     // expected-error {{expression of incompatible type 'int checked[10]'}}
+  int(*t19)[10] = s2d;   // expected-error {{expression of incompatible type 'array_ptr<int checked[10]>'}}
+                         // assignment of checked array to unchecked array not allowed
+  int (*t20)[10] = t2d;
+  int (*t21)[10] = u2d;  // expected-error {{expression of incompatible type 'int checked[10][10]'}}
+                         // assignment of checked array to unchecked array not allowed
+  array_ptr<int[10]> t22 = s2d; // expected-error {{expression of incompatible type 'array_ptr<int checked[10]>'}}
                                 // assignment of checked to unchecked not allowed
-  array_ptr<int[10]> t22 = u2d_mixed;
-  array_ptr<int checked[10]> t23 = t2d;
-  array_ptr<int checked[10]> t24 = u2d;
-  array_ptr<int checked[10]> t25 = u2d_mixed; 
+  array_ptr<int[10]> t23 = t2d;
+  array_ptr<int[10]> t24 = u2d; // expected-error {{expression of incompatible type 'int checked[10][10]'}}
+                                // assignment of checked to unchecked not allowed
+  array_ptr<int checked[10]> t25 = s2d;
+  array_ptr<int checked[10]> t26 = t2d;
+  array_ptr<int checked[10]> t27 = u2d;
 
   // Assignments to array-typed parameters are allowed.  The outermost array modifier
   // is converted to a pointer type.
@@ -128,6 +132,76 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   global_arr = p; // expected-error {{array type 'int [10]' is not assignable}}
   global_arr = r; // expected-error {{array type 'int [10]' is not assignable}}
   global_checked_arr = r; // expected-error {{array type 'int checked[10]' is not assignable}}
+}
+
+// Test arrays declared explicitly as unchecked.
+extern void check_assign_unchecked(int r2d checked[10]unchecked[10],
+                                   int s2d unchecked[10]unchecked[10]) {
+  int t unchecked[10];
+  // A checked array of unchecked arrays
+  int u2d checked[10]unchecked[10];
+  // A checked array of unchecked arrays, with parenthesized declarator for
+  // the outer dimension.
+  int(u2d_paren checked[10])unchecked[10];
+  // A checked array of unchecked arrays declared via typedef.
+  unchecked_arr_type u2d_typedef checked[10];
+  // A checked array of checked arrays of unchecked arrays
+  int u3d checked[10][10]unchecked[10];
+  int u4d checked[10][10][10]unchecked[10]; 
+
+  int v3d checked[10][10][10];
+  int v4d checked[10][10][10][10];
+
+
+  int *t1 = r2d[0];
+  int *t2 = s2d[0];
+  int *t3 = t;
+
+  array_ptr<int> t4 = r2d[0];
+  array_ptr<int> t5 = s2d[0];
+  array_ptr<int> t6 = t;
+
+  //
+  // Test typechecking of checked arrays of unchecked arrays that have been declared
+  // in different ways.
+
+  // Declared as a parameter type
+  int(*t7)[10] = r2d;  // expected-error {{expression of incompatible type}}
+                       // cannot assign outer checked array to an unchecked pointer type
+  array_ptr<int[10]> t8 = r2d;
+  array_ptr<int checked[10]> t9 = r2d;
+
+  // Declared using unchecked keyword
+  int(*t10)[10] = u2d;  // expected-error {{expression of incompatible type}}
+                        // cannot assign outer checked array to an unchecked pointer type
+  array_ptr<int[10]> t11 = u2d;
+  array_ptr<int checked[10]> t12 = u2d;
+
+  // Declared using unchecked keyword with outer dimension declarator parenthesized
+  int(*t13)[10] = u2d_paren;  // expected-error {{expression of incompatible type}}
+                              // cannot assign outer checked array to an unchecked pointer type
+  array_ptr<int[10]> t14 = u2d_paren;
+  array_ptr<int checked[10]> t15 = u2d_paren;
+
+  // Declared using typedef
+  int(*t16)[10] = u2d_typedef;  // expected-error {{expression of incompatible type}}
+                                // cannot assign outer checked array to an unchecked pointer type
+  array_ptr<int[10]> t17 = u2d_typedef;
+  array_ptr<int checked[10]> t18 = u2d_typedef;
+
+  array_ptr<int checked[10]unchecked[10]> t19 = u3d;
+  array_ptr<int checked[10][10]> t20 = u3d;
+  array_ptr<int checked[10]checked[10]> t21 = u3d;
+  array_ptr<int [10]checked[10]> t22 = v3d;          // expected-error {{expression of incompatible type}}
+                                                     // cannot assign away checked-ness of dimension 2 of v3.
+  array_ptr<int checked[10]unchecked[10]> t23 = v3d; // expected-error {{expression of incompatible type}}
+                                                     // cannot assign away checked-ness of dimension 3 of v3
+
+  array_ptr<int checked[10][10]unchecked[10]> t24 = u4d;
+  array_ptr<int checked[10]checked[10]unchecked[10]> t25 = u4d;
+  array_ptr<int checked[10][10][10]> t26 = u4d;
+  array_ptr<int checked[10][10]unchecked[10]> t27 = v4d; // expected-error {{expression of incompatible type}}
+  array_ptr<int checked[10]unchecked[10][10]> t28 = v4d; // expected-error {{expression of incompatible type}}
 }
 
 // Test assignments between pointers of different kinds with const/volatile
