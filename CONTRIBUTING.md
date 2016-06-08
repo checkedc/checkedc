@@ -1,6 +1,6 @@
 # Contributing to Checked C
 
-We welcome contributions to the Checked C Project!   Contributions can take many forms, depending
+We welcome contributions to the Checked C Project.  Contributions can take many forms depending
 on your level of interest:
 
 * Participating in [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) and discussions
@@ -36,7 +36,7 @@ to the specification, tests, examples, or implement compiler features.
 ## Licensing
 
 You are of course free to discuss the specification using the email lists or the 
-[Checked C issues](https://github.com/Microsoft/CheckedC/issues) system. These are public forms, so do not
+[Checked C issues](https://github.com/Microsoft/checkedc/issues) system. These are public forms, so do not
 share confidential information.
 
 ### Specification
@@ -53,10 +53,10 @@ to use the contribution later.
 
 Contributions of test and sample code to the Checked C repo are subject to the
 [licensing terms](https://github.com/Microsoft/CheckedC/blob/master/LICENSE.txt)
-for the repo (MIT license).  Contributions of code to the Checked LLVM/clang implementation are
+for the repo (MIT license).  Contributions of code to the Checked C LLVM/clang implementation are
 subject to the [CLANG/LLVM licensing terms](https://github.com/Microsoft/checkedc-clang/blob/master/LICENSE.txt).
 
-For minor changes, such as fixing typos, you do need to sign anything. For other changes, we will ask that you 
+For minor changes, such as fixing typos, you do not need to sign anything. For other changes, we will ask that you 
 sign a [contribution license agreement (CLA)](https://cla.microsoft.com/) before accepting your change. 
 If you already have signed a CLA for another Microsoft-related open-source project, it covers the these repos too.
 You do not need to sign another CLA.
