@@ -1381,36 +1381,38 @@ For example, suppose a pointer assignment is introduced into the middle
 of the earlier example. The pointer assignment is highlighted in blue.
 The bounds for \verb|parr| at that point in the program based on the
 current context will be \verb|bounds(parr, parr + size)|.
-\begin{verbatim}
-int arr[DEFAULT_SIZE];
-array_ptr<int> parr : count(len) = arr;
-int plen = DEFAULT_SIZE;
 
-f(int size) {
-    if (size > DEFAULT_SIZE) {
-        bundle {
-            parr = malloc(sizeof(int) * size);
-            *parr = 314;
-            plen = size;
-        }
-    }
-}
-\end{verbatim}
+\begin{tt}
+int arr[DEFAULT\_SIZE];\\
+array\_ptr<int> parr~:~count(len) = arr;\\
+int plen = DEFAULT\_SIZE;\\
+\\
+f(int size) \{\\
+\mbox{~~~~}if (size > DEFAULT\_SIZE) \{\\
+\mbox{~~~~~~~~}bundle \{\\
+\mbox{~~~~~~~~~~~~}parr = malloc(sizeof(int) * size);\\
+\mbox{~~~~~~~~~~~~}\sethlcolor{lightblue}\hl{*parr = 314;}\\
+\mbox{~~~~~~~~~~~~}plen = size;\\
+\mbox{~~~~~~~~}\}\\
+\mbox{~~~~}\}\\
+\}
+\end{tt}
 
 If the code were slightly rearranged, there would be a compile-time
 error. The assignment to \texttt{plen} invalidates the bounds for
 \texttt{parr} in the context at the point of the assignment.
-\begin{verbatim}
-f(int size) {
-    if (size > DEFAULT_SIZE) {
-        bundle {
-            plen = size;
-            *parr = 314; // error: parr has bounds of none.
-            parr = malloc(sizeof(int) * size);
-        }
-    }
-}
-\end{verbatim}
+
+\begin{tt}
+f(int size) \{\\
+\mbox{~~~~}if (size > DEFAULT\_SIZE) \{\\
+\mbox{~~~~~~~~}bundle \{\\
+\mbox{~~~~~~~~~~~~}plen = size;\\
+\mbox{~~~~~~~~~~~~}\sethlcolor{lightblue}\hl{*parr = 314;} // error:~parr has bounds of none.\\
+\mbox{~~~~~~~~~~~~}parr = malloc(sizeof(int) * size);\\
+\mbox{~~~~~~~~}\}\\
+\mbox{~~~~}\}\\
+\}
+\end{tt}
 
 A function call within a bundled block require special treatment: the
 bounds declarations for variables with static storage must be valid

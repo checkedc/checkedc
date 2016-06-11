@@ -21,7 +21,7 @@ all: $(PAPERNAME).pdf
 
 $(PAPERNAME).pdf: $(FILES) makefile
 	pdflatex $(PAPERNAME)
-	bibtex --min-crossrefs=100 $(PAPERNAME)
+	bibtex --min-crossrefs=300 $(PAPERNAME)
 	pdflatex $(PAPERNAME)
 	pdflatex $(PAPERNAME)
 
