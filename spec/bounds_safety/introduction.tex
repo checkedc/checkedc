@@ -63,9 +63,9 @@ Checked C addresses the bounds checking problem for C by:
   Introducing different pointer types to capture the different ways in
   which pointers are used. The unchecked C pointer type \texttt{*} is kept
   and three new {\it checked} pointer types are added: one for pointers that
-  are never used pointer arithmetic and do not need bounds checking (\ptr) , 
+  are never used in pointer arithmetic and do not need bounds checking (\ptr),
   one for \emph{array pointer types} that are involved in pointer
-  arithmetic and need bounds checking (\arrayptr) , and one for pointer types 
+  arithmetic and need bounds checking (\arrayptr), and one for pointer types
   that carry their bounds with them dynamically (\spanptr).
 \item
   For array pointer types (\arrayptr), in keeping with the low-level

@@ -348,7 +348,7 @@ lazily to either \texttt{a} or \texttt{b}, depending on another parameter \textt
 int choose(int val, array_ptr<int> a : count(alen), int alen,
                     array_ptr<int> b : count(blen), int blen) 
 {
-    array_ptr<int> c ;
+    array_ptr<int> c;
     int clen;
     if (val) {
         clen = alen;
@@ -1102,9 +1102,9 @@ identical because there are statements that they cover in common. Their
 extents are highlighted in blue.  Another bounds declaration has
 the form \boundsdecl{c}{\boundscount{clen - 1}}.   Its extent is highlighted
 in yellow. It covers code where \texttt{c} is incremented and the 
-length is decremented.  Those operations violate the bounds declaration 
-\boundsdecl{c}{\boundscount{clen}}, so a different bounds declaration is needed
-for that code.
+length is decremented.  The increment invalidates the bounds declaration
+\boundsdecl{c}{\boundscount{clen}}.  A different bounds declaration for \texttt{c}
+is needed after the increment.
 
 \begin{figure}
 \begin{tt}
