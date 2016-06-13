@@ -53,7 +53,7 @@ pointer type is valid when the following rules hold:
 \item If the destination pointer is a \ptrT\ type, the range of 
 memory that can be accessed beginning at the source pointer is
 large enough to hold a value of type \var{T}.
-\item If the destination pointer is a \arrayptrT\ or \spanptrT\ type, 
+\item If the destination pointer is an \arrayptrT\ or \spanptrT\ type,
 the bounds for the destination pointer are equal to or within the range of
 the memory accessible through the source pointer.
 \end{itemize}
@@ -205,7 +205,7 @@ is needed.
 \begin{itemize}
 \item
   \dynamicboundscastinst{\var{T}}{(\var{e1})}:
-  check that there is room for least one element of \var{T} by doing the
+  check that there is room for least one element of \var{T} by doing
   the check for \dynamicboundscastinst{\var{T}}{(e1, 1)}.
 \item
   \dynamicboundscastinst{\var{T}}{(\var{e1}, \var{e2})}:

@@ -348,17 +348,15 @@ lazily to either \texttt{a} or \texttt{b}, depending on another parameter \textt
 int choose(int val, array_ptr<int> a : count(alen), int alen,
                     array_ptr<int> b : count(blen), int blen) 
 {
-    array_ptr<int> c ;
+    array_ptr<int> c;
     int clen;
     if (val) {
         clen = alen;
-        c = a
-        where c : count(clen);
+        c = a where c : count(clen);
     }
     else {
         clen = blen;
-        c = b
-        where c : count(clen);
+        c = b where c : count(clen);
     }    
     ...
 }
@@ -1061,7 +1059,7 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
     end = end + 1; // bounds(start, end) does not hold after this, so program is
                    // rejected
-    start[5]  = 0;
+    start[5] = 0;
    ...
 }
 \end{verbatim}
@@ -1072,78 +1070,83 @@ A correct function declares new bounds for \texttt{start}:
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
-    end = end + 1
-    where start : bounds(start, end - 1);
+    end = end + 1 where start : bounds(start, end - 1);
     start[5] = 0; // program accepted by compiler; may fail bounds check at 
                   // run time
     ...
 }
 \end{verbatim}
 
-There are two bounds declaration for \texttt{start} here: one at the
-parameter declaration and one at the first assignment in the function.
-The bounds declaration at the parameter and its extent is highlighted in
-light blue. The bounds declaration at the assignment and its extent is
-highlighted in yellow {\em Note: the highlighting was lost in the
-conversion to LaTex.  This is tracked as issue \# 3}:
+The following example shows the extents of the two bounds declarations for
+\texttt{start}.  The bounds declaration at the declaration of \texttt{start} and 
+its extent is highlighted in blue. The bounds declaration at the assignment 
+to \texttt{end} and its extent is highlighted in yellow:
 
-\begin{verbatim}
-/* sum integers stored between start and end, where end is not included */
-int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
-{ 
-    start[5] = 0; // bounds checked using (start, end)
-    end = end + 1
-    where start : bounds(start, end - 1);
-    start[5] = 0; // bounds checked using (start, end - 1)
-}
-\end{verbatim}
+% The package for highlighting does not work well with the alltt
+% package, so just use a teletype font and handle spacing and line
+% breaking manually.
+\begin{tt}
+\sethlcolor{lightblue}
+/* sum integers stored between start and end, where end is not included */ \\  
+int sum(array\_ptr<int> start~:~\hl{bounds(start, end)}, array\_ptr<int> end)\\
+\hl{\{\\
+~~~~start[5] = 0; // bounds checked using (start, end)}\\
+\mbox{~~~~end} = \hl{end + 1} where \sethlcolor{lightyellow}\hl{start : bounds(start, end - 1);\\
+~~~~start[5] = 0; // bounds checked using (start, end - 1)\\
+\mbox{~~~~}...\\
+}\}
+\end{tt}
 
-The following example expands on the \texttt{choose} function earlier. There are
-4 explicit bounds declarations for \texttt{c}. The bounds declarations
-and their extents have been color-coded. Three bounds declarations for c
-have the form \texttt{c : count(clen)}. They must be syntactically
+Figure~\ref{fig:bounds-extent:choose} expands on the \texttt{choose} function earlier. 
+There are 4 explicit bounds declarations for \texttt{c}. The bounds declarations
+and their extents are also color-coded. Three bounds declarations for c
+have the form \boundsdecl{c}{\boundscount{clen}}. They must be syntactically
 identical because there are statements that they cover in common. Their
-extents are highlighted in light blue. There is one case where
-\texttt{c} is being incremented and the length is being decremented.
-This temporarily violates the bounds declaration \texttt{c :
-count(clen)}, so a new bounds declaration is declared while this is the
-case. This extent is highlighted in green.
+extents are highlighted in blue.  Another bounds declaration has
+the form \boundsdecl{c}{\boundscount{clen - 1}}.   Its extent is highlighted
+in yellow. It covers code where \texttt{c} is incremented and the 
+length is decremented.  The increment invalidates the bounds declaration
+\boundsdecl{c}{\boundscount{clen}}.  A different bounds declaration for \texttt{c}
+is needed after the increment.
 
-\begin{verbatim}
-/* use either a or b depending on val */
-int choose(int val, array_ptr<int> a : count(alen), int alen,
-                    array_ptr<int> b : count(blen), int blen) 
-{
-    array_ptr<int> c;
-    int clen;
-    int result = 0;
-
-    if (val) {
-        clen = alen;
-        c = a;
-        where c : count(clen);
-    }
-    else {
-        clen = blen;
-        c = b;
-        where c : count(clen);
-    }
-    if (clen > 1) {
-        result = c[0];
-    }
-
-    if (cond  && clen > 1) {
-        c++
-        where c : count(clen - 1);
-        clen = clen - 1;
-        where c : count(clen);
-        result += c[0];
-    }
-    
-    ...
-    return result;
-}
-\end{verbatim}
+\begin{figure}
+% The package for highlighting does not work well with the alltt
+% package, so just use a teletype font and handle spacing and line
+% breaking manually.
+\begin{tt}
+/* use either a or b depending on val */\\
+int choose(int val, array\_ptr<int> a~:~count(alen), int alen,\\
+\mbox{~~~~~~~~~~~~~~~~~~~~}array\_ptr<int> b~:~count(blen), int blen)\\
+\{\\
+\mbox{~~~~}array\_ptr<int> c;\\
+\mbox{~~~~}int clen;\\
+\mbox{~~~~}int result = 0;\\
+\\
+\mbox{~~~~}if (val) \{\\
+\mbox{~~~~~~~~}clen = alen;\\
+\mbox{~~~~~~~~}c = a where \sethlcolor{lightblue}\hl{c : count(clen);\\
+\mbox{~~~~}\}}\\
+\mbox{~~~~}else \{\\
+\mbox{~~~~~~~~}clen = blen;\\
+\mbox{~~~~~~~~}c = b where \hl{c : count(clen);\\
+\mbox{~~~~}\}\\
+\mbox{~~~~}if (clen > 1) \{\\
+\mbox{~~~~~~~~}result = c[0];\\
+\mbox{~~~~}\}\\
+\\
+\mbox{~~~~}if (cond  \&\& clen > 1) \{}\\
+\mbox{~~~~~~~~}c = \hl{c + 1} where \sethlcolor{lightyellow}\hl{c : count(clen - 1);}\\
+\mbox{~~~~~~~~}clen = \hl{clen - 1} where \sethlcolor{lightblue}\hl{c : count(clen);\\
+\mbox{~~~~~~~~}result += c[0];\\
+\mbox{~~~~}\}\\
+\\ 
+\mbox{~~~~}...\\
+\mbox{~~~~}return result;\\
+}\}\\
+\end{tt}
+\caption{An expanded version of the choose function from earlier, with extents of different bounds declarations color-coded.}
+\label{fig:bounds-extent:choose}
+\end{figure}
 
 \subsection{Computing extent}
 \label{section:computing-extent}
@@ -1164,18 +1167,25 @@ function. In functions that do not have loops in their control-flow, the
 dataflow analysis can be done in O(N*M) time.
 
 The dataflow analysis uses a lattice of values, assigning one lattice
-value to each variable at each program point in the function. The
-lattice of values includes singleton values consisting of the bounds
+value to each variable at each program point in the function.  
+Figure~\ref{fig:extent-dataflow-lattice} shows the lattice of values.  
+It includes singleton values consisting of the bounds
 expressions in the flow-sensitive bounds declaration for variables in
 the function, \boundsnone\ (indicating absence of bounds
 information), and \texttt{Top} (indicating contradiction or error):
 
+\begin{figure}
+\begin{center}
 \begin{tikzpicture}[sibling distance=1in]
 \node[rectangle, minimum size=8pt]{\texttt{Top}}
   child foreach \name in {\boundsnone, \var{bounds-exp\textsubscript{1}},
                           \var{bounds-exp\textsubscript{2}}, \ldots}
      {node{\name} edge from parent[<-, thick]};
 \end{tikzpicture}
+\end{center}
+\caption{The lattice of values used in dataflow computation of extent}
+\label{fig:extent-dataflow-lattice}
+\end{figure}
  
 For an assignment to an \arrayptr\ variable, the existing
 lattice value for the \arrayptr\ variable is killed, unless

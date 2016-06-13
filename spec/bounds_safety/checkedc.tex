@@ -7,8 +7,8 @@
 \fancyhead[RO]{\slshape \rightmark}
 \fancyhead[LO]{}
 \usepackage{paralist}
-\usepackage{tikz}
-\usepackage{soul}
+\usepackage{tikz} % drawing support
+\usepackage{soul} % provide highlighting support
 \usepackage{color}
 \usetikzlibrary{patterns}
 
@@ -46,6 +46,14 @@
 %  \feedback{David Tarditi}{Here are some additional examples.}
 
 \newcommand{\feedback}[2]{\footnote{Feedback (#1): #2}}
+
+%
+% define colors used for highlighting
+%
+\definecolor{lightblue}{rgb}{0.8,0.85,1}
+\definecolor{lightyellow}{rgb}{1.0,1.0,0.6}
+\sethlcolor{lightyellow}
+
 %
 % meta variables are italicized.  Use the macro name var
 % to save on typing.
