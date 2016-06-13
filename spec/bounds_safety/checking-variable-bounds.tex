@@ -1382,6 +1382,9 @@ of the earlier example. The pointer assignment is highlighted in blue.
 The bounds for \verb|parr| at that point in the program based on the
 current context will be \verb|bounds(parr, parr + size)|.
 
+% The package for highlighting does not work well with the alltt
+% package, so just use a teletype font and handle spacing and line
+% breaking manually.
 \begin{tt}
 int arr[DEFAULT\_SIZE];\\
 array\_ptr<int> parr~:~count(len) = arr;\\

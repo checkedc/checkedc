@@ -1082,6 +1082,9 @@ The following example shows the extents of the two bounds declarations for
 its extent is highlighted in blue. The bounds declaration at the assignment 
 to \texttt{end} and its extent is highlighted in yellow:
 
+% The package for highlighting does not work well with the alltt
+% package, so just use a teletype font and handle spacing and line
+% breaking manually.
 \begin{tt}
 \sethlcolor{lightblue}
 /* sum integers stored between start and end, where end is not included */ \\  
@@ -1107,6 +1110,9 @@ length is decremented.  The increment invalidates the bounds declaration
 is needed after the increment.
 
 \begin{figure}
+% The package for highlighting does not work well with the alltt
+% package, so just use a teletype font and handle spacing and line
+% breaking manually.
 \begin{tt}
 /* use either a or b depending on val */\\
 int choose(int val, array\_ptr<int> a~:~count(alen), int alen,\\
