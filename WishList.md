@@ -1,6 +1,6 @@
 # A Wish List of Checked C Projects.
 
-There is plenty of work still to do on Checked C. Here is a list of projects 
+There is plenty of work to do on Checked C. Here is a list of projects 
 that could be begun now or in the next few months.  The projects cover compiler
 implementation, tools, language design, and experimental evaluation.  The 
 projects range in nature from implementation to design to open research
