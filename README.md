@@ -6,7 +6,7 @@ draft of the next version, see the [Checked C releases page](https://github.com/
 
 We are creating a modified version of LLVM/clang that supports Checked C.   The code for the modified
 version of LLVM/clang lives in the 
-[Checked C clang repo](https://github.com/Microsoft/checked-clang)
+[Checked C clang repo](https://github.com/Microsoft/checkedc-clang)
 and the [Checked C LLVM repo](https://github.com/Microsoft/checkedc-llvm).
 
 # Getting involved
