@@ -1,7 +1,7 @@
 # Summary
 
-The Checked C specification is written using [LaTex](https://latex-project.org/intro.html).
-LaTex is used for preparing technical documents.  LaTex uses text-based files that work
+The Checked C specification is written using [LaTeX](https://latex-project.org/intro.html).
+LaTeX is used for preparing technical documents.  LaTeX uses text-based files that work
 nicely with source-code control systems such as Git.  The text-based files describe the
 content and structure of the document and some aspects of the appearance.  LaTex processes
 the files to type set the document.
