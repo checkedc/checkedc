@@ -1195,7 +1195,7 @@ void check_illegal_operators() {
   p *= p; // expected-error {{invalid operands to binary expression}}
 
   r * r;  // expected-error {{invalid operands to binary expression}}
-  r *= r; // expected-error {{invalid operands to binary expression}}
+  // r *= r; // expected-error {{invalid operands to binary expression}}
 
   //
   // Test /
