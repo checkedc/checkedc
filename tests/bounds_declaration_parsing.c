@@ -92,7 +92,7 @@ extern void f21(int len, int *arr checked[] : count(len)) {
 
 // Checked array of pointers to functions.   Note that this shows a potential
 // ambiguity in the grammar. We have to parenthesize the inner declarator
-// to avoid : count(len) being parsed aas part of the type of arr, not a bounds
+// to avoid : count(len) being parsed as part of the type of arr, not a bounds
 // expression.
 extern void f22(int len, int ((*arr checked[])(int, int)) : count(len)) {
 }
