@@ -33,7 +33,6 @@ extern void f7a(array_ptr<int> midarr :
    bounds(midarr - start, midarr - start + 5), int start) {
 }
 
-
 extern void f8(array_ptr<int> arr : bounds(none)) {
 }
 
@@ -52,7 +51,6 @@ extern void f10(int none, array_ptr<int> arr : count(none)) {
 
 extern void f10a(array_ptr<int> arr : count(none), int none) {
 }
-
 
 // bounds is a contextual keyword.  It is only a keyword when it
 // immediately follows the ':' in a bounds declaration.

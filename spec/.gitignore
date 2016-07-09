@@ -1,5 +1,5 @@
 #
-# ignore intermediate files created by LaTex and BibTex
+# ignore intermediate files created by LaTeX and BibTeX
 #
 
 *.aux
@@ -9,7 +9,7 @@
 *.toc
 *.out
 
-# Ignore output files created usng Latex too.
+# Ignore output files created usng LaTeX too.
 
 *.pdf
 *.dvi
