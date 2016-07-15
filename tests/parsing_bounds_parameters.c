@@ -198,3 +198,9 @@ extern void f33() {
  int (*t3)(int n, array_ptr<int> arg : count(n * sizeof(int))) = 0;
  int (*t4)(array_ptr<int> arg : count(n * sizeof(int)), int n) = 0;
 }
+
+typedef int func1(array_ptr<int> : count(len), int len);
+typedef int func2(int len, array_ptr<int> : count(len));
+static func1 *func1_ptr1;
+static func2 *func2_ptr1;
+func1 *func1_ptr2;

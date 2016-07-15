@@ -5,7 +5,8 @@
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
 
-// Top level declarations.
+// Top level declarations with different storage classes and
+// storage classes omitted.
 extern array_ptr<int> a : count(5);
 extern array_ptr<int> b : count(3 + 2);
 extern int cLen;
@@ -18,12 +19,13 @@ extern array_ptr<int> h : bounds(f - 2, f + 3);
 extern array_ptr<int> i : count(5), j : bounds(i - 2, i + 3),
                       k : bounds(j + 2, j + 5);
 
+static float vals[5] = { 0.0, 1.0, 2.0, 3.0, 4.0 };
+static array_ptr<float> l : count(5) = vals;
+static _Thread_local array_ptr<int> m : count(5);
+
 array_ptr<int> b : count(3 + 2) = 0;
 array_ptr<int> d : byte_count(5 * sizeof(int)) = 0;
 array_ptr<int> g : bounds(none) = 0;
-
-static float vals[5] = { 0.0, 1.0, 2.0, 3.0, 4.0 };
-static array_ptr<float> l : count(5) = vals;
 
 // Declare a bounds for a checked array.  This is legal, but
 // unnecessary.
@@ -43,6 +45,9 @@ extern void f1(array_ptr<int> arr : count(5)) {
   array_ptr<int> w : bounds(none) = arr;
   array_ptr<int> x : bounds(none);
   array_ptr<int> midarr : bounds(midarr - 1, midarr - 1 + 2) = arr + 2;
+
+  static array_ptr<int> cache1 : count(5);
+  static array_ptr<int> cache1_ptr : bounds(cache1 - 2, cache1 + 3);
 }
 
 // Multiple declarators in one declaration
@@ -93,8 +98,11 @@ extern void f5() {
   int arr4 checked[5] : count(len);
   int arr7 checked[5] : byte_count(5 * sizeof(int));
   int arr8 checked[5] : byte_count(len * sizeof(int));
-  int arr5 checked[5] : bounds(arr5, arr5 + 5);
-  int arr6 checked[5] : bounds(arr5, arr5 + len);
+  auto int arr5 checked[5] : bounds(arr5, arr5 + 5);
+  auto int arr6 checked[5] : bounds(arr5, arr5 + len);
+
+  static int cache[5] : count(5);
+  static array_ptr<int> cache_ptr : bounds(cache - 2, cache + 3);
 }
 
 // Parsing of more complicated declarations with bounds declarations
