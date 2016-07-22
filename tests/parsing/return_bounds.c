@@ -5,8 +5,29 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
+// Parsing of function declarations
 extern array_ptr<void> alloc(unsigned size) : byte_count(size);
+extern array_ptr<int> f2(array_ptr<int> arr : count(5)) : count(3 + 2);
+extern array_ptr<int> f3(int len, array_ptr<int> arr : count(len)) 
+                      : count(len);
+extern array_ptr<int> f4(array_ptr<int> arr : byte_count(20))
+                      : byte_count(20);
+extern array_ptr<int> f5(array_ptr<int> arr : byte_count(5 * sizeof(int)))
+                      : byte_count(5 * sizeof(int));
+extern array_ptr<int> f6(array_ptr<int> arr : bounds(arr, arr + 5))
+                      : bounds(arr, arr + 5);
+extern array_ptr<int> f7(int start,
+                         array_ptr<int> arr : bounds(arr - start, arr - start + 5))
+                      : bounds(arr - start, arr - start + 5);
+extern array_ptr<char> f8() : bounds(none);
+// count, bounds, and none are contextual keywords.  They are treated as keyword
+// only when they immediately follow a ':';
+extern array_ptr<char> f9(int count) : count(count);
+extern array_ptr<char> f10(int none) : count(none);
+extern array_ptr<int> f11(int bounds, array_ptr<int> arr : count(bounds))
+                      : bounds(arr, arr + bounds);
 
+// Parsing function definitions.
 extern array_ptr<int> f1(array_ptr<int> arr : count(5)) : count(5) {
   return arr;
 }
@@ -200,5 +221,20 @@ extern array_ptr<int> f27(int len,int arr : count(len)) : boounds(arr, arr + len
 
 // Misspell count to cause a parsing error.
 extern array_ptr<int> f28(int len) : coount(len) { // expected-error {{expected bounds expression}}
+  return 5;  // expected-error {{incompatible result type}}
+}
+
+// Omit an argument to bounds to cause a parsing error
+extern array_ptr<int> f29(int len, int arr : count(len)) : bounds(arr)) { // expected-error {{expected ','}}
+  return 0;
+}
+
+// Omit both arguments to bounds to cause a parsing error
+extern array_ptr<int> f30(int len, int arr : count(len)) : bounds()) { // expected-error {{expected expression}}
+  return 0;
+}
+
+// Omit the argument to count to cause a parsing error.
+extern array_ptr<int> f31(int len) : count() { // expected-error {{expected expression}}
   return 5;  // expected-error {{incompatible result type}}
 }
