@@ -110,7 +110,7 @@ struct S14 {
   // Members that are array_ptrs to checked arrays
   array_ptr<int checked[10]> arr7 : count(5);
   array_ptr<int checked[10]> arr8 : byte_count(5 * sizeof(ptr<int>));
-  array_ptr<int checked[10]> arr9 : bounds(arr9, arr3 + 9);
+  array_ptr<int checked[10]> arr9 : bounds(arr9, arr9 + 9);
   // Members that are unchecked pointers with bounds.  These will
   // be used for interoperation.
   int *arr10 : count(5);
@@ -181,22 +181,34 @@ struct S17 {
   } nested;
 };
 
+// Anonymous struct version
+struct S20 {
+  struct {
+    array_ptr<int> lower;
+    array_ptr<int> upper;
+  } pair;
+  array_ptr<int> arr1 : bounds(pair.lower, pair.upper);
+  struct {
+    array_ptr<int> arr2 : bounds(pair.lower, pair.upper);
+  } nested;
+};
+
 //
 // Errors in declaring structure members with bounds
 //
 
-struct S20 {
+struct S21 {
   array_ptr<int> arr : bounds(arr, unknown_id); // expected-error {{use of undeclared member}}
 };
 
-struct S21 {
+struct S22 {
   array_ptr<int> arr : 6 + 6; // expected-error {{expected bounds expression}}
 };
 
 // Misspell bounds to cause an semantic checking error.
 // clang will parse this as a constant-expression that specifies a bit field
 // and generate several errors.
-struct S22 {
+struct S23 {
   int len;
   array_ptr<int> arr : boounds(arr, arr + 5);  // expected-error 2 {{use of undeclared identifier 'arr'}} \
                                                // expected-warning {{implicit declaration of function 'boounds'}}
@@ -205,26 +217,26 @@ struct S22 {
 // Misspell count to cause an semantic checking error.
 // clang will parse this as a constant-expression that specifies a bit field
 // and generate several errors.
-struct S23 {
+struct S24 {
   int len;
   array_ptr<int> arr : coount(5); // expected-error {{expected bounds expression}} \
                                   // expected-warning {{implicit declaration of function 'coount'}}
 };
 
 // Omit an argument to bounds to cause a parsing error
-struct S24 {
+struct S25 {
   int len;
   array_ptr<int> arr : bounds(arr); // expected-error {{expected ','}}
 };
 
 // Omit both arguments to bounds to cause a parsing error
-struct S25 {
+struct S26 {
   int len;
   array_ptr<int> arr : bounds(); //expected-error {{expected expression}}
 };
 
 // Omit the argument to count to cause a parsing error.
-struct S26 {
+struct S27 {
   int len;
   array_ptr<int> arr : count(); //expected-error {{expected expression}}
 };
@@ -234,15 +246,89 @@ struct S26 {
 //
 array_ptr<int> global_bound;
 
-struct S27 {
+struct S28 {
   int len;
   array_ptr<int> arr : bounds(global_bound, global_bound + len); // expected-error 2 {{use of undeclared member 'global_bound'}}
 };
 
-int f() {
+
+int f1() {
   int buffer checked[100];
-  struct S28 {
+  struct S29 {
      int len;
      array_ptr<int> arr : bounds(buffer, buffer + len); // expected-error 2 {{use of undeclared member 'buffer'}}
   };
 }
+
+int f2() {
+  const int bounds = 4;
+  struct S30 {
+    // This should be parsed as an incorrect bounds expression+-
+    int x : bounds; // expected-error {{expected '(' after 'bounds'}}
+  };
+}
+
+int f3() {
+  enum E {
+    bounds = 4
+  };
+  struct S30 {
+    // This should be parsed as an incorrect bounds expression+-
+    int x : bounds; // expected-error {{expected '(' after 'bounds'}}
+  };
+}
+
+//
+// Union members
+//
+
+union U1 {
+  _Bool isInteger;
+  ptr<int> ip;
+  ptr<float> fp;
+};
+
+union U2 {
+  enum {
+    Array,
+    Ptr,
+    Integer
+  } tag;
+
+  array_ptr<int> f : count(5);
+  ptr<int> p;
+  int i;
+};
+
+union U3 {
+  enum E {
+    Array,
+    Ptr,
+    Integer
+  } tag;
+
+  // TODO: enum identifiers should be accessible in
+  // member bounds expressions
+  array_ptr<int> f : count((tag == 0) ? 5 : 0);
+  ptr<int> p;
+  int i;
+};
+
+union U4 {
+  array_ptr<int> ip : count(4);
+  array_ptr<char> cp : count(4 * sizeof(int));
+};
+
+// Assume that int is large enough to hold a pointer.
+#define is_tagged_ptr(p) ((int)(p) & 1)
+#define untag_ptr(p) ((array_ptr<int>)((int)(p) & ~1))
+
+union U5 {
+  array_ptr<int> ip : count(is_tagged_ptr(ip) ? 5 : 0);
+  int i;
+};
+
+union U6 {
+  array_ptr<int> ip : bounds(untag_ptr(ip), untag_ptr(ip) + 5);
+  int i;
+};
