@@ -34,30 +34,36 @@ struct S7 {
   array_ptr<int> arr : bounds(arr, arr + 5);
 };
 
-// Pointer into the middle of an array
+// Structure with a variable length array at the end
 struct S8 {
+  int len;
+  int arr checked[] : count(len);
+};
+
+// Pointer into the middle of an array
+struct S9 {
   int start;
   array_ptr<int> arr : bounds(arr - start, arr - start + 5);
 };
 
-struct S9 {
+struct S10 {
   array_ptr<int> arr : bounds(none);
 };
 
 // Count is a contextual keyword.  It is only a keyword when it immediately
 // folows the ':' in a bounds declaration.  Otherwise it can be used as an
 // identifer.
-struct S10 {
+struct S11 {
   int count;
   array_ptr<int> arr : bounds(none);
 };
 
-struct S11 {
+struct S12 {
   int count;
   array_ptr<int> arr : count(count);
 };
 
-struct S12 {
+struct S13 {
   // 'none' is a contextual keyword.  It is only a keyword when it
   // is the sole argument to a 'bounds' expression.
   // not a keyword
@@ -73,7 +79,7 @@ struct S12 {
   array_ptr<int> arr4 : bounds(arr3, arr3 + none); 
 };
 
-struct S13 {
+struct S14 {
   // 'bounds' is a contextual keyword.  It is only a keyword when it follows
   // the ':' in a bounds declaration.
 
@@ -94,7 +100,7 @@ struct S13 {
 // declarations
 //
 
-struct S14 {
+struct S15 {
   // Members that are array_ptrs to ptrs
   array_ptr<ptr<int>> arr1 : count(5);
   array_ptr<ptr<int>> arr2 : byte_count(5 * sizeof(ptr<int>));
@@ -125,7 +131,7 @@ struct S14 {
 
 // Members that are pointers to functions that have bounds declarations on
 // return values
-extern void S15() {
+extern void S16() {
   // Checked pointer to a function that returns an array_ptr to 5 integers.
   ptr<array_ptr<int>() : count(5)> p1;
   // Checked pointer to a function that returns an array_ptr to n integers,
@@ -151,7 +157,7 @@ extern void S15() {
   int(*t4)(array_ptr<int> arg : count(n * sizeof(int)), int n);
 }
 
-struct S16 {
+struct S17 {
   // Members that are pointers to functions that have bounds on
   // arguments or return values.
   int (*f1)(int len, array_ptr<int> arr : count(len));
@@ -170,19 +176,19 @@ struct S16 {
 };
 
 // Bounds distributed across multiple nested members
-struct S17 {
-  struct S18 {
+struct S18 {
+  struct S19 {
      array_ptr<int> lower;
      array_ptr<int> upper;
   } pair;
   array_ptr<int> arr1 : bounds(pair.lower, pair.upper);
-  struct S19 {
+  struct S20 {
     array_ptr<int> arr2 : bounds(pair.lower, pair.upper);
   } nested;
 };
 
 // Anonymous struct version
-struct S20 {
+struct S21 {
   struct {
     array_ptr<int> lower;
     array_ptr<int> upper;
@@ -197,18 +203,18 @@ struct S20 {
 // Errors in declaring structure members with bounds
 //
 
-struct S21 {
+struct S22 {
   array_ptr<int> arr : bounds(arr, unknown_id); // expected-error {{use of undeclared member}}
 };
 
-struct S22 {
+struct S23 {
   array_ptr<int> arr : 6 + 6; // expected-error {{expected bounds expression}}
 };
 
 // Misspell bounds to cause an semantic checking error.
 // clang will parse this as a constant-expression that specifies a bit field
 // and generate several errors.
-struct S23 {
+struct S24 {
   int len;
   array_ptr<int> arr : boounds(arr, arr + 5);  // expected-error 2 {{use of undeclared identifier 'arr'}} \
                                                // expected-warning {{implicit declaration of function 'boounds'}}
@@ -217,26 +223,26 @@ struct S23 {
 // Misspell count to cause an semantic checking error.
 // clang will parse this as a constant-expression that specifies a bit field
 // and generate several errors.
-struct S24 {
+struct S25 {
   int len;
   array_ptr<int> arr : coount(5); // expected-error {{expected bounds expression}} \
                                   // expected-warning {{implicit declaration of function 'coount'}}
 };
 
 // Omit an argument to bounds to cause a parsing error
-struct S25 {
+struct S26 {
   int len;
   array_ptr<int> arr : bounds(arr); // expected-error {{expected ','}}
 };
 
 // Omit both arguments to bounds to cause a parsing error
-struct S26 {
+struct S27 {
   int len;
   array_ptr<int> arr : bounds(); //expected-error {{expected expression}}
 };
 
 // Omit the argument to count to cause a parsing error.
-struct S27 {
+struct S28 {
   int len;
   array_ptr<int> arr : count(); //expected-error {{expected expression}}
 };
@@ -246,7 +252,7 @@ struct S27 {
 //
 array_ptr<int> global_bound;
 
-struct S28 {
+struct S29 {
   int len;
   array_ptr<int> arr : bounds(global_bound, global_bound + len); // expected-error 2 {{use of undeclared member 'global_bound'}}
 };
@@ -254,7 +260,7 @@ struct S28 {
 
 int f1() {
   int buffer checked[100];
-  struct S29 {
+  struct S30 {
      int len;
      array_ptr<int> arr : bounds(buffer, buffer + len); // expected-error 2 {{use of undeclared member 'buffer'}}
   };
@@ -262,7 +268,7 @@ int f1() {
 
 int f2() {
   const int bounds = 4;
-  struct S30 {
+  struct S31 {
     // This should be parsed as an incorrect bounds expression+-
     int x : bounds; // expected-error {{expected '(' after 'bounds'}}
   };
@@ -282,24 +288,24 @@ int f3() {
 // Union members
 //
 
+// Union that is bounds-safe because its only members are scalar types
+// and arrays of scalar types.
 union U1 {
-  _Bool isInteger;
-  ptr<int> ip;
-  ptr<float> fp;
-};
-
-union U2 {
-  enum {
-    Array,
-    Ptr,
-    Integer
-  } tag;
-
-  array_ptr<int> f : count(5);
-  ptr<int> p;
   int i;
+  float f;
+  char arr checked[sizeof(int)];
 };
 
+// Union that is bounds safe because all members point to objects
+// with the same size that are arrays of scalars.
+union U2 {
+  array_ptr<int> ip : count(4);
+  array_ptr<char> cp : count(4 * sizeof(int));
+};
+
+// Unions where dynamic tags are used to ensure correct use of members.
+// There still needs to be a design that connects a particular tag value
+// with the validity of a specific member.
 union U3 {
   enum E {
     Array,
@@ -314,21 +320,40 @@ union U3 {
   int i;
 };
 
+// Unions of pointers and integers, where the least significant
+// bit is used as a tag.
+
+// We tag integers with 1 instead of trying to tag pointers with 1.
+// Null pointers tagged with 1 are not allowed by the current 
+// Checked C definition.
+
+#define is_tagged_int(p) ((int)(p) & 1)
+#define untag_int(p) ((p) & ~1)
+
 union U4 {
-  array_ptr<int> ip : count(4);
-  array_ptr<char> cp : count(4 * sizeof(int));
-};
-
-// Assume that int is large enough to hold a pointer.
-#define is_tagged_ptr(p) ((int)(p) & 1)
-#define untag_ptr(p) ((array_ptr<int>)((int)(p) & ~1))
-
-union U5 {
-  array_ptr<int> ip : count(is_tagged_ptr(ip) ? 5 : 0);
+  array_ptr<int> ip : bounds(ip, is_tagged_int(ip) ? ip : ip + 5);
   int i;
 };
 
+// Union of pointers where lengths depend on a tag in an enclosing structure
+struct S32 {
+  int len : 31;
+  int tag : 1;
+  union {
+    array_ptr<char> cp : count(tag ? len : 0);
+    array_ptr<int> ip : count(!tag ? 0 : len);
+  };
+};
+
+// Unions without tags that would depend on program invariants for bounds safety.
+union U5 {
+  _Bool isInteger;
+  ptr<int> ip;
+  ptr<float> fp;
+};
+
 union U6 {
-  array_ptr<int> ip : bounds(untag_ptr(ip), untag_ptr(ip) + 5);
+  array_ptr<int> f : count(5);
+  ptr<int> p;
   int i;
 };
