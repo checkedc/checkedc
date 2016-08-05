@@ -294,8 +294,10 @@ though they were explicit C cast operations.
 
 \subsubsection{From unchecked pointers to checked pointers}
 An expression with an unchecked pointer type can be converted implicitly to an
-expression with a checked pointer type, provided that the referent types of the
-unchecked pointer and the checked pointer are compatible.
+expression with a checked pointer type.   The destination referent type
+and source referent type must be {\em assignment compatible}: they must 
+either be the same type or the only difference between the two types must be that
+the destination type is subject to more checking than the source type.
 
 This can be done for the right-hand side of an assignment, a call argument,
 or an arm of a conditional expression.
@@ -303,17 +305,28 @@ The type of the left-hand side of the assignment, the parameter, or the other
 arm of the conditional expression must be the checked pointer type that is the
 target of the implicit conversion.
 
-For now, compatibility is defined as the following:
+A destination referent type \var{D} is assignment compatible with a source referent
+type \var{S} if
 \begin{itemize}
-\item The referent types are syntactically identical.
-\item The destination referent type is \void\ and the source referent type
-is not a function type.
+\item \var{D} and \var{S} are compatible types.
+\item \var{D} is \void\ and \var{S} is not a function type.
+\item \var{D} is an array of \var{E} and \var{S} is an array of \var{T}
+and:
+\begin{itemize}
+\item \var{D} and \var{S} are both checked arrays, both unchecked arrays, or \var{D} is a checked array
+and \var{S} is an unchecked array.
+\item and \var{E} is assignment compatible with \var{T}
 \end{itemize}
-The definition of compatibility is more
-complicated when referent types are function types, array types, or
-pointer types. {\em Discussion of a richer forms of compatibility
+\item \var{D} is an pointer to \var{E} and \var{S} is a pointer to \var{T}
+and:
+\begin{itemize}
+\item \var{D} and \var{S} are both \ptr\ types, both \arrayptr\ types, both unchecked pointer types,
+or \var{D} is a checked pointer type and \var{S} is an unchecked pointer type
+\item and \var{E} is assignment compatible with \var{T}.
+\end{itemize}
+\end{itemize}
+{\em Discussion of assignment compatibility for function types
 is deferred for now}.
-
 C allows implicit conversions between \uncheckedptrvoid\ and other pointer
 types. For now, implicit conversions from \uncheckedptrvoid\ to checked pointer
 types are allowed. This may be revised later when a design
