@@ -55,10 +55,10 @@ understood.  The new pointer types are added to the syntax for {\it type specifi
 \cite[Section 6.7.2]{ISO2011}. The parameters to these type constructors 
 must be types, which are described syntactically by {\it type names} \cite[Section 6.7.7]{ISO2011}.
 
-Checked pointers provide checking of bounds safety.  Checked
-pointers do not provide checking that the memory for objects is being managed
-properly.  They are still subject to ``use-after-free'' bugs and can be used
-to access memory for objects after objects have been deallocated.
+Checked pointers provide checking that memory accesses are in bounds.  They
+do not provide checking that memory for objects is being managed
+properly.  They can still be used to access memory for objects after 
+the objects have been deallocated.
 
 The \spanptr\ pointer type is similar to the proposed \spanptr\ type for 
 the C++ Standard Library \cite{Macintosh2016}.   There is an important
