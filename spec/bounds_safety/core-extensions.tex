@@ -15,8 +15,7 @@ undefined behavior needed for bounds safety.
 
 \section{New kinds of pointer types}
 Three new checked pointer types are added to C. Each pointer type can be
-used in place of `*'
-
+used in place of `\texttt{*}':
 \begin{enumerate}
 \item
   \ptrT: this points to
@@ -45,16 +44,21 @@ used in place of `*'
   \arrayptrT .
 \end{enumerate}
 
-Unchecked C pointer types that use \texttt{*} and are unchecked in their
+Unchecked C pointer types that use `\texttt{*}' and are unchecked in their
 ranges continue to exist. Pointer arithmetic is not forbidden on unchecked
 pointer types because it would break existing C code. C compilers will
-have an error or warning mode that flags unexpected uses of `*'.
+have an error or warning mode that flags unexpected uses of `\texttt{*}'.
 
 The same syntax as C++ template instantiations is used for building
 instances of these types because this syntax is well-known and
 understood.  The new pointer types are added to the syntax for {\it type specifiers} 
 \cite[Section 6.7.2]{ISO2011}. The parameters to these type constructors 
 must be types, which are described syntactically by {\it type names} \cite[Section 6.7.7]{ISO2011}.
+
+Checked pointers provide checking that memory accesses are in bounds.  They
+do not provide checking that memory for objects is being managed
+properly. For example, they can still be used to access memory for objects after
+the objects have been deallocated.
 
 The \spanptr\ pointer type is similar to the proposed \spanptr\ type for 
 the C++ Standard Library \cite{Macintosh2016}.   There is an important
