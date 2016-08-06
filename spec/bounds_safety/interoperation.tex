@@ -313,9 +313,9 @@ type \var{S} if
 \item \var{D} is an array of \var{E} and \var{S} is an array of \var{T}
 and:
 \begin{itemize}
-\item \var{D} and \var{S} are both checked arrays, both unchecked arrays, or \var{D} is a checked array
-and \var{S} is an unchecked array.
-\item and \var{E} is assignment compatible with \var{T}
+\item \var{D} and \var{S} are both checked arrays, both unchecked arrays, or \var{D} is a checked array and \var{S} is an unchecked array, and
+\item \var{D} and \var{S} have the same number of elements, and
+\item \var{E} is assignment compatible with \var{T}.
 \end{itemize}
 \item \var{D} is an pointer to \var{E} and \var{S} is a pointer to \var{T}
 and:
@@ -370,25 +370,63 @@ be used to access memory.   The rules for checking bounds declarations only
 allow the target type to be \arrayptr\ type and the bounds of the expression to be
 \boundsnone.
 
-
 \subsubsection{Examples}
 
-The prior code for conversions can be even shorter:
+The following code illustrates examples of implicit conversions.  In these examples,
+the right-hand side of an assignment has the type ``unchecked pointer to \var{T}'',
+while the left-hand side has the type ``checked pointer to \var{T}''.  Implicit
+conversions are allowed at all these assignments.
 \begin{verbatim}
 int x = 0;
 ptr<int> px = &x;
-array_ptr<char> pax : count(4) = &x;
-array_ptr<char> odd_pax : count(3) = &x;
+array_ptr<int> pax : count(1) = &x;
 
-char data[12];
-ptr<int> pfirst = data; // points to 1st element as an integer;
-array_ptr<int> pdata : count(3) = data;
+int a[5] = { 0, 1, 2, 3, 4};
+ptr<int> pa = a;
+array_ptr<int> apa : count(5) = a; 
+array_ptr<int> middle : bounds(a, a + 5) =  a + 2;
 \end{verbatim}
-Incorrect conversions of pointers to constant-sized data will be rejected:
+
+An unchecked multidimensional array can be passed to a function expecting
+a checked multi-dimensional array:
+\begin{verbatim}
+int b[3][3] = { { 0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+extern void f(int arg checked[3][3]);
+f(b);
+\end{verbatim}
+
+The mechanics behind this are somewhat complicated.  Parameters with
+type ``array of \var{T}'' are actually treated as having type ``pointer to \var{T}''.
+Parameters with the type ``checked array of \var{T}''
+are treated as ``checked pointer to \var{T}''.  The actual type of the parameter of \texttt{f}
+is
+\begin{verbatim}
+extern void f(array_ptr<int checked[3]> arg);
+\end{verbatim}
+Local variables with type ``array of \var{T}'' are treated as having 
+type ``unchecked pointer to \var{T}'' when they are used.  The type of \texttt{b}
+at \texttt{f(b)} is ``unchecked pointer to an array of 3 integers''.  At the call to 
+\texttt{f(b)}, there is an implicit conversion from an ``unchecked pointer
+to an unchecked array of 3 integers'' to a ``checked pointer to a checked array of 3
+integers'':
+\begin{verbatim}
+int (*pb)[3] = b;
+array_ptr<int checked[3]> param : count(3) = pb;
+\end{verbatim}
+This implicit conversion is allowed because \verb|checked int[3]| is assignment
+compatible with \verb|int[3]|.
+Assignment compatibility allows other interesting implicit conversions:
+\begin{verbatim}
+array_ptr<int[3]> t1 : bounds(b, b + 3)  = b;
+array_ptr<int> t2 : bounds(b, b + 3) = t1[1];
+array_ptr<int> t3 : bounds(b, b + 3) = b[1];
+\end{verbatim}
+
+Incorrect implicit conversions of conversions of pointers to constant-sized data will be rejected by
+the checking of bounds declarations
 \begin{verbatim}
 int x = 0;
-array_ptr<char> pax : count(5) : &x;     // fails to check: source not large enough
-array_ptr<int> pdata : count(4) = data;
+array_ptr<int> pax : count(5) : &x;     // fails to check: source not large enough
 \end{verbatim}
 
 Incorrect conversions of unchecked pointers with no bounds information
