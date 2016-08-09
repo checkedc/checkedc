@@ -600,15 +600,15 @@ They may be done at:
 \begin{itemize}
 \item Function call arguments: If the function being called has a
       bounds-safe interface for unchecked pointer type arguments, a parameter
-      typehas an unchecked pointer type, the corresponding argument expression
+      type has an unchecked pointer type, the corresponding argument expression
       has a checked pointer type, and the argument referent type is assignment
-      compatible with the parameter referent type, than the argument expression
+      compatible with the parameter referent type, then the argument expression
       will be converted implicitly to the unchecked pointer type.
 \item Assignments to a variable with external scope: if the variable being
-     assigned to has an unchecked pointer type and a bound-safe interface, the
+     assigned to has an unchecked pointer type and a bounds-safe interface, the
      right-hand side expression has a checked pointer type, and the right-hand
      side expression referent type is assignment compatible with the referent
-     type of the variable, than the right-hand side expression will be converted
+     type of the variable, then the right-hand side expression will be converted
      implicitly to the unchecked pointer type.
 \item
    Member assignments: a similar conversion is done for member assignments.
