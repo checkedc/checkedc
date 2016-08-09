@@ -257,8 +257,8 @@ involving variables and uses of array variables.
 \subsection{Examples}
 \label{section:pointer-cast-examples}
 
-Here are examples of C-style casts to checked pointers to
-constant-sized object. The static checking rules are straightforward
+Here are examples of uses of C cast operators to cast unchecked
+pointers to checked pointers.  The static checking rules are straightforward
 to apply here.  The examples assume that integers are
 4 bytes in size:
 \begin{verbatim}
@@ -278,7 +278,29 @@ void swizzle(ptr<int> p) {
 }
 \end{verbatim}
 
-\subsection{Implicit conversions involving checked pointers}
+\subsection{Non-examples}
+
+Here are examples of incorrect uses of C cast operators to cast unchecked
+pointers to checked pointers.  These examples are rejected because the
+source bounds are not large enough to justify the destination bounds or
+there are no source bounds.
+In this example, \verb|&x| points to only one integer:
+\begin{verbatim}
+int x = 0;
+// fails to check: source not large enough
+array_ptr<int> pax : count(5) : (array_ptr<int>) &x;
+\end{verbatim}
+In this example, the result of \texttt{random()} has no bounds:
+\begin{verbatim}
+char *random();
+
+void f() {
+    // fails to check: random() has no bounds
+    array_ptr<char> sp : count(1) = random();
+}
+\end{verbatim}
+
+\section{Implicit conversions involving checked pointers}
 \label{section:implicit-conversions}
 
 C allows implicit conversions at assignments, function call arguments,
@@ -292,10 +314,12 @@ typechecking to check the integrity of bounds information.  During the
 application of these rules, the implicit conversions are treated as
 though they were explicit C cast operations.
 
-\subsubsection{From unchecked pointers to checked pointers}
+\subsection{From unchecked pointers to checked pointers}
 An expression with an unchecked pointer type can be converted implicitly to an
-expression with a checked pointer type, provided that the referent types of the
-unchecked pointer and the checked pointer are compatible.
+expression with a checked pointer type.   The destination referent type
+and source referent type must be {\em assignment compatible}: they must
+either be the same type or the only difference between the two types must be that
+the destination type is subject to more checking than the source type.
 
 This can be done for the right-hand side of an assignment, a call argument,
 or an arm of a conditional expression.
@@ -303,23 +327,30 @@ The type of the left-hand side of the assignment, the parameter, or the other
 arm of the conditional expression must be the checked pointer type that is the
 target of the implicit conversion.
 
-For now, compatibility is defined as the following:
+A destination referent type \var{D} is assignment compatible with a source referent
+type \var{S} if
 \begin{itemize}
-\item The referent types are syntactically identical.
-\item The destination referent type is \void\ and the source referent type
-is not a function type.
+\item \var{D} and \var{S} are compatible types, or
+\item \var{D} is \void\ and \var{S} is not a function type, or
+\item \var{D} is an array of \var{E} and \var{S} is an array of \var{T}
+and:
+\begin{itemize}
+\item \var{D} and \var{S} are both checked arrays, both unchecked arrays, or
+\var{D} is a checked array and \var{S} is an unchecked array, and
+\item \var{D} and \var{S} have the same number of elements, and
+\item \var{E} is assignment compatible with \var{T}.
 \end{itemize}
-The definition of compatibility is more
-complicated when referent types are function types, array types, or
-pointer types. {\em Discussion of a richer forms of compatibility
+\end{itemize}
+The definition of assignment compatibility is more
+complicated when referent types are function types or
+pointer types. {\em Discussion of a richer forms of assignment compatibility
 is deferred for now}.
-
 C allows implicit conversions between \uncheckedptrvoid\ and other pointer
 types. For now, implicit conversions from \uncheckedptrvoid\ to checked pointer
 types are allowed. This may be revised later when a design
 for checking type-safety of casts is complete.
 
-\subsubsection{From checked pointers to unchecked pointers}
+\subsection{From checked pointers to unchecked pointers}
 
 We must be very careful about implicit conversions from checked pointer
 types to unchecked pointer types.  These kinds of conversions could allow bounds checking to
@@ -327,7 +358,7 @@ be subverted accidentally in a quiet fashion. Implicit conversions from checked 
 unchecked pointer types are allowed only at bounds-safe interfaces
 (Section~\ref{section:function-bounds-safe-interfaces}).
 
-\subsubsection{From checked pointers to checked pointers}
+\subsection{From checked pointers to checked pointers}
 
 An expression with a checked pointer type can be converted implicitly to the same kind
 of checked pointer type with a \texttt{void} referent type.
@@ -344,7 +375,7 @@ Implicit conversions from checked pointers to \void\ to checked pointers to \var
 The philosophy behind this is the same one that is used in C++: places where type-safety
 can be compromised by a cast should be explicit in the code.
 
-\subsubsection{Between checked pointers and integers}
+\subsection{Between checked pointers and integers}
 
 The null pointer (0) can be converted implicitly to any checked pointer type.
 A checked pointer can be converted implicitly to the \texttt{\_Bool} type.
@@ -357,35 +388,75 @@ be used to access memory.   The rules for checking bounds declarations only
 allow the target type to be \arrayptr\ type and the bounds of the expression to be
 \boundsnone.
 
+\subsection{Examples}
 
-\subsubsection{Examples}
-
-The prior code for conversions can be even shorter:
+The following code shows examples of implicit conversions.  In these examples,
+the right-hand sides of assignments have the type ``unchecked pointer to
+\var{T}'', while the left-hand sides have the type ``checked pointer to
+\var{T}''.  Implicit conversions are done at those assignments.
 \begin{verbatim}
 int x = 0;
 ptr<int> px = &x;
-array_ptr<char> pax : count(4) = &x;
-array_ptr<char> odd_pax : count(3) = &x;
+array_ptr<int> pax : count(1) = &x;
 
-char data[12];
-ptr<int> pfirst = data; // points to 1st element as an integer;
-array_ptr<int> pdata : count(3) = data;
+int a[5] = { 0, 1, 2, 3, 4};
+ptr<int> pa = a;
+array_ptr<int> apa : count(5) = a;
+array_ptr<int> middle : bounds(a, a + 5) =  a + 2;
 \end{verbatim}
-Incorrect conversions of pointers to constant-sized data will be rejected:
+
+An unchecked multidimensional array can be passed to a function expecting
+a checked multi-dimensional array:
+\begin{verbatim}
+int b[3][3] = { { 0, 1, 2}, { 3, 4, 5}, { 6, 7, 8}};
+extern void f(int arg checked[3][3]);
+f(b);
+\end{verbatim}
+
+The mechanics behind this are somewhat complicated.  Parameters with type
+``array of \var{T}'' are actually treated as having type ``pointer to \var{T}''.
+Parameters with the type ``checked array of \var{T}'' are treated as ``checked
+pointer to \var{T}''.  The actual type of the parameter of \texttt{f} is
+\begin{verbatim}
+extern void f(array_ptr<int checked[3]> arg);
+\end{verbatim}
+Local variables with type ``array of \var{T}'' are treated as having
+type ``unchecked pointer to \var{T}'' when they are used.  The type of
+\texttt{b} at \texttt{f(b)} is ``unchecked pointer to an array of 3 integers''.
+At the call to  \texttt{f(b)}, there is an implicit conversion from an
+``unchecked pointer to an unchecked array of 3 integers'' to a ``checked pointer
+to a checked array of 3 integers'':
+\begin{verbatim}
+int (*pb)[3] = b;
+array_ptr<int checked[3]> param : count(3) = pb;
+\end{verbatim}
+This implicit conversion is allowed because \verb|int checked[3]| is assignment
+compatible with \verb|int[3]|.  Assignment compatibility allows other
+interesting implicit conversions:
+\begin{verbatim}
+array_ptr<int[3]> t1 : bounds(b, b + 3)  = b;
+array_ptr<int> t2 : bounds(b, b + 3) = t1[1];
+array_ptr<int> t3 : bounds(b, b + 3) = b[1];
+\end{verbatim}
+
+\subsection{Non-examples}
+
+Implicit conversions must still pass the bounds rules for the corresponding explicit
+C cast operation.  Implicit conversions where the source bounds are not large
+enough will be rejected during bounds declaration checking:
 \begin{verbatim}
 int x = 0;
-array_ptr<char> pax : count(5) : &x;     // fails to check: source not large enough
-array_ptr<int> pdata : count(4) = data;
+// fails to check: source not large enough
+array_ptr<int> pax : count(5) : &x;
 \end{verbatim}
 
-Incorrect conversions of unchecked pointers with no bounds information
-will also be rejected.  In the following example, the bounds for 
-\texttt{random()} will be computed as \boundsnone, which does
-not match \boundscount{1}.
+Implicit conversions of unchecked pointers with no bounds to checked pointers
+will also be rejected:
 \begin{verbatim}
 char *random();
 
 void f() {
+    // fails to check: random() has no bounds
     array_ptr<char> sp : count(1) = random(); 
 }
 \end{verbatim}
@@ -515,27 +586,29 @@ stripped from its source code.
 \subsection{Type checking}
 
 Bounds-safe interfaces allow unchecked pointer types to be used
-where checked pointer types with compatible referent types are expected
-and {\it vice versa}.
+where checked pointer types with assignment compatible referent types are
+expected and {\it vice versa}.
 To handle this, implicit pointer conversions are inserted during type checking.
 Section~\ref{section:implicit-conversions} covered implicit conversions from unchecked pointer types to checked pointer types.
 
 Implicit conversions from checked pointer types to unchecked pointer types
-with compatible referent types are allowed exactly at the uses of functions,
-variables, or members with a  bounds-safe interface.  The conversions are done for rvalue expressions by inserting C cast operators to the desired unchecked types.
+with assignment-compatible referent types are allowed exactly at the uses of functions,
+variables, or members with a  bounds-safe interface.  In this case, assignment
+compatibility is applied in a reverse fashion.  The source referent type must be
+assignment compatible with the destination referent type.  The conversions are done for rvalue expressions by inserting C cast operators to the desired unchecked types.
 They may be done at:
 \begin{itemize}
-\item Function call arguments: If the function being called has a 
-      bounds-safe interface for unchecked pointer type arguments, a parameter type
-      has an unchecked pointer type, and the corresponding argument expression has a checked
-      pointer type whose referent type is compatible with the parameter
-      referent type, the argument expression will be converted implicitly to the 
-      unchecked pointer type.
+\item Function call arguments: If the function being called has a
+      bounds-safe interface for unchecked pointer type arguments, a parameter
+      type has an unchecked pointer type, the corresponding argument expression
+      has a checked pointer type, and the argument referent type is assignment
+      compatible with the parameter referent type, then the argument expression
+      will be converted implicitly to the unchecked pointer type.
 \item Assignments to a variable with external scope: if the variable being
-     assigned to has an unchecked pointer type and a bound-safe interface and the
-     right-hand side expression has a checked pointer whose referent type is
-     compatible with the
-     variable referent type, the right-hand side expression will be converted
+     assigned to has an unchecked pointer type and a bounds-safe interface, the
+     right-hand side expression has a checked pointer type, and the right-hand
+     side expression referent type is assignment compatible with the referent
+     type of the variable, then the right-hand side expression will be converted
      implicitly to the unchecked pointer type.
 \item
    Member assignments: a similar conversion is done for member assignments.
