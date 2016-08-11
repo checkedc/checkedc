@@ -152,52 +152,19 @@ that \texttt{i >= 0} and \texttt{i < 10}.
 
 Array references to multi-dimensional arrays must be uniformly bounds
 checked or not bounds checked. If any dimension is bounds checked, all
-dimensions must be checked. A programmer can simply declare the
-\emph{``checked''}-ness for the outer dimension. It will be propagated
-to the inner dimensions:
+dimensions must be checked. A programmer can simply declare that
+the outer dimension of an array is checked.  The checked property will be 
+propagated to the inner dimensions:
 
 \begin{verbatim}
 int b checked[10][10];
 \end{verbatim}
 
-More specifically, in C, multidimensional arrays are arrays of arrays,
+In C, multidimensional arrays are arrays of arrays,
 where the nested array types have known dimensions at compile-time. A
 2-dimensional array is an array of array of T, a 3-dimensional array is
-an array of array of array of T. The checked-ness is propagated from the
+an array of array of array of T. The checked property is propagated from the
 outer array to the nested array types.
-
-The propagation works as follows. In C, a declaration of a variable has
-the form T D, where T is a type and D is a declarator. The declarator
-can be as simple as an identifier \texttt{x}:
-\begin{verbatim}
-int x;
-\end{verbatim}
-
-It can be a more complex form that declares an identifier and modifies T
-to produce a new type for the identifier. An example is \texttt{x[5]}:
-
-\begin{verbatim}
-int x[5];
-\end{verbatim}
-
-Given a C declaration \var{T} \var{D}, if \var{D} is an array
-declarator, it will have the form
-\texttt{\var{D1}[\var{constant-expression\textsubscript{opt}}]},
-where \var{D1} is another declarator. The type of the identifier in the
-declaration \var{T D1} will be determined first. The type can be some
-constructed type of the form \var{type-modifier} of \var{T}, where
-\var{type-modifier} is a sequence of array, checked array, or pointer
-type modifiers. If the first element in the \var{type-modifier}
-sequence is an array or pointer, the type of the identifier will be
-\var{type-modifier} array of T. If the first element in the
-\var{type-modifier} sequence is checked array, the type of the
-identifier will be \var{type-modifier} checked array of T.
-
-For example, in parsing the declaration of \texttt{b} above, \var{D1}
-will be \texttt{int b checked[10]}. The type of \texttt{b} in
-\var{D1} is ``checked array of int''. The type of \texttt{b} in
-\texttt{int b checked[10][10]} will be ``checked array of
-checked array of int''.
 
 \subsection{An example}
 
@@ -216,6 +183,61 @@ void add(int a checked[2][2], int b checked[2][2])
         }
     }
 }
+\end{verbatim}
+
+\subsection{Propagation of checked property to nested array types}
+The checked property of an array type is propagated to a nested array type as follows.
+A declaration of a variable has the form \var{T} \var{D},
+where \var{T} is a type and \var{D} is a declarator. The declarator
+can be as simple as an identifier \texttt{x}:
+\begin{verbatim}
+int x;
+\end{verbatim}
+It can be a more complex form that declares an identifier and modifies \var{T}
+to produce a new type for the identifier. An example is \texttt{x[5]}:
+\begin{verbatim}
+int x[5];
+\end{verbatim}
+
+Given a declaration \var{T} \var{D}, if \var{D} is an array
+declarator, it will have the form
+\texttt{\var{D1}[\var{constant-expression\textsubscript{opt}}]},
+where \var{D1} is another declarator. The type of the identifier in the
+declaration \var{T D1} will be determined first. The type can be some
+constructed type of the form \var{type-modifier} of \var{T}, where
+\var{type-modifier} is a sequence of array, checked array, or pointer
+type modifiers. If the first element in the \var{type-modifier}
+sequence is an array or pointer, the type of the identifier will be
+\var{type-modifier} ``array of  \var{T}''. If the first element in the
+\var{type-modifier} sequence is a checked array, the type of the
+identifier will be \var{type-modifier} ``checked array of \var{T}.''
+
+For example, in parsing the declaration of \texttt{b}, \var{D1}
+will be \texttt{int b checked[10]}. The type of \texttt{b} in
+\var{D1} is ``checked array of int''. The type of \texttt{b} in
+\texttt{int b checked[10][10]} will be ``checked array of
+checked array of int''.
+
+\subsection{Propagation and type definitions}
+
+A \keyword{typedef} declaration defines a name for a type. This name
+can be used to declare multi-dimensional arrays:
+\begin{verbatim}
+typedef int arr_ty[10];
+arr_ty x[10];
+\end{verbatim}
+The checked property is propagated only to array declarators that are 
+nested directly within other array declarators.   It is not propagated to
+the bodies of type definitions.  It is an error if an array type and a nested 
+array type from the use of a type name have different checked properties.
+
+Here are examples of correct and incorrect declarations:
+\begin{verbatim}
+typedef int t1 checked[10];
+t1 x checked[10];  // correct: checked properties matches
+
+typedef int t2[10];
+t2 x checked[10];  // error: mismatched checked properties
 \end{verbatim}
 
 \section{Operations involving pointer types}
