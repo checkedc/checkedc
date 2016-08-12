@@ -19,7 +19,7 @@ Specification Agreement, version 1.0](http://www.openwebfoundation.org/legal/the
 Contributions of code to the Checked LLVM/clang repos are
 subject to the [CLANG/LLVM licensing terms](https://github.com/Microsoft/checkedc-clang/blob/master/LICENSE.TXT).
 
-## Code of conduct
+# Code of conduct
 
 This project has adopted the
 [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
