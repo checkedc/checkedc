@@ -76,9 +76,6 @@ extern void k1(int y)
     int arr2 checked[5];
     int arr3 checked[][5] = { { 1 }, {2 } };
     int arr4 checked[5][5];
-    // syntactically legal, but not allowed
-    // during typechecking
-    int arr5[]checked[5] = { { 1}, { 2 } };
 }
 
 //
