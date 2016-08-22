@@ -136,17 +136,17 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
 
 // Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
 extern void check_dimensions1() {
-  int t1 checked[10][5]checked[5]; // multiple checked modifiers are allowed
+  int t1 checked[10][5]checked[5];     // multiple checked modifiers are allowed
   int t2 checked[10][5][5]checked[5];
 
   // checked mixing of checked/unchecked array dimensions
-  int t3[10]checked[10];       // expected-error {{unchecked array of checked array not allowed}}
+  int t3[10]checked[10];               // expected-error {{unchecked array of checked array not allowed}}
   typedef int dim_unchecked[10];
   dim_unchecked t4 checked[10];        // expected-error {{checked array of unchecked array not allowed \
 ('dim_unchecked' is an unchecked array)}}
 
   typedef int dim_checked checked[10];
-  dim_checked t5[10];            // expected-error {{unchecked array of checked array not allowed \
+  dim_checked t5[10];                  // expected-error {{unchecked array of checked array not allowed \
 ('dim_checked' is a checked array)}}
 
   // checked parenthesized declarators
@@ -176,6 +176,23 @@ extern void check_dimensions4(int r2d []checked[10] : count(len), int len) { // 
 
 extern void check_dimensions5(int (r2d[])checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
 }
+
+// Test that qualifiers on the outermost dimension of a checked array-typed parameter are preserved.
+extern void check_dimensions6(int r2d checked[const][10] : count(len), int len) {
+  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
+  int *t1 = r2d[0]; // expected-error {{expression of incompatible type 'int checked[10]'}}
+}
+
+extern void check_dimensions7(int (r2d checked[const])[10] : count(len), int len) {
+  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
+  int *t1 = r2d[0]; // expected-error {{expression of incompatible type 'int checked[10]'}}
+}
+
+extern void check_dimensions8(int (r2d) checked[const][10] : count(len), int len) {
+  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
+  int *t1 = r2d[0]; // expected-error {{expression of incompatible type 'int checked[10]'}}
+}
+
 
 // Test assignments between pointers of different kinds with const/volatile
 // attributes on referent types
