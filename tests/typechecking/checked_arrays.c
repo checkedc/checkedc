@@ -135,8 +135,7 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
 }
 
 // Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
-extern void check_dimensions1(int r2d checked[10][10],
-                                  int s2d [10][10]) {
+extern void check_dimensions1() {
   int t1 checked[10][5]checked[5]; // multiple checked modifiers are allowed
 
   // checked mixing of checked/unchecked array dimensions
