@@ -135,12 +135,33 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
 }
 
 // Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
-extern void check_consistent_dim(int r2d checked[10][10],
+extern void check_dimensions1(int r2d checked[10][10],
                                   int s2d [10][10]) {
-  int mixed_inner_2d[10]checked[10];     // expected-error {{unchecked array of checked array not allowed}}
-  typedef int single_dim[10]; 
-  single_dim mixed_outer_2d checked[10]; // expected-error {{checked array of unchecked array not \
+  int t1 checked[10][5]checked[5]; // multiple checked modifiers are allowed
+
+  // checked mixing of checked/unchecked array dimensions
+  int t2[10]checked[10];       // expected-error {{unchecked array of checked array not allowed}}
+  typedef int single_dim[10];
+  single_dim t3 checked[10];   // expected-error {{checked array of unchecked array not \
 allowed ('single_dim' is an unchecked array)}}
+
+  // checked parenthesized declarators
+  int (t4 checked[10])[10];    // checked propagates to outer parenthesized declarators
+  int (t5[10])checked[10];     // expected-error {{unchecked array of checked array not allowed}}
+  int ((t6[10]))checked[10];   // expected-error {{unchecked array of checked array not allowed}}
+}
+
+// Test that dimensions for incomplete array types are either all checked or unchecked arrays
+extern void check_dimensions2(int r2d checked[][10] : count(len), int len) {
+}
+
+extern void check_dimensions3(int (r2d checked[])[10] : count(len), int len) {
+}
+
+extern void check_dimensions4(int r2d []checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
+}
+
+extern void check_dimensions5(int (r2d[])checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
 }
 
 // Test assignments between pointers of different kinds with const/volatile
