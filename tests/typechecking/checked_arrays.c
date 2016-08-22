@@ -137,17 +137,31 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
 // Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
 extern void check_dimensions1() {
   int t1 checked[10][5]checked[5]; // multiple checked modifiers are allowed
+  int t2 checked[10][5][5]checked[5];
 
   // checked mixing of checked/unchecked array dimensions
-  int t2[10]checked[10];       // expected-error {{unchecked array of checked array not allowed}}
-  typedef int single_dim[10];
-  single_dim t3 checked[10];   // expected-error {{checked array of unchecked array not \
-allowed ('single_dim' is an unchecked array)}}
+  int t3[10]checked[10];       // expected-error {{unchecked array of checked array not allowed}}
+  typedef int dim_unchecked[10];
+  dim_unchecked t4 checked[10];        // expected-error {{checked array of unchecked array not allowed \
+('dim_unchecked' is an unchecked array)}}
+
+  typedef int dim_checked checked[10];
+  dim_checked t5[10];            // expected-error {{unchecked array of checked array not allowed \
+('dim_checked' is a checked array)}}
 
   // checked parenthesized declarators
-  int (t4 checked[10])[10];    // checked propagates to outer parenthesized declarators
-  int (t5[10])checked[10];     // expected-error {{unchecked array of checked array not allowed}}
-  int ((t6[10]))checked[10];   // expected-error {{unchecked array of checked array not allowed}}
+  int (t6 checked[10])[10];            // checked propagates to enclosing array declarators
+  int(t7 checked[10])[5][5]checked[5]; // multiple checked modifiers are allowed
+  int (t8[10])checked[10];             // expected-error {{unchecked array of checked array not allowed}}
+  int ((t9[10]))checked[10];           // expected-error {{unchecked array of checked array not allowed}}
+  dim_unchecked (t10 checked[10])[10]; // expected-error {{checked array of unchecked array not allowed \
+('dim_unchecked' is an unchecked array)}}
+  dim_checked (t11[10])[10];           // expected-error {{unchecked array of checked array not allowed \
+('dim_checked' is a checked array)}}
+
+  // make sure checked-ness propagated
+  int *t12 = t6[0];                    // expected-error {{expression of incompatible type 'int checked[10]'}}
+  array_ptr<int> t13 = t6[0];
 }
 
 // Test that dimensions for incomplete array types are either all checked or unchecked arrays
