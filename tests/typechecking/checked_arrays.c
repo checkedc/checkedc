@@ -134,75 +134,65 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   global_checked_arr = r; // expected-error {{array type 'int checked[10]' is not assignable}}
 }
 
-// Test arrays declared explicitly as unchecked.
-extern void check_assign_unchecked(int r2d checked[10]unchecked[10],
-                                   int s2d unchecked[10]unchecked[10]) {
-  int t unchecked[10];
-  // A checked array of unchecked arrays
-  int u2d checked[10]unchecked[10];
-  // A checked array of unchecked arrays, with parenthesized declarator for
-  // the outer dimension.
-  int(u2d_paren checked[10])unchecked[10];
-  // A checked array of unchecked arrays declared via typedef.
-  unchecked_arr_type u2d_typedef checked[10];
-  // A checked array of checked arrays of unchecked arrays
-  int u3d checked[10][10]unchecked[10];
-  int u4d checked[10][10][10]unchecked[10]; 
+// Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
+extern void check_dimensions1() {
+  int t1 checked[10][5]checked[5];     // multiple checked modifiers are allowed
+  int t2 checked[10][5][5]checked[5];
 
-  int v3d checked[10][10][10];
-  int v4d checked[10][10][10][10];
+  // checked mixing of checked/unchecked array dimensions
+  int t3[10]checked[10];               // expected-error {{unchecked array of checked array not allowed}}
+  typedef int dim_unchecked[10];
+  dim_unchecked t4 checked[10];        // expected-error {{checked array of unchecked array not allowed \
+('dim_unchecked' is an unchecked array)}}
 
+  typedef int dim_checked checked[10];
+  dim_checked t5[10];                  // expected-error {{unchecked array of checked array not allowed \
+('dim_checked' is a checked array)}}
 
-  int *t1 = r2d[0];
-  int *t2 = s2d[0];
-  int *t3 = t;
+  // checked parenthesized declarators
+  int (t6 checked[10])[10];            // checked propagates to enclosing array declarators
+  int(t7 checked[10])[5][5]checked[5]; // multiple checked modifiers are allowed
+  int (t8[10])checked[10];             // expected-error {{unchecked array of checked array not allowed}}
+  int ((t9[10]))checked[10];           // expected-error {{unchecked array of checked array not allowed}}
+  dim_unchecked (t10 checked[10])[10]; // expected-error {{checked array of unchecked array not allowed \
+('dim_unchecked' is an unchecked array)}}
+  dim_checked (t11[10])[10];           // expected-error {{unchecked array of checked array not allowed \
+('dim_checked' is a checked array)}}
 
-  array_ptr<int> t4 = r2d[0];
-  array_ptr<int> t5 = s2d[0];
-  array_ptr<int> t6 = t;
-
-  //
-  // Test typechecking of checked arrays of unchecked arrays that have been declared
-  // in different ways.
-
-  // Declared as a parameter type
-  int(*t7)[10] = r2d;  // expected-error {{expression of incompatible type}}
-                       // cannot assign outer checked array to an unchecked pointer type
-  array_ptr<int[10]> t8 = r2d;
-  array_ptr<int checked[10]> t9 = r2d;
-
-  // Declared using unchecked keyword
-  int(*t10)[10] = u2d;  // expected-error {{expression of incompatible type}}
-                        // cannot assign outer checked array to an unchecked pointer type
-  array_ptr<int[10]> t11 = u2d;
-  array_ptr<int checked[10]> t12 = u2d;
-
-  // Declared using unchecked keyword with outer dimension declarator parenthesized
-  int(*t13)[10] = u2d_paren;  // expected-error {{expression of incompatible type}}
-                              // cannot assign outer checked array to an unchecked pointer type
-  array_ptr<int[10]> t14 = u2d_paren;
-  array_ptr<int checked[10]> t15 = u2d_paren;
-
-  // Declared using typedef
-  int(*t16)[10] = u2d_typedef;  // expected-error {{expression of incompatible type}}
-                                // cannot assign outer checked array to an unchecked pointer type
-  array_ptr<int[10]> t17 = u2d_typedef;
-  array_ptr<int checked[10]> t18 = u2d_typedef;
-
-  array_ptr<int checked[10]unchecked[10]> t19 = u3d;
-  array_ptr<int checked[10][10]> t20 = u3d;
-  array_ptr<int checked[10]checked[10]> t21 = u3d;
-  array_ptr<int [10]checked[10]> t22 = v3d;          // expected-error {{expression of incompatible type}}
-                                                     // cannot assign away checked-ness of dimension 2 of v3.
-  array_ptr<int checked[10]unchecked[10]> t23 = v3d; // expected-error {{expression of incompatible type}}
-                                                     // cannot assign away checked-ness of dimension 3 of v3
-
-  array_ptr<int checked[10][10]unchecked[10]> t24 = u4d;
-  array_ptr<int checked[10]checked[10]unchecked[10]> t25 = u4d;
-  array_ptr<int checked[10][10][10]> t26 = u4d;
-  array_ptr<int checked[10][10]unchecked[10]> t27 = v4d; // expected-error {{expression of incompatible type}}
-  array_ptr<int checked[10]unchecked[10][10]> t28 = v4d; // expected-error {{expression of incompatible type}}
+  // make sure checked-ness propagated
+  int *t12 = t6[0];                    // expected-error {{expression of incompatible type 'int checked[10]'}}
+  array_ptr<int> t13 = t6[0];
 }
+
+// Test that dimensions for incomplete array types are either all checked or unchecked arrays
+extern void check_dimensions2(int r2d checked[][10] : count(len), int len) {
+}
+
+extern void check_dimensions3(int (r2d checked[])[10] : count(len), int len) {
+}
+
+extern void check_dimensions4(int r2d []checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
+}
+
+extern void check_dimensions5(int (r2d[])checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
+}
+
+// Test that qualifiers on the outermost dimension of a checked array-typed parameter are preserved.
+extern void check_dimensions6(int r2d checked[const][10] : count(len), int len) {
+  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
+  int *t1 = r2d[0]; // expected-error {{expression of incompatible type 'int checked[10]'}}
+}
+
+extern void check_dimensions7(int (r2d checked[const])[10] : count(len), int len) {
+  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
+  int *t1 = r2d[0]; // expected-error {{expression of incompatible type 'int checked[10]'}}
+}
+
+extern void check_dimensions8(int (r2d) checked[const][10] : count(len), int len) {
+  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
+  int *t1 = r2d[0]; // expected-error {{expression of incompatible type 'int checked[10]'}}
+}
+
 
 // Test assignments between pointers of different kinds with const/volatile
 // attributes on referent types
@@ -625,114 +615,85 @@ extern void check_call() {
   int y checked[10];
   int x2d[10][10];
   int y2d checked[10][10];
-  int mixed_inner_2d[10]checked[10];
-  typedef int single_dim[10];
-  single_dim mixed_outer_2d checked[10];
+
 
   // f1(int *p, int y)
   f1(x, 0);
   f1(y, 0);              // expected-error {{parameter of incompatible type 'int *'}}
   f1(x2d, 0);            // expected-warning {{incompatible pointer types passing}}
   f1(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int *'}}
-  f1(mixed_inner_2d, 0); // expected-error {{passing 'int [10]checked[10]' to parameter of incompatible type 'int *'}}
-  f1(mixed_outer_2d, 0); // expected-error {{passing 'single_dim checked[10]' to parameter of incompatible type 'int *'}}
 
   // f2(int p[10], int y)
   f2(x, 0);
   f2(y, 0);              // expected-error {{parameter of incompatible type 'int *'}}
   f2(x2d, 0);            // expected-warning {{incompatible pointer types passing}}
   f2(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int *'}}
-  f2(mixed_inner_2d, 0); // expected-error {{passing 'int [10]checked[10]' to parameter of incompatible type 'int *'}}
-  f2(mixed_outer_2d, 0); // expected-error {{passing 'single_dim checked[10]' to parameter of incompatible type 'int *'}}
-
 
   // f3(int p checked[10], int y)
   f3(x, 0);
   f3(y, 0);
   f3(x2d, 0);            // expected-error {{parameter of incompatible type}}
   f3(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'array_ptr<int>'}}
-  f3(mixed_inner_2d, 0); // expected-error {{passing 'int [10]checked[10]' to parameter of incompatible type 'array_ptr<int>'}}
-  f3(mixed_outer_2d, 0); // expected-error {{passing 'single_dim checked[10]' to parameter of incompatible type 'array_ptr<int>'}}
 
   // f4(int **p, int y);
   f4(x, 0);              // expected-warning {{incompatible pointer types passing}}
   f4(y, 0);              // expected-error {{passing 'int checked[10]' to parameter of incompatible type 'int **'}}
   f4(x2d, 0);            // expected-warning {{incompatible pointer types passing}}
   f4(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int **'}}
-  f4(mixed_inner_2d, 0); // expected-error {{passing 'int [10]checked[10]' to parameter of incompatible type 'int **'}}
-  f4(mixed_outer_2d, 0); // expected-error {{passing 'single_dim checked[10]' to parameter of incompatible type 'int **'}}
 
   // f5(int (*p)[10], int y);
   f5(x, 0);              // expected-warning {{incompatible pointer types passing}}
   f5(y, 0);              // expected-error {{passing 'int checked[10]' to parameter of incompatible type 'int (*)[10]'}}
   f5(x2d, 0);            // OK
   f5(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int (*)[10]'}}
-  f5(mixed_inner_2d, 0); // expected-error {{passing 'int [10]checked[10]' to parameter of incompatible type 'int (*)[10]'}}
-  f5(mixed_outer_2d, 0); // expected-error {{passing 'single_dim checked[10]' to parameter of incompatible type 'int (*)[10]'}}
 
    // f6(ptr<int[10]>, int y);
   f6(x, 0);              // expected-error {{parameter of incompatible type}}
   f6(y, 0);              // expected-error {{passing 'int checked[10]' to parameter of incompatible type 'ptr<int [10]>'}}
   f6(x2d, 0);            // OK
   f6(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'ptr<int [10]>'}}
-  f6(mixed_inner_2d, 0); // expected-error {{passing 'int [10]checked[10]' to parameter of incompatible type 'ptr<int [10]>'}}
-  f6(mixed_outer_2d, 0); // expected-error {{passing 'single_dim checked[10]' to parameter of incompatible type 'ptr<int [10]>'}}
 
    // f7(array_ptr<int[10]>, int y);
   f7(x, 0);              // expected-error {{parameter of incompatible type}}
   f7(y, 0);              // expected-error {{parameter of incompatible type}}
   f7(x2d, 0);            // OK
   f7(y2d, 0);            // expected-error {{parameter of incompatible type}}
-  f7(mixed_inner_2d, 0); // expected-error {{parameter of incompatible type}}
-  f7(mixed_outer_2d, 0); // OK
 
   // f8(int (*p) checked[10], int y);
   f8(x, 0);              // expected-error {{parameter of incompatible type}}
   f8(y, 0);              // expected-error {{parameter of incompatible type}}
   f8(x2d, 0);            // OK
   f8(y2d, 0);            // expected-error {{parameter of incompatible type}}
-  f8(mixed_inner_2d, 0); // OK
-  f8(mixed_outer_2d, 0); // expected-error {{parameter of incompatible type}}
 
   // f9(ptr<int checked[10]> p, int y);
   f8(x, 0);              // expected-error {{parameter of incompatible type}}
   f8(y, 0);              // expected-error {{parameter of incompatible type}}
   f8(x2d, 0);            // OK
   f8(y2d, 0);            // expected-error {{parameter of incompatible type}}
-  f8(mixed_inner_2d, 0); // OK
-  f8(mixed_outer_2d, 0); // expected-error {{parameter of incompatible type}}
 
   // f10(array_ptr<int checked[10]> p, int y);
   f10(x, 0);              // expected-error {{parameter of incompatible type}}
   f10(y, 0);              // expected-error {{parameter of incompatible type}}
   f10(x2d, 0);            // OK
   f10(y2d, 0);            // OK
-  f10(mixed_inner_2d, 0); // OK
-  f10(mixed_outer_2d, 0); // OK
 
   // f11(int p[10][10], int y);
   f11(x, 0);              // expected-warning {{incompatible pointer types}}
   f11(y, 0);              // expected-error {{parameter of incompatible type}}
   f11(x2d, 0);            // OK
   f11(y2d, 0);            // expected-error {{parameter of incompatible type}}
-  f11(mixed_inner_2d, 0); // expected-error {{parameter of incompatible type}}
-  f11(mixed_outer_2d, 0); // expected-error {{parameter of incompatible type}}
 
   // f12(int p checked[10][10], int y);
   f12(x, 0);              // expected-error {{parameter of incompatible type}}
   f12(y, 0);              // expected-error {{parameter of incompatible type}}
   f12(x2d, 0);            // OK
   f12(y2d, 0);            // OK
-  f12(mixed_inner_2d, 0); // OK
-  f12(mixed_outer_2d, 0); // OK
 
   // f13(_Bool b, int y);
   f13(x, 0);              // OK
   f13(y, 0);              // OK
   f13(x2d, 0);            // OK
   f13(y2d, 0);            // OK
-  f13(mixed_inner_2d, 0); // OK
-  f13(mixed_outer_2d, 0); // OK
 
   // spot check calls where an array is the second argument
   g1(0, x);
