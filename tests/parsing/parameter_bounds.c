@@ -131,7 +131,7 @@ extern void f24(int arr : count(len)) { // expected-error {{use of undeclared id
 
 // Check parsing of a function with lots of arguments.
 extern void f25(int a, int b, int c, int d, float f, int g, int h, int i,
-                int j, int k, int len, int arr : count(len)) {
+                int j, int k, int len, array_ptr<int> arr : count(len)) {
 }
 
 // Misspell bounds to cause a parsing error.
@@ -156,16 +156,16 @@ extern void f29(int len,
 
 //  Bounds expressions with parenthesized subexpressions.
 extern void f30(int len,
-                int arr : bounds(arr, (arr + len))) {
+                array_ptr<int> arr : bounds(arr, (arr + len))) {
 }
 
 extern void f31(int len,
-                int arr : bounds((arr + len - (len)), (arr + len))) {
+                array_ptr<int> arr : bounds((arr + len - (len)), (arr + len))) {
 }
 
 
 extern void f32(int len,
-                int arr : count((len)),
+                array_ptr<int> arr : count((len)),
                 int flag) {
 }
 

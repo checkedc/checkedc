@@ -215,7 +215,7 @@ extern array_ptr<char> f26() : count(len) { // expected-error {{use of undeclare
 }
 
 // Misspell bounds to cause a parsing error.
-extern array_ptr<int> f27(int len,int arr : count(len)) : boounds(arr, arr + len)) { // expected-error {{expected bounds expression}}
+extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len)) { // expected-error {{expected bounds expression}}
   return 0;
 }
 
@@ -225,12 +225,12 @@ extern array_ptr<int> f28(int len) : coount(len) { // expected-error {{expected 
 }
 
 // Omit an argument to bounds to cause a parsing error
-extern array_ptr<int> f29(int len, int arr : count(len)) : bounds(arr)) { // expected-error {{expected ','}}
+extern array_ptr<int> f29(int len, array_ptr<int> arr : count(len)) : bounds(arr)) { // expected-error {{expected ','}}
   return 0;
 }
 
 // Omit both arguments to bounds to cause a parsing error
-extern array_ptr<int> f30(int len, int arr : count(len)) : bounds()) { // expected-error {{expected expression}}
+extern array_ptr<int> f30(int len, array_ptr<int> arr : count(len)) : bounds()) { // expected-error {{expected expression}}
   return 0;
 }
 

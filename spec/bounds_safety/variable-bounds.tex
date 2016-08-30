@@ -75,6 +75,10 @@ In a bounds declaration of the form \boundsdecl{\var{x}}{\var{bounds-exp}},
 \var{x} must have an \arrayptr\ or a checked array type. 
 For the form  \boundsdecl{\var{x}}{\boundscount{\var{e1}}},  the type of 
 \var{x} cannot be \arrayptrvoid\ and the type of \var{e1} must be an integral type. 
+The usual C integer conversions are applied to \var{e1}\footnote{If the 
+type of \var{e1} is a character, a short integer, a bit field, or an enumeration type,
+the expression is promoted to an \keyword{int} type if that is large
+enough to  hold all values of the type or an \keyword{unsigned int} type otherwise.}.
 For \boundsdecl{\var{x}}{\bounds{\var{e1}}{\var{e2}}}, \var{e1} and
 \var{e2} must have the same \arrayptr\ type. The type of x is
 typically the same type as \var{e1} and \var{e2}, but it can be a
@@ -907,7 +911,8 @@ The bounds declaration \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
 describes the number of bytes that are accessible beginning at \var{x}. 
 Only memory that is at or above \var{x} and below \texttt{(\arrayptrchar)}
 \var{x} \texttt{+} \var{e1} can be accessed through \var{x}. The type
-of \var{e1} must be an integral type. This bounds declaration is a synonym for 
+of \var{e1} must be an integral type.  The usual C integer conversions are
+applied to \var{e1}.  This bounds declaration is a synonym for 
 \boundsdecl{\var{x}}
            {\boundsrel{(\arrayptrchar) \var{x}}
                       {(\arrayptrchar) \var{x} \texttt{+} \var{e1}}
