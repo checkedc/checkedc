@@ -101,7 +101,7 @@ extern void f5() {
   auto int arr5 checked[5] : bounds(arr5, arr5 + 5);
   auto int arr6 checked[5] : bounds(arr5, arr5 + len);
 
-  static int cache[5] : count(5);
+  static int cache checked[5] : count(5);
   static array_ptr<int> cache_ptr : bounds(cache - 2, cache + 3);
 }
 
