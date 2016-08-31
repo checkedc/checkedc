@@ -555,7 +555,7 @@ struct s8 {
 };
 
 //
-// Test functionr return bounds declarations.
+// Test function return bounds declarations.
 // 
 
 //
