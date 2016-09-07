@@ -161,6 +161,124 @@ extern void invalid_count_exprs(void) {
 #endif
 }
 
+extern void bounds_exprs(void) {
+   int i[2];
+   // check combinations of different kinds of pointers to the same
+   // object type.
+
+   array_ptr<int> array_ptr_lb = i, array_ptr_ub = i + 1;
+   ptr<int> ptr_lb = i, ptr_ub = i + 1;
+   int *unchecked_ptr_lb = i, *unchecked_ptr_ub = i + 1;
+   array_ptr<int> t1 : bounds(array_ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t2 : bounds(ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t3 : bounds(array_ptr_lb, ptr_ub) = i;
+   array_ptr<int> t4 : bounds(unchecked_ptr_lb, array_ptr_ub);
+   array_ptr<int> t5 : bounds(array_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t6 : bounds(ptr_lb, ptr_ub) = i;
+   array_ptr<int> t7 : bounds(unchecked_ptr_lb, ptr_ub) = i;
+   array_ptr<int> t8 : bounds(ptr_lb, unchecked_ptr_ub) = i;
+   array_ptr<int> t9 : bounds(unchecked_ptr_lb, unchecked_ptr_ub);
+
+   array_ptr<void> void_array_ptr_lb = i, void_array_ptr_ub = i + 1;
+   ptr<void> void_ptr_lb = i, void_ptr_ub = i + 1;
+   void *void_unchecked_ptr_lb = i, *void_unchecked_ptr_ub = i + 1;
+
+   // check combinations of differents kinds of pointers to void
+   array_ptr<int> t21 : bounds(void_array_ptr_lb, void_array_ptr_ub) = i;
+   array_ptr<int> t22 : bounds(void_ptr_lb, void_array_ptr_ub) = i;
+   array_ptr<int> t23 : bounds(void_array_ptr_lb, void_ptr_ub) = i;
+   array_ptr<int> t24 : bounds(void_unchecked_ptr_lb, void_array_ptr_ub);
+   array_ptr<int> t25 : bounds(void_array_ptr_lb, void_unchecked_ptr_ub);
+   array_ptr<int> t26 : bounds(void_ptr_lb, void_ptr_ub) = i;
+   array_ptr<int> t27 : bounds(void_unchecked_ptr_lb, void_ptr_ub) = i;
+   array_ptr<int> t28 : bounds(void_ptr_lb, void_unchecked_ptr_ub) = i;
+   array_ptr<int> t29 : bounds(void_unchecked_ptr_lb, void_unchecked_ptr_ub);
+
+   // check combinations of pointers to void and pointers to non-void types
+
+   array_ptr<int> t42 : bounds(array_ptr_lb, void_array_ptr_ub) = i;
+   array_ptr<int> t43 : bounds(ptr_lb, void_array_ptr_ub) = i;
+   array_ptr<int> t44 : bounds(void_ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t45 : bounds(void_array_ptr_lb, ptr_ub) = i;
+   array_ptr<int> t46 : bounds(array_ptr_lb, void_ptr_ub) = i;
+   array_ptr<int> t47 : bounds(unchecked_ptr_lb, void_array_ptr_ub);
+   array_ptr<int> t48 : bounds(void_unchecked_ptr_lb, array_ptr_ub);
+   array_ptr<int> t49 : bounds(void_array_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t50 : bounds(array_ptr_lb, void_unchecked_ptr_ub);
+
+   array_ptr<int> t51 : bounds(void_ptr_lb, ptr_ub) = i;
+   array_ptr<int> t52 : bounds(ptr_lb, void_ptr_ub) = i;
+   array_ptr<int> t53 : bounds(unchecked_ptr_lb, void_ptr_ub) = i;
+   array_ptr<int> t54 : bounds(void_unchecked_ptr_lb, ptr_ub) = i;
+   array_ptr<int> t55 : bounds(void_ptr_lb, unchecked_ptr_ub) = i;
+   array_ptr<int> t56 : bounds(ptr_lb, void_unchecked_ptr_ub) = i;
+
+   // spot check cases array the value being declared has a different pointer type
+   // than the bounds.
+   array_ptr<char> t71 : bounds(array_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
+   array_ptr<char> t72 : bounds(ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
+   array_ptr<char> t73 : bounds(unchecked_ptr_lb, ptr_ub) = (array_ptr<char>) i;
+   array_ptr<char> t75 : bounds(void_array_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
+   array_ptr<char> t76 : bounds(void_unchecked_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
+   array_ptr<char> t77 : bounds(array_ptr_lb, void_unchecked_ptr_ub) = (array_ptr<char>) i;
+ }
+
+ extern void invalid_bounds_exprs(void) {
+   // test types that should not work as arguments to bounds expressions
+   char c1 = 8;
+   short c2 = 8;
+   int c3 = 8;
+   long int c4 = 8;
+   long long int c5 = 8;
+
+   _Bool c6 = 1;
+   unsigned char c7 = 8;
+   unsigned short c8 = 8;
+   unsigned int c9 = 8;
+   unsigned long int c10 = 8;
+   unsigned long long int c11 = 8;
+
+   float c12 = 8.0;
+   double c13 = 8.0;
+   struct S1 c14 = { 0 };
+   union U1 c15 = { 0 };
+
+   void(*func_ptr)(void) = test_func;
+
+#ifndef __STDC_NO_COMPLEX__
+   float _Complex c17 = 8.0;
+#endif
+
+   array_ptr<int> t1 : bounds(c1, c1) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t2 : bounds(c2, c2) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t3 : bounds(c3, c3) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t4 : bounds(c4, c4) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t5 : bounds(c5, c5) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t6 : bounds(c6, c6) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t7 : bounds(c7, c7) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t8 : bounds(c8, c8) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t9 : bounds(c9, c9) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t10 : bounds(c10, c10) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t11 : bounds(c11, c11) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t12 : bounds(c12, c12) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t13 : bounds(c13, c13) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t14 : bounds(c14, c14) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t15 : bounds(c15, c15) = 0; // expected-error 2 {{expected expression with pointer type}}
+   array_ptr<int> t16 : bounds(test_func, test_func) = 0; // expected-error 2 {{invalid argument type 'void (*)(void)' to bounds expression}}
+
+   // test mismatched bounds expression types
+   int i[2];
+   array_ptr<int> int_array_ptr_lb = i, int_array_ptr_ub = i + 1;
+   ptr<int> int_ptr_lb = i, int_ptr_ub = i + 1;
+   int *int_unchecked_ptr_lb = i, *int_unchecked_ptr_ub = i + 1;
+
+   array_ptr<char> char_array_ptr_lb = (array_ptr<char>) i, char_array_ptr_ub = (array_ptr<char>) i + 1;
+   ptr<char> char_ptr_lb = (ptr<char>) i, char_ptr_ub = (ptr<char>)  (i + 1);
+   int *char_unchecked_ptr_lb = i, *char_unchecked_ptr_ub = i + 1;
+
+   array_ptr<int> t17 : bounds(int_array_ptr_lb, char_array_ptr_ub) = i; // expected-error {{pointer type mismatch}}
+}
+
 //
 // Test type requirements for bounds declarations.   There are various 
 // requirements for the types of variables with bounds declaration.
