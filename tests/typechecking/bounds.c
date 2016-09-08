@@ -274,9 +274,21 @@ extern void bounds_exprs(void) {
 
    array_ptr<char> char_array_ptr_lb = (array_ptr<char>) i, char_array_ptr_ub = (array_ptr<char>) i + 1;
    ptr<char> char_ptr_lb = (ptr<char>) i, char_ptr_ub = (ptr<char>)  (i + 1);
-   int *char_unchecked_ptr_lb = i, *char_unchecked_ptr_ub = i + 1;
+   char *char_unchecked_ptr_lb = (char *) i, *char_unchecked_ptr_ub = (char *) i + 1;
 
-   array_ptr<int> t17 : bounds(int_array_ptr_lb, char_array_ptr_ub) = i; // expected-error {{pointer type mismatch}}
+   array_ptr<int> t20 : bounds(int_array_ptr_lb, char_array_ptr_ub) = i;     // expected-error {{pointer type mismatch}}
+   array_ptr<int> t21 : bounds(int_ptr_lb, char_array_ptr_ub) = i;           // expected-error {{pointer type mismatch}}
+   array_ptr<int> t22 : bounds(int_unchecked_ptr_lb, char_array_ptr_ub) = i; // expected-error {{pointer type mismatch}}
+   array_ptr<char> t23 : bounds(char_array_ptr_lb, int_array_ptr_ub) = (array_ptr<char>) i;     // expected-error {{pointer type mismatch}}
+   array_ptr<char> t24 : bounds(char_ptr_lb, int_array_ptr_ub) = (array_ptr<char>) i;           // expected-error {{pointer type mismatch}}
+   array_ptr<char> t25 : bounds(char_unchecked_ptr_lb, int_array_ptr_ub) = (array_ptr<char>) i; // expected-error {{pointer type mismatch}}
+
+   array_ptr<int> t30 : bounds(int_array_ptr_lb, char_ptr_ub) = i;     // expected-error {{pointer type mismatch}}
+   array_ptr<int> t31 : bounds(int_ptr_lb, char_ptr_ub) = i;           // expected-error {{pointer type mismatch}}
+   array_ptr<int> t32 : bounds(int_unchecked_ptr_lb, char_ptr_ub) = i; // expected-error {{pointer type mismatch}}
+   array_ptr<char> t33 : bounds(char_array_ptr_lb, int_ptr_ub) = (array_ptr<char>) i;     // expected-error {{pointer type mismatch}}
+   array_ptr<char> t34 : bounds(char_ptr_lb, int_ptr_ub) = (array_ptr<char>) i;           // expected-error {{pointer type mismatch}}
+   array_ptr<char> t35 : bounds(char_unchecked_ptr_lb, int_ptr_ub) = (array_ptr<char>) i; // expected-error {{pointer type mismatch}}
 }
 
 //
