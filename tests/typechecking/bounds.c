@@ -221,6 +221,25 @@ extern void bounds_exprs(void) {
    array_ptr<char> t75 : bounds(void_array_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
    array_ptr<char> t76 : bounds(void_unchecked_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
    array_ptr<char> t77 : bounds(array_ptr_lb, void_unchecked_ptr_ub) = (array_ptr<char>) i;
+
+   // spot check that typechecking looks through typedefs
+   typedef array_ptr<int> int_array_ptr;
+   typedef ptr<int> int_ptr;
+   typedef int *int_unchecked_ptr;
+
+   int_array_ptr typedef_array_ptr_lb = i, typedef_array_ptr_ub = i + 1;
+   int_ptr typedef_ptr_lb = i, typedef_ptr_ub = i + 1;
+   int_unchecked_ptr typedef_unchecked_ptr_lb = i, typedef_unchecked_ptr_ub = i + 1;
+
+   array_ptr<int> t91 : bounds(typedef_array_ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t92 : bounds(ptr_lb, typedef_array_ptr_ub) = i;
+   array_ptr<int> t93 : bounds(array_ptr_lb, typedef_ptr_ub) = i;
+   array_ptr<int> t94 : bounds(typedef_unchecked_ptr_lb, array_ptr_ub);
+   array_ptr<int> t95 : bounds(typedef_array_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t96 : bounds(typedef_ptr_lb, ptr_ub) = i;
+   array_ptr<int> t97 : bounds(unchecked_ptr_lb, typedef_ptr_ub) = i;
+   array_ptr<int> t98 : bounds(ptr_lb, typedef_unchecked_ptr_ub) = i;
+   array_ptr<int> t99 : bounds(typedef_unchecked_ptr_lb, unchecked_ptr_ub);
  }
 
  extern void invalid_bounds_exprs(void) {
