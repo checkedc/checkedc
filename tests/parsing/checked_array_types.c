@@ -16,6 +16,8 @@
 // parameter have new checked array types
 //
 
+#include "../../include/stdchecked.h"
+
 extern void f1(int a checked[], int y) {
 }
 

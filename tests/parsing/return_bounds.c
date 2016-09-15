@@ -5,6 +5,8 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
+#include "../../include/stdchecked.h"
+
 // Parsing of function declarations
 extern array_ptr<void> alloc(unsigned size) : byte_count(size);
 extern array_ptr<int> f2(array_ptr<int> arr : count(5)) : count(3 + 2);
