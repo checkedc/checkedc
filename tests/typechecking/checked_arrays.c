@@ -103,12 +103,12 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   int *t16 = s2d[0];     // expected-error {{expression of incompatible type 'int checked[10]'}}
   int *t17 = t2d[0];
   int *t18 = u2d[0];     // expected-error {{expression of incompatible type 'int checked[10]'}}
-  int(*t19)[10] = s2d;   // expected-error {{expression of incompatible type 'array_ptr<int checked[10]>'}}
+  int(*t19)[10] = s2d;   // expected-error {{expression of incompatible type '_Array_ptr<int checked[10]>'}}
                          // assignment of checked array to unchecked array not allowed
   int (*t20)[10] = t2d;
   int (*t21)[10] = u2d;  // expected-error {{expression of incompatible type 'int checked[10][10]'}}
                          // assignment of checked array to unchecked array not allowed
-  array_ptr<int[10]> t22 = s2d; // expected-error {{expression of incompatible type 'array_ptr<int checked[10]>'}}
+  array_ptr<int[10]> t22 = s2d; // expected-error {{expression of incompatible type '_Array_ptr<int checked[10]>'}}
                                 // assignment of checked to unchecked not allowed
   array_ptr<int[10]> t23 = t2d;
   array_ptr<int[10]> t24 = u2d; // expected-error {{expression of incompatible type 'int checked[10][10]'}}
@@ -124,7 +124,7 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   r = s;
   s = r;
   r = t;
-  p = r;  // expected-error {{assigning to 'int *' from incompatible type 'array_ptr<int>'}}
+  p = r;  // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
           // assignment of checked pointer to unchecked pointer not allowed
 
   // Assignments to array-typed local and global variables are not allowed
@@ -635,7 +635,7 @@ extern void check_call() {
   f3(x, 0);
   f3(y, 0);
   f3(x2d, 0);            // expected-error {{parameter of incompatible type}}
-  f3(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'array_ptr<int>'}}
+  f3(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type '_Array_ptr<int>'}}
 
   // f4(int **p, int y);
   f4(x, 0);              // expected-warning {{incompatible pointer types passing}}
@@ -651,9 +651,9 @@ extern void check_call() {
 
    // f6(ptr<int[10]>, int y);
   f6(x, 0);              // expected-error {{parameter of incompatible type}}
-  f6(y, 0);              // expected-error {{passing 'int checked[10]' to parameter of incompatible type 'ptr<int [10]>'}}
+  f6(y, 0);              // expected-error {{passing 'int checked[10]' to parameter of incompatible type '_Ptr<int [10]>'}}
   f6(x2d, 0);            // OK
-  f6(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'ptr<int [10]>'}}
+  f6(y2d, 0);            // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type '_Ptr<int [10]>'}}
 
    // f7(array_ptr<int[10]>, int y);
   f7(x, 0);              // expected-error {{parameter of incompatible type}}

@@ -36,14 +36,14 @@ extern void check_subscript_unsafe_ptr(int *p, int y) {
 }
 
 extern void check_subscript_ptr(ptr<int> p, ptr<const int> p_const, int y) {
-   p[0] = y;  // expected-error {{subscript of 'ptr<int>'}}
-   y = p[0];  // expected-error {{subscript of 'ptr<int>'}}
-   0[p] = y;  // expected-error {{subscript of 'ptr<int>'}}
-   y = 0[p];  // expected-error {{subscript of 'ptr<int>'}}
-   p_const[0] = y;  // expected-error {{subscript of 'ptr<const int>'}}
-   y = p_const[0];  // expected-error {{subscript of 'ptr<const int>'}}
-   0[p_const] = y;  // expected-error {{subscript of 'ptr<const int>'}}
-   y = 0[p_const];  // expected-error {{subscript of 'ptr<const int>'}}
+   p[0] = y;  // expected-error {{subscript of '_Ptr<int>'}}
+   y = p[0];  // expected-error {{subscript of '_Ptr<int>'}}
+   0[p] = y;  // expected-error {{subscript of '_Ptr<int>'}}
+   y = 0[p];  // expected-error {{subscript of '_Ptr<int>'}}
+   p_const[0] = y;  // expected-error {{subscript of '_Ptr<const int>'}}
+   y = p_const[0];  // expected-error {{subscript of '_Ptr<const int>'}}
+   0[p_const] = y;  // expected-error {{subscript of '_Ptr<const int>'}}
+   y = 0[p_const];  // expected-error {{subscript of '_Ptr<const int>'}}
 }
 
 extern void check_subscript_array_ptr(array_ptr<int> p, array_ptr<const int> p_const, int y) {
@@ -982,23 +982,23 @@ void check_pointer_arithmetic()
    p_tmp = p - 0;
    p_tmp = 0 - p;  // expected-error {{invalid operands to binary expression}}
 
-   q + 5;  // expected-error {{arithmetic on ptr type}}
-   5 + q;  // expected-error {{arithmetic on ptr type}}
-   q++;    // expected-error {{arithmetic on ptr type}}
-   q--;    // expected-error {{arithmetic on ptr type}}
-   ++q;    // expected-error {{arithmetic on ptr type}}
-   --q;    // expected-error {{arithmetic on ptr type}}
-   q += 1; // expected-error {{arithmetic on ptr type}}
-   q -= 1; // expected-error {{arithmetic on ptr type}}
+   q + 5;  // expected-error {{arithmetic on _Ptr type}}
+   5 + q;  // expected-error {{arithmetic on _Ptr type}}
+   q++;    // expected-error {{arithmetic on _Ptr type}}
+   q--;    // expected-error {{arithmetic on _Ptr type}}
+   ++q;    // expected-error {{arithmetic on _Ptr type}}
+   --q;    // expected-error {{arithmetic on _Ptr type}}
+   q += 1; // expected-error {{arithmetic on _Ptr type}}
+   q -= 1; // expected-error {{arithmetic on _Ptr type}}
 
-   q_void + 5;  // expected-error {{arithmetic on ptr type}}
-   5 + q_void;  // expected-error {{arithmetic on ptr type}}
-   q_void++;    // expected-error {{arithmetic on ptr type}}
-   q_void--;    // expected-error {{arithmetic on ptr type}}
-   ++q_void;    // expected-error {{arithmetic on ptr type}} 
-   --q_void;    // expected-error {{arithmetic on ptr type}}
-   q_void += 1; // expected-error {{arithmetic on ptr type}}
-   q_void -= 1; // expected-error {{arithmetic on ptr type}}
+   q_void + 5;  // expected-error {{arithmetic on _Ptr type}}
+   5 + q_void;  // expected-error {{arithmetic on _Ptr type}}
+   q_void++;    // expected-error {{arithmetic on _Ptr type}}
+   q_void--;    // expected-error {{arithmetic on _Ptr type}}
+   ++q_void;    // expected-error {{arithmetic on _Ptr type}}
+   --q_void;    // expected-error {{arithmetic on _Ptr type}}
+   q_void += 1; // expected-error {{arithmetic on _Ptr type}}
+   q_void -= 1; // expected-error {{arithmetic on _Ptr type}}
 
    r_tmp = r + 5;
    r_tmp = 5 + r;
