@@ -4,6 +4,8 @@
 // RUN: %clang_cc1 -fcheckedc-extension -Wno-unused-value -Wno-pointer-bool-conversion -verify -verify-ignore-unexpected=note %s
 //
 
+#include "../../include/stdchecked.h"
+
 extern void check_indirection_unchecked(int p[10], const int const_p[10], int y) {
   *p = y;
   y = *p;

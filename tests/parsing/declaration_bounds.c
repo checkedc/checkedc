@@ -4,6 +4,7 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
+#include "../../include/stdchecked.h"
 
 // Top level declarations with different storage classes and
 // storage classes omitted.

@@ -4,6 +4,8 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
+#include "../../include/stdchecked.h"
+
 extern void f1(array_ptr<int> arr : count(5)) {
 }
 

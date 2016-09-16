@@ -13,6 +13,7 @@
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 // expected-no-diagnostics
 
+#include "../../include/stdchecked.h"
 
 //
 // parameter have new pointer types
