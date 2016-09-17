@@ -470,7 +470,7 @@ double g50 : count(5) = 0;          // expected-error {{expected 'g50' to have a
 struct S1 g51 : count(5) = { 0 };   // expected-error {{expected 'g51' to have a pointer or array type}}
 union U1 g52 : count(5) = { 0 };    // expected-error {{expected 'g52' to have a pointer or array type}}
 enum E1 g53 : count(5) = EnumVal1;  // expected-error {{expected 'g53' to have a pointer or array type}}
-ptr<int> g54: count(1) = 0;         // expected-error {{bounds declaration not allowed because 'g54' has a ptr type}}
+ptr<int> g54: count(1) = 0;         // expected-error {{bounds declaration not allowed because 'g54' has a _Ptr type}}
 array_ptr<void> g55 : count(1) = 0; // expected-error {{expected 'g55' to have a non-void pointer type}}
 void((*g56)(void)) : count(1);      // expected-error {{bounds declaration not allowed because 'g56' has a function pointer type}}
 
@@ -479,7 +479,7 @@ float g60 : byte_count(8);             // expected-error {{expected 'g60' to hav
 double g61 : byte_count(8);            // expected-error {{expected 'g61' to have a pointer, array, or integer type}}
 struct S1 g62 : byte_count(8) = { 0 }; // expected-error {{expected 'g62' to have a pointer, array, or integer type}}
 union U1 g63 : byte_count(8) = { 0 };  // expected-error {{expected 'g63' to have a pointer, array, or integer type}}
-ptr<int> g64 : byte_count(8) = 0;      // expected-error {{bounds declaration not allowed because 'g64' has a ptr type}}
+ptr<int> g64 : byte_count(8) = 0;      // expected-error {{bounds declaration not allowed because 'g64' has a _Ptr type}}
 void((*g65)(void)) : byte_count(1);    // expected-error {{bounds declaration not allowed because 'g65' has a function pointer type}}
 
 // bounds
@@ -487,7 +487,7 @@ float g70 : bounds(s1, s1 + 1);             // expected-error {{expected 'g70' t
 double g71 : bounds(s1, s1 + 1);            // expected-error {{expected 'g71' to have a pointer, array, or integer type}}
 struct S1 g72 : bounds(s1, s1 + 1) = { 0 }; // expected-error {{expected 'g72' to have a pointer, array, or integer type}}
 union U1 g73 : bounds(s1, s1 + 1) = { 0 };  // expected-error {{expected 'g73' to have a pointer, array, or integer type}}
-ptr<int> g74 : bounds(s1, s1 + 1) = 0;      // expected-error {{bounds declaration not allowed because 'g74' has a ptr type}}
+ptr<int> g74 : bounds(s1, s1 + 1) = 0;      // expected-error {{bounds declaration not allowed because 'g74' has a _Ptr type}}
 void((*g75)(void)) : bounds(s1, s1 + 1);    // expected-error {{bounds declaration not allowed because 'g75' has a function pointer type}}
 
 //
@@ -553,11 +553,11 @@ void invalid_local_var_bounds_decl(void)
   struct S1 t51 : count(5) = { 0 };  // expected-error {{expected 't51' to have a pointer or array type}}
   union U1 t52 : count(5) = { 0 };   // expected-error {{expected 't52' to have a pointer or array type}}
   enum E1 t53 : count(5) = EnumVal1; // expected-error {{expected 't53' to have a pointer or array type}}
-  ptr<int> t54 : count(1) = 0;       // expected-error {{bounds declaration not allowed because 't54' has a ptr type}}
+  ptr<int> t54 : count(1) = 0;       // expected-error {{bounds declaration not allowed because 't54' has a _Ptr type}}
   array_ptr<void> t55 : count(1) = 0; // expected-error {{expected 't55' to have a non-void pointer type}}
   void((*t56)(void)) : count(1);      // expected-error {{bounds declaration not allowed because 't56' has a function pointer type}}
 
-  int *t57 : count(1) = 0;          // expected-error {{expected local variable 't57' to have array_ptr type}}
+  int *t57 : count(1) = 0;          // expected-error {{expected local variable 't57' to have _Array_ptr type}}
   int t58[5] : count(5);            // expected-error {{expected local variable 't58' to have checked array type}}
 
   // byte_count
@@ -565,10 +565,10 @@ void invalid_local_var_bounds_decl(void)
   double t61 : byte_count(8);                 // expected-error {{expected 't61' to have a pointer, array, or integer type}}
   struct S1 t62 : byte_count(8) = { 0 };      // expected-error {{expected 't62' to have a pointer, array, or integer type}}
   union U1 t63 : byte_count(8) = { 0 };       // expected-error {{expected 't63' to have a pointer, array, or integer type}}
-  ptr<int> t64 : byte_count(sizeof(int)) = 0; // expected-error {{bounds declaration not allowed because 't64' has a ptr type}}
+  ptr<int> t64 : byte_count(sizeof(int)) = 0; // expected-error {{bounds declaration not allowed because 't64' has a _Ptr type}}
   void((*t65)(void)) : byte_count(1);         // expected-error {{bounds declaration not allowed because 't65' has a function pointer type}}
 
-  int *t67 : byte_count(sizeof(int)) = 0;     // expected-error {{expected local variable 't67' to have array_ptr type}}
+  int *t67 : byte_count(sizeof(int)) = 0;     // expected-error {{expected local variable 't67' to have _Array_ptr type}}
   int t68[5] : byte_count(5 * sizeof(int));   // expected-error {{expected local variable 't68' to have checked array type}}
 
   // bounds
@@ -576,10 +576,10 @@ void invalid_local_var_bounds_decl(void)
   double t71 : bounds(arr, arr + 1);            // expected-error {{expected 't71' to have a pointer, array, or integer type}}
   struct S1 t72 : bounds(arr, arr + 1) = { 0 }; // expected-error {{expected 't72' to have a pointer, array, or integer type}}
   union U1 t73 : bounds(arr, arr + 1) = { 0 };  // expected-error {{expected 't73' to have a pointer, array, or integer type}}
-  ptr<int> t74 : bounds(arr, arr + 1) = 0;      // expected-error {{bounds declaration not allowed because 't74' has a ptr type}}
+  ptr<int> t74 : bounds(arr, arr + 1) = 0;      // expected-error {{bounds declaration not allowed because 't74' has a _Ptr type}}
   void((*t75)(void)) : bounds(arr, arr + 1);    // expected-error {{bounds declaration not allowed because 't75' has a function pointer type}}
 
-  int *t78 : bounds(arr, arr + 1) = 0;          // expected-error {{expected local variable 't78' to have array_ptr type}}
+  int *t78 : bounds(arr, arr + 1) = 0;          // expected-error {{expected local variable 't78' to have _Array_ptr type}}
   int t79[5] : bounds(arr, arr + 1);            // expected-error {{expected local variable 't79' to have checked array type}}
 }
 
@@ -647,7 +647,7 @@ void invalid_param_var_bounds_decl(
   struct S1 t51 : count(5),      // expected-error {{expected 't51' to have a pointer or array type}}
   union U1 t52 : count(5),       // expected-error {{expected 't52' to have a pointer or array type}}
   enum E1 t53 : count(5),        // expected-error {{expected 't53' to have a pointer or array type}}
-  ptr<int> t54: count(1),        // expected-error {{bounds declaration not allowed because 't54' has a ptr type}}
+  ptr<int> t54: count(1),        // expected-error {{bounds declaration not allowed because 't54' has a _Ptr type}}
   array_ptr<void> t55 : count(1), // expected-error {{expected 't55' to have a non-void pointer type}}
   void((*t56)(void)) : count(1),  // expected-error {{bounds declaration not allowed because 't56' has a function pointer type}}
 
@@ -656,7 +656,7 @@ void invalid_param_var_bounds_decl(
   double t61 : byte_count(8),        // expected-error {{expected 't61' to have a pointer, array, or integer type}}
   struct S1 t62 : byte_count(8),     // expected-error {{expected 't62' to have a pointer, array, or integer type}}
   union U1 t63 : byte_count(8),      // expected-error {{expected 't63' to have a pointer, array, or integer type}}
-  ptr<int> t64 : byte_count(8),      // expected-error {{bounds declaration not allowed because 't64' has a ptr type}}
+  ptr<int> t64 : byte_count(8),      // expected-error {{bounds declaration not allowed because 't64' has a _Ptr type}}
   void((*t65)(void)) : byte_count(1),// expected-error {{bounds declaration not allowed because 't65' has a function pointer type}}
 
   // bounds
@@ -664,7 +664,7 @@ void invalid_param_var_bounds_decl(
   double t71 : bounds(s1, s1 + 1),         // expected-error {{expected 't71' to have a pointer, array, or integer type}}
   struct S1 t72 : bounds(s1, s1 + 1),      // expected-error {{expected 't72' to have a pointer, array, or integer type}}
   union U1 t73 : bounds(s1, s1 + 1),       // expected-error {{expected 't73' to have a pointer, array, or integer type}}
-  ptr<int> t74 : bounds(s1, s1 + 1),       // expected-error {{bounds declaration not allowed because 't74' has a ptr type}}
+  ptr<int> t74 : bounds(s1, s1 + 1),       // expected-error {{bounds declaration not allowed because 't74' has a _Ptr type}}
   void((*t75)(void)) : bounds(s1, s1 + 1) // expected-error {{bounds declaration not allowed because 't75' has a function pointer type}}
   )
 {
@@ -750,7 +750,7 @@ struct s8 {
   struct S1 g51 : count(5);       // expected-error {{expected 'g51' to have a pointer or array type}}
   union U1 g52 : count(5);        // expected-error {{expected 'g52' to have a pointer or array type}}
   enum E1 g53 : count(5);         // expected-error {{expected 'g53' to have a pointer or array type}}
-  ptr<int> g54: count(1);         // expected-error {{bounds declaration not allowed because 'g54' has a ptr type}}
+  ptr<int> g54: count(1);         // expected-error {{bounds declaration not allowed because 'g54' has a _Ptr type}}
   array_ptr<void> g55 : count(1); // expected-error {{expected 'g55' to have a non-void pointer type}}
   void((*g56)(void)) : count(1);  // expected-error {{bounds declaration not allowed because 'g56' has a function pointer type}}
 
@@ -759,7 +759,7 @@ struct s8 {
   double g61 : byte_count(8);     // expected-error {{expected 'g61' to have a pointer, array, or integer type}}
   struct S1 g62 : byte_count(8);  // expected-error {{expected 'g62' to have a pointer, array, or integer type}}
   union U1 g63 : byte_count(8);   // expected-error {{expected 'g63' to have a pointer, array, or integer type}}
-  ptr<int> g64 : byte_count(8);   // expected-error {{bounds declaration not allowed because 'g64' has a ptr type}}
+  ptr<int> g64 : byte_count(8);   // expected-error {{bounds declaration not allowed because 'g64' has a _Ptr type}}
   void((*g65)(void)) : byte_count(1);    // expected-error {{bounds declaration not allowed because 'g65' has a function pointer type}}
 
   // bounds
@@ -767,7 +767,7 @@ struct s8 {
   double g71 : bounds(s1, s1 + 1);         // expected-error {{expected 'g71' to have a pointer, array, or integer type}}
   struct S1 g72 : bounds(s1, s1 + 1);      // expected-error {{expected 'g72' to have a pointer, array, or integer type}}
   union U1 g73 : bounds(s1, s1 + 1);       // expected-error {{expected 'g73' to have a pointer, array, or integer type}}
-  ptr<int> g74 : bounds(s1, s1 + 1);       // expected-error {{bounds declaration not allowed because 'g74' has a ptr type}}
+  ptr<int> g74 : bounds(s1, s1 + 1);       // expected-error {{bounds declaration not allowed because 'g74' has a _Ptr type}}
   void((*g75)(void)) : bounds(s1, s1 + 1); // expected-error {{bounds declaration not allowed because 'g75' has a function pointer type}}
 };
 
@@ -825,25 +825,25 @@ double fn50() : count(5);       // expected-error {{expected 'fn50' to have a po
 struct S1 fn51() : count(5);    // expected-error {{expected 'fn51' to have a pointer or array return type}}
 union U1 fn52() : count(5);     // expected-error {{expected 'fn52' to have a pointer or array return type}}
 enum E1 fn53() : count(5);      // expected-error {{expected 'fn53' to have a pointer or array return type}}
-ptr<int> fn54() : count(1);     // expected-error {{bounds declaration not allowed because 'fn54' has a ptr return type}}
+ptr<int> fn54() : count(1);     // expected-error {{bounds declaration not allowed because 'fn54' has a _Ptr return type}}
 array_ptr<void> fn55() : count(1);     // expected-error {{expected 'fn55' to have a non-void pointer return type}}
 void (*fn56(void) : count(1))(int);    // expected-error {{bounds declaration not allowed because 'fn56' has a function pointer return type}}
-ptr<void(int)> fn57(void) : count(1); // expected-error {{bounds declaration not allowed because 'fn57' has a ptr return type}}
+ptr<void(int)> fn57(void) : count(1); // expected-error {{bounds declaration not allowed because 'fn57' has a _Ptr return type}}
 
 // byte_count
 float fn60() : byte_count(8);     // expected-error {{expected 'fn60' to have a pointer, array, or integer return type}}
 double fn61() : byte_count(8);    // expected-error {{expected 'fn61' to have a pointer, array, or integer return type}}
 struct S1 fn62() : byte_count(8); // expected-error {{expected 'fn62' to have a pointer, array, or integer return type}}
 union U1 fn63() : byte_count(8);  // expected-error {{expected 'fn63' to have a pointer, array, or integer return type}}
-ptr<int> fn64() : byte_count(sizeof(int)); // expected-error {{bounds declaration not allowed because 'fn64' has a ptr return type}}
+ptr<int> fn64() : byte_count(sizeof(int)); // expected-error {{bounds declaration not allowed because 'fn64' has a _Ptr return type}}
 void (*fn65(void) : byte_count(1))(int);   // expected-error {{bounds declaration not allowed because 'fn65' has a function pointer return type}}
-ptr<void(int)> fn66(void) : byte_count(1); // expected-error {{bounds declaration not allowed because 'fn66' has a ptr return type}}
+ptr<void(int)> fn66(void) : byte_count(1); // expected-error {{bounds declaration not allowed because 'fn66' has a _Ptr return type}}
 
 // bounds
 float fn70() : bounds(s1, s1 + 1);      // expected-error {{expected 'fn70' to have a pointer, array, or integer return type}}
 double fn71() : bounds(s1, s1 + 1);     // expected-error {{expected 'fn71' to have a pointer, array, or integer return type}}
 struct S1 fn72() : bounds(s1, s1 + 1);  // expected-error {{expected 'fn72' to have a pointer, array, or integer return type}}
 union U1 fn73() : bounds(s1, s1 + 1);   // expected-error {{expected 'fn73' to have a pointer, array, or integer return type}}
-ptr<int> fn74() : bounds(s1, s1 + 1);   // expected-error {{bounds declaration not allowed because 'fn74' has a ptr return type}}
+ptr<int> fn74() : bounds(s1, s1 + 1);   // expected-error {{bounds declaration not allowed because 'fn74' has a _Ptr return type}}
 void (*fn75(void) : bounds(s1, s1 + 1))(int);  // expected-error {{bounds declaration not allowed because 'fn75' has a function pointer return type}}
-ptr<void(int)> fn76(void) : bounds(s1, s1 + 1);  // expected-error {{bounds declaration not allowed because 'fn76' has a ptr return type}}
+ptr<void(int)> fn76(void) : bounds(s1, s1 + 1);  // expected-error {{bounds declaration not allowed because 'fn76' has a _Ptr return type}}
