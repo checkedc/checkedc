@@ -14,7 +14,7 @@
 //
 //
 
-void f1(int *p : type(ptr<int>)) {
+void f1(int *p : itype(ptr<int>)) {
 }
 
 void f2(int *p : count(len), int len) {
@@ -29,7 +29,7 @@ void f4(int *p : bounds(p, p + len), int len) {
 // void * parameters with interop declarations.  Note that count bounds
 // expressions are not allowed for void * pointers because they don't
 // make sense.
-void f1_void(void *p : type(ptr<void>)) {
+void f1_void(void *p : itype(ptr<void>)) {
 }
 
 void f3_void(void *p : byte_count(len * sizeof(int)), int len) {
@@ -145,7 +145,7 @@ void g14(array_ptr<const int> ap : count(len), int len) {
 //
 //
 
-int *g15(ptr<int> p) : type(ptr<int>) {
+int *g15(ptr<int> p) : itype(ptr<int>) {
   return p;  // expected-error {{incompatible result type}}
 }
 
@@ -168,11 +168,11 @@ void *g18(array_ptr<int> p : count(10)) : byte_count(10 * sizeof(int)) {
 //
 //
 
-int *v1 : type(ptr<int>) = 0;
+int *v1 : itype(ptr<int>) = 0;
 int *v2 : count(10) = 0;
 int *v3 : byte_count(10 * sizeof(int)) = 0;
 int *v4 : bounds(v4, v4 + 10) = 0;
-void *v1_void : type(ptr<void>);
+void *v1_void : itype(ptr<void>);
 void *v3_void : byte_count(10 * sizeof(int)) = 0;
 void *v4_void : bounds(v4_void, (char *) v4_void + 10 * sizeof(int)) = 0;
 
@@ -230,12 +230,12 @@ void g27(array_ptr<void> ap : byte_count(10 * sizeof(int))) {
 }
 
 // Check that type qualifiers on pointer referent values work as expected.
-const int *const_v1 : type(ptr<int>) = 0;
+const int *const_v1 : itype(ptr<int>) = 0;
 const int *const_v2 : count(10) = 0;
 const int *const_v3 : byte_count(10 * sizeof(int)) = 0;
 const int *const_v4 : bounds(v4, v4 + 10) = 0;
 
-int *const v1_const : type(ptr<int>) = 0;
+int *const v1_const : itype(ptr<int>) = 0;
 int *const v2_const : count(10) = 0;
 int *const v3_const : byte_count(10 * sizeof(int)) = 0;
 int *const v4_const : bounds(v4, v4 + 10) = 0;
@@ -283,14 +283,14 @@ void g35(array_ptr<int> ap : count(10)) {
 //
 
 struct S1 {
-  int *pint : type(ptr<int>);
+  int *pint : itype(ptr<int>);
   int *arr1 : count(10);
   int *arr2 : byte_count(10 * sizeof(int));
   int *arr3 : bounds(arr3, arr3 + 10);
 };
 
 struct S1_void {
-  void *pint : type(ptr<void>);
+  void *pint : itype(ptr<void>);
   void *arr2 : byte_count(10 * sizeof(int));
   void *arr3 : bounds(arr3, (char *) arr3 + 10 * sizeof(int));
 };
@@ -335,7 +335,7 @@ void g44(ptr<struct S1_void> p, ptr<void> p1, array_ptr<void> p2 : byte_count(10
 // Check that type qualifiers work as expected.
 
 struct S2 {
-  const int *pint : type(ptr<int>);
+  const int *pint : itype(ptr<int>);
   const int *arr1 : count(10);
   const int *arr2 : byte_count(10 * sizeof(int));
   const int *arr3 : bounds(arr3, arr3 + 10);
@@ -358,7 +358,7 @@ void g46(ptr<struct S1> p, ptr<const int> p1, array_ptr<const int> p2 : count(10
 }
 
 struct S3 {
-  int *const pint : type(ptr<int>);
+  int *const pint : itype(ptr<int>);
   int *const arr1 : count(10);
   int *const arr2 : byte_count(10 * sizeof(int));
   int *const arr3 : bounds(arr3, arr3 + 10);
