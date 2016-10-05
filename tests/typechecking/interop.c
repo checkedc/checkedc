@@ -1,4 +1,4 @@
-// Feature tests of typechecking pf uses of Checked C interoperation
+// Feature tests of typechecking of uses of Checked C interoperation
 // declarations.
 //
 // The following lines are for the LLVM test harness:
@@ -26,27 +26,191 @@ void f3(int *p : byte_count(len * sizeof(int)), int len) {
 void f4(int *p : bounds(p, p + len), int len) {
 }
 
+// single-dimensional array parameters
+void f1_complete_arr(int a[10] : itype(int checked[10])) {
+}
+
+void f2_complete_arr(int p[10] : count(10)) {
+}
+
+void f3_complete_arr(int p[10] : byte_count(10 * sizeof(int))) {
+}
+
+void f4_complete_arr(int p[10] : bounds(p, p + 10)) {
+}
+
+void f1_incomplete_arr(int a[] : itype(int checked[])) {
+}
+
+void f2_incomplete_arr(int p[] : count(len), int len) {
+}
+
+void f3_incomplete_arr(int p[] : byte_count(len * sizeof(int)), int len) {
+}
+
+void f4_incomplete_arr(int p[] : bounds(p, p + len), int len) {
+}
+
+// multi-dimensional array parameters
+void f1_complete_md_arr(int a[10][10] : itype(int checked[10][10])) {
+}
+
+void f2_complete_md_arr(int p[10][10] : count(10)) {
+}
+
+void f3_complete_md_arr(int p[10][10] : byte_count(10 * sizeof(int [10]))) {
+}
+
+void f4_complete_md_arr(int p[10][10] : bounds(p, p + 10)) {
+}
+
+void f1_incomplete_md_arr(int a[][10] : itype(int checked[][10])) {
+}
+
+void f2_incomplete_md_arr(int p[][10] : count(len), int len) {
+}
+
+void f3_incomplete_md_arr(int p[][10] : byte_count(len * sizeof(int[10])), int len) {
+}
+
+void f4_incomplete_md_arr(int p[][10] : bounds(p, p + len), int len) {
+}
+
 // void * parameters with interop declarations.  Note that count bounds
 // expressions are not allowed for void * pointers because they don't
 // make sense.
 void f1_void(void *p : itype(ptr<void>)) {
 }
 
+void f2_void(void *p : count(len), int len) { // expected-error {{expected 'p' to have a non-void pointer type}}
+}
+
 void f3_void(void *p : byte_count(len * sizeof(int)), int len) {
 }
 
-void f4_void(void *p : bounds(p, (char *) p + len), int len) {
+void f4_void(void *p : bounds(p, (char *)p + len), int len) {
 }
-
 
 void g1(ptr<int> p) {
   f1(p);
 }
 
+// Test typechecking of calls where the called function has a bounds-safe interface.
+
 void g2(array_ptr<int> ap : count(len), int len) {
    f2(ap, len);
    f3(ap, len);
    f4(ap, len);
+
+   if (len >= 10) {
+     f1_complete_arr(ap);
+     f2_complete_arr(ap);
+     f3_complete_arr(ap);
+     f4_complete_arr(ap);
+   }
+
+   f1_incomplete_arr(ap);
+   f2_incomplete_arr(ap, len);
+   f3_incomplete_arr(ap, len);
+   f4_incomplete_arr(ap, len);
+
+}
+
+void g2_incomplete_array_param(int ap checked[] : count(len), int len) {
+  f1_incomplete_arr(ap);
+  f2_incomplete_arr(ap, len);
+  f3_incomplete_arr(ap, len);
+  f4_incomplete_arr(ap, len);
+
+  if (len >= 10) {
+    f1_complete_arr(ap);
+    f2_complete_arr(ap);
+    f3_complete_arr(ap);
+    f4_complete_arr(ap);
+  }
+}
+
+void g2_complete_array_param(int ap checked[10]) {
+  f1_complete_arr(ap);
+  f2_complete_arr(ap);
+  f3_complete_arr(ap);
+  f4_complete_arr(ap);
+
+  f1_incomplete_arr(ap);
+  f2_incomplete_arr(ap, 10);
+  f3_incomplete_arr(ap, 10);
+  f4_incomplete_arr(ap, 10);
+}
+
+void g2_complete_array_arg() {
+  int arr checked[10];
+
+  f1_complete_arr(arr);
+  f2_complete_arr(arr);
+  f3_complete_arr(arr);
+  f4_complete_arr(arr);
+
+  f1_incomplete_arr(arr);
+  f2_incomplete_arr(arr, 10);
+  f3_incomplete_arr(arr, 10);
+  f4_incomplete_arr(arr, 10);
+}
+
+// Test passing multi-diemensional arrays through bounds-safe 
+// interfaces.
+void g2_md(array_ptr<int checked[10]> ap : count(len), int len) {
+  if (len >= 10) {
+    f1_complete_md_arr(ap);
+    f2_complete_md_arr(ap);
+    f3_complete_md_arr(ap);
+    f4_complete_md_arr(ap);
+  }
+
+  f1_incomplete_md_arr(ap);
+  f2_incomplete_md_arr(ap, len);
+  f3_incomplete_md_arr(ap, len);
+  f4_incomplete_md_arr(ap, len);
+
+}
+
+void g2_incomplete_md_array_param(int ap checked[][10] : count(len), int len) {
+  f1_incomplete_md_arr(ap);
+  f2_incomplete_md_arr(ap, len);
+  f3_incomplete_md_arr(ap, len);
+  f4_incomplete_md_arr(ap, len);
+
+  if (len >= 10) {
+    f1_complete_md_arr(ap);
+    f2_complete_md_arr(ap);
+    f3_complete_md_arr(ap);
+    f4_complete_md_arr(ap);
+  }
+}
+
+void g2_complete_md_array_param(int ap checked[10][10]) {
+  f1_complete_md_arr(ap);
+  f2_complete_md_arr(ap);
+  f3_complete_md_arr(ap);
+  f4_complete_md_arr(ap);
+
+  f1_incomplete_md_arr(ap);
+  f2_incomplete_md_arr(ap, 10);
+  f3_incomplete_md_arr(ap, 10);
+  f4_incomplete_md_arr(ap, 10);
+}
+
+void g2_complete_md_array_arg() {
+  int arr checked[10][10];
+
+  f1_complete_md_arr(arr);
+  f2_complete_md_arr(arr);
+  f3_complete_md_arr(arr);
+  f4_complete_md_arr(arr);
+
+  f1_incomplete_md_arr(arr);
+  f2_incomplete_md_arr(arr, 10);
+  f3_incomplete_md_arr(arr, 10);
+  f4_incomplete_md_arr(arr, 10);
 }
 
 // Referent pointer types without any qualifiers must match.
@@ -85,10 +249,9 @@ void g8(array_ptr<void> ap : byte_count(len), int len) {
   f4_void(ap, len);
 }
 
-
 // Check that type qualifiers work as expected for parameters.
 
-void f1_const(const int *p : type(ptr<const int>)) {
+void f1_const(const int *p : itype(ptr<const int>)) {
 }
 
 void f2_const(const int *p : count(len), int len) {
