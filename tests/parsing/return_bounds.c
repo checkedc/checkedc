@@ -240,3 +240,22 @@ extern array_ptr<int> f30(int len, array_ptr<int> arr : count(len)) : bounds()) 
 extern array_ptr<int> f31(int len) : count() { // expected-error {{expected expression}}
   return 5;  // expected-error {{incompatible result type}}
 }
+
+// Misplace a return bounds expression for a function with a complex
+// declarator.
+
+// f32 is a function that returns a pointer to an array of 10 integers.  The
+// return bounds expression must be part of the function declarator and
+// should not follow the array declarator.
+int(*(f32(int arg[10][10])))[10] : count(10); // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f32', place it after the ')'}}
+
+int(*(f32(int arg[10][10])))[10] : count(10) { // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f32', place it after the ')'}}
+  return arg;
+}
+
+// A return bounds expression cannot follow a parenthesized function declarator
+int *(f33(int i)) : count(10); // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f33', place it after the ')'}}
+
+int *(f33(int i)) : count(10) { // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f33', place it after the ')'}}
+  return 0;
+}
