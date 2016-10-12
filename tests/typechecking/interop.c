@@ -393,12 +393,12 @@ void g27(array_ptr<void> ap : byte_count(10 * sizeof(int))) {
 }
 
 // Check that type qualifiers on pointer referent values work as expected.
-const int *const_v1 : itype(ptr<int>) = 0;
+const int *const_v1 : itype(ptr<const int>) = 0;
 const int *const_v2 : count(10) = 0;
 const int *const_v3 : byte_count(10 * sizeof(int)) = 0;
 const int *const_v4 : bounds(v4, v4 + 10) = 0;
 
-int *const v1_const : itype(ptr<int>) = 0;
+int *const v1_const : itype(const ptr<int>) = 0;
 int *const v2_const : count(10) = 0;
 int *const v3_const : byte_count(10 * sizeof(int)) = 0;
 int *const v4_const : bounds(v4, v4 + 10) = 0;
@@ -498,7 +498,7 @@ void g44(ptr<struct S1_void> p, ptr<void> p1, array_ptr<void> p2 : byte_count(10
 // Check that type qualifiers work as expected.
 
 struct S2 {
-  const int *pint : itype(ptr<int>);
+  const int *pint : itype(ptr<const int>);
   const int *arr1 : count(10);
   const int *arr2 : byte_count(10 * sizeof(int));
   const int *arr3 : bounds(arr3, arr3 + 10);
@@ -521,7 +521,7 @@ void g46(ptr<struct S1> p, ptr<const int> p1, array_ptr<const int> p2 : count(10
 }
 
 struct S3 {
-  int *const pint : itype(ptr<int>);
+  int *const pint : itype(const ptr<int>);
   int *const arr1 : count(10);
   int *const arr2 : byte_count(10 * sizeof(int));
   int *const arr3 : bounds(arr3, arr3 + 10);
