@@ -811,39 +811,39 @@ extern enum E1 fn28() : bounds(s1, s1 + 5);
 //
 
 // count
-char fn41() : count(5);         // expected-error {{expected 'fn41' to have a pointer or array return type}}
-_Bool fn42() : count(5);        // expected-error {{expected 'fn42' to have a pointer or array return type}}
-short int fn43() : count(5);    // expected-error {{expected 'fn43' to have a pointer or array return type}}
-int fn44() : count(5);          // expected-error {{expected 'fn44' to have a pointer or array return type}}
-long int fn45() : count(5);     // expected-error {{expected 'fn45' to have a pointer or array return type}}
-unsigned short int fn46() : count(5); // expected-error {{expected 'fn46' to have a pointer or array return type}}
-unsigned int fn47() : count(5);       // expected-error {{expected 'fn47' to have a pointer or array return type}}
-unsigned long int fn48() : count(5);  // expected-error {{expected 'fn48' to have a pointer or array return type}}
+char fn41() : count(5);         // expected-error {{expected 'fn41' to have a pointer return type}}
+_Bool fn42() : count(5);        // expected-error {{expected 'fn42' to have a pointer return type}}
+short int fn43() : count(5);    // expected-error {{expected 'fn43' to have a pointer return type}}
+int fn44() : count(5);          // expected-error {{expected 'fn44' to have a pointer return type}}
+long int fn45() : count(5);     // expected-error {{expected 'fn45' to have a pointer return type}}
+unsigned short int fn46() : count(5); // expected-error {{expected 'fn46' to have a pointer return type}}
+unsigned int fn47() : count(5);       // expected-error {{expected 'fn47' to have a pointer return type}}
+unsigned long int fn48() : count(5);  // expected-error {{expected 'fn48' to have a pointer return type}}
 
-float fn49() : count(5);        // expected-error {{expected 'fn49' to have a pointer or array return type}}
-double fn50() : count(5);       // expected-error {{expected 'fn50' to have a pointer or array return type}}
-struct S1 fn51() : count(5);    // expected-error {{expected 'fn51' to have a pointer or array return type}}
-union U1 fn52() : count(5);     // expected-error {{expected 'fn52' to have a pointer or array return type}}
-enum E1 fn53() : count(5);      // expected-error {{expected 'fn53' to have a pointer or array return type}}
+float fn49() : count(5);        // expected-error {{expected 'fn49' to have a pointer return type}}
+double fn50() : count(5);       // expected-error {{expected 'fn50' to have a pointer return type}}
+struct S1 fn51() : count(5);    // expected-error {{expected 'fn51' to have a pointer return type}}
+union U1 fn52() : count(5);     // expected-error {{expected 'fn52' to have a pointer return type}}
+enum E1 fn53() : count(5);      // expected-error {{expected 'fn53' to have a pointer return type}}
 ptr<int> fn54() : count(1);     // expected-error {{bounds declaration not allowed because 'fn54' has a _Ptr return type}}
 array_ptr<void> fn55() : count(1);     // expected-error {{expected 'fn55' to have a non-void pointer return type}}
 void (*fn56(void) : count(1))(int);    // expected-error {{bounds declaration not allowed because 'fn56' has a function pointer return type}}
 ptr<void(int)> fn57(void) : count(1); // expected-error {{bounds declaration not allowed because 'fn57' has a _Ptr return type}}
 
 // byte_count
-float fn60() : byte_count(8);     // expected-error {{expected 'fn60' to have a pointer, array, or integer return type}}
-double fn61() : byte_count(8);    // expected-error {{expected 'fn61' to have a pointer, array, or integer return type}}
-struct S1 fn62() : byte_count(8); // expected-error {{expected 'fn62' to have a pointer, array, or integer return type}}
-union U1 fn63() : byte_count(8);  // expected-error {{expected 'fn63' to have a pointer, array, or integer return type}}
+float fn60() : byte_count(8);     // expected-error {{expected 'fn60' to have a pointer or integer return type}}
+double fn61() : byte_count(8);    // expected-error {{expected 'fn61' to have a pointer or integer return type}}
+struct S1 fn62() : byte_count(8); // expected-error {{expected 'fn62' to have a pointer or integer return type}}
+union U1 fn63() : byte_count(8);  // expected-error {{expected 'fn63' to have a pointer or integer return type}}
 ptr<int> fn64() : byte_count(sizeof(int)); // expected-error {{bounds declaration not allowed because 'fn64' has a _Ptr return type}}
 void (*fn65(void) : byte_count(1))(int);   // expected-error {{bounds declaration not allowed because 'fn65' has a function pointer return type}}
 ptr<void(int)> fn66(void) : byte_count(1); // expected-error {{bounds declaration not allowed because 'fn66' has a _Ptr return type}}
 
 // bounds
-float fn70() : bounds(s1, s1 + 1);      // expected-error {{expected 'fn70' to have a pointer, array, or integer return type}}
-double fn71() : bounds(s1, s1 + 1);     // expected-error {{expected 'fn71' to have a pointer, array, or integer return type}}
-struct S1 fn72() : bounds(s1, s1 + 1);  // expected-error {{expected 'fn72' to have a pointer, array, or integer return type}}
-union U1 fn73() : bounds(s1, s1 + 1);   // expected-error {{expected 'fn73' to have a pointer, array, or integer return type}}
+float fn70() : bounds(s1, s1 + 1);      // expected-error {{expected 'fn70' to have a pointer or integer return type}}
+double fn71() : bounds(s1, s1 + 1);     // expected-error {{expected 'fn71' to have a pointer or integer return type}}
+struct S1 fn72() : bounds(s1, s1 + 1);  // expected-error {{expected 'fn72' to have a pointer or integer return type}}
+union U1 fn73() : bounds(s1, s1 + 1);   // expected-error {{expected 'fn73' to have a pointer or integer return type}}
 ptr<int> fn74() : bounds(s1, s1 + 1);   // expected-error {{bounds declaration not allowed because 'fn74' has a _Ptr return type}}
 void (*fn75(void) : bounds(s1, s1 + 1))(int);  // expected-error {{bounds declaration not allowed because 'fn75' has a function pointer return type}}
 ptr<void(int)> fn76(void) : bounds(s1, s1 + 1);  // expected-error {{bounds declaration not allowed because 'fn76' has a _Ptr return type}}
