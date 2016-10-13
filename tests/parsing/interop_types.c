@@ -114,8 +114,8 @@ struct S1 {
   float **data4 : itype(ptr<array_ptr<float>>);
   float **data5 : itype(array_ptr<ptr<float>>);
   float ***data6 : itype(ptr<ptr<ptr<float>>>);
-  float data7[4] : itype(int checked[4]);
-  float data8[] : itype(int checked[]);
+  float data7[4] : itype(float checked[4]);
+  float data8[] : itype(float checked[]);
 };
 
 ///
