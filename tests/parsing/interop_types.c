@@ -170,5 +170,5 @@ extern void f41(const int *x : itype(pcint)) {
 
 // Identifier not allowed in a type name
 
-void f50(int *p : itype(ptr<int> a) {  // expected-error {{type name cannot have identifier in it}}
+void f50(int *p : itype(ptr<int> a)) {  // expected-error {{type name cannot have identifier in it}}
 }
