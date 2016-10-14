@@ -24,54 +24,54 @@ typedef float t2;
 //
 //-------------------------------------------------------------
 
-void f1(int *p : itype(int)) {      // expected-error {{must be a checked pointer or array type}}
+void f1(int *p : itype(int)) {      // expected-error {{must be a pointer or array type}}
 }
 
-void f2(int *p : itype(_Bool)) {     // expected-error {{must be a checked pointer or array type}}
+void f2(int *p : itype(_Bool)) {     // expected-error {{must be a pointer or array type}}
 }
 
-void f3(int *p : itype(char)) {      // expected-error {{must be a checked pointer or array type}}
+void f3(int *p : itype(char)) {      // expected-error {{must be a pointer or array type}}
 }
 
-void f4(int *p : itype(short int)) { // expected-error {{must be a checked pointer or array type}}
+void f4(int *p : itype(short int)) { // expected-error {{must be a pointer or array type}}
 }
 
-void f5(int *p : itype(int)) {       // expected-error {{must be a checked pointer or array type}}
+void f5(int *p : itype(int)) {       // expected-error {{must be a pointer or array type}}
 }
 
-void f6(int *p : itype(long int)) {  // expected-error {{must be a checked pointer or array type}}
+void f6(int *p : itype(long int)) {  // expected-error {{must be a pointer or array type}}
 }
 
-void f7(int *p : itype(float)) {     // expected-error {{must be a checked pointer or array type}}
+void f7(int *p : itype(float)) {     // expected-error {{must be a pointer or array type}}
 }
 
-void f8(int *p : itype(double)) {    // expected-error {{must be a checked pointer or array type}}
+void f8(int *p : itype(double)) {    // expected-error {{must be a pointer or array type}}
 }
 
-void f9(int *p : itype(void)) {      // expected-error {{must be a checked pointer or array type}}
-}
-
-
-void f10(int *p : itype(struct S)) { // expected-error {{must be a checked pointer or array type}}
-}
-
-void f11(int *p : itype(union U)) {  // expected-error {{must be a checked pointer or array type}}
-}
-
-void f12(int *p : itype(int(int))) { // expected-error {{must be a checked pointer or array type}}
-}
-
-void f13(int *p : itype(t1)) {      // expected-error {{must be a checked pointer or array type}}
-}
-
-void f14(int *p : itype(t2)) {      // expected-error {{must be a checked pointer or array type}}
+void f9(int *p : itype(void)) {      // expected-error {{must be a pointer or array type}}
 }
 
 
-void f30(int *p : itype(int *)) {   // expected-error {{must be a checked pointer type}}
+void f10(int *p : itype(struct S)) { // expected-error {{must be a pointer or array type}}
 }
 
-void f31(int p[] : itype(int[])) { // expected-error {{must be a checked array type}}
+void f11(int *p : itype(union U)) {  // expected-error {{must be a pointer or array type}}
+}
+
+void f12(int *p : itype(int(int))) { // expected-error {{must be compatible}}
+}
+
+void f13(int *p : itype(t1)) {      // expected-error {{must be a pointer or array type}}
+}
+
+void f14(int *p : itype(t2)) {      // expected-error {{must be a pointer or array type}}
+}
+
+
+void f30(int *p : itype(int *)) {  // expected-error {{must be a checked type}}
+}
+
+void f31(int p[] : itype(int[])) {  // expected-error {{must be a checked type}}
 }
 
 //
@@ -283,65 +283,60 @@ void f238(int a[static 10][10] : itype(ptr<int checked[10]>)) {
 // Incompatible pointee or element types.
 
 // Pointer types
-void f250(float **p : itype(ptr<int *>)) {   // expected-error {{interoperation type '_Ptr<int *>' is not compatible with declared type 'float **'}}
+void f250(float **p : itype(ptr<int *>)) {   // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
 }
 
-void f251(float **p : itype(ptr<ptr<int>>)) {   // expected-error {{interoperation type '_Ptr<_Ptr<int>>' is not compatible with declared type 'float **'}}
+void f251(float **p : itype(ptr<ptr<int>>)) {   // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
 }
 
-void f252(float a[10] : itype(double checked[10])) { // expected-error {{not compatible with declared type}}
+void f252(float a[10] : itype(double checked[10])) { // expected-error {{must be compatible with declared type}}
 }
 
 // Array types
-void f253(int a[10][10] : itype(int checked[10][11])) { // expected-error {{interoperation type '_Array_ptr<int checked[11]>' is not compatible with declared type 'int (*)[10]'}}
+void f253(int a[10][10] : itype(int checked[10][11])) { // expected-error {{type '_Array_ptr<int checked[11]>' must be compatible with declared type 'int (*)[10]'}}
 }
 
-void f254(int(*a)[10] : itype(ptr<int checked[]>)) {  // expected-error {{not compatible with declared type}}
+void f254(int(*a)[10] : itype(ptr<int checked[]>)) {  // expected-error {{must be compatible with declared type}}
 }
 
-void f255(int(*a)[] : itype(ptr<int checked[10]>)) {  // expected-error {{not compatible with declared type}}
+void f255(int(*a)[] : itype(ptr<int checked[10]>)) {  // expected-error {{must be compatible with declared type}}
 }
 
 // Differing number of parameters for function pointer.
 // Note that the function declarator has to be parenthesized so that
 // the interface type declaration is not parsed as the interface type for
 // the return type of the function declarator.
-void f256(int((*f)(int, float, char)) : itype(ptr<int(int, float)>)) { // expected-error {{not compatible with declared type}}
+void f256(int((*f)(int, float, char)) : itype(ptr<int(int, float)>)) { // expected-error {{must be compatible with declared type}}
 }
 
 // Differing parameter types for function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-void f257(int((*f)(int, float, char)) : itype(ptr<int(int, float, double)>)) { // expected-error {{not compatible with declared type}}
+void f257(int((*f)(int, float, char)) : itype(ptr<int(int, float, double)>)) { // expected-error {{must be compatible with declared type}}
 }
 
 // Differing return types for function pointer
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-void f258(int((*f)(int, float, char)) : itype(ptr<float(int, float,char)>)) { // expected-error {{not compatible with declared type}}
+void f258(int((*f)(int, float, char)) : itype(ptr<float(int, float,char)>)) { // expected-error {{must be compatible with declared type}}
 }
 
 // No special treatement for void pointers
-void f259(void *p : itype(ptr<int>)) { // expected-error {{not compatible with declared type}}
+void f259(void *p : itype(ptr<int>)) { // expected-error {{must be compatible with declared type}}
 }
 
-void f260(int *p : itype(ptr<void>)) { // expected-error {{not compatible with declared type}}
+void f260(int *p : itype(ptr<void>)) { // expected-error {{must be compatible with declared type}}
 }
 
 // Annotation type loses checking.
 
-void f280(ptr<int> *p : itype(ptr<int *>)) { //expected-error {{interoperation type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
+void f280(ptr<int> *p : itype(ptr<int *>)) { //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
 }
 
 void f281(int(*a)checked[10][10] : itype(ptr<int[10][10]>)) { // expected-error {{loses checking of declared type}}
 }
 
 void f282(int ((*f)(int checked[10])) : itype(ptr<int (int[10])>)) { // expected-error {{loses checking of declared type}}
-}
-
-// Identifier not allowed in a type name
-
-void f283(int *p : itype(ptr<int> a)  {  // expected-error {{type name cannot have identifier in it}}
 }
 
 //------------------------------------------------------------ -
@@ -354,93 +349,93 @@ void f283(int *p : itype(ptr<int> a)  {  // expected-error {{type name cannot ha
 // Types that cannot appear in bounds-safe interface type annotations.
 //
 
-int *r1() : itype(int) {      // expected-error {{must be a checked pointer type}}
+int *r1() : itype(int) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r2() : itype(_Bool) {     // expected-error {{must be a checked pointer type}}
+int *r2() : itype(_Bool) {     // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r3() : itype(char) {      // expected-error {{must be a checked pointer type}}
+int *r3() : itype(char) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r4() : itype(short int) { // expected-error {{must be a checked pointer type}}
+int *r4() : itype(short int) { // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r5() : itype(int) {       // expected-error {{must be a checked pointer type}}
+int *r5() : itype(int) {       // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r6() : itype(long int) {  // expected-error {{must be a checked pointer type}}
+int *r6() : itype(long int) {  // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r7() : itype(float) {     // expected-error {{must be a checked pointer type}}
+int *r7() : itype(float) {     // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r8() : itype(double) {    // expected-error {{must be a checked pointer type}}
+int *r8() : itype(double) {    // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r9() : itype(void) {      // expected-error {{must be a checked pointer type}}
+int *r9() : itype(void) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r10() : itype(struct S) { // expected-error {{must be a checked pointer type}}
+int *r10() : itype(struct S) { // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r11() : itype(union U) {  // expected-error {{must be a checked pointer type}}
+int *r11() : itype(union U) {  // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r12() : itype(int (int)) { // expected-error {{must be a checked pointer type}}
+int *r12() : itype(int (int)) { // expected-error {{must be a pointer type}}
   return 0;
 }
 
 typedef int t1;
 typedef float t2;
 
-int *r13() : itype(t1) {      // expected-error {{must be a checked pointer type}}
+int *r13() : itype(t1) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r14() : itype(t2) {      // expected-error {{must be a checked pointer type}}
+int *r14() : itype(t2) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
 
-int *r30() : itype(int *) {   // expected-error {{must be a checked pointer type}}
+int *r30() : itype(int *) {   // expected-error {{must be a checked type}}
   return 0;
 }
 
-int *r31a() : itype(int[]) {   // expected-error {{array type not allowed for function return interoperation type}}
+int *r31a() : itype(int[]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
-int *r31b() : itype(int checked[]) {   // expected-error {{array type not allowed for function return interoperation type}}
+int *r31b() : itype(int checked[]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
-int *r31c() : itype(int[10]) {   // expected-error {{array type not allowed for function return interoperation type}}
+int *r31c() : itype(int[10]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
-int *r31d() : itype(int checked[10]) {   // expected-error {{array type not allowed for function return interoperation type}}
+int *r31d() : itype(int checked[10]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
 // Multi-dimensional arrays
 
-int ((*(r31e(int arg[10][10]) : itype(int[10][10])))[10]) { // expected-error {{array type not allowed for function return interoperation type}}
+int ((*(r31e(int arg[10][10]) : itype(int[10][10])))[10]) { // expected-error {{array type not allowed}}
   return arg;
 }
 
-int(*(r31f(int arg[10][10]) : itype(int checked[10][10])))[10] { // expected-error {{array type not allowed for function return interoperation type}}
+int(*(r31f(int arg[10][10]) : itype(int checked[10][10])))[10] { // expected-error {{array type not allowed}}
   return arg;
 }
 
@@ -551,52 +546,52 @@ int * const r209() : itype(const array_ptr<int>) {
 // Incompatible pointee or element types.
 
 // Pointer types
-float **r250() : itype(ptr<int *>) {   // expected-error {{interoperation type '_Ptr<int *>' is not compatible with declared type 'float **'}}
+float **r250() : itype(ptr<int *>) {   // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
 }
 
-float **r251() : itype(ptr<ptr<int>>) {   // expected-error {{interoperation type '_Ptr<_Ptr<int>>' is not compatible with declared type 'float **'}}
+float **r251() : itype(ptr<ptr<int>>) {   // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
 }
 
 // Array types
 
 // Returns pointer to array of 10 integers.
-int (*r254() : itype(ptr<int checked[]>))[10] {  // expected-error {{not compatible with declared type}}
+int (*r254() : itype(ptr<int checked[]>))[10] {  // expected-error {{must be compatible with declared type}}
 }
 
 // Returns pointer to array of integers with unknown
 // size.
-int (*r255() : itype(ptr<int checked[10]>))[]{  // expected-error {{not compatible with declared type}}
+int (*r255() : itype(ptr<int checked[10]>))[]{  // expected-error {{must be compatible with declared type}}
 }
 
 // Differing number of parameters for function pointer.
 // Note that the function declarator has to be parenthesized so that
 // the interface type declaration is not parsed as the interface type for
 // the return type of the function declarator.
-int (*r256() : itype(ptr<int(int, float)>))(int, float, char) { // expected-error {{not compatible with declared type}}
+int (*r256() : itype(ptr<int(int, float)>))(int, float, char) { // expected-error {{must be compatible with declared type}}
 }
 
 // Differing parameter types for function pointer.
 // See the earlier comment for r256 about why the function declarator is
 // parenthesized.
-int (*r257() : itype(ptr<int(int, float, double)>))(int, float, char) { // expected-error {{not compatible with declared type}}
+int (*r257() : itype(ptr<int(int, float, double)>))(int, float, char) { // expected-error {{must be compatible with declared type}}
 }
 
 // Differing return types for function pointer
 // See the earlier comment for r256 about why the function declarator is
 // parenthesized.
-int (*r258() : itype(ptr<float (int, float, char)>))(int, float, char) { // expected-error {{not compatible with declared type}}
+int (*r258() : itype(ptr<float (int, float, char)>))(int, float, char) { // expected-error {{must be compatible with declared type}}
 }
 
 // No special treatement for void pointers
-void *r259() : itype(ptr<int>) { // expected-error {{not compatible with declared type}}
+void *r259() : itype(ptr<int>) { // expected-error {{must be compatible with declared type}}
 }
 
-int *r260() : itype(ptr<void>) { // expected-error {{not compatible with declared type}}
+int *r260() : itype(ptr<void>) { // expected-error {{must be compatible with declared type}}
 }
 
 // Annotation type loses checking.
 
-ptr<int> *r280() : itype(ptr<int *>) { //expected-error {{interoperation type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
+ptr<int> *r280() : itype(ptr<int *>) { //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
 }
 
 // Declared return type is an unchecked pointer to a checked 2-d array, but
@@ -616,22 +611,22 @@ int (*r282() : itype(ptr<int[10]>)) checked[10] { // expected-error {{loses chec
 //
 //-------------------------------------------------------------
 
-int *g1 : itype(int);       // expected-error {{must be a checked pointer or array type}}
-int *g2 : itype(_Bool);     // expected-error {{must be a checked pointer or array type}}
-int *g3 : itype(char);      // expected-error {{must be a checked pointer or array type}}
-int *g4 : itype(short int); // expected-error {{must be a checked pointer or array type}}
-int *g5 : itype(int);       // expected-error {{must be a checked pointer or array type}}
-int *g6 : itype(long int);  // expected-error {{must be a checked pointer or array type}}
-int *g7 : itype(float);     // expected-error {{must be a checked pointer or array type}}
-int *g8 : itype(double);    // expected-error {{must be a checked pointer or array type}}
-int *g9 : itype(void);      // expected-error {{must be a checked pointer or array type}}
-int *g10 : itype(struct S); // expected-error {{must be a checked pointer or array type}}
-int *g11 : itype(union U);  // expected-error {{must be a checked pointer or array type}}
-int *g12 : itype(int(int)); // expected-error {{must be a checked pointer or array type}}
-int *g13 : itype(t1);       // expected-error {{must be a checked pointer or array type}}
-int *g14 : itype(t2);       // expected-error {{must be a checked pointer or array type}}
-int *g30 : itype(int *);    // expected-error {{must be a checked pointer type}}
-extern int g31[] : itype(int[]);   // expected-error {{must be a checked array type}}
+int *g1 : itype(int);       // expected-error {{must be a pointer or array type}}
+int *g2 : itype(_Bool);     // expected-error {{must be a pointer or array type}}
+int *g3 : itype(char);      // expected-error {{must be a pointer or array type}}
+int *g4 : itype(short int); // expected-error {{must be a pointer or array type}}
+int *g5 : itype(int);       // expected-error {{must be a pointer or array type}}
+int *g6 : itype(long int);  // expected-error {{must be a pointer or array type}}
+int *g7 : itype(float);     // expected-error {{must be a pointer or array type}}
+int *g8 : itype(double);    // expected-error {{must be a pointer or array type}}
+int *g9 : itype(void);      // expected-error {{must be a pointer or array type}}
+int *g10 : itype(struct S); // expected-error {{must be a pointer or array type}}
+int *g11 : itype(union U);  // expected-error {{must be a pointer or array type}}
+int *g12 : itype(int(int)); // expected-error {{must be a pointer or array type}}
+int *g13 : itype(t1);       // expected-error {{must be a pointer or array type}}
+int *g14 : itype(t2);       // expected-error {{must be a pointer or array type}}
+int *g30 : itype(int *);    // expected-error {{must be a checked type}}
+extern int g31[] : itype(int[]);   // expected-error {{must be a checked type}}
 
 //
 // Valid type annotations
@@ -688,62 +683,62 @@ const int g218[10] : itype(const int checked[10]);
 // Incorrect type annotations.
 // 
 
-// Array/pointer types are not compatible for global variables
+// Array/pointer types are must be compatible for global variables
 
-extern int g230[] : itype(ptr<int>);         // expected-error {{not compatible with declared type}}  
-extern int g231[] : itype(array_ptr<int>);   // expected-error {{not compatible with declared type}}
-int *g232  : itype(int checked[]);           // expected-error {{not compatible with declared type}}
-int *g233 : itype(int checked[15]);         // expected-error {{not compatible with declared type}}
+extern int g230[] : itype(ptr<int>);         // expected-error {{must be compatible with declared type}}  
+extern int g231[] : itype(array_ptr<int>);   // expected-error {{must be compatible with declared type}}
+int *g232  : itype(int checked[]);           // expected-error {{must be compatible with declared type}}
+int *g233 : itype(int checked[15]);         // expected-error {{must be compatible with declared type}}
 
-int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{not compatible with declared type}}
-int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{not compatible with declared type}}
-int **g236 : itype(ptr<int> checked[10]);               // expected-error {{not compatible with declared type}}
-int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{not compatible with declared type}}
-int **g238 : itype(int *checked[20]);                   // expected-error {{not compatible with declared type}}
+int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{must be compatible with declared type}}
+int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{must be compatible with declared type}}
+int **g236 : itype(ptr<int> checked[10]);               // expected-error {{must be compatible with declared type}}
+int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{must be compatible with declared type}}
+int **g238 : itype(int *checked[20]);                   // expected-error {{must be compatible with declared type}}
 
 // Incompatible pointee or element types
 
 // Pointer types
-float **g250 : itype(ptr<int *>);     // expected-error {{interoperation type '_Ptr<int *>' is not compatible with declared type 'float **'}}
-float **g251 : itype(ptr<ptr<int>>);  // expected-error {{interoperation type '_Ptr<_Ptr<int>>' is not compatible with declared type 'float **'}}
-float g252[10] : itype(double checked[10]); // expected-error {{not compatible with declared type}}
+float **g250 : itype(ptr<int *>);     // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
+float **g251 : itype(ptr<ptr<int>>);  // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
+float g252[10] : itype(double checked[10]); // expected-error {{must be compatible with declared type}}
 
 // Array types
-int g253[10][10] : itype(int checked[10][11]); // expected-error {{interoperation type 'int checked[10][11]' is not compatible with declared type 'int [10][10]'}}
-int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{not compatible with declared type}}
-int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{not compatible with declared type}}
+int g253[10][10] : itype(int checked[10][11]); // expected-error {{type 'int checked[10][11]' must be compatible with declared type 'int [10][10]'}}
+int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{must be compatible with declared type}}
+int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{must be compatible with declared type}}
 
 // Differing number of parameters for function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{not compatible with declared type}}
+int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{must be compatible with declared type}}
 
 // Differing parameter types for a function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{not compatible with declared type}}
+int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{must be compatible with declared type}}
 
 // Differing return types for a function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{not compatible with declared type}}
+int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{must be compatible with declared type}}
 
 // No special treatement for void pointers
-void *g259 : itype(ptr<int>);   // expected-error {{not compatible with declared type}}
-int *g260 : itype(ptr<void>);   // expected-error {{not compatible with declared type}}
+void *g259 : itype(ptr<int>);   // expected-error {{must be compatible with declared type}}
+int *g260 : itype(ptr<void>);   // expected-error {{must be compatible with declared type}}
 
 // Incompatible array types
 
-extern int g261[] : itype(int checked[10]);         // expected-error {{not compatible with declared type}}
-int g262[10] : itype(int checked[]);                // expected-error {{not compatible with declared type}}
-extern int g263[][10] : itype(int checked[10][10]); // expected-error {{not compatible with declared type}}
-int g264[10][10] : itype(int checked[][10]);        // expected-error {{not compatible with declared type}}
-int g265[9][10] : itype(int checked[10][10]);       // expected-error {{not compatible with declared type}}
+extern int g261[] : itype(int checked[10]);         // expected-error {{must be compatible with declared type}}
+int g262[10] : itype(int checked[]);                // expected-error {{must be compatible with declared type}}
+extern int g263[][10] : itype(int checked[10][10]); // expected-error {{must be compatible with declared type}}
+int g264[10][10] : itype(int checked[][10]);        // expected-error {{must be compatible with declared type}}
+int g265[9][10] : itype(int checked[10][10]);       // expected-error {{must be compatible with declared type}}
 
 
 // Annotation type loses checking.
 
-ptr<int> *g280 : itype(ptr<int *>);  //expected-error {{interoperation type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
+ptr<int> *g280 : itype(ptr<int *>);  //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
 int (*g281) checked[10][10] : itype(ptr<int[10][10]>);    // expected-error {{loses checking of declared type}}
 int ((*g282)(int checked[10])) : itype(ptr<int (int[10])>); // expected-error {{loses checking of declared type}}
 
@@ -754,22 +749,22 @@ int ((*g282)(int checked[10])) : itype(ptr<int (int[10])>); // expected-error {{
 //-------------------------------------------------------------
 
 struct S1 {
-  int *g1 : itype(int);       // expected-error {{must be a checked pointer or array type}}
-  int *g2 : itype(_Bool);     // expected-error {{must be a checked pointer or array type}}
-  int *g3 : itype(char);      // expected-error {{must be a checked pointer or array type}}
-  int *g4 : itype(short int); // expected-error {{must be a checked pointer or array type}}
-  int *g5 : itype(int);       // expected-error {{must be a checked pointer or array type}}
-  int *g6 : itype(long int);  // expected-error {{must be a checked pointer or array type}}
-  int *g7 : itype(float);     // expected-error {{must be a checked pointer or array type}}
-  int *g8 : itype(double);    // expected-error {{must be a checked pointer or array type}}
-  int *g9 : itype(void);      // expected-error {{must be a checked pointer or array type}}
-  int *g10 : itype(struct S); // expected-error {{must be a checked pointer or array type}}
-  int *g11 : itype(union U);  // expected-error {{must be a checked pointer or array type}}
-  int *g12 : itype(int(int)); // expected-error {{must be a checked pointer or array type}}
-  int *g13 : itype(t1);       // expected-error {{must be a checked pointer or array type}}
-  int *g14 : itype(t2);       // expected-error {{must be a checked pointer or array type}}
-  int *g30 : itype(int *);    // expected-error {{must be a checked pointer type}}
-  int g31[] : itype(int[]);   // expected-error {{must be a checked array type}}
+  int *g1 : itype(int);       // expected-error {{must be a pointer or array type}}
+  int *g2 : itype(_Bool);     // expected-error {{must be a pointer or array type}}
+  int *g3 : itype(char);      // expected-error {{must be a pointer or array type}}
+  int *g4 : itype(short int); // expected-error {{must be a pointer or array type}}
+  int *g5 : itype(int);       // expected-error {{must be a pointer or array type}}
+  int *g6 : itype(long int);  // expected-error {{must be a pointer or array type}}
+  int *g7 : itype(float);     // expected-error {{must be a pointer or array type}}
+  int *g8 : itype(double);    // expected-error {{must be a pointer or array type}}
+  int *g9 : itype(void);      // expected-error {{must be a pointer or array type}}
+  int *g10 : itype(struct S); // expected-error {{must be a pointer or array type}}
+  int *g11 : itype(union U);  // expected-error {{must be a pointer or array type}}
+  int *g12 : itype(int(int)); // expected-error {{must be a pointer or array type}}
+  int *g13 : itype(t1);       // expected-error {{must be a pointer or array type}}
+  int *g14 : itype(t2);       // expected-error {{must be a pointer or array type}}
+  int *g30 : itype(int *);    // expected-error {{must be a checked type}}
+  int g31[] : itype(int[]);   // expected-error {{must be a checked type}}
 };
 
 //
@@ -838,83 +833,83 @@ struct S5 {
 // Incorrect type annotations.
 // 
 
-// Array/pointer types are not compatible for structure mebers
+// Array/pointer types are must be compatible for structure mebers
 
 struct S6 {
-  int *g232 : itype(int checked[]);           // expected-error {{not compatible with declared type}}
-  int *g233 : itype(int checked[15]);         // expected-error {{not compatible with declared type}}
-  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{not compatible with declared type}}
-  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{not compatible with declared type}}
-  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{not compatible with declared type}}
-  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{not compatible with declared type}}
-  int **g238 : itype(int *checked[20]);                   // expected-error {{not compatible with declared type}}
+  int *g232 : itype(int checked[]);           // expected-error {{must be compatible with declared type}}
+  int *g233 : itype(int checked[15]);         // expected-error {{must be compatible with declared type}}
+  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{must be compatible with declared type}}
+  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{must be compatible with declared type}}
+  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{must be compatible with declared type}}
+  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{must be compatible with declared type}}
+  int **g238 : itype(int *checked[20]);                   // expected-error {{must be compatible with declared type}}
   // Incomplete array type allowed as last member of structure.
-  int g230[] : itype(ptr<int>);         // expected-error {{not compatible with declared type}}  
+  int g230[] : itype(ptr<int>);         // expected-error {{must be compatible with declared type}}  
 };
 
 struct S7 {
   int a;
-  int g231[] : itype(array_ptr<int>);   // expected-error {{not compatible with declared type}}
+  int g231[] : itype(array_ptr<int>);   // expected-error {{must be compatible with declared type}}
 };
 
 struct S8 {
   int a;
-  int *g232  : itype(int checked[]); // expected-error {{not compatible with declared type}}
+  int *g232  : itype(int checked[]); // expected-error {{must be compatible with declared type}}
 };
 
 struct S9 {
   // Incompatible pointee or element types
 
   // Pointer types
-  float **g250 : itype(ptr<int *>);     // expected-error {{interoperation type '_Ptr<int *>' is not compatible with declared type 'float **'}}
-  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{interoperation type '_Ptr<_Ptr<int>>' is not compatible with declared type 'float **'}}
-  float g252[10] : itype(double checked[10]); // expected-error {{not compatible with declared type}}
+  float **g250 : itype(ptr<int *>);     // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
+  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
+  float g252[10] : itype(double checked[10]); // expected-error {{must be compatible with declared type}}
 
   // Array types
-  int g253[10][10] : itype(int checked[10][11]); // expected-error {{interoperation type 'int checked[10][11]' is not compatible with declared type 'int [10][10]'}}
-  int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{not compatible with declared type}}
-  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{not compatible with declared type}}
+  int g253[10][10] : itype(int checked[10][11]); // expected-error {{type 'int checked[10][11]' must be compatible with declared type 'int [10][10]'}}
+  int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{must be compatible with declared type}}
+  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{must be compatible with declared type}}
 
   // Differing number of parameters for function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{not compatible with declared type}}
+  int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{must be compatible with declared type}}
 
   // Differing parameter types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{not compatible with declared type}}
+  int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{must be compatible with declared type}}
 
   // Differing return types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{not compatible with declared type}}
+  int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{must be compatible with declared type}}
 
   // No special treatement for void pointers
-  void *g259 : itype(ptr<int>);   // expected-error {{not compatible with declared type}}
-  int *g260 : itype(ptr<void>);   // expected-error {{not compatible with declared type}}
+  void *g259 : itype(ptr<int>);   // expected-error {{must be compatible with declared type}}
+  int *g260 : itype(ptr<void>);   // expected-error {{must be compatible with declared type}}
 };
 
 struct S10 {
   int a;
-  int g261[] : itype(int checked[10]);         // expected-error {{not compatible with declared type}}
+  int g261[] : itype(int checked[10]);         // expected-error {{must be compatible with declared type}}
 };
 
 struct S11 {
   int a;
-  int g263[][10] : itype(int checked[10][10]); // expected-error {{not compatible with declared type}}
+  int g263[][10] : itype(int checked[10][10]); // expected-error {{must be compatible with declared type}}
 };
 
 struct S12 {
-  int g262[10] : itype(int checked[]);                // expected-error {{not compatible with declared type}}
-  int g264[10][10] : itype(int checked[][10]);        // expected-error {{not compatible with declared type}}
-  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{not compatible with declared type}}
+  int g262[10] : itype(int checked[]);                // expected-error {{must be compatible with declared type}}
+  int g264[10][10] : itype(int checked[][10]);        // expected-error {{must be compatible with declared type}}
+  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{must be compatible with declared type}}
 };
 
 // Annotation type loses checking.
 
 struct S13 {
-  ptr<int> *g280 : itype(ptr<int *>);  //expected-error {{interoperation type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
+  ptr<int> *g280 : itype(ptr<int *>);  //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
   int (*g281) checked[10][10] : itype(ptr<int[10][10]>);    // expected-error {{loses checking of declared type}}
   int ((*g282)(int checked[10])) : itype(ptr<int (int[10])>); // expected-error {{loses checking of declared type}}
 };
@@ -926,22 +921,22 @@ struct S13 {
 //-------------------------------------------------------------
 
 struct U1 {
-  int *g1 : itype(int);       // expected-error {{must be a checked pointer or array type}}
-  int *g2 : itype(_Bool);     // expected-error {{must be a checked pointer or array type}}
-  int *g3 : itype(char);      // expected-error {{must be a checked pointer or array type}}
-  int *g4 : itype(short int); // expected-error {{must be a checked pointer or array type}}
-  int *g5 : itype(int);       // expected-error {{must be a checked pointer or array type}}
-  int *g6 : itype(long int);  // expected-error {{must be a checked pointer or array type}}
-  int *g7 : itype(float);     // expected-error {{must be a checked pointer or array type}}
-  int *g8 : itype(double);    // expected-error {{must be a checked pointer or array type}}
-  int *g9 : itype(void);      // expected-error {{must be a checked pointer or array type}}
-  int *g10 : itype(struct S); // expected-error {{must be a checked pointer or array type}}
-  int *g11 : itype(union U);  // expected-error {{must be a checked pointer or array type}}
-  int *g12 : itype(int(int)); // expected-error {{must be a checked pointer or array type}}
-  int *g13 : itype(t1);       // expected-error {{must be a checked pointer or array type}}
-  int *g14 : itype(t2);       // expected-error {{must be a checked pointer or array type}}
-  int *g30 : itype(int *);    // expected-error {{must be a checked pointer type}}
-  int g31[] : itype(int[]);   // expected-error {{must be a checked array type}}
+  int *g1 : itype(int);       // expected-error {{must be a pointer or array type}}
+  int *g2 : itype(_Bool);     // expected-error {{must be a pointer or array type}}
+  int *g3 : itype(char);      // expected-error {{must be a pointer or array type}}
+  int *g4 : itype(short int); // expected-error {{must be a pointer or array type}}
+  int *g5 : itype(int);       // expected-error {{must be a pointer or array type}}
+  int *g6 : itype(long int);  // expected-error {{must be a pointer or array type}}
+  int *g7 : itype(float);     // expected-error {{must be a pointer or array type}}
+  int *g8 : itype(double);    // expected-error {{must be a pointer or array type}}
+  int *g9 : itype(void);      // expected-error {{must be a pointer or array type}}
+  int *g10 : itype(struct S); // expected-error {{must be a pointer or array type}}
+  int *g11 : itype(union U);  // expected-error {{must be a pointer or array type}}
+  int *g12 : itype(int(int)); // expected-error {{must be a pointer or array type}}
+  int *g13 : itype(t1);       // expected-error {{must be a pointer or array type}}
+  int *g14 : itype(t2);       // expected-error {{must be a pointer or array type}}
+  int *g30 : itype(int *);    // expected-error {{must be a checked type}}
+  int g31[] : itype(int[]);   // expected-error {{must be a checked type}}
 };
 
 //
@@ -1005,16 +1000,16 @@ union U5 {
 // Incorrect type annotations.
 // 
 
-// Array/pointer types are not compatible for structure mebers
+// Array/pointer types are must be compatible for structure members
 
 union U6 {
-  int *g232 : itype(int checked[]);           // expected-error {{not compatible with declared type}}
-  int *g233 : itype(int checked[15]);         // expected-error {{not compatible with declared type}}
-  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{not compatible with declared type}}
-  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{not compatible with declared type}}
-  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{not compatible with declared type}}
-  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{not compatible with declared type}}
-  int **g238 : itype(int *checked[20]);                   // expected-error {{not compatible with declared type}}
+  int *g232 : itype(int checked[]);           // expected-error {{must be compatible with declared type}}
+  int *g233 : itype(int checked[15]);         // expected-error {{must be compatible with declared type}}
+  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{must be compatible with declared type}}
+  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{must be compatible with declared type}}
+  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{must be compatible with declared type}}
+  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{must be compatible with declared type}}
+  int **g238 : itype(int *checked[20]);                   // expected-error {{must be compatible with declared type}}
 };
 
 
@@ -1022,45 +1017,45 @@ union U9 {
   // Incompatible pointee or element types
 
   // Pointer types
-  float **g250 : itype(ptr<int *>);     // expected-error {{interoperation type '_Ptr<int *>' is not compatible with declared type 'float **'}}
-  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{interoperation type '_Ptr<_Ptr<int>>' is not compatible with declared type 'float **'}}
-  float g252[10] : itype(double checked[10]); // expected-error {{not compatible with declared type}}
+  float **g250 : itype(ptr<int *>);     // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
+  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
+  float g252[10] : itype(double checked[10]); // expected-error {{must be compatible with declared type}}
 
   // Array types
-  int g253[10][10] : itype(int checked[10][11]); // expected-error {{interoperation type 'int checked[10][11]' is not compatible with declared type 'int [10][10]'}}
-  int(*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{not compatible with declared type}}
-  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{not compatible with declared type}}
+  int g253[10][10] : itype(int checked[10][11]); // expected-error {{type 'int checked[10][11]' must be compatible with declared type 'int [10][10]'}}
+  int(*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{must be compatible with declared type}}
+  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{must be compatible with declared type}}
 
   // Differing number of parameters for function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int((*g256)(int, float, char)) : itype(ptr<int(int, float)>);  // expected-error {{not compatible with declared type}}
+  int((*g256)(int, float, char)) : itype(ptr<int(int, float)>);  // expected-error {{must be compatible with declared type}}
 
   // Differing parameter types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int((*g257)(int, float, char)) : itype(ptr<int(int, float, double)>); // expected-error {{not compatible with declared type}}
+  int((*g257)(int, float, char)) : itype(ptr<int(int, float, double)>); // expected-error {{must be compatible with declared type}}
 
   // Differing return types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int((*g258)(int, float, char)) : itype(ptr<float(int, float, char)>); // expected-error {{not compatible with declared type}}
+  int((*g258)(int, float, char)) : itype(ptr<float(int, float, char)>); // expected-error {{must be compatible with declared type}}
 
                                                                         // No special treatement for void pointers
-  void *g259 : itype(ptr<int>);   // expected-error {{not compatible with declared type}}
-  int *g260 : itype(ptr<void>);   // expected-error {{not compatible with declared type}}
+  void *g259 : itype(ptr<int>);   // expected-error {{must be compatible with declared type}}
+  int *g260 : itype(ptr<void>);   // expected-error {{must be compatible with declared type}}
 };
 
 union U12 {
-  int g262[10] : itype(int checked[]);                // expected-error {{not compatible with declared type}}
-  int g264[10][10] : itype(int checked[][10]);        // expected-error {{not compatible with declared type}}
-  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{not compatible with declared type}}
+  int g262[10] : itype(int checked[]);                // expected-error {{must be compatible with declared type}}
+  int g264[10][10] : itype(int checked[][10]);        // expected-error {{must be compatible with declared type}}
+  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{must be compatible with declared type}}
 };
 
 // Annotation type loses checking.
 
 union U13 {
-  ptr<int> *g280 : itype(ptr<int *>);  //expected-error {{interoperation type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
+  ptr<int> *g280 : itype(ptr<int *>);  //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
   int(*g281) checked[10][10] : itype(ptr<int[10][10]>);    // expected-error {{loses checking of declared type}}
   int((*g282)(int checked[10])) : itype(ptr<int(int[10])>); // expected-error {{loses checking of declared type}}
 };
