@@ -24,6 +24,10 @@ typedef float t2;
 //
 //-------------------------------------------------------------
 
+//
+// Test types not allowed to appear in bounds-safe interface type annotations.
+//
+
 void f1(int *p : itype(int)) {      // expected-error {{must be a pointer or array type}}
 }
 
@@ -58,7 +62,7 @@ void f10(int *p : itype(struct S)) { // expected-error {{must be a pointer or ar
 void f11(int *p : itype(union U)) {  // expected-error {{must be a pointer or array type}}
 }
 
-void f12(int *p : itype(int(int))) { // expected-error {{must be compatible}}
+void f12(int *p : itype(int(int))) { // expected-error {{mismatch between interface type}}
 }
 
 void f13(int *p : itype(t1)) {      // expected-error {{must be a pointer or array type}}
@@ -67,7 +71,44 @@ void f13(int *p : itype(t1)) {      // expected-error {{must be a pointer or arr
 void f14(int *p : itype(t2)) {      // expected-error {{must be a pointer or array type}}
 }
 
+//
+// Test types not allowed to have bound-safe interface type annotations.
+//
 
+void f1a(int p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f2a(_Bool p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f3a(char p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f4a(short int p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f6a(long int p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f7a(float p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f8a(double p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f10a(struct S p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f11a(union U p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f13a(t1 p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+void f14a(t2 p : itype(ptr<int>)) {   // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+}
+
+// interface type must be a checked type.
 void f30(int *p : itype(int *)) {  // expected-error {{must be a checked type}}
 }
 
@@ -171,7 +212,7 @@ void f82(int((*f)(int *, int *)) : itype(ptr<int (int checked[10], int checked[1
 }
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
-// and the interoperation type.
+// and the bound-safe interface type.
 
 void f200(const int *p : itype(ptr<const int>)) {
 }
@@ -283,49 +324,49 @@ void f238(int a[static 10][10] : itype(ptr<int checked[10]>)) {
 // Incompatible pointee or element types.
 
 // Pointer types
-void f250(float **p : itype(ptr<int *>)) {   // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
+void f250(float **p : itype(ptr<int *>)) {   // expected-error {{mismatch between interface type '_Ptr<int *>' and declared type 'float **'}}
 }
 
-void f251(float **p : itype(ptr<ptr<int>>)) {   // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
+void f251(float **p : itype(ptr<ptr<int>>)) {   // expected-error {{mismatch between interface type '_Ptr<_Ptr<int>>' and declared type 'float **'}}
 }
 
-void f252(float a[10] : itype(double checked[10])) { // expected-error {{must be compatible with declared type}}
+void f252(float a[10] : itype(double checked[10])) { // expected-error {{mismatch between interface type}}
 }
 
 // Array types
-void f253(int a[10][10] : itype(int checked[10][11])) { // expected-error {{type '_Array_ptr<int checked[11]>' must be compatible with declared type 'int (*)[10]'}}
+void f253(int a[10][10] : itype(int checked[10][11])) { // expected-error {{mismatch between interface type '_Array_ptr<int checked[11]>' and declared type 'int (*)[10]'}}
 }
 
-void f254(int(*a)[10] : itype(ptr<int checked[]>)) {  // expected-error {{must be compatible with declared type}}
+void f254(int(*a)[10] : itype(ptr<int checked[]>)) {  // expected-error {{mismatch between interface type}}
 }
 
-void f255(int(*a)[] : itype(ptr<int checked[10]>)) {  // expected-error {{must be compatible with declared type}}
+void f255(int(*a)[] : itype(ptr<int checked[10]>)) {  // expected-error {{mismatch between interface type}}
 }
 
 // Differing number of parameters for function pointer.
 // Note that the function declarator has to be parenthesized so that
 // the interface type declaration is not parsed as the interface type for
 // the return type of the function declarator.
-void f256(int((*f)(int, float, char)) : itype(ptr<int(int, float)>)) { // expected-error {{must be compatible with declared type}}
+void f256(int((*f)(int, float, char)) : itype(ptr<int(int, float)>)) { // expected-error {{mismatch between interface type}}
 }
 
 // Differing parameter types for function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-void f257(int((*f)(int, float, char)) : itype(ptr<int(int, float, double)>)) { // expected-error {{must be compatible with declared type}}
+void f257(int((*f)(int, float, char)) : itype(ptr<int(int, float, double)>)) { // expected-error {{mismatch between interface type}}
 }
 
 // Differing return types for function pointer
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-void f258(int((*f)(int, float, char)) : itype(ptr<float(int, float,char)>)) { // expected-error {{must be compatible with declared type}}
+void f258(int((*f)(int, float, char)) : itype(ptr<float(int, float,char)>)) { // expected-error {{mismatch between interface type}}
 }
 
 // No special treatement for void pointers
-void f259(void *p : itype(ptr<int>)) { // expected-error {{must be compatible with declared type}}
+void f259(void *p : itype(ptr<int>)) { // expected-error {{mismatch between interface type}}
 }
 
-void f260(int *p : itype(ptr<void>)) { // expected-error {{must be compatible with declared type}}
+void f260(int *p : itype(ptr<void>)) { // expected-error {{mismatch between interface type}}
 }
 
 // Annotation type loses checking.
@@ -397,9 +438,6 @@ int *r12() : itype(int (int)) { // expected-error {{must be a pointer type}}
   return 0;
 }
 
-typedef int t1;
-typedef float t2;
-
 int *r13() : itype(t1) {      // expected-error {{must be a pointer type}}
   return 0;
 }
@@ -439,6 +477,58 @@ int(*(r31f(int arg[10][10]) : itype(int checked[10][10])))[10] { // expected-err
   return arg;
 }
 
+// Return types that cannot have interfce types
+
+int r1a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+_Bool r2a() : itype(ptr<int>) {  // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+char r3a() : itype(ptr<int>) {   // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+short int r4a() : itype(ptr<int>) { // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+long int r6a() : itype(ptr<int>) {   // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+float r7a() : itype(ptr<int>) {      // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+double r8a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+void r9a() : itype(ptr<int>) {      // expected-error {{interface type only allowed for a pointer return type}}
+}
+
+struct S r10a() : itype(ptr<int>) { // expected-error {{interface type only allowed for a pointer return type}}
+  struct S v;
+  v.a = 0;
+  return v;
+}
+
+union U r11a() : itype(ptr<int>) {  // expected-error {{interface type only allowed for a pointer return type}}
+  union U v;
+  v.a = 0;
+  return v;
+}
+
+t1 r13a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
+
+t2 r14a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+  return 0;
+}
 //
 // Valid type annotations
 // 
@@ -497,7 +587,7 @@ int (*r82() : itype(ptr<int(int checked[10], int checked[10])>))(int *, int *) {
 }
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
-// and the interoperation type.
+// and the bounds-safe interface type.
 
 const int *r200() : itype(ptr<const int>) {
   return 0;
@@ -546,47 +636,47 @@ int * const r209() : itype(const array_ptr<int>) {
 // Incompatible pointee or element types.
 
 // Pointer types
-float **r250() : itype(ptr<int *>) {   // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
+float **r250() : itype(ptr<int *>) {   // expected-error {{mismatch between interface type '_Ptr<int *>' and declared type 'float **'}}
 }
 
-float **r251() : itype(ptr<ptr<int>>) {   // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
+float **r251() : itype(ptr<ptr<int>>) {   // expected-error {{mismatch between interface type '_Ptr<_Ptr<int>>' and declared type 'float **'}}
 }
 
 // Array types
 
 // Returns pointer to array of 10 integers.
-int (*r254() : itype(ptr<int checked[]>))[10] {  // expected-error {{must be compatible with declared type}}
+int (*r254() : itype(ptr<int checked[]>))[10] {  // expected-error {{mismatch between interface type}}
 }
 
 // Returns pointer to array of integers with unknown
 // size.
-int (*r255() : itype(ptr<int checked[10]>))[]{  // expected-error {{must be compatible with declared type}}
+int (*r255() : itype(ptr<int checked[10]>))[]{  // expected-error {{mismatch between interface type}}
 }
 
 // Differing number of parameters for function pointer.
 // Note that the function declarator has to be parenthesized so that
 // the interface type declaration is not parsed as the interface type for
 // the return type of the function declarator.
-int (*r256() : itype(ptr<int(int, float)>))(int, float, char) { // expected-error {{must be compatible with declared type}}
+int (*r256() : itype(ptr<int(int, float)>))(int, float, char) { // expected-error {{mismatch between interface type}}
 }
 
 // Differing parameter types for function pointer.
 // See the earlier comment for r256 about why the function declarator is
 // parenthesized.
-int (*r257() : itype(ptr<int(int, float, double)>))(int, float, char) { // expected-error {{must be compatible with declared type}}
+int (*r257() : itype(ptr<int(int, float, double)>))(int, float, char) { // expected-error {{mismatch between interface type}}
 }
 
 // Differing return types for function pointer
 // See the earlier comment for r256 about why the function declarator is
 // parenthesized.
-int (*r258() : itype(ptr<float (int, float, char)>))(int, float, char) { // expected-error {{must be compatible with declared type}}
+int (*r258() : itype(ptr<float (int, float, char)>))(int, float, char) { // expected-error {{mismatch between interface type}}
 }
 
 // No special treatement for void pointers
-void *r259() : itype(ptr<int>) { // expected-error {{must be compatible with declared type}}
+void *r259() : itype(ptr<int>) { // expected-error {{mismatch between interface type}}
 }
 
-int *r260() : itype(ptr<void>) { // expected-error {{must be compatible with declared type}}
+int *r260() : itype(ptr<void>) { // expected-error {{mismatch between interface type}}
 }
 
 // Annotation type loses checking.
@@ -611,6 +701,10 @@ int (*r282() : itype(ptr<int[10]>)) checked[10] { // expected-error {{loses chec
 //
 //-------------------------------------------------------------
 
+//
+// Types that cannot appear in bounds-safe interface type annotations.
+//
+
 int *g1 : itype(int);       // expected-error {{must be a pointer or array type}}
 int *g2 : itype(_Bool);     // expected-error {{must be a pointer or array type}}
 int *g3 : itype(char);      // expected-error {{must be a pointer or array type}}
@@ -627,6 +721,22 @@ int *g13 : itype(t1);       // expected-error {{must be a pointer or array type}
 int *g14 : itype(t2);       // expected-error {{must be a pointer or array type}}
 int *g30 : itype(int *);    // expected-error {{must be a checked type}}
 extern int g31[] : itype(int[]);   // expected-error {{must be a checked type}}
+
+//
+// Types that cannot have bounds-safe interface type annotations.
+//
+
+int g1a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+_Bool g2a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+char g3a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+short int g4a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+long int  g6a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+float g7a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+double g8a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+struct S g10a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+union U g11a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+t1 g13a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+t2 g14a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
 
 //
 // Valid type annotations
@@ -665,7 +775,7 @@ int (*g81)(int *, int *) : itype(ptr<int(ptr<int>, ptr<int>)>);
 int (*g82)(int *, int *) : itype(ptr<int(int checked[10], int checked[10])>);
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
-// and the interoperation type.
+// and the bounds-safe interface type.
 
 const int *g200 : itype(ptr<const int>);
 volatile int *g201 : itype(ptr<volatile int>);
@@ -685,55 +795,55 @@ const int g218[10] : itype(const int checked[10]);
 
 // Array/pointer types are must be compatible for global variables
 
-extern int g230[] : itype(ptr<int>);         // expected-error {{must be compatible with declared type}}  
-extern int g231[] : itype(array_ptr<int>);   // expected-error {{must be compatible with declared type}}
-int *g232  : itype(int checked[]);           // expected-error {{must be compatible with declared type}}
-int *g233 : itype(int checked[15]);         // expected-error {{must be compatible with declared type}}
+extern int g230[] : itype(ptr<int>);         // expected-error {{mismatch between interface type}}  
+extern int g231[] : itype(array_ptr<int>);   // expected-error {{mismatch between interface type}}
+int *g232  : itype(int checked[]);           // expected-error {{mismatch between interface type}}
+int *g233 : itype(int checked[15]);         // expected-error {{mismatch between interface type}}
 
-int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{must be compatible with declared type}}
-int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{must be compatible with declared type}}
-int **g236 : itype(ptr<int> checked[10]);               // expected-error {{must be compatible with declared type}}
-int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{must be compatible with declared type}}
-int **g238 : itype(int *checked[20]);                   // expected-error {{must be compatible with declared type}}
+int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{mismatch between interface type}}
+int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{mismatch between interface type}}
+int **g236 : itype(ptr<int> checked[10]);               // expected-error {{mismatch between interface type}}
+int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{mismatch between interface type}}
+int **g238 : itype(int *checked[20]);                   // expected-error {{mismatch between interface type}}
 
 // Incompatible pointee or element types
 
 // Pointer types
-float **g250 : itype(ptr<int *>);     // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
-float **g251 : itype(ptr<ptr<int>>);  // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
-float g252[10] : itype(double checked[10]); // expected-error {{must be compatible with declared type}}
+float **g250 : itype(ptr<int *>);     // expected-error {{mismatch between interface type '_Ptr<int *>' and declared type 'float **'}}
+float **g251 : itype(ptr<ptr<int>>);  // expected-error {{mismatch between interface type '_Ptr<_Ptr<int>>' and declared type 'float **'}}
+float g252[10] : itype(double checked[10]); // expected-error {{mismatch between interface type}}
 
 // Array types
-int g253[10][10] : itype(int checked[10][11]); // expected-error {{type 'int checked[10][11]' must be compatible with declared type 'int [10][10]'}}
-int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{must be compatible with declared type}}
-int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{must be compatible with declared type}}
+int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int checked[10][11]' and declared type 'int [10][10]'}}
+int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{mismatch between interface type}}
+int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{mismatch between interface type}}
 
 // Differing number of parameters for function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{must be compatible with declared type}}
+int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{mismatch between interface type}}
 
 // Differing parameter types for a function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{must be compatible with declared type}}
+int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{mismatch between interface type}}
 
 // Differing return types for a function pointer.
 // See the earlier comment for f256 about why the function declarator is
 // parenthesized.
-int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{must be compatible with declared type}}
+int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{mismatch between interface type}}
 
 // No special treatement for void pointers
-void *g259 : itype(ptr<int>);   // expected-error {{must be compatible with declared type}}
-int *g260 : itype(ptr<void>);   // expected-error {{must be compatible with declared type}}
+void *g259 : itype(ptr<int>);   // expected-error {{mismatch between interface type}}
+int *g260 : itype(ptr<void>);   // expected-error {{mismatch between interface type}}
 
 // Incompatible array types
 
-extern int g261[] : itype(int checked[10]);         // expected-error {{must be compatible with declared type}}
-int g262[10] : itype(int checked[]);                // expected-error {{must be compatible with declared type}}
-extern int g263[][10] : itype(int checked[10][10]); // expected-error {{must be compatible with declared type}}
-int g264[10][10] : itype(int checked[][10]);        // expected-error {{must be compatible with declared type}}
-int g265[9][10] : itype(int checked[10][10]);       // expected-error {{must be compatible with declared type}}
+extern int g261[] : itype(int checked[10]);         // expected-error {{mismatch between interface type}}
+int g262[10] : itype(int checked[]);                // expected-error {{mismatch between interface type}}
+extern int g263[][10] : itype(int checked[10][10]); // expected-error {{mismatch between interface type}}
+int g264[10][10] : itype(int checked[][10]);        // expected-error {{mismatch between interface type}}
+int g265[9][10] : itype(int checked[10][10]);       // expected-error {{mismatch between interface type}}
 
 
 // Annotation type loses checking.
@@ -747,6 +857,10 @@ int ((*g282)(int checked[10])) : itype(ptr<int (int[10])>); // expected-error {{
 // Tests for structure members with interface type annotations.
 //
 //-------------------------------------------------------------
+
+//
+// Test types not allowed to appear in bounds-safe interface type annotations.
+//
 
 struct S1 {
   int *g1 : itype(int);       // expected-error {{must be a pointer or array type}}
@@ -765,6 +879,24 @@ struct S1 {
   int *g14 : itype(t2);       // expected-error {{must be a pointer or array type}}
   int *g30 : itype(int *);    // expected-error {{must be a checked type}}
   int g31[] : itype(int[]);   // expected-error {{must be a checked type}}
+};
+
+//
+// Types that cannot have bounds-safe interface type annotations.
+//
+
+struct S1a {;
+  int g1a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  _Bool g2a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  char g3a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  short int g4a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  long int  g6a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  float g7a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  double g8a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  struct S g10a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  union U g11a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  t1 g13a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
+  t2 g14a : itype(ptr<int>);  // expected-error {{interface type only allowed for a declaration with pointer or array type}}
 };
 
 //
@@ -813,7 +945,7 @@ struct S4 {
 };
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
-// and the interoperation type.
+// and the bounds-safe interface type.
 
 struct S5 {
   const int *g200 : itype(ptr<const int>);
@@ -836,74 +968,74 @@ struct S5 {
 // Array/pointer types are must be compatible for structure mebers
 
 struct S6 {
-  int *g232 : itype(int checked[]);           // expected-error {{must be compatible with declared type}}
-  int *g233 : itype(int checked[15]);         // expected-error {{must be compatible with declared type}}
-  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{must be compatible with declared type}}
-  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{must be compatible with declared type}}
-  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{must be compatible with declared type}}
-  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{must be compatible with declared type}}
-  int **g238 : itype(int *checked[20]);                   // expected-error {{must be compatible with declared type}}
+  int *g232 : itype(int checked[]);           // expected-error {{mismatch between interface type}}
+  int *g233 : itype(int checked[15]);         // expected-error {{mismatch between interface type}}
+  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{mismatch between interface type}}
+  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{mismatch between interface type}}
+  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{mismatch between interface type}}
+  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{mismatch between interface type}}
+  int **g238 : itype(int *checked[20]);                   // expected-error {{mismatch between interface type}}
   // Incomplete array type allowed as last member of structure.
-  int g230[] : itype(ptr<int>);         // expected-error {{must be compatible with declared type}}  
+  int g230[] : itype(ptr<int>);         // expected-error {{mismatch between interface type}}  
 };
 
 struct S7 {
   int a;
-  int g231[] : itype(array_ptr<int>);   // expected-error {{must be compatible with declared type}}
+  int g231[] : itype(array_ptr<int>);   // expected-error {{mismatch between interface type}}
 };
 
 struct S8 {
   int a;
-  int *g232  : itype(int checked[]); // expected-error {{must be compatible with declared type}}
+  int *g232  : itype(int checked[]); // expected-error {{mismatch between interface type}}
 };
 
 struct S9 {
   // Incompatible pointee or element types
 
   // Pointer types
-  float **g250 : itype(ptr<int *>);     // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
-  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
-  float g252[10] : itype(double checked[10]); // expected-error {{must be compatible with declared type}}
+  float **g250 : itype(ptr<int *>);     // expected-error {{mismatch between interface type '_Ptr<int *>' and declared type 'float **'}}
+  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{mismatch between interface type '_Ptr<_Ptr<int>>' and declared type 'float **'}}
+  float g252[10] : itype(double checked[10]); // expected-error {{mismatch between interface type}}
 
   // Array types
-  int g253[10][10] : itype(int checked[10][11]); // expected-error {{type 'int checked[10][11]' must be compatible with declared type 'int [10][10]'}}
-  int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{must be compatible with declared type}}
-  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{must be compatible with declared type}}
+  int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int checked[10][11]' and declared type 'int [10][10]'}}
+  int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{mismatch between interface type}}
+  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{mismatch between interface type}}
 
   // Differing number of parameters for function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{must be compatible with declared type}}
+  int ((*g256)(int, float, char)) : itype(ptr<int (int, float)>);  // expected-error {{mismatch between interface type}}
 
   // Differing parameter types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{must be compatible with declared type}}
+  int ((*g257)(int, float, char)) : itype(ptr<int (int, float, double)>); // expected-error {{mismatch between interface type}}
 
   // Differing return types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{must be compatible with declared type}}
+  int ((*g258)(int, float, char)) : itype(ptr<float (int, float, char)>); // expected-error {{mismatch between interface type}}
 
   // No special treatement for void pointers
-  void *g259 : itype(ptr<int>);   // expected-error {{must be compatible with declared type}}
-  int *g260 : itype(ptr<void>);   // expected-error {{must be compatible with declared type}}
+  void *g259 : itype(ptr<int>);   // expected-error {{mismatch between interface type}}
+  int *g260 : itype(ptr<void>);   // expected-error {{mismatch between interface type}}
 };
 
 struct S10 {
   int a;
-  int g261[] : itype(int checked[10]);         // expected-error {{must be compatible with declared type}}
+  int g261[] : itype(int checked[10]);         // expected-error {{mismatch between interface type}}
 };
 
 struct S11 {
   int a;
-  int g263[][10] : itype(int checked[10][10]); // expected-error {{must be compatible with declared type}}
+  int g263[][10] : itype(int checked[10][10]); // expected-error {{mismatch between interface type}}
 };
 
 struct S12 {
-  int g262[10] : itype(int checked[]);                // expected-error {{must be compatible with declared type}}
-  int g264[10][10] : itype(int checked[][10]);        // expected-error {{must be compatible with declared type}}
-  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{must be compatible with declared type}}
+  int g262[10] : itype(int checked[]);                // expected-error {{mismatch between interface type}}
+  int g264[10][10] : itype(int checked[][10]);        // expected-error {{mismatch between interface type}}
+  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{mismatch between interface type}}
 };
 
 // Annotation type loses checking.
@@ -980,7 +1112,7 @@ union U4 {
 };
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
-// and the interoperation type.
+// and the bounds-safe interface type.
 
 union U5 {
   const int *g200 : itype(ptr<const int>);
@@ -1003,13 +1135,13 @@ union U5 {
 // Array/pointer types are must be compatible for structure members
 
 union U6 {
-  int *g232 : itype(int checked[]);           // expected-error {{must be compatible with declared type}}
-  int *g233 : itype(int checked[15]);         // expected-error {{must be compatible with declared type}}
-  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{must be compatible with declared type}}
-  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{must be compatible with declared type}}
-  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{must be compatible with declared type}}
-  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{must be compatible with declared type}}
-  int **g238 : itype(int *checked[20]);                   // expected-error {{must be compatible with declared type}}
+  int *g232 : itype(int checked[]);           // expected-error {{mismatch between interface type}}
+  int *g233 : itype(int checked[15]);         // expected-error {{mismatch between interface type}}
+  int g234[10][10] : itype(array_ptr<int checked[10]>);  // expected-error {{mismatch between interface type}}
+  int g235[10][10] : itype(array_ptr<int[10]>);          // expected-error {{mismatch between interface type}}
+  int **g236 : itype(ptr<int> checked[10]);               // expected-error {{mismatch between interface type}}
+  int **g237 : itype(array_ptr<int> checked[10]);         // expected-error {{mismatch between interface type}}
+  int **g238 : itype(int *checked[20]);                   // expected-error {{mismatch between interface type}}
 };
 
 
@@ -1017,39 +1149,39 @@ union U9 {
   // Incompatible pointee or element types
 
   // Pointer types
-  float **g250 : itype(ptr<int *>);     // expected-error {{type '_Ptr<int *>' must be compatible with declared type 'float **'}}
-  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{type '_Ptr<_Ptr<int>>' must be compatible with declared type 'float **'}}
-  float g252[10] : itype(double checked[10]); // expected-error {{must be compatible with declared type}}
+  float **g250 : itype(ptr<int *>);     // expected-error {{mismatch between interface type '_Ptr<int *>' and declared type 'float **'}}
+  float **g251 : itype(ptr<ptr<int>>);  // expected-error {{mismatch between interface type '_Ptr<_Ptr<int>>' and declared type 'float **'}}
+  float g252[10] : itype(double checked[10]); // expected-error {{mismatch between interface type}}
 
   // Array types
-  int g253[10][10] : itype(int checked[10][11]); // expected-error {{type 'int checked[10][11]' must be compatible with declared type 'int [10][10]'}}
-  int(*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{must be compatible with declared type}}
-  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{must be compatible with declared type}}
+  int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int checked[10][11]' and declared type 'int [10][10]'}}
+  int(*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{mismatch between interface type}}
+  int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{mismatch between interface type}}
 
   // Differing number of parameters for function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int((*g256)(int, float, char)) : itype(ptr<int(int, float)>);  // expected-error {{must be compatible with declared type}}
+  int((*g256)(int, float, char)) : itype(ptr<int(int, float)>);  // expected-error {{mismatch between interface type}}
 
   // Differing parameter types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int((*g257)(int, float, char)) : itype(ptr<int(int, float, double)>); // expected-error {{must be compatible with declared type}}
+  int((*g257)(int, float, char)) : itype(ptr<int(int, float, double)>); // expected-error {{mismatch between interface type}}
 
   // Differing return types for a function pointer.
   // See the earlier comment for f256 about why the function declarator is
   // parenthesized.
-  int((*g258)(int, float, char)) : itype(ptr<float(int, float, char)>); // expected-error {{must be compatible with declared type}}
+  int((*g258)(int, float, char)) : itype(ptr<float(int, float, char)>); // expected-error {{mismatch between interface type}}
 
                                                                         // No special treatement for void pointers
-  void *g259 : itype(ptr<int>);   // expected-error {{must be compatible with declared type}}
-  int *g260 : itype(ptr<void>);   // expected-error {{must be compatible with declared type}}
+  void *g259 : itype(ptr<int>);   // expected-error {{mismatch between interface type}}
+  int *g260 : itype(ptr<void>);   // expected-error {{mismatch between interface type}}
 };
 
 union U12 {
-  int g262[10] : itype(int checked[]);                // expected-error {{must be compatible with declared type}}
-  int g264[10][10] : itype(int checked[][10]);        // expected-error {{must be compatible with declared type}}
-  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{must be compatible with declared type}}
+  int g262[10] : itype(int checked[]);                // expected-error {{mismatch between interface type}}
+  int g264[10][10] : itype(int checked[][10]);        // expected-error {{mismatch between interface type}}
+  int g265[9][10] : itype(int checked[10][10]);       // expected-error {{mismatch between interface type}}
 };
 
 // Annotation type loses checking.
