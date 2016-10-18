@@ -3,7 +3,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
 #include "../../include/stdchecked.h"
 
@@ -247,15 +247,14 @@ extern array_ptr<int> f31(int len) : count() { // expected-error {{expected expr
 // f32 is a function that returns a pointer to an array of 10 integers.  The
 // return bounds expression must be part of the function declarator and
 // should not follow the array declarator.
-int(*(f32(int arg[10][10])))[10] : count(10); // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f32', place it after the ')'}}
+int(*(f32(int arg[10][10])))[10] : count(10); // expected-error {{unexpected bounds expression after declarator}}
 
-int(*(f32(int arg[10][10])))[10] : count(10) { // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f32', place it after the ')'}}
+int(*(f32(int arg[10][10])))[10] : count(10) { // expected-error {{unexpected bounds expression after declarator}}
   return arg;
 }
 
 // A return bounds expression cannot follow a parenthesized function declarator
-int *(f33(int i)) : count(10); // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f33', place it after the ')'}}
-
-int *(f33(int i)) : count(10) { // expected-error {{unexpected bounds expression after declarator}} expected-note {{if this is a return bounds declaration for 'f33', place it after the ')'}}
+int *(f33(int i)) : count(10); // expected-error {{unexpected bounds expression after declarator}}
+int *(f33(int i)) : count(10) { // expected-error {{unexpected bounds expression after declarator}}
   return 0;
 }

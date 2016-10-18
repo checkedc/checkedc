@@ -62,7 +62,7 @@ void f10(int *p : itype(struct S)) { // expected-error {{must be a pointer or ar
 void f11(int *p : itype(union U)) {  // expected-error {{must be a pointer or array type}}
 }
 
-void f12(int *p : itype(int(int))) { // expected-error {{mismatch between interface type}}
+void f12(int *p : itype(int(int))) { // expected-error {{mismatch between interface type}} expected-error {{type must be a checked type}}
 }
 
 void f13(int *p : itype(t1)) {      // expected-error {{must be a pointer or array type}}
@@ -371,13 +371,20 @@ void f260(int *p : itype(ptr<void>)) { // expected-error {{mismatch between inte
 
 // Annotation type loses checking.
 
+// Lost checking on a pointer to a pointer.
 void f280(ptr<int> *p : itype(ptr<int *>)) { //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
 }
 
+// Lost checking on a pointer to an array.
 void f281(int(*a)checked[10][10] : itype(ptr<int[10][10]>)) { // expected-error {{loses checking of declared type}}
 }
 
+// Test lost checking on an argument type for a function pointer type
 void f282(int ((*f)(int checked[10])) : itype(ptr<int (int[10])>)) { // expected-error {{loses checking of declared type}}
+}
+
+// Test lost checking on function return type for a function pointer
+void f283(ptr<int> ((*f)(int[10])) : itype(ptr<int *(int[10])>)) { // expected-error {{loses checking of declared type}}
 }
 
 //------------------------------------------------------------ -
