@@ -123,7 +123,7 @@ void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len), ptr<int> plen)
 \end{verbatim}
 A caller would take the addresses of local variables to use this function:
 \begin{verbatim}
-void f()
+void f(void)
 {
     int len;
     array_ptr<char> buf : count(len) = NULL;
@@ -261,7 +261,7 @@ struct S {
     int array_ptr<char> chars : len;
 }
 
-void f() 
+void f(void) 
 {
    S *s = malloc(sizeof(S)) where s : _uninit_data;
    s->chars = NULL where s : _init_data;

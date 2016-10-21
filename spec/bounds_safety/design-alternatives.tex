@@ -119,7 +119,7 @@ Code takes the address of an array element and immediately does pointer
 arithmetic will still fail to type check, introducing a potential
 backward compatibility issue:
 \begin{verbatim}
-f()
+f(void)
 {
     int a[10];
     int *x = &a[0] + 5; // &a[0] has type ptr<T>.  Pointer arithmetic is not allowed
@@ -133,7 +133,7 @@ possibility, so this proposal still violates the principle of not
 changing the meaning of existing C code.
 
 \begin{verbatim}
-f()
+f(void)
 {
     int a[10];
     int *x = ((int *) &a[0]) + 5; // redundant but OK under old rule
@@ -179,12 +179,12 @@ f(int *arg, int len)
    ...
 }
 
-g() {
+g(void) {
    int x[10];
    f(x, 10);
 }
 
-h() {
+h(void) {
    int x[10];
    int *ptr = x;
    f(ptr, 10);
@@ -258,7 +258,7 @@ void swap(int *p, int *q) {
     *q = *tmp;
 }
 
-void f() {
+void f(void) {
     int arr[5] = {0, 1, 2, 3, 4};
     swap(&arr[0], &arr[5]);
 }
@@ -274,7 +274,7 @@ int sum(int *start, int count) {
    return total;
 }
 
-void f() {
+void f(void) {
     int arr[5] = {0, 1, 2, 3, 4};
     sum(&arr[3], 3);
 }

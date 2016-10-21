@@ -265,7 +265,7 @@ Externally-scoped variables can have bounds as well:
 int buflen = 0;
 array_ptr<int> buf : count(buflen) = NULL;
 
-int sum()
+int sum(void)
 {
     int result = 0;
     for (int i = 0; i < buflen; i++) {
@@ -333,7 +333,7 @@ elements and then points to an array with 10 elements; the bounds are
 adjusted accordingly.
 
 \begin{verbatim}
-void f() 
+void f(void) 
 {
    int x[5];
    int y[10];
@@ -501,7 +501,7 @@ void update_size(int i)
 
 extern array_ptr<int> ap : count(size);
 
-void go()
+void go(void)
 {
     update_size(INT_MAX);
     ap[100] = 0xbad;
@@ -1305,7 +1305,7 @@ that allowed for the buffer to be reallocated:
 int buflen = 0;
 array_ptr<int> buf : count(buflen) = NULL;
 
-int sum()
+int sum(void)
 {
    int result = 0;
    for (int i = 0; i < buflen; i++) {
