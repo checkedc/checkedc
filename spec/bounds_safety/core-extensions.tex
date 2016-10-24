@@ -789,6 +789,13 @@ called does not have to be declared as checked. The notion of whether a
 scope is checked or not checked is lexical and the function definition
 is a separate lexical scope.
 
+C allows declarations of functions without prototypes, where the types 
+of the arguments to functions are not specified.  These
+functions are dangerous to use because there can be mismatches 
+between argument types and parameter types at function
+calls.  This can corrupt data or the call stack.  In checked scopes, 
+the use or declaration of  functions without prototypes is not allowed.
+
 As we add different notions of checking to Checked C, we will use the
 checked and unchecked keywords for all the different notions of
 checking. We may introduce additional keywords to control specific kinds

@@ -292,9 +292,9 @@ array_ptr<int> pax : count(5) : (array_ptr<int>) &x;
 \end{verbatim}
 In this example, the result of \texttt{random()} has no bounds:
 \begin{verbatim}
-char *random();
+char *random(void);
 
-void f() {
+void f(void) {
     // fails to check: random() has no bounds
     array_ptr<char> sp : count(1) = random();
 }
@@ -453,9 +453,9 @@ array_ptr<int> pax : count(5) : &x;
 Implicit conversions of unchecked pointers with no bounds to checked pointers
 will also be rejected:
 \begin{verbatim}
-char *random();
+char *random(void);
 
-void f() {
+void f(void) {
     // fails to check: random() has no bounds
     array_ptr<char> sp : count(1) = random(); 
 }
@@ -846,7 +846,7 @@ that set the tag to 1.
    bounds((array_ptr<int>) ((size_t) x & ~0x3), \
           (array_ptr<int>) ((size_t) x & ~0x3) + 1) rel_align(char)
 
-array_ptr<int> create() 
+array_ptr<int> create(void) 
 where untagged_bounds(return_value)
 {
    array_ptr<int> x : bounds(x, x + 1) = malloc(sizeof(int));
@@ -871,3 +871,158 @@ where untagged_bounds(return_value);
   return x;
 }
 \end{verbatim}
+
+\section{Restricted interoperation with functions without prototypes}
+C allows declarations of functions that do not specify the type of their parameters
+(no-prototype function declarations).  This provides backward compatibility between
+ANSI C from 1989 and earlier versions of C that did not check the types of
+arguments at calls.  Using functions declared this way is
+dangerous.  Arguments are passed based on their types and an incorrect call can be made
+where the types of arguments do not match the types of the parameters of the function
+definition.  This could lead to bypassing of checking.  Checked pointers could be 
+converted silently to unchecked pointers or vice versa.  Even worse, parameters could contain
+corrupted values or the stack could be corrupted.
+
+We recommend strongly that programmers do not declare functions without prototypes.  This
+feature is a backward compatibility feature and is used rarely now.
+The GCC and clang C compilers have warning flags that will detect the declaration of functions without 
+prototypes.
+
+For checked scopes, the declaration or use of functions with no prototypes is an error
+and is not allowed.   In unchecked scopes, forbidding the use of function
+declarations without prototypes would violate the design goal of providing backward compatibility.
+Instead, we restrict the usage of no-prototype functions to reduce the possibility of
+bounds checking being bypassed accidentally in unchecked blocks.
+
+Informally, we want to prevent values with checked types from being passed as arguments or
+returned from calls to no-prototype functions.  This requires some care to define because of
+structures, unions, and function pointers. We define the set of types $E$ that are an error to use
+with functions without prototypes by induction.  It includes:
+\begin{enumerate}
+\item Checked pointer and array types.
+\item Complete structure and union types with members that have types in $E$.
+\item Pointers to function types that have argument or return types that are in $E$.
+\item Complete structure and union types with members with bounds declarations (these
+      are described in Chapter~\ref{chapter:structure-bounds}).
+\item Pointers to function types with bounds declarations.
+\end{enumerate}
+Clauses 4 and 5 handle the case of integer-typed values that have bounds declarations
+(note that bounds-safe interfaces on unchecked pointer types are not bounds declarations).
+
+We define the following rules for unchecked scopes:
+\begin{enumerate}
+\item It is an error to call a function that is
+declared to have no prototype and pass or return a value whose type is in $E$.
+\item A function declaration with no prototype is incompatible with a function declaration
+with a prototype that has parameter types or a return type in $E$ or that has bounds
+declarations.
+\end{enumerate}
+
+\subsection{Examples}
+The rules catch common errors but are not foolproof.  They catch passing a checked pointer
+to a function with no prototype:
+\begin{verbatim}
+int f();
+
+int g(ptr<int> a) {
+  f(a);  // error - passing a checked type to a function without a prototype
+}
+\end{verbatim}
+They also catch redeclaring a function with no prototype to have a checked parameter:
+\begin{verbatim}
+int f();
+
+struct S {
+  array_ptr<int> ap : count(len);
+  int len;
+}
+
+// Error - incompatible definition of f with a prototype.
+int f(S y) {
+ ...
+ }
+\end{verbatim}
+By rule 2, the definition of \verb+f+ is incompatible with the initial
+declaration of \verb+f+, so this is an error.  It is an error even
+if \verb+S+ is an incomplete type at the time of
+a prototype declaration for \verb+f+:
+\begin{verbatim} 
+int f();
+
+struct S;
+
+int f(S y);  // Declarations involving incomplete types are allowed.
+
+// Now define struct S.
+struct S {
+  array_ptr<int> ap : count(len);
+  int len;
+}
+
+// Error - incompatible definition of f with the initial declaration of f.
+int f(S y) {
+ ...
+}
+\end{verbatim}
+
+\subsection{Checking during compilation and linking}
+Checking can be bypassed by code that declares a function with no prototype in one 
+compilation unit and defines it in another compilation unit:
+\begin{verbatim}
+Compilation unit 1:
+
+int g(ptr<int> x) {
+ ...
+ }
+
+Compilation unit 2:
+
+extern int g();
+void h(void) {
+  g(5);  // Error
+}
+\end{verbatim}
+The definition of \verb+g+ in compilation unit 1 is incompatible with
+the declaration in compilation unit 2, but there is no way for a compiler
+to detect this.
+
+The checking could be deferred to linking. The compiler could decorate the linker names of
+functions whose argument types or return types are in $E$ differently from the names 
+of functions whose argument types and return types are not in $E$.
+
+\subsection{Unchecked pointers to checked types}
+There is a limited way in which no-prototype functions can interoperate with checked types.
+The definition of $E$ allows unchecked
+pointers to checked pointers and arrays
+to be passed to or returned from no-prototype functions.  It also allows unchecked pointers to
+structures or unions that have checked members to be passed to or returned from
+no-prototype functions.  Finally, it allows unchecked pointers with bounds-safe interfaces to be
+passed to functions with no prototypes.  This is necessary so that bounds-safe interfaces
+can be added to existing code without breaking the code.   
+
+Here are some examples:
+\begin{verbatim}
+int g();
+
+int g(ptr<int> *x);
+
+int f();
+
+struct S {
+  array_ptr<ptr> ap : count(len);
+  int len;
+}
+
+int f(S *arg);
+\end{verbatim}
+
+There are three reasons to allow unchecked pointers that point to checked data to
+be passed to functions without prototypes.  First, the unchecked pointer types 
+indicate a lack of checking, so it is already clear from the types of the variables being
+used that there is some lack of checking.  Second, we believe that this
+will support incremental conversion of code to use the Checked C extension.  Finally,
+it would be difficult to enforce that an unchecked pointer does not point
+to a checked type. An unchecked pointer could point to an incomplete
+structure or union type. A compilation unit might never define the type. The type
+could even be unresolved during linking of a library if none of the library compilation units
+define the type.
