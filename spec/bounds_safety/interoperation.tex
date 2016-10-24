@@ -874,7 +874,7 @@ where untagged_bounds(return_value);
 
 \section{Restricted interoperation with functions without prototypes}
 C allows declarations of functions that do not specify the type of their parameters
-(no-prototype function declarations).  This provides backwards compatibility between 
+(no-prototype function declarations).  This provides backward compatibility between
 ANSI C from 1989 and earlier versions of C that did not check the types of
 arguments at calls.  Using functions declared this way is
 dangerous.  Arguments are passed based on their types and an incorrect call can be made
@@ -951,7 +951,7 @@ int f();
 
 struct S;
 
-int f(S y);  // declarations involving incomplete types are allowed.
+int f(S y);  // Declarations involving incomplete types are allowed.
 
 // Now define struct S.
 struct S {
