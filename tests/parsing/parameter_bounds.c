@@ -172,7 +172,7 @@ extern void f32(int len,
 }
 
 // Pointers to functions that have bounds declarations on parameters.
-extern void f33() {
+extern void f33(void) {
   // Checked pointer to a function that takes an array_ptr to 5 integers.
   ptr<int(array_ptr<int> : count(5))> p1 = 0;
   ptr<int(array_ptr<int> arg : count(5))> p2 = 0;

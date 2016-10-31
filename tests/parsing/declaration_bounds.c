@@ -91,7 +91,7 @@ extern void f4(array_ptr<int> arr : count(len), int len) {
 }
 
 // Checked array declarations
-extern void f5() {
+extern void f5(void) {
   int arr1 checked[5] : count(5);
   int arr2 checked[5]: count(2 + 3);
   int arr3 checked[6] : count(5);

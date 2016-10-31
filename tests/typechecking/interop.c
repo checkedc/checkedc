@@ -142,7 +142,7 @@ void g2_complete_array_param(int ap checked[10]) {
   f4_incomplete_arr(ap, 10);
 }
 
-void g2_complete_array_arg() {
+void g2_complete_array_arg(void) {
   int arr checked[10];
 
   f1_complete_arr(arr);
@@ -199,7 +199,7 @@ void g2_complete_md_array_param(int ap checked[10][10]) {
   f4_incomplete_md_arr(ap, 10);
 }
 
-void g2_complete_md_array_arg() {
+void g2_complete_md_array_arg(void) {
   int arr checked[10][10];
 
   f1_complete_md_arr(arr);

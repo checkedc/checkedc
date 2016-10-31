@@ -780,70 +780,70 @@ struct s8 {
 //
 
 // count
-array_ptr<int> fn1() : count(5) { return 0; }
-int *fn2() : count(5) { return 0; }
+array_ptr<int> fn1(void) : count(5) { return 0; }
+int *fn2(void) : count(5) { return 0; }
 
 // byte_count
-extern array_ptr<int> fn4() : byte_count(5 * sizeof(int));
-extern array_ptr<void> fn5() : byte_count(5 * sizeof(int));
-extern int *fn6() : byte_count(5 * sizeof(int));
+extern array_ptr<int> fn4(void) : byte_count(5 * sizeof(int));
+extern array_ptr<void> fn5(void) : byte_count(5 * sizeof(int));
+extern int *fn6(void) : byte_count(5 * sizeof(int));
 
 // bounds
-array_ptr<int> fn10() : bounds(s1, s1 + 5) { return 0; }
-array_ptr<void> fn11() : bounds(s1, s1 + 5) { return 0; }
-int *fn12() : bounds(s1, s1 + 5) { return 0; }
+array_ptr<int> fn10(void) : bounds(s1, s1 + 5) { return 0; }
+array_ptr<void> fn11(void) : bounds(s1, s1 + 5) { return 0; }
+int *fn12(void) : bounds(s1, s1 + 5) { return 0; }
 
 // Test valid rEturn bounds declarations for integer-typed values
-short int fn20() : byte_count(5 * sizeof(int)) { return (short int) s1; }
-int fn21() : byte_count(5 * sizeof(int)) { return (short int)s1; }
-long int fn22() : byte_count(5 * sizeof(int)) { return (short int)s1; }
-unsigned long int fn23() : byte_count(5 * sizeof(int)) { return (short int)s1; }
-enum E1 fn24() : byte_count(8) { return (short int)s1; }
+short int fn20(void) : byte_count(5 * sizeof(int)) { return (short int) s1; }
+int fn21(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
+long int fn22(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
+unsigned long int fn23(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
+enum E1 fn24(void) : byte_count(8) { return (short int)s1; }
 
 // bounds
-extern int fn25() : bounds(s1, s1 + 5);
-extern long int fn26() : bounds(s1, s1 + 5);
-extern unsigned long int fn27 : bounds(s1, s1 + 5);
-extern enum E1 fn28() : bounds(s1, s1 + 5);
+extern int fn25(void) : bounds(s1, s1 + 5);
+extern long int fn26(void) : bounds(s1, s1 + 5);
+extern unsigned long int fn27(void) : bounds(s1, s1 + 5);
+extern enum E1 fn28(void) : bounds(s1, s1 + 5);
 
 //
 // Test invalid return bounds declarations
 //
 
 // count
-char fn41() : count(5);         // expected-error {{expected 'fn41' to have a pointer return type}}
-_Bool fn42() : count(5);        // expected-error {{expected 'fn42' to have a pointer return type}}
-short int fn43() : count(5);    // expected-error {{expected 'fn43' to have a pointer return type}}
-int fn44() : count(5);          // expected-error {{expected 'fn44' to have a pointer return type}}
-long int fn45() : count(5);     // expected-error {{expected 'fn45' to have a pointer return type}}
-unsigned short int fn46() : count(5); // expected-error {{expected 'fn46' to have a pointer return type}}
-unsigned int fn47() : count(5);       // expected-error {{expected 'fn47' to have a pointer return type}}
-unsigned long int fn48() : count(5);  // expected-error {{expected 'fn48' to have a pointer return type}}
+char fn41(void) : count(5);         // expected-error {{expected 'fn41' to have a pointer return type}}
+_Bool fn42(void) : count(5);        // expected-error {{expected 'fn42' to have a pointer return type}}
+short int fn43(void) : count(5);    // expected-error {{expected 'fn43' to have a pointer return type}}
+int fn44(void) : count(5);          // expected-error {{expected 'fn44' to have a pointer return type}}
+long int fn45(void) : count(5);     // expected-error {{expected 'fn45' to have a pointer return type}}
+unsigned short int fn46(void) : count(5); // expected-error {{expected 'fn46' to have a pointer return type}}
+unsigned int fn47(void) : count(5);       // expected-error {{expected 'fn47' to have a pointer return type}}
+unsigned long int fn48(void) : count(5);  // expected-error {{expected 'fn48' to have a pointer return type}}
 
-float fn49() : count(5);        // expected-error {{expected 'fn49' to have a pointer return type}}
-double fn50() : count(5);       // expected-error {{expected 'fn50' to have a pointer return type}}
-struct S1 fn51() : count(5);    // expected-error {{expected 'fn51' to have a pointer return type}}
-union U1 fn52() : count(5);     // expected-error {{expected 'fn52' to have a pointer return type}}
-enum E1 fn53() : count(5);      // expected-error {{expected 'fn53' to have a pointer return type}}
-ptr<int> fn54() : count(1);     // expected-error {{bounds declaration not allowed because 'fn54' has a _Ptr return type}}
-array_ptr<void> fn55() : count(1);     // expected-error {{expected 'fn55' to have a non-void pointer return type}}
+float fn49(void) : count(5);        // expected-error {{expected 'fn49' to have a pointer return type}}
+double fn50(void) : count(5);       // expected-error {{expected 'fn50' to have a pointer return type}}
+struct S1 fn51(void) : count(5);    // expected-error {{expected 'fn51' to have a pointer return type}}
+union U1 fn52(void) : count(5);     // expected-error {{expected 'fn52' to have a pointer return type}}
+enum E1 fn53(void) : count(5);      // expected-error {{expected 'fn53' to have a pointer return type}}
+ptr<int> fn54(void) : count(1);     // expected-error {{bounds declaration not allowed because 'fn54' has a _Ptr return type}}
+array_ptr<void> fn55(void) : count(1);     // expected-error {{expected 'fn55' to have a non-void pointer return type}}
 void (*fn56(void) : count(1))(int);    // expected-error {{bounds declaration not allowed because 'fn56' has a function pointer return type}}
 ptr<void(int)> fn57(void) : count(1); // expected-error {{bounds declaration not allowed because 'fn57' has a _Ptr return type}}
 
 // byte_count
-float fn60() : byte_count(8);     // expected-error {{expected 'fn60' to have a pointer or integer return type}}
-double fn61() : byte_count(8);    // expected-error {{expected 'fn61' to have a pointer or integer return type}}
-struct S1 fn62() : byte_count(8); // expected-error {{expected 'fn62' to have a pointer or integer return type}}
-union U1 fn63() : byte_count(8);  // expected-error {{expected 'fn63' to have a pointer or integer return type}}
-ptr<int> fn64() : byte_count(sizeof(int)); // expected-error {{bounds declaration not allowed because 'fn64' has a _Ptr return type}}
+float fn60(void) : byte_count(8);     // expected-error {{expected 'fn60' to have a pointer or integer return type}}
+double fn61(void) : byte_count(8);    // expected-error {{expected 'fn61' to have a pointer or integer return type}}
+struct S1 fn62(void) : byte_count(8); // expected-error {{expected 'fn62' to have a pointer or integer return type}}
+union U1 fn63(void) : byte_count(8);  // expected-error {{expected 'fn63' to have a pointer or integer return type}}
+ptr<int> fn64(void) : byte_count(sizeof(int)); // expected-error {{bounds declaration not allowed because 'fn64' has a _Ptr return type}}
 void (*fn65(void) : byte_count(1))(int);   // expected-error {{bounds declaration not allowed because 'fn65' has a function pointer return type}}
 ptr<void(int)> fn66(void) : byte_count(1); // expected-error {{bounds declaration not allowed because 'fn66' has a _Ptr return type}}
 
 // bounds
-float fn70() : bounds(s1, s1 + 1);      // expected-error {{expected 'fn70' to have a pointer or integer return type}}
-double fn71() : bounds(s1, s1 + 1);     // expected-error {{expected 'fn71' to have a pointer or integer return type}}
-struct S1 fn72() : bounds(s1, s1 + 1);  // expected-error {{expected 'fn72' to have a pointer or integer return type}}
-union U1 fn73() : bounds(s1, s1 + 1);   // expected-error {{expected 'fn73' to have a pointer or integer return type}}
-ptr<int> fn74() : bounds(s1, s1 + 1);   // expected-error {{bounds declaration not allowed because 'fn74' has a _Ptr return type}}
+float fn70(void) : bounds(s1, s1 + 1);      // expected-error {{expected 'fn70' to have a pointer or integer return type}}
+double fn71(void) : bounds(s1, s1 + 1);     // expected-error {{expected 'fn71' to have a pointer or integer return type}}
+struct S1 fn72(void) : bounds(s1, s1 + 1);  // expected-error {{expected 'fn72' to have a pointer or integer return type}}
+union U1 fn73(void) : bounds(s1, s1 + 1);   // expected-error {{expected 'fn73' to have a pointer or integer return type}}
+ptr<int> fn74(void) : bounds(s1, s1 + 1);   // expected-error {{bounds declaration not allowed because 'fn74' has a _Ptr return type}}
 void (*fn75(void) : bounds(s1, s1 + 1))(int);  // expected-error {{bounds declaration not allowed because 'fn75' has a function pointer return type}}
 ptr<void(int)> fn76(void) : bounds(s1, s1 + 1);  // expected-error {{bounds declaration not allowed because 'fn76' has a _Ptr return type}}

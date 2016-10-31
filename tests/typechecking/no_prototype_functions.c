@@ -2,7 +2,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
 #include "../../include/stdchecked.h"
 
@@ -15,7 +15,7 @@ struct S2 {
 };
 
 struct S3 {
-  ptr<int> (*m1)();
+  ptr<int> (*m1)(void);
 };
 
 struct S4 {
@@ -41,6 +41,12 @@ struct S8 {
   int m1 checked[];
 };
 
+struct S9 {
+  int len;
+  // bound declaration on an integer-typed member.
+  int p : bounds((char *) p, (char *) p + len);
+};
+
 union U1 {
   ptr<int> m1;
   int *m2;
@@ -52,7 +58,7 @@ union U2 {
 };
 
 union U3 {
-  ptr<int>(*m1)();
+  ptr<int>(*m1)(void);
   int *(*m2)();
 };
 
@@ -91,24 +97,25 @@ extern struct S5 f7();     // expected-error {{function without prototype cannot
 extern struct S6 f8();     // expected-error {{function without prototype cannot return a checked value}}
 extern struct S7 f9();     // expected-error {{function without prototype cannot return a checked value}}
 extern struct S8 f10();     // expected-error {{function without prototype cannot return a checked value}}
-extern union U1 f11();      // expected-error {{function without prototype cannot return a checked value}}
-extern union U2 f12();     // expected-error {{function without prototype cannot return a checked value}}
-extern union U3 f13();     // expected-error {{function without prototype cannot return a checked value}}
-extern union U4 f14();     // expected-error {{function without prototype cannot return a checked value}}
-extern union U5 f15();     // expected-error {{function without prototype cannot return a checked value}}
-extern union U6 f16();     // expected-error {{function without prototype cannot return a checked value}}
-extern union U7 f17();     // expected-error {{function without prototype cannot return a checked value}}
+extern struct S9 f11();     // expected-error {{function without prototype cannot return a checked value}}
+extern union U1 f12();      // expected-error {{function without prototype cannot return a checked value}}
+extern union U2 f13();     // expected-error {{function without prototype cannot return a checked value}}
+extern union U3 f14();     // expected-error {{function without prototype cannot return a checked value}}
+extern union U4 f15();     // expected-error {{function without prototype cannot return a checked value}}
+extern union U5 f16();     // expected-error {{function without prototype cannot return a checked value}}
+extern union U6 f17();     // expected-error {{function without prototype cannot return a checked value}}
+extern union U7 f18();     // expected-error {{function without prototype cannot return a checked value}}
 
 // No prototype functions that return function pointers
 
 // Returns an unchecked pointer to a function with a checked argument (ptr<int>)
-extern int (*f18())(ptr<int>);  // expected-error {{function without prototype cannot return a checked value}}
+extern int (*f19())(ptr<int>);  // expected-error {{function without prototype cannot return a checked value}}
 
 // Returns an unchecked pointer to a no-prototype function returning a checked
 // value (ptr<int>)
-extern ptr<int> (*f19())(); // expected-error {{function without prototype cannot return a checked value}}
+extern ptr<int> (*f20(void))(); // expected-error {{function without prototype cannot return a checked value}}
 // Returns a checked pointer to a function with a checked argument (ptr<int>)
-extern ptr<int (ptr<int>)> f20(); // expected-error {{function without prototype cannot return a checked value}}
+extern ptr<int (ptr<int>)> f21(); // expected-error {{function without prototype cannot return a checked value}}
 
 // Returns a checked pointer to a no-prototype function returning a checked
 // value (ptr<int>)
@@ -127,6 +134,9 @@ extern struct S3 *f34();
 extern struct S4 *f36();
 extern struct S5 *f37();
 extern struct S6 *f38();
+extern struct S7 *f39();
+extern struct S8 *f40();
+extern struct S9 *f41();
 
 //
 // No prototype functions cannot have return bounds declarations.  They can
@@ -142,66 +152,117 @@ extern int *f53() : itype(ptr<int>);
 // checked values or objects with checked values embedded within them.
 
 extern void f60(); 
-extern void f60(ptr<int>); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f60(ptr<int>); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f61();
-extern void f61(array_ptr<int>); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f61(array_ptr<int>); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f62();
-extern void f62(struct S1); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}} 
+extern void f62(struct S1); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}} 
 
 extern void f63();
-extern void f63(struct S2); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f63(struct S2); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f64();
-extern void f64(struct S3); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f64(struct S3); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f65();
-extern void f65(struct S4); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f65(struct S4); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f66();
-extern void f66(struct S5); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f66(struct S5); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f67();
-extern void f67(struct S6); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f67(struct S6); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f68();
-extern void f68(struct S7); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f68(struct S7); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f69();
-extern void f69(struct S8); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f69(struct S8); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f70();
-extern void f70(union U1); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f70(struct S9); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f71();
-extern void f71(union U2); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f71(union U1); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f72();
-extern void f72(union U3); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f72(union U2); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f73();
-extern void f73(union U4); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f73(union U3); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f74();
-extern void f74(union U5); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f74(union U4); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f75();
-extern void f75(union U6); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f75(union U5); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f76();
-extern void f76(union U7); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f76(union U6); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
+
+extern void f77();
+extern void f77(union U7); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
+
 
 extern void f80();
-extern void f80(int checked[]); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f80(int checked[]); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 // Function type arguments.
+
 extern void f81();
-extern void f81(ptr<int> f()); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f81(ptr<int> f(void)); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f82();
-extern void f82(int f(ptr<int>)); // expected-error {{redeclaring a no-prototype function with checked argument not allowed}}
+extern void f82(int f(ptr<int>)); // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
 
 extern void f83(int f());
-extern void f84(int f(ptr<int>));
+extern void f83(int f(ptr<int>));  // expected-error {{conflicting types for 'f83'}}
 
+extern void f84(int f(ptr<int>));  
+extern void f84(int f());   // expected-error {{conflicting types for 'f84'}}
+
+// No prototype functions cannot be redeclared to take arguments that have
+// bounds declarations.
+extern void f85();
+extern void f85(int p : bounds((char *)p, (char *)p + len), int len); // expected-error {{redeclaring a no-prototype function with an argument bounds is not allowed}}
+
+//
+// Redeclaring a function with a checked argument as a no prototype function is not allowed.
+//
+
+extern void f90(ptr<int>);
+extern void f90(); // expected-error {{redeclaring function that has a checked argument or argument bounds as a no-prototype function is not allowed}} 
+
+// TODO: Github checkedc-clang issue 20 this is an error, but the Checked C
+// clang implementation isn't catching it yet.  It doesn't detect that
+// the types are incompatible because bounds information is not represented
+// in function types yet..
+extern void f91(int p : bounds((char *)p, (char *)p + len), int len);
+extern void f91();
+
+//
+// Spot-check other attempts at creating no prototype functions that return
+// a checked value.
+//
+
+struct S20 {
+  ptr<int> (*f)(); // expected-error {{function without prototype cannot return a checked value}}
+};
+
+typedef ptr<int> functype(); // expected-error {{function without prototype cannot return a checked value}}
+
+// Check the obscure case of a function being declare as a no-prototype, then
+// being declared to have a prototype with an incomplete type, and then
+// incomplete type being completed.
+
+struct S21;
+extern void f100();
+extern void f100(struct S21);
+struct S21 {
+   ptr<int> m;
+};
+
+extern void f100(struct S21 x) { // expected-error {{redeclaring a no-prototype function with checked argument is not allowed}}
+}

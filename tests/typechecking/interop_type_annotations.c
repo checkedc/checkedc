@@ -397,80 +397,80 @@ void f283(ptr<int> ((*f)(int[10])) : itype(ptr<int *(int[10])>)) { // expected-e
 // Types that cannot appear in bounds-safe interface type annotations.
 //
 
-int *r1() : itype(int) {      // expected-error {{must be a pointer type}}
+int *r1(void) : itype(int) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r2() : itype(_Bool) {     // expected-error {{must be a pointer type}}
+int *r2(void) : itype(_Bool) {     // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r3() : itype(char) {      // expected-error {{must be a pointer type}}
+int *r3(void) : itype(char) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r4() : itype(short int) { // expected-error {{must be a pointer type}}
+int *r4(void) : itype(short int) { // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r5() : itype(int) {       // expected-error {{must be a pointer type}}
+int *r5(void) : itype(int) {       // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r6() : itype(long int) {  // expected-error {{must be a pointer type}}
+int *r6(void) : itype(long int) {  // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r7() : itype(float) {     // expected-error {{must be a pointer type}}
+int *r7(void) : itype(float) {     // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r8() : itype(double) {    // expected-error {{must be a pointer type}}
+int *r8(void) : itype(double) {    // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r9() : itype(void) {      // expected-error {{must be a pointer type}}
+int *r9(void) : itype(void) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r10() : itype(struct S) { // expected-error {{must be a pointer type}}
+int *r10(void) : itype(struct S) { // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r11() : itype(union U) {  // expected-error {{must be a pointer type}}
+int *r11(void) : itype(union U) {  // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r12() : itype(int (int)) { // expected-error {{must be a pointer type}}
+int *r12(void) : itype(int (int)) { // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r13() : itype(t1) {      // expected-error {{must be a pointer type}}
+int *r13(void) : itype(t1) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
-int *r14() : itype(t2) {      // expected-error {{must be a pointer type}}
+int *r14(void) : itype(t2) {      // expected-error {{must be a pointer type}}
   return 0;
 }
 
 
-int *r30() : itype(int *) {   // expected-error {{must be a checked type}}
+int *r30(void) : itype(int *) {   // expected-error {{must be a checked type}}
   return 0;
 }
 
-int *r31a() : itype(int[]) {   // expected-error {{array type not allowed}}
+int *r31a(void) : itype(int[]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
-int *r31b() : itype(int checked[]) {   // expected-error {{array type not allowed}}
+int *r31b(void) : itype(int checked[]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
-int *r31c() : itype(int[10]) {   // expected-error {{array type not allowed}}
+int *r31c(void) : itype(int[10]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
-int *r31d() : itype(int checked[10]) {   // expected-error {{array type not allowed}}
+int *r31d(void) : itype(int checked[10]) {   // expected-error {{array type not allowed}}
   return 0;
 }
 
@@ -484,56 +484,56 @@ int(*(r31f(int arg[10][10]) : itype(int checked[10][10])))[10] { // expected-err
   return arg;
 }
 
-// Return types that cannot have interfce types
+// Return types that cannot have interface types
 
-int r1a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+int r1a(void) : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-_Bool r2a() : itype(ptr<int>) {  // expected-error {{interface type only allowed for a pointer return type}}
+_Bool r2a(void) : itype(ptr<int>) {  // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-char r3a() : itype(ptr<int>) {   // expected-error {{interface type only allowed for a pointer return type}}
+char r3a(void) : itype(ptr<int>) {   // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-short int r4a() : itype(ptr<int>) { // expected-error {{interface type only allowed for a pointer return type}}
+short int r4a(void) : itype(ptr<int>) { // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-long int r6a() : itype(ptr<int>) {   // expected-error {{interface type only allowed for a pointer return type}}
+long int r6a(void) : itype(ptr<int>) {   // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-float r7a() : itype(ptr<int>) {      // expected-error {{interface type only allowed for a pointer return type}}
+float r7a(void) : itype(ptr<int>) {      // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-double r8a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+double r8a(void) : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-void r9a() : itype(ptr<int>) {      // expected-error {{interface type only allowed for a pointer return type}}
+void r9a(void) : itype(ptr<int>) {      // expected-error {{interface type only allowed for a pointer return type}}
 }
 
-struct S r10a() : itype(ptr<int>) { // expected-error {{interface type only allowed for a pointer return type}}
+struct S r10a(void) : itype(ptr<int>) { // expected-error {{interface type only allowed for a pointer return type}}
   struct S v;
   v.a = 0;
   return v;
 }
 
-union U r11a() : itype(ptr<int>) {  // expected-error {{interface type only allowed for a pointer return type}}
+union U r11a(void) : itype(ptr<int>) {  // expected-error {{interface type only allowed for a pointer return type}}
   union U v;
   v.a = 0;
   return v;
 }
 
-t1 r13a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+t1 r13a(void) : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 
-t2 r14a() : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
+t2 r14a(void) : itype(ptr<int>) {    // expected-error {{interface type only allowed for a pointer return type}}
   return 0;
 }
 //
@@ -541,98 +541,98 @@ t2 r14a() : itype(ptr<int>) {    // expected-error {{interface type only allowed
 // 
 
 // Single pointer
-int *r32() : itype(ptr<int>) {
+int *r32(void) : itype(ptr<int>) {
   return 0;
 }
 
-int *r33() : itype(array_ptr<int>) {
+int *r33(void) : itype(array_ptr<int>) {
   return 0;
 }
 
 // Two levels of pointers
 
-int **r50() : itype(ptr<ptr<int>>) {
+int **r50(void) : itype(ptr<ptr<int>>) {
   return 0;
 }
 
-int **r51() : itype(ptr<array_ptr<int>>) {
+int **r51(void) : itype(ptr<array_ptr<int>>) {
   return 0;
 }
 
-int **r52() : itype(array_ptr<ptr<int>>) {
+int **r52(void) : itype(array_ptr<ptr<int>>) {
   return 0;
 }
 
-int **r53() : itype(array_ptr<array_ptr<int>>) {
+int **r53(void) : itype(array_ptr<array_ptr<int>>) {
   return 0;
 }
 
-int **r54() : itype(ptr<int *>) {
+int **r54(void) : itype(ptr<int *>) {
   return 0;
 }
 
-int **r55() : itype(array_ptr<int *>) {
+int **r55(void) : itype(array_ptr<int *>) {
   return 0;
 }
 
-ptr<int> *r59() : itype(ptr<ptr<int>>) {
+ptr<int> *r59(void) : itype(ptr<ptr<int>>) {
   return 0;
 }
 
 // Function pointers
 
-int (*r80() : itype(ptr<int(int *, int *)>))(int *,int *) {
+int (*r80(void) : itype(ptr<int(int *, int *)>))(int *,int *) {
   return 0;
 }
 
-int (*r81() : itype(ptr<int(ptr<int>, ptr<int>)>))(int *, int *) {
+int (*r81(void) : itype(ptr<int(ptr<int>, ptr<int>)>))(int *, int *) {
   return 0;
 }
 
-int (*r82() : itype(ptr<int(int checked[10], int checked[10])>))(int *, int *) {
+int (*r82(void) : itype(ptr<int(int checked[10], int checked[10])>))(int *, int *) {
   return 0;
 }
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
 // and the bounds-safe interface type.
 
-const int *r200() : itype(ptr<const int>) {
+const int *r200(void) : itype(ptr<const int>) {
   return 0;
 }
 
-volatile int *r201() : itype(ptr<volatile int>) {
+volatile int *r201(void) : itype(ptr<volatile int>) {
   return 0;
 }
 
-const volatile int *r202() : itype(ptr<const volatile int>) {
+const volatile int *r202(void) : itype(ptr<const volatile int>) {
   return 0;
 }
 
-const int *r203() : itype(array_ptr<const int>) {
+const int *r203(void) : itype(array_ptr<const int>) {
   return 0;
 }
 
-volatile int *r204() : itype(array_ptr<volatile int>) {
+volatile int *r204(void) : itype(array_ptr<volatile int>) {
   return 0;
 }
 
-const volatile int *r205() : itype(array_ptr<const volatile int>) {
+const volatile int *r205(void) : itype(array_ptr<const volatile int>) {
   return 0;
 }
 
-int * const r206() : itype(const ptr<int>) {
+int * const r206(void) : itype(const ptr<int>) {
   return 0;
 }
 
-int * volatile r207() : itype(volatile ptr<int>) {
+int * volatile r207(void) : itype(volatile ptr<int>) {
   return 0;
 }
 
-int * restrict r208() : itype(restrict ptr<int>) {
+int * restrict r208(void) : itype(restrict ptr<int>) {
   return 0;
 }
 
-int * const r209() : itype(const array_ptr<int>) {
+int * const r209(void) : itype(const array_ptr<int>) {
   return 0;
 }
 
@@ -643,63 +643,63 @@ int * const r209() : itype(const array_ptr<int>) {
 // Incompatible pointee or element types.
 
 // Pointer types
-float **r250() : itype(ptr<int *>) {   // expected-error {{mismatch between interface type '_Ptr<int *>' and declared type 'float **'}}
+float **r250(void) : itype(ptr<int *>) {   // expected-error {{mismatch between interface type '_Ptr<int *>' and declared type 'float **'}}
 }
 
-float **r251() : itype(ptr<ptr<int>>) {   // expected-error {{mismatch between interface type '_Ptr<_Ptr<int>>' and declared type 'float **'}}
+float **r251(void) : itype(ptr<ptr<int>>) {   // expected-error {{mismatch between interface type '_Ptr<_Ptr<int>>' and declared type 'float **'}}
 }
 
 // Array types
 
 // Returns pointer to array of 10 integers.
-int (*r254() : itype(ptr<int checked[]>))[10] {  // expected-error {{mismatch between interface type}}
+int (*r254(void) : itype(ptr<int checked[]>))[10] {  // expected-error {{mismatch between interface type}}
 }
 
 // Returns pointer to array of integers with unknown
 // size.
-int (*r255() : itype(ptr<int checked[10]>))[]{  // expected-error {{mismatch between interface type}}
+int (*r255(void) : itype(ptr<int checked[10]>))[]{  // expected-error {{mismatch between interface type}}
 }
 
 // Differing number of parameters for function pointer.
 // Note that the function declarator has to be parenthesized so that
 // the interface type declaration is not parsed as the interface type for
 // the return type of the function declarator.
-int (*r256() : itype(ptr<int(int, float)>))(int, float, char) { // expected-error {{mismatch between interface type}}
+int (*r256(void) : itype(ptr<int(int, float)>))(int, float, char) { // expected-error {{mismatch between interface type}}
 }
 
 // Differing parameter types for function pointer.
 // See the earlier comment for r256 about why the function declarator is
 // parenthesized.
-int (*r257() : itype(ptr<int(int, float, double)>))(int, float, char) { // expected-error {{mismatch between interface type}}
+int (*r257(void) : itype(ptr<int(int, float, double)>))(int, float, char) { // expected-error {{mismatch between interface type}}
 }
 
 // Differing return types for function pointer
 // See the earlier comment for r256 about why the function declarator is
 // parenthesized.
-int (*r258() : itype(ptr<float (int, float, char)>))(int, float, char) { // expected-error {{mismatch between interface type}}
+int (*r258(void) : itype(ptr<float (int, float, char)>))(int, float, char) { // expected-error {{mismatch between interface type}}
 }
 
 // No special treatement for void pointers
-void *r259() : itype(ptr<int>) { // expected-error {{mismatch between interface type}}
+void *r259(void) : itype(ptr<int>) { // expected-error {{mismatch between interface type}}
 }
 
-int *r260() : itype(ptr<void>) { // expected-error {{mismatch between interface type}}
+int *r260(void) : itype(ptr<void>) { // expected-error {{mismatch between interface type}}
 }
 
 // Annotation type loses checking.
 
-ptr<int> *r280() : itype(ptr<int *>) { //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
+ptr<int> *r280(void) : itype(ptr<int *>) { //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
 }
 
 // Declared return type is an unchecked pointer to a checked 2-d array, but
 // the interop type is a checked pointer to an unchecked 2-d array.
-int (*r281() : itype(ptr<int[10][10]>))checked[10][10] { // expected-error {{loses checking of declared type}}
+int (*r281(void) : itype(ptr<int[10][10]>))checked[10][10] { // expected-error {{loses checking of declared type}}
 }
 
 // Declared return type is an unchecked pointer to a checked 1-d array, but
 // the interop type is a checked pointer to an unchecked 1-d array.
 
-int (*r282() : itype(ptr<int[10]>)) checked[10] { // expected-error {{loses checking of declared type}}
+int (*r282(void) : itype(ptr<int[10]>)) checked[10] { // expected-error {{loses checking of declared type}}
 }
 
 //-------------------------------------------------------------

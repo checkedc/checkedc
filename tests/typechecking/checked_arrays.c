@@ -137,7 +137,7 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
 }
 
 // Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
-extern void check_dimensions1() {
+extern void check_dimensions1(void) {
   int t1 checked[10][5]checked[5];     // multiple checked modifiers are allowed
   int t2 checked[10][5][5]checked[5];
 
@@ -448,7 +448,7 @@ extern void check_condexpr_2d(int val) {
 
 // Test conditional expressions where arms have different kinds of
 // array types and const/volatile modifiers.
-extern void check_condexpr_cv()
+extern void check_condexpr_cv(void)
 {
   int val = 0;
   int p[5];
@@ -612,7 +612,7 @@ extern void g3(int y, int p checked[10]) {
   *p = y;
 }
 
-extern void check_call() {
+extern void check_call(void) {
   int x[10];
   int y checked[10];
   int x2d[10][10];
@@ -707,7 +707,7 @@ extern void check_call() {
 
 }
 
-extern void check_call_void() {
+extern void check_call_void(void) {
   int val = 0;
   int p[10];
   int r checked[10];
@@ -749,7 +749,7 @@ extern void check_call_void() {
   f3(u, 0);           // expected-error {{incompatible type}}
 }
 
-void check_call_cv() {
+void check_call_cv(void) {
   int val = 0;
   int p[10];
   const int p_const[10] = { 0, 1, 2, 3, 4,5, 6, 7, 8, 9};
@@ -780,38 +780,38 @@ void check_call_cv() {
 // try to return an array type. This is not allowed by the C standard.
 //
 
-extern unchecked_arr_type h1() {  // expected-error {{function cannot return array type}}
+extern unchecked_arr_type h1(void) {  // expected-error {{function cannot return array type}}
   return 0;
 }
 
-extern checked_arr_type h2() {    // expected-error {{function cannot return array type}}
+extern checked_arr_type h2(void) {    // expected-error {{function cannot return array type}}
   return 0;
 }
 
 int global[10];
 int checked_global checked[10];
 
-int *h3() {
+int *h3(void) {
   return global;
 }
 
-ptr<int> h4() {
+ptr<int> h4(void) {
   return global;
 }
 
-array_ptr<int> h5() {
+array_ptr<int> h5(void) {
   return global;
 }
 
-int *h6() {
+int *h6(void) {
   return checked_global; // expected-error {{incompatible result type}}
 }
 
-ptr<int> h7() {
+ptr<int> h7(void) {
   return checked_global; // expected-error {{incompatible result type}}
 }
 
-array_ptr<int> h8() {
+array_ptr<int> h8(void) {
   return checked_global;
 }
 
@@ -892,7 +892,7 @@ array_ptr<int checked[10]> h27(int arr checked[10][10]) {
 }
 
 
-void check_pointer_arithmetic() {
+void check_pointer_arithmetic(void) {
   int p[5];
   int r checked[5];
 
@@ -973,7 +973,7 @@ void check_pointer_difference(int flag) {
   count = checked_a_float - r_int;  // expected-error {{not pointers to compatible types}}
 }
 
-void check_pointer_relational_compare() {
+void check_pointer_relational_compare(void) {
   int result;
 
   int val_int[5];
@@ -1029,7 +1029,7 @@ void check_pointer_relational_compare() {
   result = r_int <= checked_val_float; // expected-warning {{comparison of distinct pointer types}}
 }
 
-void check_pointer_equality_compare() {
+void check_pointer_equality_compare(void) {
   int result;
 
   int val_int[5];
@@ -1085,7 +1085,7 @@ void check_pointer_equality_compare() {
   result = r_int == checked_val_float; // expected-warning {{comparison of distinct pointer types}}
 }
 
-void check_logical_operators() {
+void check_logical_operators(void) {
   int p[5];
   int r checked[5];
 
@@ -1111,7 +1111,7 @@ void check_logical_operators() {
   b = p && r;
 }
 
-void check_cast_operator() {
+void check_cast_operator(void) {
   int x = 0;
   int arr checked[5];
 
@@ -1142,7 +1142,7 @@ void check_cast_operator() {
 
 // spot check operators that aren't supposed to be used with array types:
 //   *, /, %, <<, >>, |, &, ^, ~, unary -, and unary +
-void check_illegal_operators() {
+void check_illegal_operators(void) {
   int p[5];
   int r checked[5];
 

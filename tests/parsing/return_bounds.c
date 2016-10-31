@@ -21,7 +21,7 @@ extern array_ptr<int> f6(array_ptr<int> arr : bounds(arr, arr + 5))
 extern array_ptr<int> f7(int start,
                          array_ptr<int> arr : bounds(arr - start, arr - start + 5))
                       : bounds(arr - start, arr - start + 5);
-extern array_ptr<char> f8() : bounds(none);
+extern array_ptr<char> f8(void) : bounds(none);
 // count, bounds, and none are contextual keywords.  They are treated as keyword
 // only when they immediately follow a ':';
 extern array_ptr<char> f9(int count) : count(count);
@@ -65,7 +65,7 @@ extern array_ptr<int> f7(int start,
    return arr;
 }
 
-extern array_ptr<char> f8() : bounds(none) {
+extern array_ptr<char> f8(void) : bounds(none) {
   return 0;
 }
 
@@ -176,14 +176,14 @@ extern array_ptr<ptr<array_ptr<int>(int len) : count(len)>> f23(int len)
 }
 
 // Pointers to functions that have bounds declarations on return values
-extern void f24() {
+extern void f24(void) {
   // Checked pointer to a function that returns an array_ptr to 5 integers.
-  ptr<array_ptr<int>() : count(5)> p1 = 0;
+  ptr<array_ptr<int>(void) : count(5)> p1 = 0;
   // Checked pointer to a function that returns an array_ptr to n integers,
   // where n is n argument.
   ptr<array_ptr<int>(int n) : count(n)> p2 = 0;
   // Use 'byte_count; instead of 'count'
-  ptr<array_ptr<int>() : byte_count(5 * sizeof(int))> q1 = 0;
+  ptr<array_ptr<int>(void) : byte_count(5 * sizeof(int))> q1 = 0;
   ptr<int(int arg) : byte_count(5 * sizeof(int))> q2 = 0;
   ptr<int(int n, int arg) : byte_count(n * sizeof(int))> q3 = 0;
   // Use 'bounds' instead of 'count'.
@@ -209,10 +209,10 @@ static func1 *func1_ptr1;
 static func2 *func2_ptr1;
 func1 *func1_ptr2;
 
-extern void f25() : 6 + 6 { // expected-error {{expected bounds expression}}
+extern void f25(void) : 6 + 6 { // expected-error {{expected bounds expression}}
 }
 
-extern array_ptr<char> f26() : count(len) { // expected-error {{use of undeclared identifier 'len'}}
+extern array_ptr<char> f26(void) : count(len) { // expected-error {{use of undeclared identifier 'len'}}
   return 0;
 }
 

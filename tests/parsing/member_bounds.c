@@ -133,14 +133,14 @@ struct S15 {
 
 // Members that are pointers to functions that have bounds declarations on
 // return values
-extern void S16() {
+extern void S16(void) {
   // Checked pointer to a function that returns an array_ptr to 5 integers.
-  ptr<array_ptr<int>() : count(5)> p1;
+  ptr<array_ptr<int>(void) : count(5)> p1;
   // Checked pointer to a function that returns an array_ptr to n integers,
   // where n is n argument.
   ptr<array_ptr<int>(int n) : count(n)> p2;
   // Use 'byte_count; instead of 'count'
-  ptr<array_ptr<int>() : byte_count(5 * sizeof(int))> q1;
+  ptr<array_ptr<int>(void) : byte_count(5 * sizeof(int))> q1;
   ptr<int(int arg) : byte_count(5 * sizeof(int))> q2;
   ptr<int(int n, int arg) : byte_count(n * sizeof(int))> q3;
   // Use 'bounds' instead of 'count'.
@@ -260,7 +260,7 @@ struct S29 {
 };
 
 
-int f1() {
+int f1(void) {
   int buffer checked[100];
   struct S30 {
      int len;
@@ -268,7 +268,7 @@ int f1() {
   };
 }
 
-int f2() {
+int f2(void) {
   const int bounds = 4;
   struct S31 {
     // This should be parsed as an incorrect bounds expression+-
@@ -276,7 +276,7 @@ int f2() {
   };
 }
 
-int f3() {
+int f3(void) {
   enum E {
     bounds = 4
   };

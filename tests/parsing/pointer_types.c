@@ -212,7 +212,7 @@ typedef array_ptr<ptr<int>> t_array_ptr_ptr_int;
 // Operators that take types
 //
 
-void parse_operators_with_types() {
+void parse_operators_with_types(void) {
     int s1 = sizeof(ptr<int>);
     int s2 = sizeof(array_ptr<int>);
     int s3 = sizeof(ptr<int[5]>);
