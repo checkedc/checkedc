@@ -292,7 +292,7 @@ extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
 
 // Test assignments between pointers of different kinds with const/volatile
 // attributes on referent types
-extern void check_assign_cv() {
+extern void check_assign_cv(void) {
     int val = 0;
     const int const_val = 0;
     volatile int volatile_val = 0;
@@ -493,7 +493,7 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
 
 // Test conditional expressions where arms have different kinds of
 // pointer types and const/volatile modifiers.
-extern void check_condexpr_cv()
+extern void check_condexpr_cv(void)
 {
   int val = 0;
   const int const_val = 0;
@@ -710,19 +710,19 @@ extern void g4(int y, _Bool p) {
 // returns a new pointer type
 //
 
-extern int *h1() {
+extern int *h1(void) {
     return 0;
 }
 
-extern ptr<int> h2() {
+extern ptr<int> h2(void) {
    return 0;
 }
 
-extern array_ptr<int> h3() {
+extern array_ptr<int> h3(void) {
    return 0;
 }
 
-extern void check_call() {
+extern void check_call(void) {
     int val = 0;
     float fval = 0.0;
     int *p = 0;
@@ -834,7 +834,7 @@ extern void check_call() {
                                // int = array_ptr<int>
 }
 
-extern void check_call_void() {
+extern void check_call_void(void) {
     int val = 0;
     float fval = 0.0;
     int *p = 0;
@@ -919,7 +919,7 @@ extern void check_call_void() {
     f3_void(0, val);
 }
 
-void check_call_cv() {
+void check_call_cv(void) {
     int val = 0;
     const int const_val = 0;
     int *p = 0;
@@ -954,7 +954,7 @@ void check_call_cv() {
                           // param array_ptr<int> arg array_ptr<const int> not OK
 }
 
-void check_pointer_arithmetic()
+void check_pointer_arithmetic(void)
 {
    int val[5];
    int *p = val;
@@ -1032,7 +1032,7 @@ void check_pointer_arithmetic()
    r + r; // expected-error {{invalid operands}}
 }
 
-void check_pointer_difference()
+void check_pointer_difference(void)
 {
     int count;
     int val_int[5];
@@ -1172,7 +1172,7 @@ void check_pointer_difference()
 							 // array_ptr<void> - array_ptr<int> not OK.
 }
 
-void check_pointer_relational_compare()
+void check_pointer_relational_compare(void)
 {
     int result;
     int val_int[5];
@@ -1337,7 +1337,7 @@ void check_pointer_relational_compare()
     result = 0 < r_void; // 0 < array_ptr<void> OK.
 }
 
-void check_pointer_equality_compare()
+void check_pointer_equality_compare(void)
 {
     int result;
     int val_int[5];
@@ -1509,7 +1509,7 @@ void check_pointer_equality_compare()
                                // array_ptr<float> == array_ptr<int> not OK.
 }
 
-void check_logical_operators()
+void check_logical_operators(void)
 {
     int val[5];
     int *p = val;
@@ -1572,7 +1572,7 @@ void check_logical_operators()
 
 // spot check operators that aren't supposed to be used with pointer types:
 //   *, /, %, <<, >>, |, &, ^, ~, unary -, and unary +
-void check_illegal_operators()
+void check_illegal_operators(void)
 {
     int val[5];
     int *p = val;

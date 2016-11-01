@@ -165,7 +165,7 @@ typedef int incomplete_checked_array_ty checked[];
 // Operators that take types
 //
 
-void parse_operators_with_types() {
+void parse_operators_with_types(void) {
     int s1 = sizeof(int checked[10]);
     int s3 = sizeof(ptr<int checked[5]>);
     int s4 = sizeof(array_ptr<int checked[5]>);

@@ -82,11 +82,11 @@ extern int *h2 (int y, const ptr<int> p) : itype(array_ptr<int>) {
    return 0;
 }
 
-extern int **h3() : itype(ptr<ptr<int>>) {
+extern int **h3(void) : itype(ptr<ptr<int>>) {
    return 0;
 }
 
-extern int **h4() : itype(array_ptr<ptr<int>>) {
+extern int **h4(void) : itype(array_ptr<ptr<int>>) {
    return 0;
 }
 
@@ -133,7 +133,7 @@ extern void f32(const int a[10] : itype(const int checked[10])) {
 extern void f33(const int *x : itype(ptr<const int>)) {
 }
 
-extern const int *f34() : itype(ptr<const int>) {
+extern const int *f34(void) : itype(ptr<const int>) {
   return 0;
 }
 
