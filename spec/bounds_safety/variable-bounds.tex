@@ -169,33 +169,6 @@ preserves the control and efficiency of C. The bounds declarations will
 be checked statically for correctness using rules described in 
 Chapter~\ref{chapter:checking-bounds}.
 
-\subsection{Contextual keywords}
-Bounds expressions can be used in new syntactic contexts only:
-after a \verb+:+ in a declaration or after an identifier and
- a \verb+:+ in \keyword{where} clauses.  The keywords that
- occur in bounds expressions are keywords only when they
- occur in those specific contexts.   Otherwise, they are identifiers.
- These kinds of keywords are called contextual keywords.
- Specifically, the keywords that start bounds expressions:
-\begin{verbatim}
-bounds count  
-\end{verbatim}
-are keywords only when they occur after a\verb+:+
-in a declaraton or after an identifier and a \verb+:+
-in a keyword{where} clause.
-The keywords \keyword{any} and \keyword{none} are 
-keywords only when they follow the keyword \keyword{bounds}
-and a \verb+(+. 
-There is no syntactic ambiguity about whether a contextual
-keyword or an identifier is expected, so there is no need to have
-keywords that begin with an underscore followed by a capital letter.
-
-The contextual keywords are easy to handle in the parsing phase
-of a C compiler.  A compiler can use a grammar that allows
-identifers to occur where the contextual keywords are expected.
-The compiler can check that an identifier is one of the allowed
-contextual keywords while building an abtract syntax tree.
-
 \subsection{Bounds declarations at variable declarations}
 \label{section:variable-declarations}
 
@@ -598,6 +571,31 @@ statements:\\
 \>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\texttt{;}
 \end{tabbing}
 
+The names used in bounds expressions (\texttt{any},
+\texttt{bounds}, \texttt{count}, and \texttt{none}) are identifiers.
+They are not keywords.  They can still be used for variables names,
+avoiding backward-compatibility problems.    The grammar for
+bounds expressions is:
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\> \var{identifier}\texttt{(}\var{non-modifying-exp}\texttt{)} \\
+\> \var{identifier}\texttt{(}\var{non-modifying-exp}\texttt{,}
+    \var{non-modifying-exp} \texttt{)}
+\end{tabbing}
+
+After parsing, the following rules are applied to bounds
+expressions:
+\begin{itemize}
+\item If the first grammar clause was parsed,
+\begin{itemize}
+\item If \var{identifier} is \texttt{bounds}, the \var{non-modifying-exp}
+must be the identifier \texttt{any} or the identifier \texttt{none}.
+\item Otherwise \var{identifier} must be \texttt{count}.
+\end{itemize}
+\item If the second grammar clause was parsed, \var{identifier} must be
+\texttt{bounds}.
+\end{itemize}
+
 \section{Operations allowed in non-modifying expressions}
 \label{section:non-modifying-expressions}
 
@@ -784,12 +782,12 @@ aligned to its bounds for type \var{T}:
 \> \relalignval{\var{constant-exp}} 
 \end{tabbing}
 
-\texttt{rel\_align} is a contextual keyword.
 This clause is only added to bounds pairs because (by definition) count
 expressions always describe pointers that are relatively aligned to
-their bounds. The optional relative alignment clause specifies a
+their bounds.  \texttt{rel\_align} and \texttt{rel\_align\_value} are
+identifiers.  The optional clause specifies a
 relative alignment type \var{T} or the required relative alignment in
-bytes.  Given 
+bytes.  Given
 \boundsdecl{\var{x}}{\boundsrel{\var{e1}}{\var{e2}}{\var{T}}},
 \texttt{((\arrayptrchar) \var{x} - (\arrayptrchar) \var{e1}) \%
         \sizeof{\var{T}} == 0} and
@@ -935,7 +933,7 @@ added:
 \boundsbytecount{\var{non-modifying-exp}}
 \end{quote}
 
-\texttt{byte\_count} is a contextual keyword.
+\texttt{byte\_count} is the identifier \texttt{byte\_count}.
 The bounds declaration \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
 describes the number of bytes that are accessible beginning at \var{x}. 
 Only memory that is at or above \var{x} and below \texttt{(\arrayptrchar)}
