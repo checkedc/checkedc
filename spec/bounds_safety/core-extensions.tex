@@ -15,15 +15,12 @@ undefined behavior needed for bounds safety.
 
 \section{New keywords}
 Some of the extensions use new keywords.   Introducing new keywords
-for C can cause conflicts with identifier names
-in existing C programs.  Fortunately, C provides a
-backward-compatible way to introduce new keywords.  Identifiers that
-begin with an
-underscore followed by a capital letter are reserved for system
-use, as are identifiers that begin with two underscores
-\cite[Section 7.1.3]{ISO2011}.
-The following new keywords are
-introduced:
+for C can cause conflicts with identifier names in existing C programs.
+Fortunately, C provides a backward-compatible way to introduce new
+keywords.  Identifiers that begin with an underscore followed by a
+capital letter are reserved for system use, as are identifiers that
+begin with two underscores \cite[Section 7.1.3]{ISO2011}. The following
+new keywords are introduced:
 \begin{verbatim}
 _Array_ptr  _Checked  _Dynamic_check  _Ptr  _Span  _Where  _Unchecked
 \end{verbatim}
@@ -38,14 +35,13 @@ lowercase versions of the keywords can include it.
 Note that to allow header files to be included by programmers in any order,
 the implementations of standard header files need to be modified to
 not use identifiers that conflict with these keywords.
-The all lowercase versions of the keywords are:
+The all-lowercase versions of the keywords are:
 \begin{verbatim}
 array_ptr  checked  dynamic_check  ptr  where  span  unchecked
 \end{verbatim}
 
-The pattern of using an identifier reserved for system use
-coupled with a header file has been used before.  It
-was used to introduce the boolean type for example.  The keyword
+The pattern of using an identifier reserved for system use coupled with
+a header file was used before to introduce the boolean type. The keyword
 name is \verb+_Bool+.  The standard header file \keyword{stdbool.h}
 has a macro that maps \keyword{bool} to \verb+_Bool+.
 
@@ -93,7 +89,8 @@ The same syntax as C++ template instantiations is used for building
 instances of these types because this syntax is well-known and
 understood.  The new pointer types are added to the syntax for {\it type specifiers} 
 \cite[Section 6.7.2]{ISO2011}. The parameters to these type constructors 
-must be types, which are described syntactically by {\it type names} \cite[Section 6.7.7]{ISO2011}.  If Checked C is extended to C++,
+must be types, which are described syntactically by {\it type names}
+\cite[Section 6.7.7]{ISO2011}.  If Checked C is extended to C++,
 in the C++ extension these new types will be template types that have special meaning.
 
 Checked pointers provide checking that memory accesses are in bounds.  They
