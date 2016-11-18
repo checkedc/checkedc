@@ -350,7 +350,7 @@ array_ptr<char> alloc(size_t size) : count(size);
 
 
 
-\subsection{Bounds declarations at expression statements}
+\subsection{Bounds declarations at statements}
 \label{section:statement-declarations}
 
 Programmers may wish to delay initializing variables or may wish to
@@ -1295,7 +1295,7 @@ array_ptr<char> p : count(8) = a;
 array_ptr<int> r : count(2) = (array_ptr<int>) p;
 \end{verbatim}
 
-\section{Extent of dataflow-sensitive bounds declarations}
+\section{Extent of bounds declarations at statements}
 \label{section:extent-of-declarations}
 
 Variables that have bounds declared for them at expression statements
