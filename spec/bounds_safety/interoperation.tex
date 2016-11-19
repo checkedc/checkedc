@@ -122,8 +122,15 @@ For C cast operators, the checking is only static.
 Here are the rules for cast operators of the form \texttt{(\var{D}) \var{e}},
 where \var{e} has source type \var{S}.  The rules are applied in addition
 to any existing C typing rules that apply to the cast.
+\begin{itemize}
+\item If \var{D} and \var{S} are compatible types or \var{D} and \var{S} are unchecked
+pointer types, checking succeeds.
 
-If \var{D} is not \ptrvoid\ or \uncheckedptrvoid\ and \var{D} is
+\item Otherwise, if \var{D} is \ptrvoid\ or \uncheckedptrvoid\ and \var{S} is a \ptr\ type, 
+checking succceeds.\footnote{This rule follows from the next rule, but it is easier to understand 
+stated as a separate rule.}
+
+\item Otherwise, if \var{D} is not a function pointer type and \var{D} is
 \begin{itemize}
 \item \ptrT: the bounds of \var{e} are computed using the rules
 in Section~\ref{section:checking-nested-assignment-expressions}.
@@ -133,42 +140,31 @@ error.
 \item Otherwise, if the bounds are \boundsany, checking 
 succeeds.
 \item Otherwise, the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible
-to that form).  It must be statically provable that \texttt{\var{e} >= \var{lb}}
-and that {\texttt{((char *) \var{ub}) - ((char *) \var{e}) >= sizeof(\var{T})}}.    
+to that form).  It must be provable statically that \texttt{\var{e} >= \var{lb}}
+and that {\texttt{((char *) \var{ub}) - ((char *) \var{e}) >= sizeof(\var{T})}}.
+If \texttt{sizeof(\var{T})} is not defined because \var{T} is \void, \texttt{1} is
+used instead.
 \end{itemize}
 \item \arrayptrT: No new rules are needed.   The rules in
 Chapter~\ref{chapter:checking-bounds} already cover this case.
-\item \spanptrT: It must be statically provable that \var{e}
+\item \spanptrT: It must be provable statically that \var{e}
 and \bounds{\var{lb}}{\var{ub}} meet the relative alignment requirements of
 the destination \spanptr\ type.  At runtime, a new value of
 type \spanptrT\ with the value of \var{e} and \bounds{\var{lb}}{\var{ub}} will be created.
 \item \texttt{\var{T} *}: If the source type \var{S} is
 \begin{itemize}
-\item An unchecked pointer type (\texttt{*}), checking succeeds.
 \item \ptrT, the checking succeeds. This handles the case where \var{T}
 is an incomplete type.
 \item Otherwise, the same rules are followed as for \ptrT.
 \end{itemize}
 \end{itemize}
 
-If \var{D} is \ptrvoid\ or \uncheckedptrvoid\ and \var{S} is:
+\item Otherwise, if \var{D} is a function pointer type,
 \begin{itemize}
-\item A \ptr\ type, static checking always succeeds.
-\item An \arrayptr\ or \spanptr\ type: The bounds of \var{e} are computed:
-\begin{itemize}
-\item If the resulting bounds are \boundsnone, checking fails with a compile-time
-error.
-\item Otherwise, if the result bounds are \boundsany, checking 
-succeeds.
-\item Otherwise, the result must be \bounds{\var{lb}}{\var{ub}} (or convertible
-to that form).   It must be statically provable that \texttt{\var{e} >= \var{lb}}
-and that {\texttt{((char *) \var{ub}) - ((char *) e) >= 1}}.   
-\end{itemize}
-\item An unchecked pointer type:
-\begin{itemize}
-\item If \var{D} is \ptrvoid, the prior rule for an \arrayptr\ or \spanptr\ type is
-applied.
-\item If \var{D} is \uncheckedptrvoid, checking always succeeds.
+\item If \var{S} is a pointer to a function type, \var{D} is \ptrT,
+\var{S} is \uncheckedptrinst{U}, \var{T} and \var{U} are compatible types, 
+and \var{e} is a function name, checking succeeds.
+\item Otherwise, checking fails with a compile-time error.
 \end{itemize}
 \end{itemize}
 
@@ -306,13 +302,16 @@ void f(void) {
 C allows implicit conversions at assignments, function call arguments,
 and conditional expressions.  The purpose of
 implicit conversions is to make programs shorter and easier to
-read.  This section defines implicit conversions that are
-allowed for checked pointer types.
+read.  Implicit conversions describe when a expression of type
+\var{S} is allowed where an expression of type \var{ST} is expected.
+They allow additional programs to typecheck.
+This section defines implicit conversions that are allowed for checked 
+pointer types.
 
-The rules for checking bounds declarations are applied separately after 
-typechecking to check the integrity of bounds information.  During the 
-application of these rules, the implicit conversions are treated as
-though they were explicit C cast operations.
+An implicit conversion may allow typechecking to succeed, but
+checking of bounds declarations may still fail.  Implicit
+conversions are treated as though they are explicit C cast 
+operations during the checking of bounds declarations.
 
 \subsection{From unchecked pointers to checked pointers}
 An expression with an unchecked pointer type can be converted implicitly to an
@@ -341,10 +340,6 @@ and:
 \item \var{E} is assignment compatible with \var{T}.
 \end{itemize}
 \end{itemize}
-The definition of assignment compatibility is more
-complicated when referent types are function types or
-pointer types. {\em Discussion of a richer forms of assignment compatibility
-is deferred for now}.
 C allows implicit conversions between \uncheckedptrvoid\ and other pointer
 types. For now, implicit conversions from \uncheckedptrvoid\ to checked pointer
 types are allowed. This may be revised later when a design
@@ -464,15 +459,14 @@ void f(void) {
 \section{Bounds-safe interfaces to existing unchecked functions and variables}
 \label{section:function-bounds-safe-interfaces}
 
-The new pointer types capture specific properties of pointers. One would
+The new pointer types capture specific properties of pointers. We would
 like to update existing C code to use these new pointer types. However,
-this will not be possible when backward compatibility requirements
-exist. Consider C runtime functions or operating system (OS) APIs. 
-It may be feasible to modify the header files for runtime functions or OS APIs. 
-It may be
-impossible to require all uses of these functions or APIs be updated.
-Code written by 3\textsuperscript{rd} parties may use these APIs and it
-is not reasonable for an existing shipping OS to require all
+this is not possible when backward compatibility requirements exist. 
+For C runtime function or operating system (OS) APIs, it is possible
+to modify the header files that declare them. It is impractical, however,
+to require  all {\em uses} of these functions or APIs be updated.   Code written by
+3\textsuperscript{rd} 
+parties may use these APIs and an existing shipping OS cannot reasonably require all
 3\textsuperscript{rd} parties update their existing code to use the new
 types.
 
@@ -624,6 +618,49 @@ interface.  For example, an expression will not be
 coerced implicitly from \ptrinst{\var{S}} to \uncheckedptrvoid\ to
 \uncheckedptrinst{\var{T}}, where \var{S} and \var{T} are different types.
 
+\subsection{Compatibility of types}
+
+C allows variables or functions be declared with types that are missing information.
+This information can be filled in by other declarations.  The types that
+are missing information are said to be ``compatible'' with more complete
+versions of the types: they can be used interchangeably.   This avoids the
+problem of multiple definitions of variables or functions with different types.
+
+This notion of compatibility extends to bounds-safe interfaces naturally.
+Two function types with bounds declarations on parameters or for a return value are 
+compatible if:
+\begin{itemize}
+\item For parameters
+\begin{itemize}
+\item If corresponding parameters have compatible unchecked pointer types, and one parameter
+has a bounds declaration and other parameter does not have a bounds declaration, or
+\item If corresponding parameters both have bounds declarations, and the
+bounds declarations are syntactically equal or equal after being
+placed into a canonical form.
+\end{itemize}
+
+This is assuming that parameter variables are renamed so that parameter
+variables in corresponding argument positions have the same name.
+
+\item For return values with unchecked pointer types, similar rules apply.
+\end{itemize}
+
+The following are examples of declarations of functions with compatible types:
+\begin{verbatim}
+int f(int *);
+int f(int * : count(5));
+
+int g(int *a, int len, int *b);               // decl 1
+int g(int *a : count(len), int len, int *b);  // decl 2
+int g(int *a, int len, int *b : count(len));  // decl 3
+int g(int *a : count(len), int len, int *b : count(len));  // decl 4
+\end{verbatim}
+The example of \texttt{g} is particularly interesting.  The only version
+that could be used in a checked scope is declaration 4.   For declarations 2 and 3,
+where bounds information is missing for a parameter, the argument passed to \texttt{g}
+for that parameter cannot have an \arrayptr\ type.  The typing rules prevent arguments
+with checked type from being used with parameters of \texttt{g} that are missing 
+bounds information.
 
 \subsection{Checking bounds declarations}
 \label{section:checking-bounds-interfaces}
