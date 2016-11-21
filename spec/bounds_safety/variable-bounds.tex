@@ -867,7 +867,7 @@ no way to update the hidden variable to make the bounds declaration be valid.
 Here is a simple example:
 \begin{verbatim}
 /* function that will fail checking */
-void bad(int i) 
+void bad(int i)
 {
     array_ptr<int> x : count(i) = malloc ((sizeof(int) * i);
     {
@@ -1056,10 +1056,11 @@ However, \texttt{calloc} also zeros the allocated memory.  For the sake of effic
 new allocation functions that compute sizes but do not zero memory may be needed.
 
 \section{Function types and function pointer types}
+\label{section:function-types}
 
 Function types can be declared to have parameters and return values that have bounds
-declarations, just like functions. 
-The bounds declarations become part of the function types.  Here are simple examples of function pointer types with bounds declarations:
+declarations, just like functions.  The bounds declarations become part of the function types.
+Here are simple examples of function pointer types with bounds declarations:
 \begin{verbatim}
 // Function that takes a pointer to a 5 element array and returns an integer.
 int (array_ptr<int> arr : count(5))
@@ -1069,13 +1070,13 @@ ptr<int (array_ptr<int> arr : count(i), int i)>
 int (*) (array_ptr<int> arr : count(i), int i)
 \end{verbatim}
 Functions that take pointers to functions and arrays of function pointers can
-be declared also.  A typedef for the function type in the following example
+be declared also.  A typedef for the function type is used in the following example
 to keep the syntax understandable:
 \begin{verbatim}
-typedef int fn(array_ptr<int> arr : count(5));  
+typedef int fn(array_ptr<int> arr : count(5));
 
 // Takes g and arg and calls g with arg.
-int apply(ptr<fn> g, array_ptr<int> arg : count(5));  
+int apply(ptr<fn> g, array_ptr<int> arg : count(5));
 
 // Checked array of 10 function pointers
 ptr<fn> dispatch_table checked[10];
@@ -1086,11 +1087,10 @@ bounds declarations.  Two function types are compatible if
 \begin{itemize}
 \item They are compatible types if all bounds declarations are removed from the type, and
 \item If either type contains a bounds declaration, both types have parameter lists, and
-\item They have bounds declarations on the same parameters, and
-\item They either both have a bounds declaration for their return values or
-both do not have a bounds declaration for their return values, and
+\item They have bounds declarations on corresponding parameters, and
+\item They either both have or both do not have a bounds declaration for their return values, and
 \item The bounds declarations for corresponding parameters and for return values with
-checked types are equivalent. 
+checked types are equivalent.
 Parameter variables should be renamed so that the parameter variables
 in corresponding argument positions have the same name.  The new names should be chosen
 to be different than other variables that are in scope.
@@ -1098,9 +1098,8 @@ to be different than other variables that are in scope.
 For each pair of bounds declarations for corresponding
 parameters or the return values, the bounds declarations are equivalent if
 \begin{itemize}
-\item The bounds expressions for the bounds declarations are syntactically equal or,
-more generally, they are syntactically equal after being placed into
-a canonical form following the rules in Section~\ref{section:canonicalization}, and
+\item The bounds expressions for the bounds declarations are syntactically equal
+after being placed into a canonical form following the rules in Section~\ref{section:canonicalization}, and
 \item  For any non-parameter variable \var{x} to which both expressions refer, the variable is
 declared in the same scope.
 \end{itemize}

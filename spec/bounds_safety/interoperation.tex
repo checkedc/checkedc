@@ -126,10 +126,9 @@ to any existing C typing rules that apply to the cast.
 \item If \var{D} and \var{S} are compatible types or \var{D} and \var{S} are unchecked
 pointer types, checking succeeds.
 
-\item Otherwise, if \var{D} is \ptrvoid\ or \uncheckedptrvoid\ and \var{S} is a \ptr\ type, 
-checking succceeds.\footnote{This rule follows from the next rule, but it is easier to understand 
-stated as a separate rule.}
-
+\item Otherwise, if \var{D} is \ptrvoid\ or \uncheckedptrvoid\ and \var{S} is a \ptr\ type,
+checking succceeds.\footnote{This rule is implied logically by other rules.   We present
+it separately so that there is a simple rule for casts to void pointers.}
 \item Otherwise, if \var{D} is not a function pointer type and \var{D} is
 \begin{itemize}
 \item \ptrT: the bounds of \var{e} are computed using the rules
@@ -155,15 +154,15 @@ type \spanptrT\ with the value of \var{e} and \bounds{\var{lb}}{\var{ub}} will b
 \begin{itemize}
 \item \ptrT, the checking succeeds. This handles the case where \var{T}
 is an incomplete type.
-\item Otherwise, the same rules are followed as for \ptrT.
+\item Otherwise, the rules for \ptrT\ are followed.
 \end{itemize}
 \end{itemize}
 
 \item Otherwise, if \var{D} is a function pointer type,
 \begin{itemize}
-\item If \var{S} is a pointer to a function type, \var{D} is \ptrT,
-\var{S} is \uncheckedptrinst{U}, \var{T} and \var{U} are compatible types, 
-and \var{e} is a function name, checking succeeds.
+\item Function names with unchecked function pointer types can be cast to have corresponding checked
+pointer types.  If \var{e} is a function name, \var{D} is \ptrT, \var{S} is \uncheckedptrinst{U},
+and \var{T} and \var{U} are compatible types, checking succeeds.
 \item Otherwise, checking fails with a compile-time error.
 \end{itemize}
 \end{itemize}
@@ -302,15 +301,15 @@ void f(void) {
 C allows implicit conversions at assignments, function call arguments,
 and conditional expressions.  The purpose of
 implicit conversions is to make programs shorter and easier to
-read.  Implicit conversions describe when a expression of type
-\var{S} is allowed where an expression of type \var{ST} is expected.
+read.  Implicit conversions describe when an expression of type
+\var{S} is allowed where an expression of type \var{T} is expected.
 They allow additional programs to typecheck.
-This section defines implicit conversions that are allowed for checked 
+This section defines implicit conversions that are allowed for checked
 pointer types.
 
 An implicit conversion may allow typechecking to succeed, but
 checking of bounds declarations may still fail.  Implicit
-conversions are treated as though they are explicit C cast 
+conversions are treated as though they are explicit C cast
 operations during the checking of bounds declarations.
 
 \subsection{From unchecked pointers to checked pointers}
@@ -459,19 +458,10 @@ void f(void) {
 \section{Bounds-safe interfaces to existing unchecked functions and variables}
 \label{section:function-bounds-safe-interfaces}
 
-The new pointer types capture specific properties of pointers. We would
-like to update existing C code to use these new pointer types. However,
-this is not possible when backward compatibility requirements exist. 
-For C runtime function or operating system (OS) APIs, it is possible
-to modify the header files that declare them. It is impractical, however,
-to require  all {\em uses} of these functions or APIs be updated.   Code written by
-3\textsuperscript{rd} 
-parties may use these APIs and an existing shipping OS cannot reasonably require all
-3\textsuperscript{rd} parties update their existing code to use the new
-types.
-
-Consider what would happen if the signature for memcpy were updated to
-use \arrayptr. The function
+The new pointer types capture specific properties of pointers. We would like to update
+existing C code to use the new pointer types. This would be problematic for library and operating
+system APIs that have backward  compatibility constraints, though.   Consider what would happen
+if the signature for \texttt{memcpy} were updated to use \arrayptr. The function
 
 \begin{verbatim}
 void *memcpy(void *dest, const void *src, size_t count);
@@ -483,21 +473,15 @@ becomes
 void *memcpy(array_ptr<void> dest, array_ptr<const void> src, size_t count);
 \end{verbatim}
 
-This, of course, breaks every piece of existing code that uses \texttt{memcpy}.
-The code will no longer compile. C does not have method overloading, so
-we cannot simply define multiple overloaded versions of \texttt{memcpy}. That
-would also duplicate code and potentially increase program sizes.
-The reverse problem also exists: suppose the signature for \texttt{memcpy} is not
-updated. Then every ``checked'' method that calls memcpy would need to cast
+This would break existing code that uses \texttt{memcpy}.  The code would no longer type check.
+C does not have function overloading, so we cannot define multiple overloaded versions of
+\texttt{memcpy}.  The reverse problem also exists: suppose the signature for \texttt{memcpy} is
+not updated. Then every ``checked'' method that calls \texttt{memcpy} would need to cast
 the arguments to unchecked pointer types.
 
-Given that we may not be able to change the pointer types of existing
-APIs, we need to adopt an approach that supports backwards
-compatibility, enables new checked code to be written easily, and maintains
-the checking of new code.
-
-We address this by:
-
+Given that it is problematic to change the types of existing APIs, we need to take approach
+that supports backward compatibility, enables new checked code to be written easily, and
+maintains the checking of new code.  We address this by:
 \begin{enumerate}
 \item
   Allowing programmers to declare bounds-safe interfaces to code and
@@ -618,31 +602,21 @@ interface.  For example, an expression will not be
 coerced implicitly from \ptrinst{\var{S}} to \uncheckedptrvoid\ to
 \uncheckedptrinst{\var{T}}, where \var{S} and \var{T} are different types.
 
-\subsection{Compatibility of types}
+\subsection{Type compatibility}
 
-C allows variables or functions be declared with types that are missing information.
-This information can be filled in by other declarations.  The types that
-are missing information are said to be ``compatible'' with more complete
-versions of the types: they can be used interchangeably.   This avoids the
-problem of multiple definitions of variables or functions with different types.
+C allows variables or functions to be declared with types that are missing information.
+There can be other declarations of the variables or functions with types that are more complete
+and fill in the missing information.  The types that are missing information are said to be
+``compatible'' with the more complete versions of the types.  Multiple declarations of
+a variable or function are required to have compatible types, not identical types.
 
-This notion of compatibility extends to bounds-safe interfaces naturally.
-Two function types with bounds declarations on parameters or for a return value are 
-compatible if:
+This notion of compability extends to bounds-safe interfaces naturally.  We extend the
+definition of compatibility of function types in Section~\ref{section:function-types} as follows:
 \begin{itemize}
-\item For parameters
-\begin{itemize}
-\item If corresponding parameters have compatible unchecked pointer types, and one parameter
-has a bounds declaration and other parameter does not have a bounds declaration, or
-\item If corresponding parameters both have bounds declarations, and the
-bounds declarations are syntactically equal or equal after being
-placed into a canonical form.
-\end{itemize}
-
-This is assuming that parameter variables are renamed so that parameter
-variables in corresponding argument positions have the same name.
-
-\item For return values with unchecked pointer types, similar rules apply.
+\item Given corresponding parameters with compatible unchecked pointer types,
+one parameter may have a bounds declaration and one parameter may omit the bounds declaration.
+\item Given return values with compatible unchecked pointer types, one
+return value may have a bounds declaration and one return value may omit the bounds declaration.
 \end{itemize}
 
 The following are examples of declarations of functions with compatible types:
@@ -655,11 +629,12 @@ int g(int *a : count(len), int len, int *b);  // decl 2
 int g(int *a, int len, int *b : count(len));  // decl 3
 int g(int *a : count(len), int len, int *b : count(len));  // decl 4
 \end{verbatim}
-The example of \texttt{g} is particularly interesting.  The only version
+The declarations of \texttt{g} are particularly interesting. They are all
+compatible declarations.  The only version
 that could be used in a checked scope is declaration 4.   For declarations 2 and 3,
 where bounds information is missing for a parameter, the argument passed to \texttt{g}
 for that parameter cannot have an \arrayptr\ type.  The typing rules prevent arguments
-with checked type from being used with parameters of \texttt{g} that are missing 
+with checked type from being used with parameters of \texttt{g} that are missing
 bounds information.
 
 \subsection{Checking bounds declarations}

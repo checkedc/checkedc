@@ -459,6 +459,34 @@ This makes it more likely that programming errors involving bounds
 declarations are detected only at runtime.   We did not pursue
 this approach further for this reason.
 
+\section{Function pointer casts}
+
+The rules in Section~\ref{section:pointer-casting} for casting between function
+pointers require that the bounds declarations on parameters and return values be
+identical after conversions to canonical forms.   It is possible to have
+more general rules around function pointer casts, at least from a checking
+perspective.
+
+For example, a function that expects an \arrayptr\ with 5 elements can
+always be used in place of one that expects an \arrayptr\ with 10 elements.
+This implies that a function pointer that expects an \arrayptr\ with 5
+elements can be cast to a function pointer that expects an \arrayptr\ with
+10 elements.  Similarly, a function that returns an \arrayptr\ with 10 elements
+can always be used in place of a function that returns an \arrayptr\ with 5
+elements.
+
+More generally, a function with weaker preconditions can be used in place
+of one with stronger preconditions.  A function with stronger post-conditions
+can be used in place of a function with weaker post-conditions.
+
+We chose not to generalize the rules for function pointer casts until we have
+evidence from real-world experience that the generalization is needed.   It is
+likely that we will to need to add support for weaker preconditions and stronger
+post-conditions for \keyword{where} clauses on casts to function pointer types,
+to avoid surprising programmers.  It is unclear whether this would be useful in
+practice for bounds declarations on pointer types, or only of theoretical
+interest.
+
 \section{Null pointers and bounds expressions}
 
 \newcommand{\objectbounds}[2]{\texttt{object\_bounds(#1, #2)}}
