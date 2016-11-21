@@ -479,7 +479,7 @@ C does not have function overloading, so we cannot define multiple overloaded ve
 not updated. Then every ``checked'' method that calls \texttt{memcpy} would need to cast
 the arguments to unchecked pointer types.
 
-Given that it is problematic to change the types of existing APIs, we need to take approach
+Given that it is problematic to change the types of existing APIs, we need an approach
 that supports backward compatibility, enables new checked code to be written easily, and
 maintains the checking of new code.  We address this by:
 \begin{enumerate}
