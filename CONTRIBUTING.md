@@ -35,8 +35,8 @@ to the specification, tests, examples, or implement compiler features.
 
 ## Licensing
 
-You are of course free to discuss the specification using the email lists or the 
-[Checked C issues](https://github.com/Microsoft/checkedc/issues) system. These are public forms, so do not
+You are free to discuss the specification using the email lists or the
+[Checked C issues](https://github.com/Microsoft/checkedc/issues) system. These are public forums, so do not
 share confidential information.
 
 ### Specification

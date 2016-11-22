@@ -10,7 +10,10 @@ version of LLVM/clang lives in the
 and the [Checked C LLVM repo](https://github.com/Microsoft/checkedc-llvm).
 
 # Getting involved
-See [Contributing](CONTRIBUTING.md) for how to get involved with Checked C and contribute to the project.
+You can join the [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) for
+announcements and weekly status updates about the project.  There are a variety of ways to get involved
+in the project, including opening issues, contributing changes to the specification, or helping out with
+the compiler and tools implementation. See [contributing](CONTRIBUTING.md) for more information.
 
 # Licensing
 The software in this repository is covered by the MIT license.  See the file LICENSE.TXT for the license.   The
