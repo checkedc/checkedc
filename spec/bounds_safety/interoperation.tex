@@ -268,8 +268,8 @@ array_ptr<int> pdata : count(3) = (array_ptr<int>) data;
 
 void swizzle(ptr<int> p) {
    array_ptr<char> bytes : count(4) = (array_ptr<char>) p;
-   char t0 = p[0], t1 = p[1], t2 = p[2]; t3 = p[3];
-   p[0] = t3, p[1] = t2, p[2] = t1, p[3] = t0;
+   char t0 = bytes[0], t1 = bytes[1], t2 = bytes[2]; t3 = bytes[3];
+   bytes[0] = t3, bytes[1] = t2, bytes[2] = t1, bytes[3] = t0;
 }
 \end{verbatim}
 
@@ -283,7 +283,7 @@ In this example, \verb|&x| points to only one integer:
 \begin{verbatim}
 int x = 0;
 // fails to check: source not large enough
-array_ptr<int> pax : count(5) : (array_ptr<int>) &x;
+array_ptr<int> pax : count(5) = (array_ptr<int>) &x;
 \end{verbatim}
 In this example, the result of \texttt{random()} has no bounds:
 \begin{verbatim}
