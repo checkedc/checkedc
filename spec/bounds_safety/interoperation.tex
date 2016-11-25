@@ -481,14 +481,19 @@ the arguments to unchecked pointer types.
 
 Given that it is problematic to change the types of existing APIs, we need an approach
 that supports backward compatibility, enables new checked code to be written easily, and
-maintains the checking of new code.  We address this by:
+maintains the checking of new code.  We do this by allowing programmers to  
+declare bounds-safe interfaces for functions and data structures whose types use
+unchecked pointer types. The bounds-safe interface describes how checked 
+code can use them properly.   It is assumed (but not verifies) that unchecked code 
+properly implements the declared interface.
+
+This is done by extending existing declarations with additional bounds
+information.  The types of the declarations do not change.  A bounds-safe
+interface for a function, for example, describes the expected bounds for
+parameters with unchecked pointer types.   Type checking is altered to
+insert implicit conversions between checked and unchecked pointer types 
+when needed.   Bounds checking also uses the additional information:
 \begin{enumerate}
-\item
-  Allowing programmers to declare bounds-safe interfaces to code and
-  data structures that use unchecked pointers. A bounds-safe interface for
-  a function, for example, describes bounds for unchecked pointer
-  parameters.   Type checking is altered to insert implicit conversions
-  between pointer types when needed.
 \item
   In checked scopes, code is limited to using pointer types that are 
   checked pointer types or unchecked pointer types that have bounds-safe interfaces.
@@ -508,23 +513,61 @@ maintains the checking of new code.  We address this by:
   there are bounds-safe interfaces that describe the bounds requirements.
 \end{enumerate}
 
-Functions that have parameters with unchecked pointer types or that return
-values with unchecked pointer types can have bounds declared for the unchecked
-pointer parameters or the unchecked pointer return value. Bounds must be
-declared for all parameters with unchecked pointer types and the return
-value, if it has an unchecked pointer type. In the case where a parameter
-has \texttt{ptr} type, this can be declared specially.
-
-Here is a bounds-safe interface for \texttt{memcpy}:
+There are two ways in which bounds behavior is described.   The first
+way is to use bounds declarations for variables with unchecked
+pointer types.  Functions that have parameters with unchecked pointer 
+types or that return values with unchecked pointer types can have bounds
+declared for the unchecked pointer parameters or the unchecked pointer return value, for example.
+A variable with unchecked pointer type that has a bounds
+declaration is treated as though it has \arrayptr\ type in checked code.  
+Here is a bounds-safe interface 
+for \texttt{memcpy}:
 \begin{verbatim}
 void *memcpy(void *dest : byte_count(len), const void *src : byte_count(len), 
              size_t len) 
              where return_value : bounds((char *) dest, (char *) dest + count)
 \end{verbatim}
-
 The correctness of bounds information is enforced at compile-time when
 memcpy is passed checked pointer arguments. It is not enforced when memcpy
 is passed unchecked pointer arguments.
+
+The second way is to use {\em type annotations}.  A type annotation
+describes an alternate checked type to use in checked code
+in place of an unchecked type.  It is used when a variable with
+an unchecked pointer type should be treated as having
+a \texttt{ptr} type, for example.  Syntactically, it replaces
+the bounds expression in a bounds declaration.   It is specified
+using the keyword \texttt{itype} followed by a parenthesized
+type name.   The keyword \texttt{itype} is short for bounds-safe
+interface type.
+
+Here is an examples of some functions from the C standard
+library with type annotations:
+\begin{verbatim}
+void modf(double value, double *iptr : ptr<double>);
+int fclose(FILE *stream : ptr<FILE>);
+FILE *tmpfile(void) : ptr<FILE>;
+struct tm *gmtime(const time_t *timer : ptr<const time_t>) : ptr<struct tm>;
+\end{verbatim}
+In the examples, type annotations for return types are placed 
+after the parameter list, the same way that bounds expression for
+return values are placed after the parameter list.
+We expect that bounds-safe interfaces for existing C
+libraries will use type annotations frequently.   It is common for
+existing libraries to have unchecked pointer types that are actually 
+pointers to single objects.  These are used to return multiple values from
+C functions and to pass arguments that are large \keyword{struct} types
+efficiently.
+
+A type annotation must be compatible with the original unchecked
+pointer type when checked-ness of pointers and bounds declarations
+are ignored.  In addition, a type annotation must be at least as
+checked as the original type.  For function type.
+
+For functions, if bounds behavior is described for one parameter with
+unchecked pointer or return value with an unchecked pointer,
+bounds behavior must be described for for all parameters with unchecked
+pointer types and the return value, if it has an unchecked pointer type.
 
 Similarly, for data structures, members with unchecked pointer types can
 have bounds declared. If bounds are declared for one member of a
