@@ -455,7 +455,7 @@ void f(void) {
 }
 \end{verbatim}
 
-\section{Bounds-safe interfaces to existing code}
+\section{Bounds-safe interfaces to existing unchecked functions and variables}
 \label{section:function-bounds-safe-interfaces}
 
 The new pointer types capture specific properties of pointers. We would like to update
@@ -599,7 +599,7 @@ types is compiled as though the bounds-safe interface has been
 stripped from its source code.
 
 A type annotation describes an alternate checked type to use in checked code
-in place of an unchecked type.  It is used when a variable with
+in place of an unchecked type. It is used, for example, when a variable with
 an unchecked pointer type should be treated as having
 a \texttt{ptr} type.  Syntactically, it can
 be used in place of the  bounds expression in a bounds declaration.
