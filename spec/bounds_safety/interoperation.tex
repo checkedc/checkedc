@@ -455,53 +455,54 @@ void f(void) {
 }
 \end{verbatim}
 
-\section{Bounds-safe interfaces to existing unchecked functions and variables}
+\section{Bounds-safe interfaces to existing code}
 \label{section:function-bounds-safe-interfaces}
 
 The new pointer types capture specific properties of pointers. We would like to update
 existing C code to use the new pointer types. This would be problematic for library and operating
-system APIs that have backward  compatibility constraints, though.   Consider what would happen
+system APIs that have backward  compatibility constraints, however.   Consider what would happen
 if the signature for \texttt{memcpy} were changed to use \arrayptr. The function
 
 \begin{verbatim}
 void *memcpy(void *dest, const void *src, size_t count);
 \end{verbatim}
 
-becomes
+would become
 
 \begin{verbatim}
 void *memcpy(array_ptr<void> dest, array_ptr<const void> src, size_t count);
 \end{verbatim}
 
-This would break existing code that uses \texttt{memcpy}.  The code would no longer type check.
-C does not have function overloading, so we cannot define multiple overloaded versions of
-\texttt{memcpy}.  The reverse problem also exists: suppose the signature for \texttt{memcpy} is
-not updated. Then every checked method that calls \texttt{memcpy} would need to cast
-the arguments to unchecked pointer types.
+This would break existing code that uses \texttt{memcpy}.  The code would no
+longer type check.  The reverse problem also exists: suppose the signature for
+\texttt{memcpy} is not updated.  Then every checked method that calls
+\texttt{memcpy} would need to cast the arguments to unchecked pointer types.
 
 Given that changing the types of existing APIs is problematic, we take an approach
-that does not change types, yet enables new checked to be written easily
-and that maintains the checking of new code.  We allow programmers to
-declare {\em bounds-safe interfaces} that extend existing declaratons with
+that does not change types, yet enables new checked code to be written easily
+and that maintains the checking of the new code.  We allow programmers to
+declare {\em bounds-safe interfaces} that extend existing declarations with
 additional bounds information.  
 
 Bounds-safe interfaces can be 
-specified at declarations for functions, global variables, and
-data structure.  They can also be specified for function types.
+specified for declarations of functions, global variables, and
+data structures.  They can also be specified for function types.
 The interfaces describe the expected behavior and the assumptions
-of existing code with respect to bounds information. The types remain the same.
+of existing code about bounds. The types remain the same.
 It is assumed but not verified that existing code
-meets the specified interfaces.
+meets the specified interfaces.  A bounds-safe interface allows
+checked code to use existing unchecked code safely with respect
+to bounds, assuming that the interface and existing code are
+correct.
 
-The additional information is used to ensure that checked code
-is using the declarations properly and to insert bounds
-checks in checked code.  Type checking is modified to insert
-implicit conversions between checked types and unchecked
-types at bounds-safe interfaces.  This allows new checked code
-to seamlessly use existing unchecked code that has bounds declarations.
-The checking of bounds declarations and insertion of bounds
-checks also use the additional bounds information:
-
+Type checking is modified to insert implicit conversions between
+checked types and unchecked types at bounds-safe interfaces.
+The additional bounds information is used during checking
+of bounds declarations to ensure that checked code is
+using existing declarations properly.  It is also used to insert
+bounds checks in checked code.  This allows new checked code to
+use existing unchecked code, once a bounds-safe interface has
+been added to the existing code.
 \begin{enumerate}
 \item
   In checked scopes, code is limited to using pointer types that are 
@@ -513,7 +514,7 @@ checks also use the additional bounds information:
 \item
   In unchecked scopes, checked and unchecked pointer types can be
   be intermixed within expressions.  When that happens, the bounds-safe
-  interfaces are used during checking of bounds declaration to determine
+  interfaces are used during checking of bounds declarations to determine
   bounds of expressions and the required bounds for assignments and function calls. 
   Section~\ref{section:implicit-conversions} already
   explained when implicit conversions from unchecked pointer types to checked pointer
@@ -522,21 +523,32 @@ checks also use the additional bounds information:
   necessary at bounds-safe interfaces.
 \end{enumerate}
 
+The sections on bounds-safe interfaces are organized as
+follows.  Section~\ref{section:bounds-safe-interface-specifying} describes
+how to specify bounds-safe interfaces.
+Section~\ref{section:bounds-safe-interface-examples}
+has examples that show the use of bounds-safe interfaces.
+Section~\ref{section:bounds-safe-interface-redeclaration} explains
+how existing functions and variables can be redeclared with bounds-safe
+interfaces.  Section~\ref{section:bounds-safe-interface-type-checking}
+and ~\ref{section:checking-bounds-interfaces} cover technical details
+about type checking and checking bounds declarations that are interesting
+to language designers and compiler writers.  Programmers interested
+in using the Checked C extension can skip those sections.
+
 \subsection{Specifying bounds-safe interfaces}
-Bounds-safe interfaces are specified in two ways.  The first approach
-is to use bounds declarations for variables with unchecked pointer types.
-The second approach is to use type annotations.
+\label{section:bounds-safe-interface-specifying}
+Bounds-safe interfaces for declarations are specified by adding bounds
+declarations or type annotations to declarations.  They can be added to
+function declarations, function types, globally-scoped variables, and
+declarations of members of structure and union types.
 
-We first describe bounds declarations for unchecked pointer types.  
-These can be used at function declarations, function types,
-declarations of variables with global scope, and declarations of members
-for structure and union types.
-
-Functions that have parameters with unchecked pointer 
+We describe adding bounds declarations first and then  describe adding type
+annotations.  Functions that have parameters with unchecked pointer
 types or that return values with unchecked pointer types can have bounds
-declared for the parameters and return values.  Implicit
-conversions from checked types to unchecked pointer types may
-be inserted at calls to these functions.
+declared for the parameters and return values.  At calls to
+these functions, implicit conversions from checked types to unchecked
+pointer types are inserted for the corresponding argument expressions
   
 Here is a bounds-safe interface for \texttt{memcpy}:
 \begin{verbatim}
@@ -548,20 +560,25 @@ The correctness of bounds information is enforced at compile-time when
 \texttt{memcpy} is passed checked pointer arguments. It is not enforced when 
 \texttt{memcpy} is passed unchecked pointer arguments.
 
-If bounds behavior is described for one parameter with
-unchecked pointer or return value with an unchecked pointer type.
-bounds behavior must be described for for all parameters with unchecked
-pointer types and the return value, if it has an unchecked pointer type.
-
-Variables at external scope with unchecked pointer types can also have
+Variables at external scope with unchecked pointer types can have
 bounds declared for them.   The declarations must follow the 
 rules in Section~\ref{section:external-scope-variables}.
 
-for data structures, members with unchecked pointer types can also
-have bounds declared. If bounds are declared for one member of a
-structure with an unchecked pointer type, they must be declared for all
-members with unchecked pointer types.  Implicit conversions from \arrayptr
+For data structures, members with unchecked pointer types can
+have bounds declared for them.   Implicit conversions from \arrayptr\ 
 type to unchecked pointer type are inserted at assignments to the members.
+
+Bounds-safe interfaces for functions and members must be
+declared on an ``all-or-nothing'' basis.
+For a function, if any parameter (or the return value) has an unchecked pointer
+type and has a bounds declaration or type annotation, all the
+the other parameters (or the return value) that have unchecked
+pointer types must also have bounds declarations or type
+annotations.  Similarly, for a structure or union type,
+if any member with unchecked pointer type
+has a bounds declaration or type annotation, all other members
+that have unchecked pointer types must also have bounds declarations
+or type annotations.
 
 Here are the bounds for a structure that is a counted buffer of
 characters.
@@ -576,91 +593,124 @@ It is important to understand that the \emph{semantics of unchecked
 pointers does not change in unchecked scopes even when bounds are
 declared for the pointers}. The declared bounds are used  for expressions
 that mix checked and unchecked pointer types. Unchecked pointer dereferences do not
-have bounds checks added to them. A function that declares a bounds-safe 
+have bounds checks added to them. A function that has a bounds-safe
 interface and whose body does not use checked pointer
 types is compiled as though the bounds-safe interface has been
 stripped from its source code.
 
-We next describe type annotations.   A type annotation
-describes an alternate checked type to use in checked code
+A type annotation describes an alternate checked type to use in checked code
 in place of an unchecked type.  It is used when a variable with
 an unchecked pointer type should be treated as having
-a \texttt{ptr} type, for example.  Syntactically, it replaces
-the bounds expression in a bounds declaration.   It too
-can be used at function declarations, function types,
-declarations of variables with external scope, and declarations of members
-of structures and unions.
+a \texttt{ptr} type.  Syntactically, it can
+be used in place of the  bounds expression in a bounds declaration.
 
-A type annotation is specified using the keyword \texttt{itype} followed by 
-a parenthesized type name.   The keyword \texttt{itype} is short for bounds-safe 
-interface type.
+A type annotation is specified using the following syntax:
 
-We may have a method that takes a pointer to a count buffer of characters
-\texttt{S} and counts the number of instances of a specific character. A type
-annotation can declare that the unchecked pointer to \texttt{S}
-should be treated as \verb+ptr<S>+ in checked code.
+\begin{tabbing}
+\var{type-}\=\var{annotation:} \\
+\>\texttt{itype (} \var{type name} \texttt{)}\\
+\\
+The syntax for inline bounds specifiers is extended to include
+type annotations:\\
+\\
+\var{inline-bounds-specifier:}\\
+\> \var{\ldots{}}\\
+\>\texttt{:} \var{type-annotation}
+\end{tabbing}
+The keyword \texttt{itype} is short for bounds-safe  interface type.
+
+A type annotation can be used to declare that an unchecked
+pointer to a structure should be treated as a \verb+ptr+ in
+checked code. Here is a declaration for a function
+\verb+count_char+ that takes
+an unchecked pointer to the struct \texttt{S} defined earlier,
+with a type annotation. \verb+count_char+ counts the number
+of occurrences of \verb+arg+ in \verb+S+. Checked code must pass a
+value that is a valid \verb+ptr+ to \verb+count_char+:
 \begin{verbatim}
-int count_char(S *str : ptr<S>, char arg);
+int count_char(S *str : itype(ptr<S>), char arg);
 \end{verbatim}
 
-Here are examples of functions from the C Standard Library with type annotations:
-\begin{verbatim}
-void modf(double value, double *iptr : ptr<double>);
-int fclose(FILE *stream : ptr<FILE>);
-FILE *tmpfile(void) : ptr<FILE>;
-struct tm *gmtime(const time_t *timer : ptr<const time_t>) : ptr<struct tm>;
-\end{verbatim}
+Here are functions from the C Standard Library with type annotations.
 In the examples, type annotations for return types are placed 
 after the parameter list, the same way that bounds expression for
-return values are placed after the parameter list
+return values are placed:
+\begin{verbatim}
+void modf(double value, double *iptr : itype(ptr<double>));
+int fclose(FILE *stream : itype(ptr<FILE>));
+FILE *tmpfile(void) : itype(ptr<FILE>);
+struct tm *gmtime(const time_t *timer : itype(ptr<const time_t>)) :
+    itype(ptr<struct tm>);
+\end{verbatim}
 
-A type annotation must be compatible with the original unchecked
-pointer type when checkedness of pointers and bounds declarations
-are ignored.  In addition, a type annotation must be at least as
-checked as the original type. 
+The \var{type name} in a type annotation must be compatible
+with the original unchecked pointer type when checkedness
+of pointers and arrays is ignored. The \var{type name} cannot
+lose checking.  It must be at least as checked as the
+original type.  Finally, the \var{type name} must be
+a checked type.   Checked types are defined inductively:
+checked pointer and array types are checked types,
+array and pointer types constructed from checked types
+are checked types, and function types constructed from
+at least one checked type are checked types.
 
-\subsection{Type checking}
+\subsection{Examples}
+\label{section:bounds-safe-interface-examples}
 
-Bounds-safe interfaces allow unchecked pointer types to be used
-where checked pointer types with assignment compatible referent types are
-expected and {\it vice versa}.
-To handle this, implicit pointer conversions are inserted during type checking.
-Section~\ref{section:implicit-conversions} covered implicit conversions from unchecked pointer types to checked pointer types.
+Here are some examples:
+\begin{verbatim}
+void copy(array_ptr<int> dest : count(len),
+          array_ptr<int> src : count(len), int len)
+{
+    // dest, src will be converted implicitly to void * pointers.
+    // Even though this is an unchecked context, the function call
+    // arguments will be checked to make sure that they meet the
+    // bounds requirements of memcpy.  This is because the argument
+    // expressions have checked pointer types.
+    memcpy(dest, src, len * sizeof(int));
+}
 
-Implicit conversions from checked pointer types to unchecked pointer types
-with assignment-compatible referent types are allowed exactly at the uses of functions,
-variables, or members with a  bounds-safe interface.  In this case, assignment
-compatibility is applied in a reverse fashion.  The source referent type must be
-assignment compatible with the destination referent type.  The conversions are done for rvalue expressions by inserting C cast operators to the desired unchecked types.
-They may be done at:
-\begin{itemize}
-\item Function call arguments: If the function being called has a
-      bounds-safe interface for unchecked pointer type arguments, a parameter
-      type has an unchecked pointer type, the corresponding argument expression
-      has a checked pointer type, and the argument referent type is assignment
-      compatible with the parameter referent type, then the argument expression
-      will be converted implicitly to the unchecked pointer type.
-\item Assignments to a variable with external scope: if the variable being
-     assigned to has an unchecked pointer type and a bounds-safe interface, the
-     right-hand side expression has a checked pointer type, and the right-hand
-     side expression referent type is assignment compatible with the referent
-     type of the variable, then the right-hand side expression will be converted
-     implicitly to the unchecked pointer type.
-\item
-   Member assignments: a similar conversion is done for member assignments.
-\end{itemize}
+f(S s) 
+{
+     int len = s.len;
+     array_ptr<char> sp : count(len) = s.arr;
+     ...
+     if (len > 0) {
+        sp[0] = 'a';
+     }
+}
+\end{verbatim}
 
-Implicit conversions at bounds-safe interfaces are allowed from checked pointer types to
-\uncheckedptrvoid.  This rule is likely to change in the future.  There is not a  design for
-checking type-safety of casts yet and the design will amost certainly affect 
-\uncheckedptrvoid\ casts.
+This example will fail at compile time:
+\begin{verbatim}
+void bad_copy(int *dest,
+              array_ptr<int> src : count(len), int len)
+{
+    // dest, src will be converted implicitly to void * pointers.
+    // Because an argument had a checked pointer type, the function call
+    // will be checked to make sure parameters meet the bounds
+    // requirements.  This will fail because dest has no bounds.
+    memcpy(dest, src, len * sizeof(int));
+}
+\end{verbatim}
 
-Only one implicit pointer conversion is allowed for an expression at a bounds-safe
-interface.  For example, an expression will not be
-coerced implicitly from \ptrinst{\var{S}} to \uncheckedptrvoid\ to
-\uncheckedptrinst{\var{T}}, where \var{S} and \var{T} are different types.
+In contrast, this example will compile:
+\begin{verbatim}
+void subtle_copy(int *dest,
+                 array_ptr<int> src : count(len), int len)
+{
+    // This function call will not be checked for bounds
+    // requirements because no arguments have checked pointer
+    // types.  This shows both that the programmer has control
+    // over checking by using types and why checked contexts
+    // should be used with checked pointers when possible (perhaps
+    // the programmer did not want to do this).
+    memcpy(dest, (void *) src, len * sizeof(int));
+}
+\end{verbatim}
 
-\subsection{Type compatibility}
+\subsection{Redeclaring existing functions and variables with bounds-safe interfaces}
+\label{section:bounds-safe-interface-redeclaration}
 
 C allows variables or functions to be declared with types that are missing information.
 There can be other declarations of the variables or functions with types that are more complete
@@ -694,6 +744,49 @@ where bounds information is missing for a parameter, the argument passed to \tex
 for that parameter cannot have an \arrayptr\ type.  The typing rules prevent arguments
 with checked type from being used with parameters of \texttt{g} that are missing
 bounds information.
+
+\subsection{Type checking}
+\label{section:bounds-safe-interface-type-checking}
+
+Bounds-safe interfaces allow unchecked pointer types to be used
+where checked pointer types with assignment compatible referent types are
+expected and {\it vice versa}.
+To handle this, implicit pointer conversions are inserted during type checking.
+Section~\ref{section:implicit-conversions} covered implicit conversions from unchecked pointer types to checked pointer types.
+
+Implicit conversions from checked pointer types to unchecked pointer types
+with assignment-compatible referent types are allowed exactly at the uses of functions,
+variables, or members with a  bounds-safe interface.  In this case, assignment
+compatibility is applied in a reverse fashion.  The source referent type must be
+assignment compatible with the destination referent type.  The conversions are
+done for rvalue expressions by inserting C cast operators to the desired unchecked types.
+They may be done at:
+\begin{itemize}
+\item Function call arguments: If the function being called has a
+      bounds-safe interface for unchecked pointer type arguments, a parameter
+      type has an unchecked pointer type, the corresponding argument expression
+      has a checked pointer type, and the argument referent type is assignment
+      compatible with the parameter referent type, then the argument expression
+      will be converted implicitly to the unchecked pointer type.
+\item Assignments to a variable with external scope: if the variable being
+     assigned to has an unchecked pointer type and a bounds-safe interface, the
+     right-hand side expression has a checked pointer type, and the right-hand
+     side expression referent type is assignment compatible with the referent
+     type of the variable, then the right-hand side expression will be converted
+     implicitly to the unchecked pointer type.
+\item
+   Member assignments: a similar conversion is done for member assignments.
+\end{itemize}
+
+Implicit conversions at bounds-safe interfaces are allowed from checked pointer types to
+\uncheckedptrvoid.  This rule is likely to change in the future.  There is not a  design for
+checking type-safety of casts yet and the design will amost certainly affect 
+\uncheckedptrvoid\ casts.
+
+Only one implicit pointer conversion is allowed for an expression at a bounds-safe
+interface.  For example, an expression will not be
+coerced implicitly from \ptrinst{\var{S}} to \uncheckedptrvoid\ to
+\uncheckedptrinst{\var{T}}, where \var{S} and \var{T} are different types.
 
 \subsection{Checking bounds declarations}
 \label{section:checking-bounds-interfaces}
@@ -752,59 +845,6 @@ checked and unchecked  pointer types in one function call.  The checking of boun
 for function arguments is done for all arguments, so this also implies that the unchecked
 pointer-typed expressions will need to have valid bounds.
 
-\subsection{Examples}
-
-Here are some examples:
-\begin{verbatim}
-void copy(array_ptr<int> dest : count(len), 
-          array_ptr<int> src : count(len), int len)
-{
-    // dest, src will be converted implicitly to void * pointers.
-    // Even though this is an unchecked context, the function call
-    // arguments will be checked to make sure that they meet the
-    // bounds requirements of memcpy.  This is because the argument
-    // expressions have checked pointer types.
-    memcpy(dest, src, len * sizeof(int));
-}
- 
-f(S s) 
-{
-     int len = s.len;
-     array_ptr<char> sp : count(len) = s.arr;
-     ...
-     if (len > 0) {
-        sp[0] = 'a';
-     }
-}
-\end{verbatim}
-
-This example will fail at compile time:
-\begin{verbatim}
-void bad_copy(int *dest,
-              array_ptr<int> src : count(len), int len)
-{
-    // dest, src will be converted implicitly to void * pointers.
-    // Because an argument had a checked pointer type, the function call
-    // will be checked to make sure parameters meet the bounds
-    // requirements.  This will fail because dest has no bounds.
-    memcpy(dest, src, len * sizeof(int));
-}
-\end{verbatim}
-
-In contrast, this example will compile:
-\begin{verbatim}
-void subtle_copy(int *dest,
-                 array_ptr<int> src : count(len), int len)
-{
-    // This function call will not be checked for bounds
-    // requirements because no arguments have checked pointer
-    // types.  This shows both that the programmer has control
-    // over checking by using types and why checked contexts
-    // should be used with checked pointers when possible (perhaps
-    // the programmer did not want to do this).
-    memcpy(dest, (void *) src, len * sizeof(int));
-}
-\end{verbatim}
 
 \section{Conversions between pointers and integers}
 \label{section:pointer-integer-conversions}
