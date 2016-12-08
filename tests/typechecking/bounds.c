@@ -793,7 +793,7 @@ array_ptr<int> fn10(void) : bounds(s1, s1 + 5) { return 0; }
 array_ptr<void> fn11(void) : bounds(s1, s1 + 5) { return 0; }
 int *fn12(void) : bounds(s1, s1 + 5) { return 0; }
 
-// Test valid rEturn bounds declarations for integer-typed values
+// Test valid return bounds declarations for integer-typed values
 short int fn20(void) : byte_count(5 * sizeof(int)) { return (short int) s1; }
 int fn21(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
 long int fn22(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
@@ -847,3 +847,35 @@ union U1 fn73(void) : bounds(s1, s1 + 1);   // expected-error {{expected 'fn73' 
 ptr<int> fn74(void) : bounds(s1, s1 + 1);   // expected-error {{bounds declaration not allowed because 'fn74' has a _Ptr return type}}
 void (*fn75(void) : bounds(s1, s1 + 1))(int);  // expected-error {{bounds declaration not allowed because 'fn75' has a function pointer return type}}
 ptr<void(int)> fn76(void) : bounds(s1, s1 + 1);  // expected-error {{bounds declaration not allowed because 'fn76' has a _Ptr return type}}
+
+//
+// Test bounds declarations for function pointers
+//
+
+void function_pointers() {
+   // Assignments to function pointers with return bounds
+   array_ptr<int> (*t1)(void) : count(5) = fn1;
+     // Local variables can't have bounds-safe interfaces
+   int *(*t2)(void) = fn2;
+   array_ptr<int> (*t4)(void) : byte_count(5 * sizeof(int)) = fn4;
+   array_ptr<void> (*t5)(void) : byte_count(5 * sizeof(int)) = fn5;
+   // Local variables can't have bounds-safe interfaces
+   int *(*t6)(void) = fn6;
+   array_ptr<int> (*t10)(void) : bounds(s1, s1 + 5) = fn10;
+   int *(*t12)(void) = fn12;
+
+   // Assignments to function pointers with parameter bounds
+
+   // Unchecked pointer to function assigned to checked pointer to
+   // function.
+   ptr<array_ptr<int>(void) : count(5)> t100 = fn1;
+   // The reverse is not allowed
+   array_ptr<int>(*t101)(void) : count(5) = t100; // expected-error {{incompatible type}}
+}
+
+void invalid_function_pointers() {
+  array_ptr<int> (*t1)(void) : count(4) = fn1;  // expected-error {{incompatible type}}
+  ptr<array_ptr<int> (void) : count(4)> t1a = fn1;  // expected-error {{incompatible type}}
+  array_ptr<int> (*t4)(void) : byte_count(6 * sizeof(int)) = fn4; // expected-error {{incompatible type}}
+  array_ptr<int>(*t10)(void) : bounds(s1, s1 + 4) = fn10; // expected-error {{incompatible type}}
+}
