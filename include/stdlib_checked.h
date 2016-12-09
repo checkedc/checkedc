@@ -55,7 +55,7 @@ int atquick_exit(void(*func)(void) : itype(_Ptr<void (void)>));
 // TODO: strings
 // int system(const char *s);
 
-// TODO: compar needs to have a type that has bounds
+// TODO: compar needs to have an itype that has bounds
 // on parameters based on size.  Currently we are requiring that
 // bounds in parameters lists be closed with respect to variables
 // in the parameter list.
@@ -63,18 +63,16 @@ void *bsearch(const void *key : byte_count(size),
               const void *base : byte_count(nmemb * size),
               size_t nmemb, size_t size,
               int(*compar)(const void *, const void *) :
-                 itype(_Ptr<int (const void * : itype(_Ptr<const void>),
-                                 const void * : itype(_Ptr<const void>))>)) :
+                itype(_Ptr<int(_Ptr<const void>, _Ptr<const void>)>)) :
                 byte_count(size);
 
-// TODO: compar needs to have a type that has bounds
+// TODO: compar needs to have an itype that has bounds
 // on parameters based on size.  Currently we are requiring that
 // types be closed.
 void qsort(void *base : byte_count(nmemb * size),
            size_t nmemb, size_t size,
            int(*compar)(const void *, const void *) :
-           itype(_Ptr<int(const void * : itype(_Ptr<const void>),
-                          const void * : itype(_Ptr<const void>))>));
+             itype(_Ptr<int (_Ptr<const void>, _Ptr<const void>)>));
 
 int mblen(const char *s : count(n), size_t n);
 

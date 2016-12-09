@@ -1,5 +1,5 @@
-// Feature tests of typechecking redeclarations of functions
-// and variables
+// Feature tests of typechecking bounds-safe
+// interfaces for the C standard library.
 //
 // The following lines are for the LLVM test harness:
 //
