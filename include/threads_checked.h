@@ -24,7 +24,7 @@ struct timespec;
 #endif
 
 void call_once(once_flag *flag : itype(_Ptr<once_flag>),
-               void(*fn)(void) : itype(_Ptr<void (void)>));
+               void ((*fn)(void)) : itype(_Ptr<void (void)>));
 
 int cnd_broadcast(cnd_t *condition : itype(_Ptr<cnd_t>));
 void cnd_destroy(cnd_t *condition : itype(_Ptr<cnd_t>));

@@ -49,8 +49,8 @@ void *realloc(void *ptr  : itype(_Ptr<void>), size_t size) : byte_count(size);
 // TODO: strings
 // char *getenv(const char *n);
 
-int atexit(void (*func)(void) : itype(_Ptr<void (void)>));
-int atquick_exit(void(*func)(void) : itype(_Ptr<void (void)>));
+int atexit(void ((*func)(void)) : itype(_Ptr<void (void)>));
+int atquick_exit(void ((*func)(void)) : itype(_Ptr<void (void)>));
 
 // TODO: strings
 // int system(const char *s);
@@ -62,7 +62,7 @@ int atquick_exit(void(*func)(void) : itype(_Ptr<void (void)>));
 void *bsearch(const void *key : byte_count(size),
               const void *base : byte_count(nmemb * size),
               size_t nmemb, size_t size,
-              int(*compar)(const void *, const void *) :
+              int ((*compar)(const void *, const void *)) :
                 itype(_Ptr<int(_Ptr<const void>, _Ptr<const void>)>)) :
                 byte_count(size);
 
@@ -71,7 +71,7 @@ void *bsearch(const void *key : byte_count(size),
 // types be closed.
 void qsort(void *base : byte_count(nmemb * size),
            size_t nmemb, size_t size,
-           int(*compar)(const void *, const void *) :
+           int ((*compar)(const void *, const void *)) :
              itype(_Ptr<int (_Ptr<const void>, _Ptr<const void>)>));
 
 int mblen(const char *s : count(n), size_t n);
