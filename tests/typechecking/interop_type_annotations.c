@@ -777,9 +777,9 @@ int g71[10][10] : itype(int checked[10][10]);
 int (*g75)checked[10][10]: itype(ptr<int checked[10][10]>);
 
 // Function pointers
-int (*g80)(int *, int *) : itype(ptr<int(int *, int *)>);
-int (*g81)(int *, int *) : itype(ptr<int(ptr<int>, ptr<int>)>);
-int (*g82)(int *, int *) : itype(ptr<int(int checked[10], int checked[10])>);
+int ((*g80)(int *, int *)) : itype(ptr<int(int *, int *)>);
+int ((*g81)(int *, int *)) : itype(ptr<int(ptr<int>, ptr<int>)>);
+int ((*g82)(int *, int *)) : itype(ptr<int(int checked[10], int checked[10])>);
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
 // and the bounds-safe interface type.
@@ -858,6 +858,64 @@ int g265[9][10] : itype(int checked[10][10]);       // expected-error {{mismatch
 ptr<int> *g280 : itype(ptr<int *>);  //expected-error {{type '_Ptr<int *>' loses checking of declared type '_Ptr<int> *'}}
 int (*g281) checked[10][10] : itype(ptr<int[10][10]>);    // expected-error {{loses checking of declared type}}
 int ((*g282)(int checked[10])) : itype(ptr<int (int[10])>); // expected-error {{loses checking of declared type}}
+
+
+//-------------------------------------------------------------
+//
+// Tests for local variables with interface type annotations.
+//
+// Local variables cannot have interface type annotations.
+//-------------------------------------------------------------
+
+extern void test_locals() {
+  int x1a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  _Bool x2a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  char x3a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  short int x4a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  lonx int  x6a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  float x7a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  double x8a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  struct S x10a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  union U x11a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  t1 x13a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  t2 x14a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+
+  // Single pointer and 1-d arrays
+
+  int *x32 : itype(ptr<int>);        // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int *x33 : itype(array_ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int x35[10] : itype(int checked[10]); // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int *x39  : itype(ptr<int>); // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int *x40  : itype(array_ptr<int>); // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+
+  // Two levels of pointers
+
+  int **x50 : itype(ptr<ptr<int>>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int **x51 : itype(ptr<array_ptr<int>>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int **x52 : itype(array_ptr<ptr<int>>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int **x53 : itype(array_ptr<array_ptr<int>>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int **x54 : itype(ptr<int *>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int **x55 : itype(array_ptr<int *>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  ptr<int> *x58 : itype(ptr<ptr<int>>); // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+
+  // Multi-dimensional arrays
+
+  int x71[10][10] : itype(int checked[10][10]);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+
+  // Pointer to multi-dimensional arrays.
+  int (*x75)checked[10][10]: itype(ptr<int checked[10][10]>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+
+  // Function pointers
+  int ((*x80)(int *, int *)) : itype(ptr<int(int *, int *)>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int ((*x81)(int *, int *)) : itype(ptr<int(ptr<int>, ptr<int>)>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  int ((*x82)(int *, int *)) : itype(ptr<int(int checked[10], int checked[10])>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+
+  // Spot check uses of type qualifiers.  They must be identical for the declared type
+  // and the bounds-safe interface type.
+
+  const int *x200 : itype(ptr<const int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  volatile int *x201 : itype(ptr<volatile int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+}
 
 //-------------------------------------------------------------
 //
@@ -943,9 +1001,9 @@ struct S4 {
   int (*g75)checked[10][10]: itype(ptr<int checked[10][10]>);
 
   // Function pointers
-  int (*g80)(int *, int *) : itype(ptr<int(int *, int *)>);
-  int (*g81)(int *, int *) : itype(ptr<int(ptr<int>, ptr<int>)>);
-  int (*g82)(int *, int *) : itype(ptr<int(int checked[10], int checked[10])>);
+  int ((*g80)(int *, int *)) : itype(ptr<int(int *, int *)>);
+  int ((*g81)(int *, int *)) : itype(ptr<int(ptr<int>, ptr<int>)>);
+  int ((*g82)(int *, int *)) : itype(ptr<int(int checked[10], int checked[10])>);
 
   // Incomplete array type allowed for the last member of a structure.
   int g70[][10] : itype(int checked[][10]);
@@ -1113,9 +1171,9 @@ union U4 {
   int(*g75)checked[10][10]: itype(ptr<int checked[10][10]>);
 
   // Function pointers
-  int(*g80)(int *, int *) : itype(ptr<int(int *, int *)>);
-  int(*g81)(int *, int *) : itype(ptr<int(ptr<int>, ptr<int>)>);
-  int(*g82)(int *, int *) : itype(ptr<int(int checked[10], int checked[10])>);
+  int ((*g80)(int *, int *)) : itype(ptr<int(int *, int *)>);
+  int ((*g81)(int *, int *)) : itype(ptr<int(ptr<int>, ptr<int>)>);
+  int ((*g82)(int *, int *)) : itype(ptr<int(int checked[10], int checked[10])>);
 };
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
