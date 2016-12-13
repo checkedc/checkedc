@@ -153,13 +153,13 @@ array_ptr<int> f61(array_ptr<int> p : count(len), int len) : bounds(p, p + len -
 
 // Interface type on parameter with function pointer type.
 void f70(int * fn(int *, int *));
-void f70(int * fn(int *, int *) :
+void f70(int * (fn(int *, int *)) :
            itype(array_ptr<int> (ptr<int>, ptr<int>)));
 // identical redeclaration.
-void f70(int * fn(int *, int *) :
+void f70(int * (fn(int *, int *)) :
            itype(array_ptr<int> (ptr<int>, ptr<int>)));
 // return type of itype differs.
-void f70(int *fn(int *, int *) : itype(ptr<int> (ptr<int>, ptr<int>))); // expected-error {{conflicting types for 'f70'}}
+void f70(int (*fn(int *, int *)) : itype(ptr<int> (ptr<int>, ptr<int>))); // expected-error {{conflicting types for 'f70'}}
 
 // Interface type on parameters of a function pointer type
 void f71(int * fn(int *, int *));

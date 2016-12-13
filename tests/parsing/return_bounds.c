@@ -202,7 +202,7 @@ extern void f24(void) {
   int(*t4)(array_ptr<int> arg : count(n * sizeof(int)), int n) = 0;
 }
 
-typedef int func1(int len) : count(len);
+typedef array_ptr<int> func1(int len) : count(len);
 typedef int func2(array_ptr<int> arr : count(len), int len)
             : bounds(arr, arr + len);
 static func1 *func1_ptr1;
