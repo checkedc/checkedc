@@ -966,3 +966,4 @@ void invalid_function_pointers() {
   array_ptr<int>(*t4)(void) : byte_count(6 * sizeof(int)) = fn4; // expected-error {{incompatible type}}
   array_ptr<int>(*t10)(void) : bounds(s1, s1 + 4) = fn10; // expected-error {{incompatible type}}
 }
+
