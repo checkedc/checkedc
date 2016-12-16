@@ -139,12 +139,12 @@ extern struct S8 *f40();
 extern struct S9 *f41();
 
 //
-// No prototype functions cannot have return bounds declarations.  They can
+// No prototype functions cannot return checked types.  They can
 // declare bounds-safe interfaces.
 //
 
-extern array_ptr<int> f50() : count(5); // expected-error {{function with no prototype cannot have a return type that is a checked type}} expected-error {{function with no prototype cannot have a return bounds}}
-extern int f51() : byte_count(10);      // expected-error {{cannot have a return bounds}}
+extern array_ptr<int> f50() : count(5); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
+extern int f51() : byte_count(10);
 extern int *f52() : byte_count(10);
 extern int *f53() : itype(ptr<int>);
 
@@ -223,10 +223,13 @@ extern void f83(int f(ptr<int>));  // expected-error {{conflicting types for 'f8
 extern void f84(int f(ptr<int>));  
 extern void f84(int f());   // expected-error {{conflicting types for 'f84'}}
 
-// No prototype functions cannot be redeclared to take arguments that have
-// bounds declarations.
+// No prototype functions can be redeclared with bounds-safe interfaces on integer and
+// unchecked pointer arguments.
 extern void f85();
-extern void f85(int p : bounds((char *)p, (char *)p + len), int len); // expected-error {{cannot redeclare a function with no prototype to have an argument bounds}}
+extern void f85(char *p : bounds(p, p + len), int len);
+
+extern void f86();
+extern void f86(int p : bounds((char *)p, (char *)p + len), int len);
 
 //
 // Redeclaring a function with a checked argument as a no prototype function is not allowed.
@@ -235,12 +238,13 @@ extern void f85(int p : bounds((char *)p, (char *)p + len), int len); // expecte
 extern void f90(ptr<int>);
 extern void f90(); // expected-error {{cannot redeclare a function that has a checked argument or argument bounds to have no prototype}}
 
-// TODO: Github checkedc-clang issue 20 this is an error, but the Checked C
-// clang implementation isn't catching it yet.  It doesn't detect that
-// the types are incompatible because bounds information is not represented
-// in function types yet..
-extern void f91(int p : bounds((char *)p, (char *)p + len), int len);
+// Redeclaring a function with a bounds-safe interface on an argument as a no protoype
+// functino is allowed.  The function types are considered compatible.
+extern void f91(char *p : bounds(p, p + len), int len);
 extern void f91();
+
+extern void f92(int p : bounds((char *)p, (char *)p + len), int len);
+extern void f92();
 
 //
 // Spot-check other attempts at creating no prototype functions that return

@@ -2,7 +2,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
 // Test expressions with standard signed and unsigned integers types as
 // arguments to count and byte_count.
@@ -845,6 +845,7 @@ struct s8 {
 // count
 array_ptr<int> fn1(void) : count(5) { return 0; }
 int *fn2(void) : count(5) { return 0; }
+int *fn3(int len) : count(len) { return 0; }
 
 // byte_count
 extern array_ptr<int> fn4(void) : byte_count(5 * sizeof(int));
@@ -856,7 +857,7 @@ array_ptr<int> fn10(void) : bounds(s1, s1 + 5) { return 0; }
 array_ptr<void> fn11(void) : bounds(s1, s1 + 5) { return 0; }
 int *fn12(void) : bounds(s1, s1 + 5) { return 0; }
 
-// Test valid rEturn bounds declarations for integer-typed values
+// Test valid return bounds declarations for integer-typed values
 short int fn20(void) : byte_count(5 * sizeof(int)) { return (short int) s1; }
 int fn21(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
 long int fn22(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
@@ -912,25 +913,182 @@ void (*fn75(void) : bounds(s1, s1 + 1))(int);  // expected-error {{bounds declar
 ptr<void(int)> fn76(void) : bounds(s1, s1 + 1);  // expected-error {{bounds declaration not allowed for a _Ptr return type}}
 
 //
-// Spot check bounds declaration on parameters of function pointer types
+// Test bounds declarations on function parameters
 //
 
-void fn100(int (*fnptr)(array_ptr<int> p1 : count(5)));
-void fn101(int (*fnptr)(int p1 : count(5)));             // expected-error {{expected 'p1' to have a pointer or array type}}
-void fn102(int (*fnptr)(array_ptr<void> p1 : count(5))); // expected-error {{expected 'p1' to have a non-void pointer type}}
+// These are numbered so that they correspond to the numbering of
+// functions with function pointer parameters in the next section of
+// tests.
+void fn100(array_ptr<int> p1 : count(5));
+void fn100a(array_ptr<int> p1 : count(6));
+void fn101(int p1 : count(5));             // expected-error {{expected 'p1' to have a pointer or array type}}
+void fn102(array_ptr<void> p1 : count(5)); // expected-error {{expected 'p1' to have a non-void pointer type}}
 
-void fn103(int (*fnptr)(array_ptr<int> p1 : byte_count(5 * sizeof(int))));
-void fn104(int (*fnptr)(float p1 : byte_count(5 * sizeof(int)))); // expected-error {{expected 'p1' to have a pointer, array, or integer type}}
-void fn105(int (*fnptr)(array_ptr<void> p1 : byte_count(5 * sizeof(int))));
+int fn103(array_ptr<int> p1 : byte_count(5 * sizeof(int)));
+int fn103a(array_ptr<int> p1 : byte_count(7 * sizeof(int)));
+int fn104(int *p1 : byte_count(5 * sizeof(int)));
+int fn104a(int *p1 : byte_count(6 * sizeof(int)));
+int fn104b(float *p1 : byte_count(6 * sizeof(float)));
+int fn105(int p1 : byte_count(5 * sizeof(int)));
+int fn106(float p1 : byte_count(5 * sizeof(int))); // expected-error {{expected 'p1' to have a pointer, array, or integer type}}
+int fn107(array_ptr<void> p1 : byte_count(5 * sizeof(int)));
 
-void fn106(int (*fnptr)(array_ptr<int> p1 : bounds(p1, p1 + 5)));
-void fn107(int (*fnptr)(array_ptr<int> p1, float p2 : bounds(p1, p1 + 5))); // expected-error {{expected 'p2' to have a pointer, array, or integer type}}
-void fn108(int (*fnptr)(array_ptr<void> p1 : bounds((char *) p1, (char *) p1 + (5 * sizeof(int)))));
+void fn108(array_ptr<int> p1 : bounds(p1, p1 + 5));
+void fn108a(array_ptr<int> p1 : bounds(p1, p1 + 5));
+void fn109(array_ptr<int> p1, int p2 : bounds(p1, p1 + 5));
+void fn110(array_ptr<int> p1, float p2 : bounds(p1, p1 + 5)); // expected-error {{expected 'p2' to have a pointer, array, or integer type}}
+void fn111(array_ptr<void> p1 : bounds((char *)p1, (char *)p1 + (5 * sizeof(int))));
+
+// A few functions with multiple arguments.
+void fn120(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1);
+void fn122(array_ptr<void> mid : bounds((char *)p1, (char *)p1 + (5 * sizeof(int))),
+           array_ptr<int> p1);
+
+//
+// Test bounds declaration on parameters of function pointer types
+//
+
+// These are numbered so that they correspond to the numbering of
+// functions in the prior section of tests: fn200 - fn211 take fn100 - fn111 as
+//  arguments.  fn220-231 are versions of fn200 - fn211 that take checked
+// function pointers.
+
+// Unchecked function pointers
+void fn200(void (*fnptr)(array_ptr<int> p1 : count(5)));
+void fn201(void (*fnptr)(int p1 : count(5)));             // expected-error {{expected 'p1' to have a pointer or array type}}
+void fn202(void (*fnptr)(array_ptr<void> p1 : count(5))); // expected-error {{expected 'p1' to have a non-void pointer type}}
+
+void fn203(int (*fnptr)(array_ptr<int> p1 : byte_count(5 * sizeof(int))));
+void fn204(int (*fnptr)(int * : byte_count(5 * sizeof(int))));
+void fn205(int (*fnptr)(int p1 : byte_count(5 * sizeof(int))));
+void fn206(int (*fnptr)(float p1 : byte_count(5 * sizeof(int)))); // expected-error {{expected 'p1' to have a pointer, array, or integer type}}
+void fn207(int (*fnptr)(array_ptr<void> p1 : byte_count(5 * sizeof(int))));
+
+void fn208(void (*fnptr)(array_ptr<int> p1 : bounds(p1, p1 + 5)));
+void fn209(void (*fnptr)(array_ptr<int> p1, int p2 : bounds(p1, p1 + 5)));
+void fn210(void (*fnptr)(array_ptr<int> p1, float p2 : bounds(p1, p1 + 5))); // expected-error {{expected 'p2' to have a pointer, array, or integer type}}
+void fn211(void (*fnptr)(array_ptr<void> p1 : bounds((char *) p1, (char *) p1 + (5 * sizeof(int)))));
+
+// Checked function pointers
+void fn220(ptr<void (array_ptr<int> p1 : count(5))> fnptr);
+void fn221(ptr<void (int p1 : count(5))> fnptr);             // expected-error {{expected 'p1' to have a pointer or array type}}
+void fn222(ptr<void (array_ptr<void> p1 : count(5))> fnptr); // expected-error {{expected 'p1' to have a non-void pointer type}}
+
+void fn223(ptr<int (array_ptr<int> p1 : byte_count(5 * sizeof(int)))> fnptr);
+void fn224(ptr<int (int * : byte_count(5 * sizeof(int)))> fnptr);
+void fn225(ptr<int (int p1 : byte_count(5 * sizeof(int)))> fnptr);
+void fn226(ptr<int (float p1 : byte_count(5 * sizeof(int)))> fnptr); // expected-error {{expected 'p1' to have a pointer, array, or integer type}}
+void fn227(ptr<int (array_ptr<void> p1 : byte_count(5 * sizeof(int)))> fnptr);
+
+void fn228(ptr<void (array_ptr<int> p1 : bounds(p1, p1 + 5))> fnptr);
+void fn229(ptr<void (array_ptr<int> p1, int p2 : bounds(p1, p1 + 5))> fnptr);
+void fn230(ptr<void (array_ptr<int> p1, float p2 : bounds(p1, p1 + 5))> fnptr); // expected-error {{expected 'p2' to have a pointer, array, or integer type}}
+void fn231(ptr<void (array_ptr<void> p1 : bounds((char *)p1, (char *)p1 + (5 * sizeof(int))))> fnptr);
+
+// Function pointers with multiple arguments.
+void fn240(ptr<int (array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
+void fn241(ptr<int (array_ptr<void> mid : bounds((char *)p1, (char *)p1 + (5 * sizeof(int))),
+                    array_ptr<int> p1)> fnptr);
+
+//
+// Spot check bounds-safe interfaces on parameters of function pointer types
+//
+
+void fn250(int(*fnptr)(int *p1 : count(5)));
+void fn251(int(*fnptr)(int *p1 : byte_count(5 * sizeof(int))));
+void fn252(int(*fnptr)(int *p1 : bounds(p1, p1 + 5)));
 
 //
 // Spot check bounds declaration for return values of function pointer types
 //
 
-void fn120(array_ptr<int> (*fnptr)(void) : count(5));
-void fn121(int (*fnptr)(void) : count(5)); // expected-error {{count bounds expression only allowed for pointer return type}}
-void fn122(array_ptr<void> (*fnptr)(void) : count(5)); // expected-error {{count bounds expression not allowed for a void pointer return type}}
+void fn260(array_ptr<int> (*fnptr)(void) : count(5));
+void fn261(array_ptr<int>(*fnptr)(int i) : count(i));
+void fn262(int (*fnptr)(void) : count(5)); // expected-error {{count bounds expression only allowed for pointer return type}}
+void fn263(array_ptr<void> (*fnptr)(void) : count(5)); // expected-error {{count bounds expression not allowed for a void pointer return type}}
+
+//
+// Test bounds declarations for function pointers
+//
+
+void function_pointers() {
+  // Assignments to function pointers with return bounds on array_ptr types
+  array_ptr<int>(*t1)(void) : count(5) = fn1;
+  // Assignment to function pointers with bounds-safe interfaces on
+  // unchecked pointer return types.  Unchecked pointers are compatible with
+  // unchecked pointers with bounds-safe interfaces.  This extends recursively
+  // to parameters and returns of function types.
+  int *(*t2)(void) = fn2;
+  int *(*t3)(void) : count(5) = fn2;
+  ptr<int *(void) : count(5)> t4 = fn2;
+
+  int *(*t5)(int i) = fn3;
+  int *(*t6)(int i) : count(i) = fn3;
+  ptr<int *(int j) : count(j)> t7 = fn3;
+
+  array_ptr<int>(*t8)(void) : byte_count(5 * sizeof(int)) = fn4;
+  array_ptr<void>(*t9)(void) : byte_count(5 * sizeof(int)) = fn5;
+  int *(*t10)(void) = fn6;
+  int *(*t11)(void) : byte_count(5*sizeof(int)) = fn6;
+  ptr<int *(void) : byte_count(5*sizeof(int))> t12 = fn6;
+
+  array_ptr<int>(*t13)(void) : bounds(s1, s1 + 5) = fn10;
+  int *(*t14)(void) = fn12;
+  int *(*t15)(void) : bounds(s1, s1 + 5) = fn12;
+  int *(*t16)(void) : bounds(s1, s1 + 6) = fn12;    // expected-warning {{incompatible pointer types}}
+  ptr<int *(void) : bounds(s1, s1 + 6)> t17 = fn12; // expected-error {{incompatible type}}
+
+  // Unchecked pointer to function assigned to checked pointer to
+  // function.
+  ptr<array_ptr<int>(void) : count(5)> t100 = fn1;
+
+  // The reverse is not allowed
+  array_ptr<int>(*t101)(void) : count(5) = t100; // expected-error {{incompatible type}}
+
+  // Calls that pass function pointers with bounds
+  fn200(fn100);
+  fn200(fn100a); // expected-error {{parameter of incompatible type}}
+  fn201(fn101);
+  fn202(fn102);
+  fn203(fn103);
+  fn203(fn103a); // expected-error {{parameter of incompatible type}}
+  fn204(fn104);
+  // These are mismatched unchecked function pointers with bounds-safe interfaces
+  // on parameters.
+  fn204(fn104a); // expected-warning {{incompatible pointer types}}
+  fn204(fn104b); // expected-warning {{incompatible pointer types}}
+  fn205(fn105);
+  fn206(fn106);
+  fn207(fn107);
+  fn208(fn108);
+  fn209(fn109);
+  fn210(fn110);
+  fn211(fn111);
+
+  fn220(fn100);
+  fn220(fn100a); // expected-error {{parameter of incompatible type}}
+  fn221(fn101);
+  fn222(fn102);
+  fn223(fn103);
+  fn223(fn103a); // expected-error {{parameter of incompatible type}}
+  fn224(fn104);
+  // These are mismatched checked function pointers with bounds-safe interfaces
+  // on parameters.
+  fn224(fn104a); // expected-error {{parameter of incompatible type}}
+  fn224(fn104b); // expected-error {{parameter of incompatible type}}
+  fn225(fn105);
+  fn226(fn106);
+  fn227(fn107);
+  fn228(fn108);
+  fn229(fn109);
+  fn230(fn110);
+  fn231(fn111);
+}
+
+void invalid_function_pointers() {
+  array_ptr<int>(*t1)(void) : count(4) = fn1;  // expected-error {{incompatible type}}
+  ptr<array_ptr<int>(void) : count(4)> t1a = fn1;  // expected-error {{incompatible type}}
+  array_ptr<int>(*t4)(void) : byte_count(6 * sizeof(int)) = fn4; // expected-error {{incompatible type}}
+  array_ptr<int>(*t10)(void) : bounds(s1, s1 + 4) = fn10; // expected-error {{incompatible type}}
+}
+

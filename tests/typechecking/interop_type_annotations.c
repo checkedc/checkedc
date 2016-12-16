@@ -872,7 +872,7 @@ extern void test_locals() {
   _Bool x2a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
   char x3a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
   short int x4a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
-  long int  x6a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
+  long int x6a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
   float x7a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
   double x8a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
   struct S x10a : itype(ptr<int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
