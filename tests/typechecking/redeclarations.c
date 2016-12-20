@@ -68,28 +68,28 @@ int *f25(int len);
 
 void f30(int *p : count(len), int len);
 void f30(int *p : count(len), int len);
-void f30(int *p : count(len + 1), int len);  // expected-error {{conflicting types for 'f30'}}
+void f30(int *p : count(len + 1), int len);  // expected-error {{conflicting parameter bounds}}
 
 void f31(int *p : count(len), int len);
 // A redeclaration without bounds-safe interface is compatible with the
 // original declaration, but the function retains its original bounds-safe
 // interface.
 void f31(int *p, int len);
-void f31(int *p : count(len + 1), int len);  // expected-error {{conflicting types for 'f31'}}
+void f31(int *p : count(len + 1), int len);  // expected-error {{conflicting parameter bounds}}
 
 void f32(int *p : bounds(p, p + len), int len);
 void f32(int *p : bounds(p, p + len), int len);
-void f32(int *p : bounds(p, p + len + 1), int len);  // expected-error {{conflicting types for 'f32'}}
+void f32(int *p : bounds(p, p + len + 1), int len);  // expected-error {{conflicting parameter bounds}}
 
 void f33(int *p : bounds(p, p + len), int len);
 void f33(int *p, int len);
 // A redeclaration without a bounds-safe interface is compatible with the
 // original declaration, but the function retains its original bounds-safe
 // interface
-void f33(int *p : bounds(p, p + len + 1), int len);  // expected-error {{conflicting types for 'f33'}}
+void f33(int *p : bounds(p, p + len + 1), int len);  // expected-error {{conflicting parameter bounds}}
 
 void f34(int *p : itype(ptr<int>), int len);
-void f34(int *p : count(len), int len);  // expected-error {{conflicting types for 'f34'}}
+void f34(int *p : count(len), int len);  // expected-error {{conflicting parameter bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have parameters that have bounds         //
@@ -97,19 +97,19 @@ void f34(int *p : count(len), int len);  // expected-error {{conflicting types f
 //---------------------------------------------------------------------------//
 void f40(array_ptr<int> p : count(len), int len);
 void f40(array_ptr<int> p : count(len), int len);
-void f40(array_ptr<int> p : count(len + 1), int len); // expected-error {{conflicting types for 'f40'}}
+void f40(array_ptr<int> p : count(len + 1), int len); // expected-error {{conflicting parameter bounds}}
 
 void f41(array_ptr<int> p : bounds(p, p + len), int len);
 void f41(array_ptr<int> p : bounds(p, p + len), int len);
-void f41(array_ptr<int> p : bounds(p, p + len + 1), int len); // expected-error {{conflicting types for 'f41'}}
+void f41(array_ptr<int> p : bounds(p, p + len + 1), int len); // expected-error {{conflicting parameter bounds}}
 
 // Add a parameter bounds declaration.
 void f42(array_ptr<int> p, int len);
-void f42(array_ptr<int> p : count(len), int len);  // expected-error {{conflicting types for 'f42'}}
+void f42(array_ptr<int> p : count(len), int len);  // expected-error {{function redeclaration added bounds for parameter}}
 
 // Drop a parameter bounds declaration.
 void f43(array_ptr<int> p : count(len), int len);
-void f43(array_ptr<int> p, int len);               // expected-error {{conflicting types for 'f43'}}
+void f43(array_ptr<int> p, int len);               // expected-error {{function redeclaration dropped bounds for parameter}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds-safe interfaces for returns  //
@@ -117,28 +117,27 @@ void f43(array_ptr<int> p, int len);               // expected-error {{conflicti
 //---------------------------------------------------------------------------//
 int *f50(int len) : count(len);
 int *f50(int len) : count(len);
-int *f50(int len) : count(len + 1);  // expected-error {{conflicting types for 'f50'}}
-
+int *f50(int len) : count(len + 1);  // expected-error {{conflicting return bounds}}
 int *f51(int len) : count(len);
 // A redeclaration without bounds-safe interface is compatible with the
 // original declaration, but the function retains its original bounds-safe
 // interface.
 int *f51(int len);
-int *f51(int len) : count(len + 1);  // expected-error {{conflicting types for 'f51'}}
+int *f51(int len) : count(len + 1);  // expected-error {{conflicting return bounds}}
 
 int *f52(int *p : bounds(p, p + len), int len) : bounds(p, p + len);
 int *f52(int *p : bounds(p, p + len), int len) : bounds(p, p + len);
-int *f52(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // expected-error {{conflicting types for 'f52'}}
+int *f52(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // expected-error {{conflicting return bounds}}
 
 int *f53(int *p : bounds(p, p + len), int len) : bounds(p, p + len);
 int *f53(int *p, int len);
 // A redeclaration without a bounds-safe interface is compatible with the
 // original declaration, but the function retains its original bounds-safe
 // interface.
-int *f53(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // expected-error {{conflicting types for 'f53'}}
+int *f53(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // expected-error {{conflicting return bounds}}
 
 int *f54(int len) : itype(ptr<int>);
-int *f54(int len) : count(len);  // expected-error {{conflicting types for 'f54'}}
+int *f54(int len) : count(len);  // expected-error {{conflicting return bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds declarations for returns     //
@@ -146,19 +145,19 @@ int *f54(int len) : count(len);  // expected-error {{conflicting types for 'f54'
 //---------------------------------------------------------------------------//
 array_ptr<int> f60(int len) : count(len);
 array_ptr<int> f60(int len) : count(len);
-array_ptr<int> f60(int len) : count(len + 1); // expected-error {{conflicting types for 'f60'}}
+array_ptr<int> f60(int len) : count(len + 1); // expected-error {{conflicting return bounds}}
 
 array_ptr<int> f61(array_ptr<int> p : count(len), int len) : bounds(p, p + len);
 array_ptr<int> f61(array_ptr<int> p : count(len), int len) : bounds(p, p + len);
-array_ptr<int> f61(array_ptr<int> p : count(len), int len) : bounds(p, p + len - 1); // expected-error {{conflicting types for 'f61'}}
+array_ptr<int> f61(array_ptr<int> p : count(len), int len) : bounds(p, p + len - 1); // expected-error {{conflicting return bounds}}
 
 // Add a bounds declaration.
 array_ptr<int> f62(int len);
-array_ptr<int> f62(int len) : count(len);   // expected-error {{conflicting types for 'f62'}}
+array_ptr<int> f62(int len) : count(len);   // expected-error {{function redeclaration added return bounds}}
 
 // Drop a bounds declaration.
 array_ptr<int> f63(int len) : count(len);
-array_ptr<int> f63(int len);                // expected-error {{conflicting types for 'f63'}}
+array_ptr<int> f63(int len);                // expected-error {{function redeclaration dropped return bound}}
 
 
 //---------------------------------------------------------------------------//
@@ -178,41 +177,18 @@ void f70(int * (fn(int *, int *)) :
 void f70(int * (fn(int * : itype(ptr<int>), int * : itype(ptr<int>))) :
   itype(array_ptr<int>(ptr<int>, ptr<int>)));
 // return type of itype differs.
-void f70(int (*fn(int *, int *)) : itype(ptr<int> (ptr<int>, ptr<int>))); // expected-error {{conflicting types for 'f70'}}
+void f70(int (*fn(int *, int *)) : itype(ptr<int> (ptr<int>, ptr<int>))); // expected-error {{function redeclaration has conflicting parameter bounds}}
 // changed interface types for parameters of function pointer
-void f70(int * (fn(int * : itype(array_ptr<int>), int * : itype(array_ptr<int>)))); // expected-error {{conflicting types for 'f70'}}
+void f70(int * (fn(int * : itype(array_ptr<int>), int * : itype(array_ptr<int>)))); // expected-error {{conflicting bounds}}
 
 // Interface type on parameters of a function pointer type
 void f71(int * fn(int *, int *));
 void f71(int * fn(int * : count(5), int *: count(5)));
-void f71(int * fn(int * : count(6), int * : count(6))); // expected-error {{conflicting types for 'f71'}}
+void f71(int * fn(int * : count(6), int * : count(6))); // expected-error {{conflicting bounds for 'f71'}}
 
 // Interface type on return value of a function pointer type
 void f72(int * fn(int *, int *));
 void f72(int * fn(int *, int *) : itype(ptr<int>));
-
-//---------------------------------------------------------------------------//
-// Redeclarations of functions that have parameters with function pointer    //
-// types that have bounds declarations must have matching bounds declarations//
-//---------------------------------------------------------------------------//
-
-void fn80(void (*fnptr)(array_ptr<int> p1 : count(5)));
-void fn80(void (*fnptr)(array_ptr<int> p2 : count(5)));
-void fn80(void (*fnptr)(array_ptr<int> p1 : count(6)));  // expected-error {{conflicting types for 'fn80'}}
-
-void fn81(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
-void fn81(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
-void fn81(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 6), array_ptr<int> p1)> fnptr);  // expected-error {{conflicting types for 'fn81'}}
-
-void fn82(array_ptr<int>(*fnptr)(int i, int k) : count(i));
-void fn82(array_ptr<int>(*fnptr)(int j, int k) : count(j));
-void fn82(array_ptr<int>(*fnptr)(int j, int k) : count(k)); // expected-error {{conflicting types for 'fn82'}}
-
-void fn83(array_ptr<int>(*fnptr)(void) : count(5));
-void fn83(array_ptr<int>(*f)(void) : count(5));
-void fn83(array_ptr<int>(*f)(void) : count(6));          // expected-error {{conflicting types for 'fn83'}}
-
-
 
 //---------------------------------------------------------------------------//
 // The bounds declarations must be syntactically identical for now, modulo   //
@@ -223,8 +199,30 @@ void f80(int *p : count(len), int len);
 // Rename parameters
 void f80(int *p : count(mylen), int mylen);
 void f80(int *r : count(i), int i);
-void f80(int *p : count((len)), int len); // expected-error {{conflicting types for 'f80'}}
+void f80(int *p : count((len)), int len); // expected-error {{conflicting parameter bounds}}
 
 void f81(int *p : count(len), int len);
-void f81(int *p : bounds(p, p + len), int len);  // expected-error {{conflicting types for 'f81'}}
+void f81(int *p : bounds(p, p + len), int len);  // expected-error {{conflicting parameter bounds}}
+
+//---------------------------------------------------------------------------//
+// Redeclarations of functions that have parameters with function pointer    //
+// types that have bounds declarations must have matching bounds declarations//
+//---------------------------------------------------------------------------//
+
+void f90(void (*fnptr)(array_ptr<int> p1 : count(5)));
+void f90(void (*fnptr)(array_ptr<int> p2 : count(5)));
+void f90(void (*fnptr)(array_ptr<int> p1 : count(6)));  // expected-error {{conflicting bounds for 'f90'}}
+
+void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
+void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
+void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 6), array_ptr<int> p1)> fnptr);  // expected-error {{conflicting bounds for 'f91'}}
+
+void f92(array_ptr<int>(*fnptr)(int i, int k) : count(i));
+void f92(array_ptr<int>(*fnptr)(int j, int k) : count(j));
+void f92(array_ptr<int>(*fnptr)(int j, int k) : count(k)); // expected-error {{conflicting bounds for 'f92'}}
+
+void f93(array_ptr<int>(*fnptr)(void) : count(5));
+void f93(array_ptr<int>(*f)(void) : count(5));
+void f93(array_ptr<int>(*f)(void) : count(6));          // expected-error {{conflicting bounds for 'f93'}}
+
 

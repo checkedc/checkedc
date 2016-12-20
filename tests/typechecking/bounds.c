@@ -997,7 +997,6 @@ void fn241(ptr<int (array_ptr<void> mid : bounds((char *)p1, (char *)p1 + (5 * s
 void fn250(int(*fnptr)(int *p1 : count(5)));
 void fn251(int(*fnptr)(int *p1 : byte_count(5 * sizeof(int))));
 void fn252(int(*fnptr)(int *p1 : bounds(p1, p1 + 5)));
-
 //
 // Spot check bounds declaration for return values of function pointer types
 //
@@ -1041,7 +1040,6 @@ void function_pointers() {
   // Unchecked pointer to function assigned to checked pointer to
   // function.
   ptr<array_ptr<int>(void) : count(5)> t100 = fn1;
-
   // The reverse is not allowed
   array_ptr<int>(*t101)(void) : count(5) = t100; // expected-error {{incompatible type}}
 
@@ -1091,4 +1089,3 @@ void invalid_function_pointers() {
   array_ptr<int>(*t4)(void) : byte_count(6 * sizeof(int)) = fn4; // expected-error {{incompatible type}}
   array_ptr<int>(*t10)(void) : bounds(s1, s1 + 4) = fn10; // expected-error {{incompatible type}}
 }
-
