@@ -283,7 +283,7 @@ int g17[5] : itype(int checked[5]);
 int g17[5];
 
 //---------------------------------------------------------------------------//
-// Redeclarations of  variables that have bounds-safe interfaces must have   //
+// Redeclarations of variables that have bounds-safe interfaces must have    //
 // matching interfaces.                                                      //
 //---------------------------------------------------------------------------//
 
@@ -294,7 +294,7 @@ int *g30 : count(len);
 int *g30 : count(len + 1);  // expected-error {{conflicting bounds}}
 
 int *g31 : count(len);
-// A redeclaration without bounds-safe interface is compatible with the
+// A redeclaration without a bounds-safe interface is compatible with the
 // original declaration, but the variable retains its original bounds-safe
 // interface.
 int *g31;
@@ -320,7 +320,7 @@ extern int g35[] : count(len);
 extern int g35[] : count(len + 1);  // expected-error {{conflicting bounds}}
 
 extern int g36[] : count(len);
-// A redeclaration without bounds-safe interface is compatible with the
+// A redeclaration without a bounds-safe interface is compatible with the
 // original declaration, but the variable retains its original bounds-safe
 // interface.
 extern int g36[];
