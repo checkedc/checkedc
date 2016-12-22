@@ -25,7 +25,7 @@ static array_ptr<float> l : count(5) = vals;
 static _Thread_local array_ptr<int> m : count(5);
 
 array_ptr<int> b : count(3 + 2) = 0;
-array_ptr<int> d : byte_count(5 * sizeof(int)) = 0;
+array_ptr<int> d : byte_count(20) = 0;
 array_ptr<int> g : bounds(none) = 0;
 
 // Declare a bounds for a checked array.  This is legal, but
