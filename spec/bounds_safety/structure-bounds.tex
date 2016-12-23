@@ -1,15 +1,15 @@
 % !Tex root = checkedc.tex
 
-\chapter{Bounds for structure types}
+\chapter{Bounds declarations for structure types}
 \label{chapter:structure-bounds}
 
 This chapter extends reasoning about bounds to variables with structure
-types by introducing bounds for members of structures.   
+types by introducing bounds declarations for members of structures.
 Structure types may have members with \arrayptr\ types. Those
-members must have \emph{member bounds} associated with them in order for
+members must have \emph{member bounds declarations} associated with them in order for
 the values stored there to be used to access memory. A structure member
-declaration may include a \keyword{where} clauses that declares member
-bounds. The bounds for a member also may be placed inline at the
+bounds declaration may include a \keyword{where} clauses that declares member
+bounds. The bounds declaration for a member also may be placed inline at the
 declaration of the member. The list of declarations of structure members
 may also include \keyword{where} clauses. 
 
@@ -41,11 +41,11 @@ struct S {
 }
 \end{verbatim}
 
-Member bounds are invariants that are assumed to be true by default for
-objects of that type. A member bound may be suspended for a specific
+Member bounds declarations are program invariants that are assumed to be true
+by default for objects of that type. A member bounds declaraton may be suspended for a specific
 object to allow for initialization of the object or modification of the
-members involved in the member bounds declarations. The member bound
-is declared to hold again after the initialization or modification is done.
+members involved in the member bounds declarations. The member bounds
+declaration is declared to hold again after the initialization or modification is done.
 Here is an example of variable of type S being initialized:
 
 \begin{verbatim}
@@ -61,7 +61,7 @@ void f(int len) {
 \end{verbatim}
 
 \keyword{Suspends} and \keyword{holds} are dataflow-sensitive declarations of 
-the states of the member bounds for specific members of variables. They can be
+the states of the member bounds declarations for specific members of variables. They can be
 applied to variable members that have member bounds.
 
 They also can be applied to variables or variable members with structure
@@ -81,13 +81,12 @@ void f(int len) {
 }
 \end{verbatim}
 
-Making member bounds be invariants provides a way to deal with issues
+Making member bounds declarations be invariants provides a way to deal with issues
 causing by aliasing. There can be pointers to data structures or members
 of data structures. There may be multiple pointers to a single
 structure object in memory. When there are multiple pointers,
 the pointers are said to be aliases because they all name the same
-memory location.  Aliasing makes it hard to reason
-about the behavior of the program.
+memory location.  Aliasing makes it hard to reason about programs.
 
 Consider the example:
 \begin{verbatim}
@@ -113,14 +112,15 @@ effect of changing some other value with a distinct name
 whether an assignment through one pointer variable is affecting the
 members of other pointer variables.
 
-Member bounds being invariants for structure members allow localized
-reasoning about the members. A programmer can assume that the bounds are true
-for members of objects of that type. The member bounds may be suspended temporarily
-for specific objects while they are being initialized or modified.
+Member bounds declarations being  program invariants for structure members allows
+localized reasoning about the members. A programmer can assume that the
+bounds declarations are true for members of objects of that type. The member bounds
+declaration may be suspended temporarily for specific objects while they are being
+initialized or modified.
 
 The bounds declarations for variables with structure types and the
-\keyword{suspends} and \keyword{holds} declarations will be checked statically 
-for validity.  Section~\ref{section:checking-bounds-with-structures} extends 
+\keyword{suspends} and \keyword{holds} declarations will be checked statically
+for validity.  Section~\ref{section:checking-bounds-with-structures} extends
 the rules  from Chapter~\ref{chapter:checking-bounds} to variables with structure
 types and to \keyword{suspends} and \keyword{holds} declarations.
 
@@ -457,8 +457,8 @@ When a member path \var{mp} of a variable \var{x} is used and
 
 \subsection{Suspends declarations and bounds for variables.}
 
-When the member bounds \var{m}b for a variable member is suspended by a
-statement of the form:
+When the member bounds declaratoin \var{m}b for a variable member is
+suspended by a statement of the form:
 
 \var{e2} \keyword{where} \texttt{suspends(}\var{x.mp}\texttt{);}
 
@@ -680,3 +680,29 @@ a member name and \boundsinfer{\var{e}}{\var{s}},
 \subsection{Assignment expressions}
 
 {\em To be filled in.}
+
+\section{Compatibility of structure types with bounds declarations}
+
+The C Standard  defines compatibility of two structure types
+declared in separate translation units \cite[Section 6.2.7]{ISO2011}.
+This definition is extended to
+include member bounds declarations and member bounds-safe interfaces.  If the
+structure types are completed in both translation units, for each pair of
+corresponding members,
+\begin{itemize}
+\item If the members have unchecked pointer type,
+\begin{itemize}
+\item If the members both have bounds-safe interfaces, the bounds-safe
+interfaces must either both be bounds expression or both be interface
+types. If both have bounds expressions, the bounds expressions must be
+syntactically identical  after being placed into a canonical form.
+If both have interface types, the interface types must be compatible.
+\item Otherwise,  one member may have a bounds-safe interface and the
+other member may omit a bounds-safe interface, or both members may omit
+bounds-safe interfaces.
+\end{itemize}
+\item Oherwise, both members must have member bounds declarations or both
+members must not have member bounds declarations.  If both members have
+member bounds declarations, the bounds expressions must be syntactically
+identical after being placed into a canonical form.
+\end{itemize}
