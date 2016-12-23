@@ -40,15 +40,20 @@ indirection operator (\texttt{*}). This is different than discussing the
 bounds of the values \emph{returned} or \emph{stored} through the
 indirection operator.
 
-\section{Reducing the number of syntactic cases}
+\section{Preparing a translation unit for checking}
 
-To simplify checking, in-line return bounds expressions are replaced
+To simplify the rules for checking, some syntactic
+transformations are done on a translation unit before
+checking.   First, some syntactic cases are replaced with semantically-equivalent
+cases.  This reduces the number of cases that must be described
+by the rules for checking.
+In-line return bounds expressions are replaced
 with the form that uses a name for the return value. The form
 \boundsdecl{\var{f}(\ldots{})}{\var{e1}} is changed to 
 \texttt{\var{f}(\ldots{}) \keyword{where}
   \boundsdecl{\texttt{return\_value}}{e1}}.
 The \texttt{count} and
-\texttt{byte\_count} bounds expressions are also expand to bounds expressions.
+\texttt{byte\_count} bounds expressions are also expanded to bounds expressions.
 The form \boundsdecl{\var{x}}{\boundscount{\var{e1}}}
 is replaced with \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}}}
 and \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
@@ -57,15 +62,23 @@ is replaced with \boundsdecl{\var{x}}{\bounds{(\arrayptrchar) \var{x}}{(\arraypt
 additional side conditions on count expressions. Checking of these
 conditions will be addressed in Chapter~\ref{chapter:simple-invariants}.
 
-Finally, relative alignment is made explicit for all bounds
+Also, relative alignment is made explicit for all bounds
 declarations: \boundsdecl{\var{x}}{\bounds{\var{e2}}{\var{e3}}} is expanded to
 \boundsdecl{\var{x}}{\boundsrelval{\var{e2}}{\var{e3}}{\texttt{sizeof(typeof(\var{x}))}}}.
 For code without explicit or implicit casts of \arrayptr s, relative
 alignment can be ignored.
 
-In the rules below, we sometimes use shorter syntactic forms for
-brevity. The shorter forms should be replaced with the full forms before
+In the checking rules, sometimes shorter syntactic forms are used for
+brevity. The shorter forms should be replaced with their full forms before
 using the rules.
+
+Second, lexical hiding of variables is eliminated by renaming variables so that
+hiding no longer happens.  If a variable with block scope that does not
+have external linkage has the same name as a variable with file scope or
+a variable with an enclosing  block scope, the variable
+should be renamed to be distinct from other variables.   Similarly, parameter
+variables that have the same name as a variable with file scope or a
+variable with an enclosing block scope should be renamed.
 
 \section{Inferring valid bounds for expressions without nested assignment expressions}
 \label{section:inferring-expression-bounds}
