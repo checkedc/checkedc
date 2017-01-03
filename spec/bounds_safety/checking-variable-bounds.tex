@@ -42,13 +42,11 @@ indirection operator.
 
 \section{Preparing a translation unit for checking}
 
-To simplify the rules for checking, some syntactic
-transformations are done on a translation unit before
-checking.   First, some syntactic cases are replaced with semantically-equivalent
-cases.  This reduces the number of cases that must be described
-by the rules for checking.
-In-line return bounds expressions are replaced
-with the form that uses a name for the return value. The form
+To simplify the rules for checking, some syntactic transformations are done
+on a translation unit before checking.  First, some syntactic cases are
+replaced with semantically-equivalent cases.  This reduces the number of cases
+that must be covered by the checking rules.  In-line return bounds expressions
+are replaced with the form that uses a name for the return value. The form
 \boundsdecl{\var{f}(\ldots{})}{\var{e1}} is changed to 
 \texttt{\var{f}(\ldots{}) \keyword{where}
   \boundsdecl{\texttt{return\_value}}{e1}}.
@@ -73,10 +71,14 @@ brevity. The shorter forms should be replaced with their full forms before
 using the rules.
 
 Second, lexical hiding of variables is eliminated by renaming variables so that
-hiding no longer happens.  If a variable with block scope that does not
+hiding no longer happens\footnote{Note that compilers typically do not need to
+rename variables. Compilers already disambiguate variables with the
+same name and the disambiguation mechanisms can be used in the implementation
+of the checking rules.  For example, some compilers use distinct objects
+to represent each variable declaration.}.  If a variable with block scope that does not
 have external linkage has the same name as a variable with file scope or
-a variable with an enclosing  block scope, the variable
-should be renamed to be distinct from other variables.   Similarly, parameter
+a variable with an enclosing block scope, the variable
+should be renamed to be distinct from other variables.  Similarly, parameter
 variables that have the same name as a variable with file scope or a
 variable with an enclosing block scope should be renamed.
 
@@ -95,7 +97,7 @@ of the current expression. For example, a function call expression may
 return an \arrayptr\ pointer to an array of constant size
 \var{n}. The bounds for that pointer value would be (the
 \arrayptr\ pointer, the \arrayptr\ pointer +
-\var{n}). We use the special variable \texttt{current\_expr\_value} to
+\var{n}). We use the special variable \exprcurrentvalue\ to
 denote the ``current value of the expression.''\footnote{We are open to
   suggestions on the name for this special symbol. We considered the
   term `self', but chose not to use because it is anthromorphic and not
@@ -103,9 +105,9 @@ denote the ``current value of the expression.''\footnote{We are open to
   has specific meaning to programmers who also use object-oriented
   languages, so it is likely to cause confusion.} The bounds for an
 expression may involve using the bounds for a subexpression where the
-special variable \texttt{current\_expr\_value} occurs. If the ``current
+special variable \exprcurrentvalue\ occurs. If the ``current
 value'' of the expression changes, the uses of
-\texttt{current\_expr\_value} from subexpressions must be adjusted to
+\exprcurrentvalue\ from subexpressions must be adjusted to
 counter the change. Bookkeeping rules for making this adjustment will be
 described in sections that treat expressions with subexpressions.
 
