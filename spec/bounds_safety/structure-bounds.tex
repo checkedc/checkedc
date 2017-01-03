@@ -117,7 +117,7 @@ initialized or modified.
 The bounds declarations for variables with structure types and the
 \keyword{suspends} and \keyword{holds} declarations will be checked statically
 for validity.  Section~\ref{section:checking-bounds-with-structures} extends
-the rules  from Chapter~\ref{chapter:checking-bounds} to variables with structure
+the rules from Chapter~\ref{chapter:checking-bounds} to variables with structure
 types and to \keyword{suspends} and \keyword{holds} declarations.
 
 In the rest of this chapter, to simplify the description, assumptions
@@ -525,7 +525,7 @@ true at the point of the \keyword{holds} declaration.
 Just as existing functions can have bounds-safe interfaces declared for
 them, existing structure types can have bounds-safe interfaces declared
 for them. This allows checked code to use those data structures and for
-those uses to be checked. Existing unchecked code is unchanged.
+the uses to be checked. Existing unchecked code is unchanged.
 To create a bound-safe interface for a structure type, a programmer
 declares member bounds or interface types for structure members with
 unchecked pointer types.
