@@ -24,8 +24,8 @@ struct S {
 or
 \begin{verbatim}
 struct S {
-   array_ptr<int> data : count(num);
-   int num;
+    array_ptr<int> data : count(num);
+    int num;
 };
 \end{verbatim}
 or
@@ -108,7 +108,7 @@ effect of changing some other value with a distinct name
 whether an assignment through one pointer variable is affecting the
 members of other pointer variables.
 
-Member bounds declarations being  program invariants for structure members allows
+Member bounds declarations being program invariants for structure members allows
 localized reasoning about the members. A programmer can assume that the
 bounds declarations are true for members of objects of that type. The member bounds
 declaration may be suspended temporarily for specific objects while they are being
@@ -155,12 +155,12 @@ excluded.
 A structure member whose type is \arrayptr\ or a
 checked array type may have at most one bounds declared for it. The
 typing rules for member bounds declarations are similar to those for
-variasble bounds declarations. For bounds declarations of the form
+variable bounds declarations. For bounds declarations of the form
 \boundsdecl{\var{member-path}}{\boundscount{\var{e1}}}, the
 \var{member-path} cannot have the type \arrayptrvoid\ and
 the expression \var{e1} must have an integral type. For bounds declarations
 of the form \boundsdecl{\var{member-path}}{\bounds{\var{e1}}{\var{e2}}},
-the types of \var{e1}, and \var{e2} must be pointers to the same type.
+the types of \var{e1} and \var{e2} must be pointers to the same type.
 Typically \var{member-path} is also  a pointer to that type or an
 array of that type.  However, \var{member-path} can be a pointer to
 or an array of a different type.
@@ -540,7 +540,7 @@ struct CountedBuffer {
 }
 \end{verbatim}
 
-Here are bounds-safe interface types for members of structure for binary
+Here are bounds-safe interface types for members of a structure for binary
 tree nodes. The structure contains pointers to two other nodes.  In
 checked code, pointer arithmetic on those pointers is not allowed.
 
