@@ -3,42 +3,38 @@
 \chapter{Bounds declarations for structure types}
 \label{chapter:structure-bounds}
 
-This chapter extends reasoning about bounds to variables with structure
-types by introducing bounds declarations for members of structures.
+This chapter extends reasoning about bounds to objects with structure
+types by introducing bounds declarations for structure members.
 Structure types may have members with \arrayptr\ types. Those
 members must have \emph{member bounds declarations} associated with them in order for
-the values stored there to be used to access memory. A structure member
-bounds declaration may include a \keyword{where} clauses that declares member
-bounds. The bounds declaration for a member also may be placed inline at the
-declaration of the member. The list of declarations of structure members
-may also include \keyword{where} clauses. 
+the values stored there to be used to access memory.
 
-Here are examples:
+The declarations of
+structure members may include \keyword{where} clauses that declare member
+bounds. The member bounds declarations may also be placed inline.
+A structure declaration may also include \keyword{where} clauses at the same
+level as member declarations.  Here are examples:
 
+\begin{verbatim}
+struct S {
+    array_ptr<int> data where data : count(num);
+    int num;
+};
+\end{verbatim}
+or
 \begin{verbatim}
 struct S {
    array_ptr<int> data : count(num);
    int num;
 };
 \end{verbatim}
-
 or
-
-\begin{verbatim}
-struct S {
-    array_ptr<int> data where data : count(num);
-    int num;
-}
-\end{verbatim}
-
-or
-
 \begin{verbatim}
 struct S {
     array_ptr<int> data;
     int num;
     where data : count(num);
-}
+};
 \end{verbatim}
 
 Member bounds declarations are program invariants that are assumed to be true
@@ -82,10 +78,10 @@ void f(int len) {
 \end{verbatim}
 
 Making member bounds declarations be invariants provides a way to deal with issues
-causing by aliasing. There can be pointers to data structures or members
+caused by aliasing. There can be pointers to data structures or members
 of data structures. There may be multiple pointers to a single
 structure object in memory. When there are multiple pointers,
-the pointers are said to be aliases because they all name the same
+the pointers are called aliases because they all name the same
 memory location.  Aliasing makes it hard to reason about programs.
 
 Consider the example:
@@ -156,19 +152,18 @@ used in place of variables in the non-modifying expressions. In
 addition, pointer indirection and indirect member references are
 excluded.
 
-A structure member whose type is \arrayptr\ or an incomplete
+A structure member whose type is \arrayptr\ or a
 checked array type may have at most one bounds declared for it. The
-typing rules for member bounds declarations are the same as those for
-bounds declarations. For bounds declarations of the form
+typing rules for member bounds declarations are similar to those for
+variasble bounds declarations. For bounds declarations of the form
 \boundsdecl{\var{member-path}}{\boundscount{\var{e1}}}, the
-\var{member-path} must have an \arrayptr\ type and cannot be the type
-\arrayptrvoid. The expression
-\var{e1} must have an integral type. For bounds declarations of the
-form \boundsdecl{\var{member-path}}{\bounds{\var{e1}}{\var{e2}}}, 
-the types of \var{x}, \var{e1}, and \var{e2}
-must be \arrayptr\ types. The types must be the same type,
-except that any of them can be
-\arrayptrvoid.
+\var{member-path} cannot have the type \arrayptrvoid\ and
+the expression \var{e1} must have an integral type. For bounds declarations
+of the form \boundsdecl{\var{member-path}}{\bounds{\var{e1}}{\var{e2}}},
+the types of \var{e1}, and \var{e2} must be pointers to the same type.
+Typically \var{member-path} is also  a pointer to that type or an
+array of that type.  However, \var{member-path} can be a pointer to
+or an array of a different type.
 
 A structure consists of a list of member declarations, each of which
 consists of a type specifier followed by one or more structure member
@@ -258,10 +253,10 @@ describe a member path for the structure type that has an
 associated member bounds. Inline bounds declarations are still
 restricted to variables.
 
-\section{Declaring the state of member bounds for variables}
+\section{Declaring the state of member bounds declarations for variables}
 
-Programmers may declare the state of a member bounds for a variable
-using two kinds of facts:
+Programmers may declare the state of a member bounds declaration
+for a variable using two kinds of facts:
 \begin{tabbing}
 \var{fact:}\= \\
 \> \var{\ldots{}} \\
@@ -283,9 +278,9 @@ bounds for the structure type and child members of the structure type.
 
 \subsection{Parameters and return values}
 
-The state of members bounds can be declared for parameters and return
-values using \keyword{suspends} and \keyword{holds} as well. By default, 
-the state is \texttt{holds}.
+The state of members bounds declarations can be declared for parameters and
+return values using \keyword{suspends} and \keyword{holds} as well. By
+default, the state is \texttt{holds}.
 
 Consider the following structure type definitions:
 
@@ -318,8 +313,8 @@ where suspends(return_value.arr1.data)
 \subsection{Extent of declarations of member bounds state for variables}
 \label{section:member-bounds-state-extent}
 
-Declarations of the state of member bounds are dataflow-sensitive and
-follow rules similar to flow-sensitive bounds declarations.
+Declarations of the state of member bounds declarations are dataflow-sensitive
+and follow rules similar to flow-sensitive bounds declarations.
 
 We first define the set of state declarations that apply to a function
 component, where a function component is a statement or
@@ -457,7 +452,7 @@ When a member path \var{mp} of a variable \var{x} is used and
 
 \subsection{Suspends declarations and bounds for variables.}
 
-When the member bounds declaratoin \var{m}b for a variable member is
+When the member bounds declaration \var{m}b for a variable member is
 suspended by a statement of the form:
 
 \var{e2} \keyword{where} \texttt{suspends(}\var{x.mp}\texttt{);}
@@ -529,15 +524,13 @@ true at the point of the \keyword{holds} declaration.
 
 Just as existing functions can have bounds-safe interfaces declared for
 them, existing structure types can have bounds-safe interfaces declared
-for them. This allows safe code to use those data structures and for
+for them. This allows checked code to use those data structures and for
 those uses to be checked. Existing unchecked code is unchanged.
-
 To create a bound-safe interface for a structure type, a programmer
-declares member bounds for structure members with unchecked pointer types.
-A programmer may also declare whether an unchecked pointer should be
-treated as \ptr\ type by checked code.
+declares member bounds or interface types for structure members with
+unchecked pointer types.
 
-Here is a bound-safe interface for a structure that is a counted buffer
+Here is a member bounds declaration for a structure that is a counted buffer
 of characters:
 
 \begin{verbatim}
@@ -547,15 +540,15 @@ struct CountedBuffer {
 }
 \end{verbatim}
 
-Here is a bounds-safe interface for a structure for a node in a
-binary tree. The node contains two pointers to two other nodes. Pointer
-arithmetic on those two other nodes is not allowed.
+Here are bounds-safe interface types for members of structure for binary
+tree nodes. The structure contains pointers to two other nodes.  In
+checked code, pointer arithmetic on those pointers is not allowed.
 
 \begin{verbatim}
 struct BinaryNode {
     int data;
-    BinaryNode *left : ptr;
-    BinaryNode *right : ptr;
+    BinaryNode *left : itype(ptr<BinaryNode>);
+    BinaryNode *right : itype(ptr<BinaryNode>);
 }
 \end{verbatim}
 
@@ -585,7 +578,8 @@ where the first element of each pair is a member path whose type is \arrayptr\
 and the second element of each pair is a bounds expression.  The bounds expression may use 
 variable member paths in addition to variables.
 
-In Section~\ref{section:inferring-expression-bounds}, the inference of bounds for an expression determines the bounds expression that applies to the value of the
+In Section~\ref{section:inferring-expression-bounds}, the inference of bounds for an
+expression determines the bounds expression that applies to the value of the
 expression.  For structure-typed expressions, inference is generalized to determine
 the bounds expressions that apply to the \arrayptr\ members of the value 
 of the expression.  This information is represented using the same
@@ -683,26 +677,25 @@ a member name and \boundsinfer{\var{e}}{\var{s}},
 
 \section{Compatibility of structure types with bounds declarations}
 
-The C Standard  defines compatibility of two structure types
-declared in separate translation units \cite[Section 6.2.7]{ISO2011}.
-This definition is extended to
-include member bounds declarations and member bounds-safe interfaces.  If the
-structure types are completed in both translation units, for each pair of
-corresponding members,
+The C Standard defines compatibility of two structure types declared in
+separate translation units \cite[Section 6.2.7]{ISO2011}.  This definition
+is extended to include member bounds declarations and member bounds-safe
+interfaces.  If the structure types are completed in both translation
+units, for each pair of corresponding members,
 \begin{itemize}
 \item If the members have unchecked pointer type,
 \begin{itemize}
 \item If the members both have bounds-safe interfaces, the bounds-safe
-interfaces must either both be bounds expression or both be interface
+interfaces must either both be bounds expressions or both be interface
 types. If both have bounds expressions, the bounds expressions must be
-syntactically identical  after being placed into a canonical form.
+syntactically identical after being placed into a canonical form.
 If both have interface types, the interface types must be compatible.
-\item Otherwise,  one member may have a bounds-safe interface and the
-other member may omit a bounds-safe interface, or both members may omit
+\item Otherwise,  one member must have a bounds-safe interface and the
+other member must omit a bounds-safe interface, or both members must omit
 bounds-safe interfaces.
 \end{itemize}
-\item Oherwise, both members must have member bounds declarations or both
+\item Otherwise, both members must have member bounds declarations or both
 members must not have member bounds declarations.  If both members have
 member bounds declarations, the bounds expressions must be syntactically
-identical after being placed into a canonical form.
+identical after being placed into canonical form.
 \end{itemize}
