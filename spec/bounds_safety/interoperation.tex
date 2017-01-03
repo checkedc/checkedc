@@ -982,6 +982,37 @@ where untagged_bounds(return_value);
 }
 \end{verbatim}
 
+\subsection{Allowing bounds to be declared for integer-typed variables}
+
+We have described how bounds can be inferred for an expression with
+casts between pointers and integers.  A programmer may want to 
+introduce variables for the results of subexpressions of an
+expression or may not be able to do all of a computation within an expression.
+To allow more general handling of casts between pointers and 
+integers, we allow bounds to be declared for integer-typed variables.
+
+This may seem confusing at first, but it is a natural extension to tracking the
+bounds for pointer values that have been cast to integers.   The \verb+set+
+function can be written more succiently using some temporary variables:
+
+\begin{verbatim}
+array_ptr<int> set(array_ptr<int> x : untagged_bounds(x)) 
+where untagged_bounds(return_value);
+{
+  if (x != NULL) {
+     // ((size_t) x | 1) has the same bounds as x  
+     szie_t raw_x : untagged_bounds(x) = (size_t) x;   
+     size_t tagged_x : untagged_bounds(x) = tmp1| 1;         
+     dynamic_check(raw_x & ~0x3 ==tagged_x & ~0x3);
+     array_ptr<int> result : untagged_bounds(tmp) = (array_ptr<int>) tmp;
+     // follows from substituting the right-hand side in the current bounds for tmp
+     where tmp : untagged_bounds(tmp);
+     return tmp;
+  }
+  return x;
+}
+\end{verbatim}
+
 \section{Restricted interoperation with functions without prototypes}
 C allows declarations of functions that do not specify the type of their parameters
 (no-prototype function declarations).  This provides backward compatibility between
