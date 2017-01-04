@@ -791,7 +791,7 @@ coerced implicitly from \ptrinst{\var{S}} to \uncheckedptrvoid\ to
 \subsection{Checking bounds declarations}
 \label{section:checking-bounds-interfaces}
 
-The checking rules in Chapter~\ref{chapter:checking-bounds} requires
+The checking rules in Chapter~\ref{chapter:checking-bounds} require
 only small changes to check code with bounds-safe interfaces.  The
 checking is done after any implicit pointer conversions have been
 inserted.
@@ -921,7 +921,7 @@ rules for inferring bounds to integral expressions:
     \begin{itemize}
     \item
       If \var{op} has an inverse operation \var{inverse-op}, then 
-      \texttt{\exprcurrentvalue \var{inverse-op} \var{e2}}
+      \texttt{\exprcurrentvalue\ \var{inverse-op} \var{e2}}
       is substituted for \exprcurrentvalue.
     \item
       Otherwise the bounds of the expression are altered to be \boundsnone.
@@ -948,19 +948,20 @@ rules for inferring bounds to integral expressions:
 
 \subsection{An example}
 
-The following example shows functions that create a tagged pointer and 
-that set the tag to 1.
+The following example shows functions for tagged pointers
+(where the tag is stored in the least siginficant bit) that
+create a tagged pointer and that set the tag to 1.
 
 \begin{verbatim}
 #define untagged_bounds(x) \
-   bounds((array_ptr<int>) ((size_t) x & ~0x3), \
-          (array_ptr<int>) ((size_t) x & ~0x3) + 1) rel_align(char)
+   bounds((array_ptr<int>) ((size_t) x & ~0x1), \
+          (array_ptr<int>) ((size_t) x & ~0x1) + 1) rel_align(char)
 
 array_ptr<int> create(void) 
 where untagged_bounds(return_value)
 {
    array_ptr<int> x : bounds(x, x + 1) = malloc(sizeof(int));
-   dynamic_check(x == (array_ptr<int>) ((size_t) x & ~0x3));
+   dynamic_check(x == (array_ptr<int>) ((size_t) x & ~0x1));
    // follows from substituting the right-hand side in the current bounds
    where x : untagged_bounds(x); 
    return x;
@@ -968,13 +969,14 @@ where untagged_bounds(return_value)
 
 // set tag to 1
 array_ptr<int> set(array_ptr<int> x : untagged_bounds(x)) 
-where untagged_bounds(return_value);
+where untagged_bounds(return_value)
 {
   if (x != NULL) {
      // ((size_t) x | 1) has the same bounds as x                   
      array_ptr<int> tmp : untagged_bounds(x) = (array_ptr<int>) ((size_t) x | 1);
-     dynamic_check((size_t) tmp & ~0x3 == (size_t) x & ~0x3);
-     // follows from substituting the right-hand side in the current bounds for tmp
+     dynamic_check((size_t) tmp & ~0x1 == (size_t) x & ~0x1);
+     // follows from substituting the right-hand side of the
+     //dynamic check expression in the current bounds for tmp
      where tmp : untagged_bounds(tmp);
      return tmp;
   }
@@ -985,29 +987,26 @@ where untagged_bounds(return_value);
 \subsection{Allowing bounds to be declared for integer-typed variables}
 
 We have described how bounds can be inferred for an expression with
-casts between pointers and integers.  A programmer may want to 
+casts between pointers and integers.  A programmer may want to
 introduce variables for the results of subexpressions of an
 expression or may not be able to do all of a computation within an expression.
-To allow more general handling of casts between pointers and 
+To allow more general handling of casts between pointers and
 integers, we allow bounds to be declared for integer-typed variables.
-
-This may seem confusing at first, but it is a natural extension to tracking the
+This may seem confusing, but it is a natural extension to tracking the
 bounds for pointer values that have been cast to integers.   The \verb+set+
-function can be written more succiently using some temporary variables:
-
+function can be written to use temporary variables instead:
 \begin{verbatim}
-array_ptr<int> set(array_ptr<int> x : untagged_bounds(x)) 
-where untagged_bounds(return_value);
+array_ptr<int> set(array_ptr<int> x : untagged_bounds(x))
+where untagged_bounds(return_value)
 {
   if (x != NULL) {
-     // ((size_t) x | 1) has the same bounds as x  
-     szie_t raw_x : untagged_bounds(x) = (size_t) x;   
-     size_t tagged_x : untagged_bounds(x) = tmp1| 1;         
-     dynamic_check(raw_x & ~0x3 ==tagged_x & ~0x3);
-     array_ptr<int> result : untagged_bounds(tmp) = (array_ptr<int>) tmp;
-     // follows from substituting the right-hand side in the current bounds for tmp
-     where tmp : untagged_bounds(tmp);
-     return tmp;
+     size_t raw : untagged_bounds(raw) = (size_t) x;
+     size_t tagged : untagged_bounds(raw) = raw | 1;
+     dynamic_check(raw & ~0x1 == tagged & ~0x1);
+     // bounds follow from substituting the right-hand side of the
+     // dynamic check expression in the bounds for tagged.
+     array_ptr<int> result : untagged_bounds(result) = (array_ptr<int>) tagged
+     return result;
   }
   return x;
 }
@@ -1059,8 +1058,8 @@ with a prototype that has parameter types or a return type in $E$ or that has bo
 declarations.
 \end{enumerate}
 
-\subsection{Examples}
-The rules catch common errors but are not foolproof.  They catch passing a checked pointer
+\subsection{Examples of errors caught by rules}
+The rules catch common errors.  They catch passing a checked pointer
 to a function with no prototype:
 \begin{verbatim}
 int f();
@@ -1106,8 +1105,9 @@ int f(S y) {
 }
 \end{verbatim}
 
-\subsection{Checking during compilation and linking}
-Checking can be bypassed by code that declares a function with no prototype in one 
+\subsection{Example of errors not caught by the rules}
+The rules are not foolproof, though. Checking can be bypassed by code that
+declares a function with no prototype in one
 compilation unit and defines it in another compilation unit:
 \begin{verbatim}
 Compilation unit 1:

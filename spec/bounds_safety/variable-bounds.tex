@@ -1678,8 +1678,7 @@ eliminate the runtime bounds checks easily.
 /* lexicographic comparison of two arrays of integers */
 int compare(array_ptr<int> x : bounds(x, x_end), 
             array_ptr<int> y : bounds(y, y_end)
-            array_ptr<int> x_end,
-            array_ptr<int> y_end)
+            array_ptr<int> x_end, array_ptr<int> y_end)
 { 
     while (x < x_end && y < y_end) {
         if (*x == *y) {  // bounds check: x >= x && x < x_end; easily optimizable
