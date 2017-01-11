@@ -9,7 +9,7 @@
 // null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 
-#include <stddef.h> // wchar_t wcstoimax and wcstoumax
+#include <stddef.h> // define wchar_t for wcstoimax and wcstoumax
 #include <inttypes.h>
 
 intmax_t strtoimax(const char * restrict nptr,
