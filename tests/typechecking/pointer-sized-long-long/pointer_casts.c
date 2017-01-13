@@ -1,4 +1,8 @@
 // Check Pointer Casts on platforms where pointers and `long long`s are the same size
+// In particular, this includes 64-bit windows.
+
+// To configure the list of platforms, change lit.local.cfg in this directory
+// to make the 'pointer-sized-long-long' feature available
 
 // RUN: %clang_cc1 -std=c11 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
