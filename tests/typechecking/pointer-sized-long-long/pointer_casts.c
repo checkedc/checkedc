@@ -49,12 +49,12 @@ int s1 checked[16];
 long long g21 : byte_count(5 * sizeof(int)) = (long long)s1;
 long long int g22 : byte_count(5 * sizeof(int)) = (long long int)s1;
 unsigned long long int g23 : byte_count(5 * sizeof(int)) = (unsigned long long int) s1;
-// TODO: is this right? Enums are always sizeof(int)
-enum E1 g24 : byte_count(4) = EnumVal1;
+// TODO: Enum size is implementation-defined
+// enum E1 g24 : byte_count(8) = EnumVal1;
 
 // bounds
 long long g25 : bounds(s1, s1 + 5) = (long long)s1;
 long long int g26 : bounds(s1, s1 + 5) = (long long)s1;
 unsigned long long int g27 : bounds(s1, s1 + 5) = (long long)s1;
-// not valid where sizeof(int) != sizeof(void*), because enums are always int-sized
+// TODO: Enum size is implementation-defined
 // enum E1 g28 : bounds(s1, s1 + 5) = (int)s1;
