@@ -41,12 +41,6 @@ struct S8 {
   int m1 checked[];
 };
 
-struct S9 {
-  int len;
-  // bound declaration on an integer-typed member.
-  int p : bounds((char *) p, (char *) p + len);
-};
-
 union U1 {
   ptr<int> m1;
   int *m2;
@@ -97,7 +91,6 @@ extern struct S5 f7();     // expected-error {{function with no prototype cannot
 extern struct S6 f8();     // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
 extern struct S7 f9();     // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
 extern struct S8 f10();    // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
-extern struct S9 f11();    // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
 extern union U1 f12();     // expected-error {{function with no prototype cannot have a return type that is a union with a member with a checked type}}
 extern union U2 f13();     // expected-error {{function with no prototype cannot have a return type that is a union with a member with a checked type}}
 extern union U3 f14();     // expected-error {{function with no prototype cannot have a return type that is a union with a member with a checked type}}
@@ -181,9 +174,6 @@ extern void f68(struct S7); // expected-error {{cannot redeclare a function with
 extern void f69();
 extern void f69(struct S8); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a structure with a member with a checked type}}
 
-extern void f70();
-extern void f70(struct S9); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a structure with a member with a checked type}}
-
 extern void f71();
 extern void f71(union U1); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a union with a member with a checked type}}
 
@@ -228,9 +218,6 @@ extern void f84(int f());   // expected-error {{conflicting types for 'f84'}}
 extern void f85();
 extern void f85(char *p : bounds(p, p + len), int len);
 
-extern void f86();
-extern void f86(int p : bounds((char *)p, (char *)p + len), int len);
-
 //
 // Redeclaring a function with a checked argument as a no prototype function is not allowed.
 //
@@ -242,9 +229,6 @@ extern void f90(); // expected-error {{cannot redeclare a function that has a ch
 // functino is allowed.  The function types are considered compatible.
 extern void f91(char *p : bounds(p, p + len), int len);
 extern void f91();
-
-extern void f92(int p : bounds((char *)p, (char *)p + len), int len);
-extern void f92();
 
 //
 // Spot-check other attempts at creating no prototype functions that return
