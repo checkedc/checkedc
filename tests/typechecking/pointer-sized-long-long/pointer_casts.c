@@ -5,7 +5,7 @@
 #include "../../../include/stdchecked.h"
 
 _Static_assert(sizeof(void*) == sizeof(long long),
-  "Pointers and longs must be the same size");
+  "Pointers and long longs must be the same size");
 
 struct S1 {
   int len;
