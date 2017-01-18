@@ -423,7 +423,7 @@ void f104(int len) {
       array_ptr<int> g102 : count(len) = 0;
       {
          int len = 5;
-         array_ptr<int> g102  : byte_count(len * sizeof(int));
+         array_ptr<int> g102  : byte_count(len * sizeof(int)) = 0;
       }
     }
   }
