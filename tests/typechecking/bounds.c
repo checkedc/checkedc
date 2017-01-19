@@ -174,12 +174,12 @@ extern void bounds_exprs(void) {
    array_ptr<int> t1 : bounds(array_ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t2 : bounds(ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t3 : bounds(array_ptr_lb, ptr_ub) = i;
-   array_ptr<int> t4 : bounds(unchecked_ptr_lb, array_ptr_ub);
-   array_ptr<int> t5 : bounds(array_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t4 : bounds(unchecked_ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t5 : bounds(array_ptr_lb, unchecked_ptr_ub) = i;
    array_ptr<int> t6 : bounds(ptr_lb, ptr_ub) = i;
    array_ptr<int> t7 : bounds(unchecked_ptr_lb, ptr_ub) = i;
    array_ptr<int> t8 : bounds(ptr_lb, unchecked_ptr_ub) = i;
-   array_ptr<int> t9 : bounds(unchecked_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t9 : bounds(unchecked_ptr_lb, unchecked_ptr_ub) = i;
 
    // use an array-typed value as the lower bound.  This value
    // should be converted implicitly to be a pointer type.
@@ -196,12 +196,12 @@ extern void bounds_exprs(void) {
    array_ptr<int> t21 : bounds(void_array_ptr_lb, void_array_ptr_ub) = i;
    array_ptr<int> t22 : bounds(void_ptr_lb, void_array_ptr_ub) = i;
    array_ptr<int> t23 : bounds(void_array_ptr_lb, void_ptr_ub) = i;
-   array_ptr<int> t24 : bounds(void_unchecked_ptr_lb, void_array_ptr_ub);
-   array_ptr<int> t25 : bounds(void_array_ptr_lb, void_unchecked_ptr_ub);
+   array_ptr<int> t24 : bounds(void_unchecked_ptr_lb, void_array_ptr_ub) = i;
+   array_ptr<int> t25 : bounds(void_array_ptr_lb, void_unchecked_ptr_ub) = i;
    array_ptr<int> t26 : bounds(void_ptr_lb, void_ptr_ub) = i;
    array_ptr<int> t27 : bounds(void_unchecked_ptr_lb, void_ptr_ub) = i;
    array_ptr<int> t28 : bounds(void_ptr_lb, void_unchecked_ptr_ub) = i;
-   array_ptr<int> t29 : bounds(void_unchecked_ptr_lb, void_unchecked_ptr_ub);
+   array_ptr<int> t29 : bounds(void_unchecked_ptr_lb, void_unchecked_ptr_ub) = i;
 
    // check combinations of pointers to void and pointers to non-void types
 
@@ -210,10 +210,10 @@ extern void bounds_exprs(void) {
    array_ptr<int> t44 : bounds(void_ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t45 : bounds(void_array_ptr_lb, ptr_ub) = i;
    array_ptr<int> t46 : bounds(array_ptr_lb, void_ptr_ub) = i;
-   array_ptr<int> t47 : bounds(unchecked_ptr_lb, void_array_ptr_ub);
-   array_ptr<int> t48 : bounds(void_unchecked_ptr_lb, array_ptr_ub);
-   array_ptr<int> t49 : bounds(void_array_ptr_lb, unchecked_ptr_ub);
-   array_ptr<int> t50 : bounds(array_ptr_lb, void_unchecked_ptr_ub);
+   array_ptr<int> t47 : bounds(unchecked_ptr_lb, void_array_ptr_ub) = i;
+   array_ptr<int> t48 : bounds(void_unchecked_ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t49 : bounds(void_array_ptr_lb, unchecked_ptr_ub) = i;
+   array_ptr<int> t50 : bounds(array_ptr_lb, void_unchecked_ptr_ub) = i;
 
    array_ptr<int> t51 : bounds(void_ptr_lb, ptr_ub) = i;
    array_ptr<int> t52 : bounds(ptr_lb, void_ptr_ub) = i;
@@ -248,12 +248,12 @@ extern void bounds_exprs(void) {
    array_ptr<int> t91 : bounds(typedef_array_ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t92 : bounds(ptr_lb, typedef_array_ptr_ub) = i;
    array_ptr<int> t93 : bounds(array_ptr_lb, typedef_ptr_ub) = i;
-   array_ptr<int> t94 : bounds(typedef_unchecked_ptr_lb, array_ptr_ub);
-   array_ptr<int> t95 : bounds(typedef_array_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t94 : bounds(typedef_unchecked_ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t95 : bounds(typedef_array_ptr_lb, unchecked_ptr_ub) = i;
    array_ptr<int> t96 : bounds(typedef_ptr_lb, ptr_ub) = i;
    array_ptr<int> t97 : bounds(unchecked_ptr_lb, typedef_ptr_ub) = i;
    array_ptr<int> t98 : bounds(ptr_lb, typedef_unchecked_ptr_ub) = i;
-   array_ptr<int> t99 : bounds(typedef_unchecked_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t99 : bounds(typedef_unchecked_ptr_lb, unchecked_ptr_ub) = i;
 
    // check that type qualifiers are discarded when comparing pointer types
    // in bounds expressions
@@ -296,12 +296,12 @@ extern void bounds_exprs(void) {
 
    array_ptr<int> t130 : bounds(ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t131 : bounds(array_ptr_lb, ptr_ub) = i;
-   array_ptr<int> t132 : bounds(unchecked_ptr_lb, array_ptr_ub);
-   array_ptr<int> t133 : bounds(array_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t132 : bounds(unchecked_ptr_lb, array_ptr_ub) = i;
+   array_ptr<int> t133 : bounds(array_ptr_lb, unchecked_ptr_ub) = i;
    array_ptr<int> t134 : bounds(ptr_lb, ptr_ub) = i;
    array_ptr<int> t135 : bounds(unchecked_ptr_lb, ptr_ub) = i;
    array_ptr<int> t136 : bounds(ptr_lb, unchecked_ptr_ub) = i;
-   array_ptr<int> t137 : bounds(unchecked_ptr_lb, unchecked_ptr_ub);
+   array_ptr<int> t137 : bounds(unchecked_ptr_lb, unchecked_ptr_ub) = i;
  }
 
  extern void invalid_bounds_exprs(void) {

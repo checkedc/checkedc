@@ -135,18 +135,18 @@ struct S15 {
 // return values
 extern void S16(void) {
   // Checked pointer to a function that returns an array_ptr to 5 integers.
-  ptr<array_ptr<int>(void) : count(5)> p1;
+  ptr<array_ptr<int>(void) : count(5)> p1 = 0;
   // Checked pointer to a function that returns an array_ptr to n integers,
   // where n is n argument.
-  ptr<array_ptr<int>(int n) : count(n)> p2;
+  ptr<array_ptr<int>(int n) : count(n)> p2 = 0;
   // Use 'byte_count; instead of 'count'
-  ptr<array_ptr<int>(void) : byte_count(5 * sizeof(int))> q1;
-  ptr<int(int arg) : byte_count(5 * sizeof(int))> q2;
-  ptr<int(int n, int arg) : byte_count(n * sizeof(int))> q3;
+  ptr<array_ptr<int>(void) : byte_count(5 * sizeof(int))> q1 = 0;
+  ptr<int(int arg) : byte_count(5 * sizeof(int))> q2 = 0;
+  ptr<int(int n, int arg) : byte_count(n * sizeof(int))> q3 = 0;
   // Use 'bounds' instead of 'count'.
   ptr<array_ptr<int>(array_ptr<int> arg : count(5)) : bounds(arg, arg + 5)>
-    r1;
-  ptr<int(array_ptr<int> arg : count(n), int n) : bounds(arg, arg + n)> r2;
+    r1 = 0; 
+  ptr<int(array_ptr<int> arg : count(n), int n) : bounds(arg, arg + n)> r2 = 0;
   // Unchecked pointers to functions.
   int(*s1)(array_ptr<int> : count(5));
   int(*s2)(array_ptr<int> arg : count(5));

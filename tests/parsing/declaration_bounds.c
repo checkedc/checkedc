@@ -71,7 +71,7 @@ extern void f3(array_ptr<int> arr : count(5)) {
   array_ptr<int> t : byte_count(5 * (sizeof(int))) = arr;
   array_ptr<int> u : byte_count((len) * sizeof(int)) = arr;
   array_ptr<int> v : bounds(v, (v + 5) + len - len) = arr;
-  array_ptr<int> w: bounds((w + len - (len)), (w + len));
+  array_ptr<int> w: bounds((w + len - (len)), (w + len)) = arr;
   array_ptr<int> midarr : bounds(midarr - 1, (midarr - 1) + 2) = arr + 2;
 }
 
