@@ -7,12 +7,13 @@
 
 #include "../../include/stdchecked.h"
 
-void f1(int i) {
-  dynamic_check(i < 30);
-}
+#include <stdbool.h>
+#include <stdio.h>
 
 int main(void) {
-  f1(10);
+  dynamic_check(true);
+
+  puts("PASS: Successful Simple Dynamic Check ()");
 
   return 0;
 }
