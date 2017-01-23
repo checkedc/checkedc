@@ -8,13 +8,8 @@
 
 #include "../../include/stdchecked.h"
 
-#include <stdio.h>
-
 void f1(int i) {
   dynamic_check(i < 30);
-
-  // If we get to here, the test has failed
-  puts("FAIL: Failing Arithmetic Dynamic Check ()");
 }
 
 int main(void) {

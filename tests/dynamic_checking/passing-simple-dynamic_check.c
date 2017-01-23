@@ -5,18 +5,11 @@
 // RUN: %clang -fcheckedc-extension -o %t.exe %s
 // RUN: %t.exe
 
+#include <stdbool.h>
 #include "../../include/stdchecked.h"
 
-#include <stdio.h>
-
-void f1(int i) {
-  dynamic_check(i < 30);
-
-  puts("PASS: Successful Arithmetic Dynamic Check ()");
-}
-
 int main(void) {
-  f1(10);
+  dynamic_check(true);
 
   return 0;
 }

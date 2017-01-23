@@ -6,16 +6,11 @@
 // LLVM thinks that exiting via llvm.trap() is a crash.
 // RUN: not --crash %t.exe
 
-#include "../../include/stdchecked.h"
-
 #include <stdbool.h>
-#include <stdio.h>
+#include "../../include/stdchecked.h"
 
 int main(void) {
   dynamic_check(false);
-
-  // If we get to here, the test has failed
-  puts("FAIL: Failing Simple Dynamic Check ()");
 
   return 0;
 }
