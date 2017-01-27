@@ -9,6 +9,7 @@
 #include "../../include/stdchecked.h"
 
 void f1(int i) {
+  // This is expected fail at runtime
   dynamic_check(i < 30);
 }
 

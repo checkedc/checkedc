@@ -10,6 +10,7 @@
 #include "../../include/stdchecked.h"
 
 int main(void) {
+  // This is expected fail at runtime
   dynamic_check(false);
 
   return 0;
