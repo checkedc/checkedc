@@ -9,6 +9,9 @@
 int f0(int a) {
   return a;
 }
+float g0(float a) {
+  return a;
+}
 int (*bad_f0)(int) = (int(*)(int))0xdeadbeef;
 
 void takes_safe(_Ptr<int(int)> fun) {
@@ -33,7 +36,7 @@ ptr<int(int)> allowed_convert6 = ***f0;
 
 // Arbitrary Data is definitely not allowed
 ptr<int(int)> bad_convert1 = (int(*)(int))0xdeadbeef; // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
-
+ptr<int(int)> bad_convert2 = (int(*)(int))g0; // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
 
 // Now locally within a function body
 void local_convert(int(*f)(int)) {
@@ -71,7 +74,7 @@ void local_convert(int(*f)(int)) {
   ptr<int(int)> bad_convert4 = ***bad_f0; // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
 
   //
-  // Casts at call-time
+  // Casts in a Call
   //
 
   // This is allowed, from above, we'll use it further down to test checked
@@ -113,4 +116,36 @@ void local_convert(int(*f)(int)) {
   takes_safe(*bad_f0);   // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
   takes_safe(***bad_f0); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
 
+  //
+  // Explicit User Casts
+  //
+
+  int(*local_unsafe)(int) = f0; // This is a valid unchecked to unchecked assignment
+
+  ptr<int(int)> safe_cast_null0 = (ptr<int(int)>)0;
+  ptr<int(int)> safe_cast_null1 = (ptr<int(int)>)((int(*)(int))0);
+  ptr<int(int)> safe_cast_null3 = (ptr<int(int)>)(*(int(*)(int))0);
+  ptr<int(int)> safe_cast_null4 = (ptr<int(int)>)(&*(int(*)(int))0);
+  ptr<int(int)> safe_cast_null6 = (ptr<int(int)>)(***(int(*)(int))0);
+
+  // Top-level declared functions are allowed
+  ptr<int(int)> safe_cast_f1 =	(ptr<int(int)>)(f0);
+  ptr<int(int)> safe_cast_f2 =	(ptr<int(int)>)(&f0);
+  ptr<int(int)> safe_cast_f3 =	(ptr<int(int)>)(*f0);
+  ptr<int(int)> safe_cast_f4 =	(ptr<int(int)>)(&*f0);
+  ptr<int(int)> safe_cast_f5 =	(ptr<int(int)>)(*&f0);
+  ptr<int(int)> safe_cast_f6 =	(ptr<int(int)>)(***f0);
+
+  // Parameter functions are not allowed
+  ptr<int(int)> unsafe_cast_f1 = (ptr<int(int)>)(f);   // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> unsafe_cast_f3 = (ptr<int(int)>)(*f);  // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> unsafe_cast_f4 = (ptr<int(int)>)(&*f); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> unsafe_cast_f5 = (ptr<int(int)>)(*&f); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> unsafe_cast_f6 = (ptr<int(int)>)(***f); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+
+  // Arbitary data is definitely not allowed
+  ptr<int(int)> bad_cast_1 = (ptr<int(int)>)((int(*)(int))0xdeadbeef); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> bad_cast_2 = (ptr<int(int)>)(bad_f0); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> bad_cast_3 = (ptr<int(int)>)(*bad_f0); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> bad_cast_4 = (ptr<int(int)>)(***bad_f0); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
 }
