@@ -148,4 +148,14 @@ void local_convert(int(*f)(int)) {
   ptr<int(int)> bad_cast_2 = (ptr<int(int)>)(bad_f0); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
   ptr<int(int)> bad_cast_3 = (ptr<int(int)>)(*bad_f0); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
   ptr<int(int)> bad_cast_4 = (ptr<int(int)>)(***bad_f0); // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+
+  //
+  // Weird Casts
+  //
+
+  ptr<float(float, int)> local_safe2 = 0;
+  int(*local_odd)(int) = local_unsafe;
+  ptr<int(int)> local_super_unsafe1 = local_unsafe; // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+  ptr<int(int)> local_super_unsafe2 = (ptr<int(int)>)local_unsafe; // expected-error {{cannot cast an unchecked function pointer to a checked pointer unless unchecked function is named}}
+
 }
