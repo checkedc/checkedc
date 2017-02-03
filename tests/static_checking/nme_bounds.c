@@ -1,4 +1,4 @@
-// Tests for Non-Modifying Expressions with Checked C Bounds Annotations
+// Tests for Non-Modifying Expressions with Checked C Bounds expressions
 //
 // The following lines are for the LLVM test harness:
 //
@@ -23,100 +23,100 @@ union U1 {
 void f1(int i, int* loc) {
   volatile int j;
 
-  array_ptr<int> as0a : count(i = 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as0b : byte_count(i = 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as0c : bounds(loc = 0, loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as0d : bounds(loc, loc = 0) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as0a : count(i = 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as0b : byte_count(i = 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as0c : bounds(loc = 0, loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as0d : bounds(loc, loc = 0) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as1a : count(i += 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as1b : byte_count(i += 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as1c : bounds(loc += 1, loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as1d : bounds(loc, loc += 1) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as1a : count(i += 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as1b : byte_count(i += 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as1c : bounds(loc += 1, loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as1d : bounds(loc, loc += 1) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as2a : count(i -= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as2b : byte_count(i -= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as2c : bounds(loc -= 1, loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as2d : bounds(loc, loc -= 1) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as2a : count(i -= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as2b : byte_count(i -= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as2c : bounds(loc -= 1, loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as2d : bounds(loc, loc -= 1) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as3a : count(i *= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as3b : byte_count(i *= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as3c : bounds(loc + (i *= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as3d : bounds(loc, loc + (i *= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as3a : count(i *= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as3b : byte_count(i *= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as3c : bounds(loc + (i *= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as3d : bounds(loc, loc + (i *= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as4a : count(i /= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as4b : byte_count(i /= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as4c : bounds(loc + (i /= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as4d : bounds(loc, loc + (i /= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as4a : count(i /= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as4b : byte_count(i /= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as4c : bounds(loc + (i /= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as4d : bounds(loc, loc + (i /= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as5a : count(i %= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as5b : byte_count(i %= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as5c : bounds(loc + (i %= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as5d : bounds(loc, loc + (i %= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as5a : count(i %= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as5b : byte_count(i %= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as5c : bounds(loc + (i %= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as5d : bounds(loc, loc + (i %= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as6a : count(i <<= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as6b : byte_count(i <<= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as6c : bounds(loc + (i <<= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as6d : bounds(loc, loc + (i <<= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as6a : count(i <<= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as6b : byte_count(i <<= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as6c : bounds(loc + (i <<= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as6d : bounds(loc, loc + (i <<= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as7a : count(i >>= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as7b : byte_count(i >>= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as7c : bounds(loc + (i >>= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as7d : bounds(loc, loc + (i >>= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as7a : count(i >>= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as7b : byte_count(i >>= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as7c : bounds(loc + (i >>= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as7d : bounds(loc, loc + (i >>= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as8a : count(i &= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as8b : byte_count(i &= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as8c : bounds(loc + (i &= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as8d : bounds(loc, loc + (i &= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as8a : count(i &= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as8b : byte_count(i &= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as8c : bounds(loc + (i &= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as8d : bounds(loc, loc + (i &= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as9a : count(i ^= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as9b : byte_count(i ^= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as9c : bounds(loc + (i ^= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as9d : bounds(loc, loc + (i ^= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as9a : count(i ^= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as9b : byte_count(i ^= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as9c : bounds(loc + (i ^= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as9d : bounds(loc, loc + (i ^= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as10a : count(i |= 1) = 0;         // expected-error {{assignment expression not allowed in count annotation}}
-  array_ptr<int> as10b : byte_count(i |= 1) = 0;    // expected-error {{assignment expression not allowed in byte count annotation}}
-  array_ptr<int> as10c : bounds(loc + (i |= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
-  array_ptr<int> as10d : bounds(loc, loc + (i|= 1)) = 0; // expected-error {{assignment expression not allowed in bounds annotation}}
+  array_ptr<int> as10a : count(i |= 1) = 0;         // expected-error {{assignment expression not allowed in count expression}}
+  array_ptr<int> as10b : byte_count(i |= 1) = 0;    // expected-error {{assignment expression not allowed in byte count expression}}
+  array_ptr<int> as10c : bounds(loc + (i |= 1), loc) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
+  array_ptr<int> as10d : bounds(loc, loc + (i|= 1)) = 0; // expected-error {{assignment expression not allowed in bounds expression}}
 
-  array_ptr<int> as11a : count(i++) = 0;         // expected-error {{increment expression not allowed in count annotation}}
-  array_ptr<int> as11b : byte_count(i++) = 0;    // expected-error {{increment expression not allowed in byte count annotation}}
-  array_ptr<int> as11c : bounds(loc++, loc) = 0; // expected-error {{increment expression not allowed in bounds annotation}}
-  array_ptr<int> as11d : bounds(loc, loc++) = 0; // expected-error {{increment expression not allowed in bounds annotation}}
+  array_ptr<int> as11a : count(i++) = 0;         // expected-error {{increment expression not allowed in count expression}}
+  array_ptr<int> as11b : byte_count(i++) = 0;    // expected-error {{increment expression not allowed in byte count expression}}
+  array_ptr<int> as11c : bounds(loc++, loc) = 0; // expected-error {{increment expression not allowed in bounds expression}}
+  array_ptr<int> as11d : bounds(loc, loc++) = 0; // expected-error {{increment expression not allowed in bounds expression}}
 
-  array_ptr<int> as12a : count(++i) = 0;         // expected-error {{increment expression not allowed in count annotation}}
-  array_ptr<int> as12b : byte_count(++i) = 0;    // expected-error {{increment expression not allowed in byte count annotation}}
-  array_ptr<int> as12c : bounds(++loc, loc) = 0; // expected-error {{increment expression not allowed in bounds annotation}}
-  array_ptr<int> as12d : bounds(loc, ++loc) = 0; // expected-error {{increment expression not allowed in bounds annotation}}
+  array_ptr<int> as12a : count(++i) = 0;         // expected-error {{increment expression not allowed in count expression}}
+  array_ptr<int> as12b : byte_count(++i) = 0;    // expected-error {{increment expression not allowed in byte count expression}}
+  array_ptr<int> as12c : bounds(++loc, loc) = 0; // expected-error {{increment expression not allowed in bounds expression}}
+  array_ptr<int> as12d : bounds(loc, ++loc) = 0; // expected-error {{increment expression not allowed in bounds expression}}
 
-  array_ptr<int> as13a : count(i--) = 0;         // expected-error {{decrement expression not allowed in count annotation}}
-  array_ptr<int> as13b : byte_count(i--) = 0;    // expected-error {{decrement expression not allowed in byte count annotation}}
-  array_ptr<int> as13c : bounds(loc--, loc) = 0; // expected-error {{decrement expression not allowed in bounds annotation}}
-  array_ptr<int> as13d : bounds(loc, loc--) = 0; // expected-error {{decrement expression not allowed in bounds annotation}}
+  array_ptr<int> as13a : count(i--) = 0;         // expected-error {{decrement expression not allowed in count expression}}
+  array_ptr<int> as13b : byte_count(i--) = 0;    // expected-error {{decrement expression not allowed in byte count expression}}
+  array_ptr<int> as13c : bounds(loc--, loc) = 0; // expected-error {{decrement expression not allowed in bounds expression}}
+  array_ptr<int> as13d : bounds(loc, loc--) = 0; // expected-error {{decrement expression not allowed in bounds expression}}
 
-  array_ptr<int> as14a : count(--i) = 0;         // expected-error {{decrement expression not allowed in count annotation}}
-  array_ptr<int> as14b : byte_count(--i) = 0;    // expected-error {{decrement expression not allowed in byte count annotation}}
-  array_ptr<int> as14c : bounds(--loc, loc) = 0; // expected-error {{decrement expression not allowed in bounds annotation}}
-  array_ptr<int> as14d : bounds(loc, --loc) = 0; // expected-error {{decrement expression not allowed in bounds annotation}}
+  array_ptr<int> as14a : count(--i) = 0;         // expected-error {{decrement expression not allowed in count expression}}
+  array_ptr<int> as14b : byte_count(--i) = 0;    // expected-error {{decrement expression not allowed in byte count expression}}
+  array_ptr<int> as14c : bounds(--loc, loc) = 0; // expected-error {{decrement expression not allowed in bounds expression}}
+  array_ptr<int> as14d : bounds(loc, --loc) = 0; // expected-error {{decrement expression not allowed in bounds expression}}
 
-  array_ptr<int> as15a : count(f0int()) = 0;         // expected-error {{call expression not allowed in count annotation}}
-  array_ptr<int> as15b : byte_count(f0int()) = 0;    // expected-error {{call expression not allowed in byte count annotation}}
-  array_ptr<int> as15c : bounds(f0ptr(), loc) = 0; // expected-error {{call expression not allowed in bounds annotation}}
-  array_ptr<int> as15d : bounds(loc, f0ptr()) = 0; // expected-error {{call expression not allowed in bounds annotation}}
+  array_ptr<int> as15a : count(f0int()) = 0;         // expected-error {{call expression not allowed in count expression}}
+  array_ptr<int> as15b : byte_count(f0int()) = 0;    // expected-error {{call expression not allowed in byte count expression}}
+  array_ptr<int> as15c : bounds(f0ptr(), loc) = 0; // expected-error {{call expression not allowed in bounds expression}}
+  array_ptr<int> as15d : bounds(loc, f0ptr()) = 0; // expected-error {{call expression not allowed in bounds expression}}
 
-  array_ptr<int> as16a : count(f0int() + 1) = 0;         // expected-error {{call expression not allowed in count annotation}}
-  array_ptr<int> as16b : byte_count(f0int() + 1) = 0;    // expected-error {{call expression not allowed in byte count annotation}}
-  array_ptr<int> as16c : bounds(f0ptr() + 1, loc) = 0; // expected-error {{call expression not allowed in bounds annotation}}
-  array_ptr<int> as16d : bounds(loc, f0ptr() + 1) = 0; // expected-error {{call expression not allowed in bounds annotation}}
+  array_ptr<int> as16a : count(f0int() + 1) = 0;         // expected-error {{call expression not allowed in count expression}}
+  array_ptr<int> as16b : byte_count(f0int() + 1) = 0;    // expected-error {{call expression not allowed in byte count expression}}
+  array_ptr<int> as16c : bounds(f0ptr() + 1, loc) = 0; // expected-error {{call expression not allowed in bounds expression}}
+  array_ptr<int> as16d : bounds(loc, f0ptr() + 1) = 0; // expected-error {{call expression not allowed in bounds expression}}
 
-  array_ptr<int> as17a : count(j) = 0;         // expected-error {{volatile expression not allowed in count annotation}}
-  array_ptr<int> as17b : byte_count(j) = 0;    // expected-error {{volatile expression not allowed in byte count annotation}}
-  array_ptr<int> as17c : bounds(loc + j, loc) = 0; // expected-error {{volatile expression not allowed in bounds annotation}}
-  array_ptr<int> as17d : bounds(loc, loc + j) = 0; // expected-error {{volatile expression not allowed in bounds annotation}}
+  array_ptr<int> as17a : count(j) = 0;         // expected-error {{volatile expression not allowed in count expression}}
+  array_ptr<int> as17b : byte_count(j) = 0;    // expected-error {{volatile expression not allowed in byte count expression}}
+  array_ptr<int> as17c : bounds(loc + j, loc) = 0; // expected-error {{volatile expression not allowed in bounds expression}}
+  array_ptr<int> as17d : bounds(loc, loc + j) = 0; // expected-error {{volatile expression not allowed in bounds expression}}
 
-  array_ptr<int> as18a : count(i + j) = 0;         // expected-error {{volatile expression not allowed in count annotation}}
-  array_ptr<int> as18b : byte_count(i + j) = 0;    // expected-error {{volatile expression not allowed in byte count annotation}}
-  array_ptr<int> as18c : bounds(loc + (i + j), loc) = 0; // expected-error {{volatile expression not allowed in bounds annotation}}
-  array_ptr<int> as18d : bounds(loc, loc + (i + j)) = 0; // expected-error {{volatile expression not allowed in bounds annotation}}
+  array_ptr<int> as18a : count(i + j) = 0;         // expected-error {{volatile expression not allowed in count expression}}
+  array_ptr<int> as18b : byte_count(i + j) = 0;    // expected-error {{volatile expression not allowed in byte count expression}}
+  array_ptr<int> as18c : bounds(loc + (i + j), loc) = 0; // expected-error {{volatile expression not allowed in bounds expression}}
+  array_ptr<int> as18d : bounds(loc, loc + (i + j)) = 0; // expected-error {{volatile expression not allowed in bounds expression}}
 }
 
 // Expressions explicitly allowed by spec within Non-Modifying Expressions
