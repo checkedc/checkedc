@@ -79,7 +79,11 @@ int mblen(const char *s : count(n), size_t n);
 int mbtowc(wchar_t * restrict output : itype(restrict _Ptr<wchar_t>),
            const char * restrict input : count(n),
            size_t n);
-int wctomb(char *s : count(MB_CUR_MAX), wchar_t wc);
+
+// MB_CUR_MAX is a macro that becomes a function call, so is banned
+// in bounds annotations. 
+// 
+// int wctomb(char *s : count(MB_CUR_MAX), wchar_t wc);
 
 size_t mbstowcs(wchar_t * restrict pwcs : count(n),
                 const char * restrict s,
