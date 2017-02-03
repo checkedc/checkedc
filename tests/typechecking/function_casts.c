@@ -36,15 +36,17 @@ ptr<int(int)> allowed_convert5 = *&f0;
 ptr<int(int)> allowed_convert6 = ***f0;
 
 // Arbitrary Data is definitely not allowed
-ptr<int(int)> bad_convert1 = (int(*)(int))0xdeadbeef; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
+ptr<int(int)> bad_convert1 = (int(*)(int))0xdeadbeef; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
 ptr<int(int)> bad_convert2 = (int(*)(int))g0;         // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' from incompatible type 'float (float)'}}
 
 // Now locally within a function body
-void local_convert(int(*f)(int)) {
+void local_convert(int(*f1)(int), ptr<int(int)> f2) {
 
   //
   // Casts at assignment-time
   //
+
+  ptr<int(int)> local_safe = 0;
 
   // Nulls are specifically allowed
   ptr<int(int)> safe_null0 = 0;
@@ -61,26 +63,36 @@ void local_convert(int(*f)(int)) {
   ptr<int(int)> safe_f5 = *&f0;
   ptr<int(int)> safe_f6 = ***f0;
 
+  // Top-level declared functions are allowed
+  ptr<int(int)> safe_f7 = f2;
+  ptr<int(int)> safe_f8 = *f2;
+  ptr<int(int)> safe_f9 = &*f2;
+  ptr<int(int)> safe_f10 = *&f2;
+  ptr<int(int)> safe_f11 = ***f2;
+
+  // Top-level declared functions are allowed
+  ptr<int(int)> safe_f12 = local_safe;
+  ptr<int(int)> safe_f13 = *local_safe;
+  ptr<int(int)> safe_f14 = &*local_safe;
+  ptr<int(int)> safe_f15 = *&local_safe;
+  ptr<int(int)> safe_f16 = ***local_safe;
+
   // Parameter functions are not allowed
-  ptr<int(int)> unsafe_f1 = f;    // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_f3 = *f;   // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_f4 = &*f;  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_f5 = *&f;  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_f6 = ***f; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  ptr<int(int)> unsafe_f1 = f1;    // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_f3 = *f1;   // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_f4 = &*f1;  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_f5 = *&f1;  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_f6 = ***f1; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   // Arbitary data is definitely not allowed
-  ptr<int(int)> bad_convert1 = (int(*)(int))0xdeadbeef; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> bad_convert2 = bad_f0;                  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> bad_convert3 = *bad_f0;                 // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> bad_convert4 = ***bad_f0;               // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  ptr<int(int)> bad_convert1 = (int(*)(int))0xdeadbeef; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> bad_convert2 = bad_f0;                  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> bad_convert3 = *bad_f0;                 // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> bad_convert4 = ***bad_f0;               // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   //
   // Casts in a Call
   //
-
-  // This is allowed, from above, we'll use it further down to test checked
-  // locals are ok.
-  ptr<int(int)> local_safe = f0;
 
   // Nulls are specifically allowed
   takes_safe(0);
@@ -91,7 +103,6 @@ void local_convert(int(*f)(int)) {
 
   // Top-level declared functions are allowed
   takes_safe(f0);
-  takes_safe(&f0);
   takes_safe(*f0);
   takes_safe(&*f0);
   takes_safe(*&f0);
@@ -105,17 +116,17 @@ void local_convert(int(*f)(int)) {
   takes_safe(***local_safe);
 
   // Unchecked parameter functions are not allowed
-  takes_safe(f);    // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  takes_safe(*f);   // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  takes_safe(&*f);  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  takes_safe(*&f);  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  takes_safe(***f); // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  takes_safe(f1);    // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  takes_safe(*f1);   // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  takes_safe(&*f1);  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  takes_safe(*&f1);  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  takes_safe(***f1); // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   // Arbitrary data is definitely not allowed
-  takes_safe((int(*)(int))0xdeadbeef); // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  takes_safe(bad_f0);                  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  takes_safe(*bad_f0);                 // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  takes_safe(***bad_f0);               // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  takes_safe((int(*)(int))0xdeadbeef); // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  takes_safe(bad_f0);                  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  takes_safe(*bad_f0);                 // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  takes_safe(***bad_f0);               // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   //
   // Explicit User Casts
@@ -130,25 +141,39 @@ void local_convert(int(*f)(int)) {
   ptr<int(int)> safe_cast_null6 = (ptr<int(int)>)(***(int(*)(int))0);
 
   // Top-level declared functions are allowed
-  ptr<int(int)> safe_cast_f1 =	(ptr<int(int)>)(f0);
-  ptr<int(int)> safe_cast_f2 =	(ptr<int(int)>)(&f0);
-  ptr<int(int)> safe_cast_f3 =	(ptr<int(int)>)(*f0);
-  ptr<int(int)> safe_cast_f4 =	(ptr<int(int)>)(&*f0);
-  ptr<int(int)> safe_cast_f5 =	(ptr<int(int)>)(*&f0);
-  ptr<int(int)> safe_cast_f6 =	(ptr<int(int)>)(***f0);
+  ptr<int(int)> safe_cast_f1 = (ptr<int(int)>)(f0);
+  ptr<int(int)> safe_cast_f2 = (ptr<int(int)>)(&f0);
+  ptr<int(int)> safe_cast_f3 = (ptr<int(int)>)(*f0);
+  ptr<int(int)> safe_cast_f4 = (ptr<int(int)>)(&*f0);
+  ptr<int(int)> safe_cast_f5 = (ptr<int(int)>)(*&f0);
+  ptr<int(int)> safe_cast_f6 = (ptr<int(int)>)(***f0);
+
+  // Checked Parameters are allowed
+  ptr<int(int)> safe_cast_f7 = (ptr<int(int)>)(f2);
+  ptr<int(int)> safe_cast_f8 = (ptr<int(int)>)(*f2);
+  ptr<int(int)> safe_cast_f9 = (ptr<int(int)>)(&*f2);
+  ptr<int(int)> safe_cast_f10 = (ptr<int(int)>)(*&f2);
+  ptr<int(int)> safe_cast_f11 = (ptr<int(int)>)(***f2);
+
+  // Top-level declared functions are allowed
+  ptr<int(int)> safe_cast_f12 = (ptr<int(int)>)(local_safe);
+  ptr<int(int)> safe_cast_f13 = (ptr<int(int)>)(*local_safe);
+  ptr<int(int)> safe_cast_f14 = (ptr<int(int)>)(&*local_safe);
+  ptr<int(int)> safe_cast_f15 = (ptr<int(int)>)(*&local_safe);
+  ptr<int(int)> safe_cast_f16 = (ptr<int(int)>)(***local_safe);
 
   // Parameter functions are not allowed
-  ptr<int(int)> unsafe_cast_f1 = (ptr<int(int)>)(f);    // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_cast_f3 = (ptr<int(int)>)(*f);   // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_cast_f4 = (ptr<int(int)>)(&*f);  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_cast_f5 = (ptr<int(int)>)(*&f);  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> unsafe_cast_f6 = (ptr<int(int)>)(***f); // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  ptr<int(int)> unsafe_cast_f1 = (ptr<int(int)>)(f1);    // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_cast_f3 = (ptr<int(int)>)(*f1);   // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_cast_f4 = (ptr<int(int)>)(&*f1);  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_cast_f5 = (ptr<int(int)>)(*&f1);  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> unsafe_cast_f6 = (ptr<int(int)>)(***f1); // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   // Arbitary data is definitely not allowed
-  ptr<int(int)> bad_cast_1 = (ptr<int(int)>)((int(*)(int))0xdeadbeef); // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> bad_cast_2 = (ptr<int(int)>)(bad_f0);                  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> bad_cast_3 = (ptr<int(int)>)(*bad_f0);                 // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> bad_cast_4 = (ptr<int(int)>)(***bad_f0);               // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  ptr<int(int)> bad_cast_1 = (ptr<int(int)>)((int(*)(int))0xdeadbeef); // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> bad_cast_2 = (ptr<int(int)>)(bad_f0);                  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> bad_cast_3 = (ptr<int(int)>)(*bad_f0);                 // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> bad_cast_4 = (ptr<int(int)>)(***bad_f0);               // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   //
   // Weird Casts
@@ -156,8 +181,8 @@ void local_convert(int(*f)(int)) {
 
   ptr<float(float, int)> local_safe2 = 0;
   int(*local_odd)(int) = local_unsafe;
-  ptr<int(int)> local_super_unsafe1 = local_unsafe;                // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
-  ptr<int(int)> local_super_unsafe2 = (ptr<int(int)>)local_unsafe; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  ptr<int(int)> local_super_unsafe1 = local_unsafe;                // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> local_super_unsafe2 = (ptr<int(int)>)local_unsafe; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   //
   // Weird Unary Operators
@@ -165,17 +190,21 @@ void local_convert(int(*f)(int)) {
 
   // There's no good reason to do this to any function pointers
   // and it's definitely not safe.
-  ptr<int(int)> local_weird_unsafe1 = (ptr<int(int)>)~(intptr_t)f;  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> local_weird_unsafe2 = (ptr<int(int)>)~(intptr_t)f0; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> local_weird_unsafe3 = (ptr<int(int)>)!(intptr_t)f;  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> local_weird_unsafe4 = (ptr<int(int)>)!(intptr_t)f0; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> local_weird_unsafe5 = (ptr<int(int)>)+(intptr_t)f;  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> local_weird_unsafe6 = (ptr<int(int)>)+(intptr_t)f0; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> local_weird_unsafe7 = (ptr<int(int)>)-(intptr_t)f;  // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
-  ptr<int(int)> local_weird_unsafe8 = (ptr<int(int)>)-(intptr_t)f0; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' must preserve pointer value}}
+  ptr<int(int)> local_weird_unsafe1 = (ptr<int(int)>)~(intptr_t)f1; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe2 = (ptr<int(int)>)~(intptr_t)f2; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe3 = (ptr<int(int)>)~(intptr_t)f0; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe4 = (ptr<int(int)>)!(intptr_t)f1; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe5 = (ptr<int(int)>)!(intptr_t)f2; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe6 = (ptr<int(int)>)!(intptr_t)f0; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe7 = (ptr<int(int)>)+(intptr_t)f1; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe8 = (ptr<int(int)>)+(intptr_t)f2; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe9 = (ptr<int(int)>)+(intptr_t)f0; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe10 = (ptr<int(int)>)-(intptr_t)f1; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe11 = (ptr<int(int)>)-(intptr_t)f2; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> local_weird_unsafe12 = (ptr<int(int)>)-(intptr_t)f0; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
 
   int(**local_more_unsafe1)(int) = &local_unsafe;
-  ptr<int(int)> local_more_unsafe2 = *local_more_unsafe1; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may not read memory through unchecked pointers}}
+  ptr<int(int)> local_more_unsafe2 = *local_more_unsafe1; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   int local_not_fn;
   ptr<int(int)> local_not_fn2 = (int(*)(int))&local_not_fn; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may only take the address of expressions with function type}}
