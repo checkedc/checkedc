@@ -209,5 +209,23 @@ void local_convert(int(*f1)(int), ptr<int(int)> f2) {
   int local_not_fn;
   ptr<int(int)> local_not_fn2 = (int(*)(int))&local_not_fn; // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' may only take the address of expressions with function type}}
 
+}
 
+struct S1 {
+  ptr<int(int, int)> f1;
+  int(*f2)(int, int);
+};
+
+union U1 {
+  ptr<int(int, int)> f1;
+  int(*f2)(int, int);
+};
+
+void field_access(struct S1 s1, union U1 u1) {
+  ptr<int(int, int)> safe1 = s1.f1;
+  ptr<int(int, int)> unsafe1 = s1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+
+  // safe2 should probably not be allowed, but it is.
+  ptr<int(int, int)> safe2 = u1.f1;
+  ptr<int(int, int)> unsafe2 = u1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
 }
