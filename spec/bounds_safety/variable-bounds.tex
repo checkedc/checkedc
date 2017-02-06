@@ -832,8 +832,10 @@ Non-modifying expressions do not include:
   Function calls (because these may contain assignments that modify
   variables or memory)
 \item
-  Comma expressions (because bounds expressions do not allow side
-  effects, these can always be simplified to the second expression)
+  Comma expressions at the top level (because this introduces syntactic
+  ambiguity). Because non-modifiying expressions do not allow side effects,
+  all comma expressions can be simplified to the expression on
+  the right of the comma.
 \end{compactitem}
 
 It is suggested that programmers use simple non-modifying expressions because
