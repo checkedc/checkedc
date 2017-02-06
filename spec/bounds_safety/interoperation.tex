@@ -162,7 +162,10 @@ is an incomplete type.
 \begin{itemize}
 \item Function names with unchecked function pointer types can be cast to have corresponding checked
 pointer types.  If \var{e} is a function name, \var{D} is \ptrT, \var{S} is \uncheckedptrinst{U},
-and \var{T} and \var{U} are compatible types, checking succeeds.
+and \var{T} and \var{U} are compatible types, checking succeeds. \var{e} may include \texttt{*} and
+\texttt{\&} prefix operators as long as they do not change the value of \var{e}, and may include
+any other casts that do not change the value of \var{e}.
+\item If \var{e} is a null pointer, checking succeeds.
 \item Otherwise, checking fails with a compile-time error.
 \end{itemize}
 \end{itemize}
