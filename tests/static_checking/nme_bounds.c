@@ -216,6 +216,8 @@ void f2(int i, int* loc) {
 
   array_ptr<int> as19a : count(i == j) = 0;
   array_ptr<int> as19b : byte_count(i == j) = 0;
+  array_ptr<int> as19c : bounds(loc + (loc == loc2), loc) = 0;
+  array_ptr<int> as19d : bounds(loc, loc + (loc == loc2)) = 0;
 
   array_ptr<int> as20a : count(i & j) = 0;
   array_ptr<int> as20b : byte_count(i & j) = 0;
