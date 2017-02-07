@@ -193,9 +193,6 @@ void local_convert(int(*f1)(int), ptr<int(int)> f2) {
   ptr<int(int)> local_weird_unsafe1 = (ptr<int(int)>)~(intptr_t)f1; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
   ptr<int(int)> local_weird_unsafe2 = (ptr<int(int)>)~(intptr_t)f2; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
   ptr<int(int)> local_weird_unsafe3 = (ptr<int(int)>)~(intptr_t)f0; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
-  ptr<int(int)> local_weird_unsafe4 = (ptr<int(int)>)!(intptr_t)f1; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
-  ptr<int(int)> local_weird_unsafe5 = (ptr<int(int)>)!(intptr_t)f2; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
-  ptr<int(int)> local_weird_unsafe6 = (ptr<int(int)>)!(intptr_t)f0; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
   ptr<int(int)> local_weird_unsafe7 = (ptr<int(int)>)+(intptr_t)f1; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
   ptr<int(int)> local_weird_unsafe8 = (ptr<int(int)>)+(intptr_t)f2; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
   ptr<int(int)> local_weird_unsafe9 = (ptr<int(int)>)+(intptr_t)f0; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
