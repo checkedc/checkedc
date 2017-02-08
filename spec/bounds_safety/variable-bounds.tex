@@ -590,7 +590,7 @@ Consider as an example, \verb|z = *x;| where
 \begin{verbatim}
 dynamic_check(x != null);
 dynamic_check(x <= x && x < x + c);
-z = *t1;
+z = *x;
 \end{verbatim}
 \end{quote}
 The condition \texttt{x <= x} is trivially true. The
@@ -749,9 +749,8 @@ void resize(int len)
 }
 \end{verbatim}
 Bundled blocks are still necessary because new declarations
-cannot be introduced cannot be introduced within a comma
-operators.  They also provide easier-to-read syntax for
-complex updates to variables.
+cannot be introduced within a comma operator.  They also provide
+easier-to-read syntax for complex updates to variables.
 
 \section{Additional requirements for bounds declarations}
 
