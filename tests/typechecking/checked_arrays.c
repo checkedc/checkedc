@@ -20,7 +20,9 @@ extern void check_indirection_checked(int p checked[10], const int const_p check
   y = *const_p;
 }
 
-extern void check_indirection_checked_incomplete(int p checked[], const int const_p checked[], int y) {
+extern void check_indirection_checked_incomplete(int p checked[] : count(len),
+                                                 const int const_p checked[] : count(len),
+                                                 int len, int y) {
   *p = y;
   y = *p;
   *const_p = y; // expected-error {{read-only variable is not assignable}}
@@ -45,7 +47,9 @@ extern void check_subscript_checked(int p checked[10], const int p_const[10], in
   y = 0[p_const];  // OK
 }
 
-extern void check_subscript_checked_incomplete(int p checked[], const int p_const[], int y) {
+extern void check_subscript_checked_incomplete(int p checked[] : count(len),
+                                               const int p_const[] : count(len),
+                                               int len, int y) {
   p[0] = y;  // OK
   y = p[0];  // OK
   0[p] = y;  // OK
@@ -121,7 +125,6 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   // is converted to a pointer type.
   p = q;
   q = p;
-  r = s;
   s = r;
   r = t;
   p = r;  // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
@@ -275,9 +278,9 @@ extern void check_assign_cv(int param[10],
   p = param;
   p_const = param;
   p_volatile = param;
-  q = param;
-  q_const = param;
-  q_volatile = param;
+  // q = param;          not allowed: param has unknown bounds
+  // q_const = param;    not allowed: param has unknown bounds
+  // q_volatile = param; not allowed: param has unknown bounds
   r = param;
   r_const = param;
   r_volatile = param;
@@ -297,9 +300,9 @@ extern void check_assign_cv(int param[10],
   p = const_param;              // expected-warning {{discards qualifiers}}
   p_const = const_param;
   p_volatile = const_param;     // expected-warning {{discards qualifiers}}  
-  q = const_param;              // expected-warning {{discards qualifiers}}
-  q_const = const_param;
-  q_volatile = const_param;     // expected-warning {{discards qualifiers}}
+  // q = const_param;           not allowed: param has unknown bounds
+  // q_const = const_param;     not allowed: param has unknown bounds
+  // q_volatile = const_param;  not allowed: param has unknown bounds
   r = const_param;              // expected-warning {{discards qualifiers}}
   r_const = const_param;
   r_volatile = const_param;     // expected-warning {{discards qualifiers}}
