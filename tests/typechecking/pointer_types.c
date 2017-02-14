@@ -20,8 +20,9 @@ extern void check_indirection_ptr(ptr<int> p, ptr<const int> const_p, int y) {
 	y = *const_p;
 }
 
-// TODO: add bounds constraints when they are implemented.
-extern void check_indirection_array_ptr(array_ptr<int> p, array_ptr<const int> const_p, int y) {
+extern void check_indirection_array_ptr(array_ptr<int> p : count(1),
+                                        array_ptr<const int> const_p : count(1),
+                                        int y) {
 	*p = y;
 	y = *p;
 	*const_p = y; // expected-error {{read-only variable is not assignable}}
@@ -46,7 +47,9 @@ extern void check_subscript_ptr(ptr<int> p, ptr<const int> p_const, int y) {
    y = 0[p_const];  // expected-error {{subscript of '_Ptr<const int>'}}
 }
 
-extern void check_subscript_array_ptr(array_ptr<int> p, array_ptr<const int> p_const, int y) {
+extern void check_subscript_array_ptr(array_ptr<int> p : count(1),
+                                      array_ptr<const int> p_const : count(1),
+                                      int y) {
    p[0] = y;  // OK
    y = p[0];  // OK
    0[p] = y;  // OK
@@ -197,12 +200,12 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
     unchecked_ptr_to_checked_ptr = checked_ptr_to_checked_ptr;     // expected-error {{incompatible type}}
 
     checked_ptr_to_checked_ptr = unchecked_ptr_to_unchecked_ptr; // expected-error {{incompatible type}}
-    checked_ptr_to_checked_ptr = unchecked_ptr_to_checked_ptr;   // OK
+    // checked_ptr_to_checked_ptr = unchecked_ptr_to_checked_ptr;    not allowed: right-hand side has unknown bounds.
     checked_ptr_to_checked_ptr = checked_ptr_to_unchecked_ptr;   // expected-error {{incompatible type}}
     checked_ptr_to_checked_ptr = checked_ptr_to_checked_ptr;     // OK
 
     array_ptr_to_checked_ptr = unchecked_ptr_to_unchecked_ptr; // expected-error {{incompatible type}}
-    array_ptr_to_checked_ptr = unchecked_ptr_to_checked_ptr;   // OK
+    // array_ptr_to_checked_ptr = unchecked_ptr_to_checked_ptr;  not allowed: right-hand side has unknown bounds.
     array_ptr_to_checked_ptr = checked_ptr_to_unchecked_ptr;   // expected-error {{incompatible type}}
     array_ptr_to_checked_ptr = checked_ptr_to_checked_ptr;     // expected-error {{incompatible type}}
 
