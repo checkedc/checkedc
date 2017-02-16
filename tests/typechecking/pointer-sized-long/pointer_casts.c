@@ -46,15 +46,15 @@ int s1 checked[16];
 // byte_count
 // Cannot initialize this at compile time.
 // short int g20 : byte_count(5 * sizeof(int)) = (short int) s1;
-int g21 : byte_count(5 * sizeof(int)) = (int)s1;
+long g21 : byte_count(5 * sizeof(int)) = (long)s1;
 long int g22 : byte_count(5 * sizeof(int)) = (long int)s1;
 unsigned long int g23 : byte_count(5 * sizeof(int)) = (unsigned long int) s1;
 // TODO: Enum size is implementation-defined
 // enum E1 g24 : byte_count(8) = EnumVal1;
 
 // bounds
-int g25 : bounds(s1, s1 + 5) = (int)s1;
-long int g26 : bounds(s1, s1 + 5) = (int)s1;
-unsigned long int g27 : bounds(s1, s1 + 5) = (int)s1;
+long g25 : bounds(s1, s1 + 5) = (long)s1;
+long int g26 : bounds(s1, s1 + 5) = (long)s1;
+unsigned long int g27 : bounds(s1, s1 + 5) = (long)s1;
 // TODO: Enum size is implementation-defined
 // enum E1 g28 : bounds(s1, s1 + 5) = (int)s1;
