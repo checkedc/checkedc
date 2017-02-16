@@ -219,14 +219,11 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
 // the source and/or destination pointers are pointers to void.
 extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
                               void *s, ptr<void> t, array_ptr<void> u) {
-
-    // TODO: p, s will need bounds interfaces
-
     // pointer to void = pointer to integer for the different kinds of pointers
     void *t1 = p;            // void *  = T * OK;
     ptr<void> t2 = &val;     // ptr<void> = T * OK when T * has known bounds
     ptr<void> t3 = q;        // ptr<void> = ptr<T> OK
-    ptr<void> t4 = s;        // ptr<void> = T * OK, provided T * has known bounds
+    ptr<void> t4 = &val;     // ptr<void> = T * OK provided T * has known bounds.
     array_ptr<void> t5 = p;  // array_ptr<void> = T * OK
     array_ptr<void> t6 = r;  // array_ptr<void> = array_ptr<T> OK
 
@@ -236,7 +233,7 @@ extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
                              // void * = ptr<void> not OK
     void *t9 = u;            // expected-error {{incompatible type}}
                              // void * = array_ptr<void> not OK.
-    ptr<void> t10 = p;       // ptr<void> = void * OK, provided void * has known bounds
+    ptr<void> t10 = (void *) &val; // ptr<void> = void * OK provided void * has known bounds
     ptr<void> t11 = t;       // ptr<void> = ptr<void> OK
     ptr<void> t12 = u;       // expected-error {{incompatible type}}
                              // ptr<void> = array_ptr<void> not OK.
@@ -252,7 +249,7 @@ extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
                              // int * = ptr<void> not OK.
     int *t19 = u;            // expected-error {{incompatible type}}
                              // int * = array_ptr<void> not OK.
-    ptr<int> t20 = s;        // ptr<int> = void * OK when void * has known bounds
+    ptr<int> t20 = (void *) &val; // ptr<int> = void * OK provided void * has known bounds
     ptr<int> t21 = t;        // expected-error {{incompatible type}}
                              // ptr<int> = ptr<void> not OK.
     ptr<int> t22 = u;        // expected-error {{incompatible type}}
@@ -350,6 +347,7 @@ extern void check_assign_cv(void) {
 // pointer types, excluding pointers to void.
 extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
                            float *s, ptr<float> t, array_ptr<float> u) {
+   float fval;
    int *t1 = val ? p : p;            // T * and T * OK;
    ptr<int> t2 = val ? &val : q;     // T * and ptr<T> OK when T has known bounds
    ptr<int> t3 = val ? q : &val;     // ptr<T> and T * OK when T has known bounds
@@ -359,13 +357,13 @@ extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
    array_ptr<int> t8 = val ? r : r;  // array_ptr<T> and array_ptr<T> OK
 
    // omit assignment because type of expression is not valid when there is an error.
-   val ? s : q;     // expected-error {{pointer type mismatch}}
+   val ? &fval : q; // expected-error {{pointer type mismatch}}
                     // S * and ptr<T> not OK
-   val ? q : s;     // expected-error {{pointer type mismatch}}
+   val ? q : &fval; // expected-error {{pointer type mismatch}}
                     // ptr<T> and S * not OK
-   val ? s : r;     // expected-error {{pointer type mismatch}}
+   val ? &fval : r; // expected-error {{pointer type mismatch}}
                     // S * and array_ptr<T> not OK;
-   val ? r : s;     // expected-error {{pointer type mismatch}}
+   val ? r : &fval; // expected-error {{pointer type mismatch}}
                     // array_ptr<T> and S * not OK;
    val ? q : t;     // expected-error {{pointer type mismatch}}
                     // ptr<T> and ptr<S> not OK
@@ -424,7 +422,7 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     void *t1 = val ? s : s;           // void * and void * OK
     ptr<void> t2 = val ? s : t;       // void * and ptr<void>  OK
     ptr<void> t3 = val ? t : t;       // ptr<void> and ptr<void> OK
-    ptr<void> t4 = val ? t : s;       // ptr<void> and void * OK
+    ptr<void> t4 = val ? t : (void *) &val;  // ptr<void> and void * OK
     array_ptr<void> t5 = val ? u : s; // array_ptr<void> and void * OK
     array_ptr<void> t6 = val ? s : u; // void * and array_ptr<void> OK
     array_ptr<void> t7 = val ? u : u; // array_ptr<void> and array_ptr<void> OK
@@ -459,9 +457,9 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     // Checked C only allows implicit conversions of safe types to
     // unsafe types at bounds-safe interfaces.  If one arm is void *
     // and the other is a safe pointer type, this is a typechecking error.
-    val ? s : q;   // expected-error {{pointer type mismatch}}
+    val ? (void *) &val : q;   // expected-error {{pointer type mismatch}}
                    // void * and ptr<int> not OK.
-    val ? q : s;   // expected-error {{pointer type mismatch}}
+    val ? q : (void *) &val;   // expected-error {{pointer type mismatch}}
                    // ptr<int> and void * not OK.
     val ? s : r;   // expected-error {{pointer type mismatch}}
                    // void * and array_ptr<int> not OK
@@ -500,7 +498,7 @@ extern void check_condexpr_cv(void)
 {
   int val = 0;
   const int const_val = 0;
-  const int volatile_val = 0;
+  volatile int volatile_val = 0;
   int *p = 0;
   const int *p_const = 0;
   volatile int *p_volatile = 0;
@@ -523,19 +521,19 @@ extern void check_condexpr_cv(void)
   int *t6 = val ? p_const : p_const;       // expected-warning {{discards qualifiers}}
                                            // const int * and const int * produce const int *
 
-  ptr<const int> t7 = val ? p : q_const;   // int * and ptr<const int> OK
-  ptr<const int> t8 = val ? q_const : p;   // ptr<const int> and int * OK
-  ptr<const int> t9 = val ? p_const : q;   // const int * and ptr<int> OK
-  ptr<const int> t10 = val ? q : p_const;  // ptr<int> and const int * OK
-  ptr<const int> t11 = val ? p_const : q_const;  // const int * and ptr<const int> OK
-  ptr<const int> t12 = val ? q_const : p_const;  // ptr<const int> and const int * OK
+  ptr<const int> t7 = val ? &val : q_const;   // int * and ptr<const int> OK
+  ptr<const int> t8 = val ? q_const : &val;   // ptr<const int> and int * OK
+  ptr<const int> t9 = val ? &const_val : q;   // const int * and ptr<int> OK
+  ptr<const int> t10 = val ? q : &const_val;  // ptr<int> and const int * OK
+  ptr<const int> t11 = val ? &const_val : q_const;  // const int * and ptr<const int> OK
+  ptr<const int> t12 = val ? q_const : &const_val;  // ptr<const int> and const int * OK
   ptr<const int> t13 = val ? q : q_const;        // ptr<int> and ptr<const int> OK
   ptr<const int> t14 = val ? q_const : q;  // ptr<const int> and ptr<int> OK
   ptr<const int> t15 = val ? q_const : q_const;  // ptr<const int> and ptr<const int> OK
 
-  ptr<int> t16 = val ? p : q_const;        // expected-warning {{discards qualifiers}}
+  ptr<int> t16 = val ? &val : q_const;     // expected-warning {{discards qualifiers}}
                                            // int * and ptr<const int> produce ptr<const int>
-  ptr<int> t17 = val ? q_const : p;        // expected-warning {{discards qualifiers}}
+  ptr<int> t17 = val ? q_const : &val;     // expected-warning {{discards qualifiers}}
                                            // ptr<const int> and int * produce ptr<const int>
   ptr<int> t18 = val ? &const_val : q;     // expected-warning {{discards qualifiers}}
                                            // const int * and ptr<int> produce ptr<const int>
@@ -593,19 +591,19 @@ extern void check_condexpr_cv(void)
   int *t55 = val ? p_volatile : p_volatile;          // expected-warning {{discards qualifiers}}
                                                      // volatile int * and volatile int * produce volatile int *
 
-  ptr<volatile int> t56 = val ? p : q_volatile;          // int * and ptr<volatile int> OK
-  ptr<volatile int> t57 = val ? q_volatile : p;          // ptr<volatile int> and int * OK
-  ptr<volatile int> t58 = val ? p_volatile : q;          // volatile int * and ptr<int> OK
-  ptr<volatile int> t59 = val ? q : p_volatile;          // ptr<int> and volatile int * OK
-  ptr<volatile int> t60 = val ? p_volatile : q_volatile; // volatile int * and ptr<volatile int> OK
-  ptr<volatile int> t61 = val ? q_volatile : p_volatile; // ptr<volatile int> and volatile int * OK
+  ptr<volatile int> t56 = val ? &val : q_volatile;       // int * and ptr<volatile int> OK
+  ptr<volatile int> t57 = val ? q_volatile : &val;       // ptr<volatile int> and int * OK
+  ptr<volatile int> t58 = val ? &volatile_val : q;       // volatile int * and ptr<int> OK
+  ptr<volatile int> t59 = val ? q : &volatile_val;       // ptr<int> and volatile int * OK
+  ptr<volatile int> t60 = val ? &volatile_val : q_volatile; // volatile int * and ptr<volatile int> OK
+  ptr<volatile int> t61 = val ? q_volatile : &volatile_val; // ptr<volatile int> and volatile int * OK
   ptr<volatile int> t62 = val ? q : q_volatile;          // ptr<int> and ptr<volatile int> OK
   ptr<volatile int> t63 = val ? q_volatile : q;          // ptr<volatile int> and ptr<int> OK
   ptr<volatile int> t64 = val ? q_volatile : q_volatile; // ptr<volatile int> and ptr<volatile int> OK
 
-  ptr<int> t65 = val ? p : q_volatile;             // expected-warning {{discards qualifiers}}
+  ptr<int> t65 = val ? &val : q_volatile;          // expected-warning {{discards qualifiers}}
                                                    // int * and ptr<volatile int> produce ptr<volatile int>
-  ptr<int> t66 = val ? q_volatile : p;             // expected-warning {{discards qualifiers}}
+  ptr<int> t66 = val ? q_volatile : &volatile_val; // expected-warning {{discards qualifiers}}
                                                    // ptr<volatile int> and int * produce ptr<volatile int>
   ptr<int> t67 = val ? &volatile_val : q;          // expected-warning {{discards qualifiers}}
                                                    // volatile int * and ptr<int> produce ptr<volatile int>
@@ -873,7 +871,7 @@ extern void check_call_void(void) {
     // Test different kinds of pointers where the parameter type is a pointer to void and the
     // referent type is a pointer to void
     f1_void(s, val);  // param void *, arg void * OK
-    f2_void(s, val);  // param ptr<void>, arg void * OK
+    f2_void((void *) &val, val);  // param ptr<void>, arg void * OK
     f2_void(t, val);  // param ptr<void>, arg ptr<void OK
     f3_void(s, val);  // param array_ptr<void>, arg void * OK.
     f3_void(u, val);  // param array_ptr<void< arg array_ptr<void OK.
@@ -889,7 +887,7 @@ extern void check_call_void(void) {
                       // param int *, arg ptr<void>
     f1(u, val);       // expected-error {{incompatible type}}
                       // param int *, arg array_ptr<void>
-    f2(s, val);       // param ptr<int>, arg void * OK
+    f2((void *) &val, val);       // param ptr<int>, arg void * OK
     f2(t, val);       // expected-error {{incompatible type}}
                       // param ptr<int>, arg ptr<void>
     f2(u, val);       // expected-error {{incompatible type}}
@@ -1247,7 +1245,6 @@ void check_pointer_relational_compare(void)
                                // int * <= ptr<float> not OK
     result = p_int > r_float;  // expected-warning {{comparison of distinct pointer types}}
                                // int * > array_ptr<float> not OK
-
     result = q_int >= p_float; // expected-warning {{comparison of distinct pointer types}}
                                // ptr<int> >= float * not OK
     result = q_int < q_float; // expected-warning {{comparison of distinct pointer types}}
