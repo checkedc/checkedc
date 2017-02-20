@@ -160,9 +160,19 @@ is an incomplete type.
 
 \item Otherwise, if \var{D} is a function pointer type,
 \begin{itemize}
+\item If \var{e} is a null pointer, checking succeeds.
 \item Function names with unchecked function pointer types can be cast to have corresponding checked
-pointer types.  If \var{e} is a function name, \var{D} is \ptrT, \var{S} is \uncheckedptrinst{U},
-and \var{T} and \var{U} are compatible types, checking succeeds.
+pointer types.  If \var{D} is \ptrT, \var{S} is \uncheckedptrinst{U}, and \var{T} and \var{U} are
+compatible types, and one of the following, then checking succeeds:
+\begin{itemize}
+\item \var{e} is a function name.
+\item \var{e} has the form \texttt{*e1}, such that the \texttt{*} operator does not change the value of \var{e1},
+and checking succeeds for \texttt{(D) e1} (This requires that \var{e1} has function pointer type).
+\item \var{e} has the form \texttt{\&e1}, such that the \texttt{\&} operator does not change the value of \var{e1},
+and checking succeeds for \texttt{(D) e1} (This requires that \var{e1} has has function type).
+\item \var{e} is a cast that does not change the value of the cast operand, and checking succeeds for the cast
+operand.
+\end{itemize}
 \item Otherwise, checking fails with a compile-time error.
 \end{itemize}
 \end{itemize}

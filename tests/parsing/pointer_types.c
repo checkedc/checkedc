@@ -39,11 +39,11 @@ extern void f5(ptr<ptr<ptr<int>>> p, int y) {
    ***p = y;
 }
 
-extern void f6(array_ptr<int> p, int y) {
+extern void f6(array_ptr<int> p : count(1), int y) {
     *p = y;
 }
 
-extern void f7(array_ptr<int> p, int y) {
+extern void f7(array_ptr<int> p : count(1), int y) {
    *p = y;
    f6(p, y);
 }
@@ -73,7 +73,7 @@ extern void g5(int y, ptr<ptr<ptr<int>>> p) {
 }
 
 
-extern void g6(int y, array_ptr<int> p) {
+extern void g6(int y, array_ptr<int> p : count(1)) {
    *p = y;
    f7(p, y);
 }
@@ -92,7 +92,7 @@ extern const ptr<int> h2(int y, const ptr<int> p) {
    return p;
 }
 
-extern ptr<const int> h3(int y, array_ptr<ptr<const int>> p) {
+extern ptr<const int> h3(int y, array_ptr<ptr<const int>> p : count(1)) {
    y = **p;
    return *p;
 }
@@ -115,8 +115,8 @@ extern void k1(int y)
 {
    int v = y;
    ptr<int> t1 = &v;
-   array_ptr<int> t2 = &v;
-   array_ptr<ptr<int>> t3 = &t1;
+   array_ptr<int> t2 : count(1) = &v;
+   array_ptr<ptr<int>> t3  : count(1) = &t1;
    *t1 = 0;
    *t2 = 0;
    *t3 = 0;
@@ -127,7 +127,7 @@ extern void k1(int y)
 //
 
 struct Vector {
-    array_ptr<float> data;
+    array_ptr<float> data : count(len);
     int len;
 };
 
