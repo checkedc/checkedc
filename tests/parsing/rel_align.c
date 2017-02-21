@@ -83,7 +83,7 @@ extern void f4(array_ptr<int> arr : count(len), int len) {
   int none = 0;
   // none is a contextual a keyword if it follows 'bounds' '('
   array_ptr<int> q : bounds(none) = arr;
-  array_ptr<int> r : bounds(none + arr, arr + len) rel_align(char) = arr; // expected-error {{expected ')'}} expected-note {{to match this '('}}
+  array_ptr<int> r : bounds(none + arr, arr + len) rel_align(char) = arr; // expected-error {{expected ')'}} expected-note {{to match this '('}}  expected-error {{expected ')'}} expected-note {{to match this '('}}
   array_ptr<int> s : bounds(arr + none, arr + len) rel_align(char) = arr;
   array_ptr<int> t : bounds(t, t + count) rel_align(char) = arr;
   int bounds = len;
@@ -137,7 +137,7 @@ extern void f6(int *arr checked[] : count(5)) {
 
 // Bounds expressions with incorrect syntax or semantics
 extern void f7(array_ptr<int> arr : count(5)) {
-  array_ptr<int> p : bounds(start, end + 5) rel_align(char) = 0; // expected-error {{undeclared identifier 'start'}} expected-error {{undeclared identifier 'end'}}
+  array_ptr<int> p : bounds(start, end + 5) rel_align(char) = 0; // expected-error {{undeclared identifier 'start'}} expected-error {{undeclared identifier 'end'}} expected-error {{expected ')'}} expected-note {{to match this '('}}
   array_ptr<int> q : count(len) = 0;       // expected-error {{undeclared identifier 'len'}}
   array_ptr<int> r : byte_count(len) = 0;  // expected-error {{undeclared identifier 'len'}}
   array_ptr<int> s : 6 + 6 = 0;            // expected-error {{expected bounds expression}}
