@@ -822,9 +822,10 @@ int *h9(int arr[10]) {
   return arr;
 }
 
-// TODO: add bounds information when bounds declaration checking is added
-ptr<int> h10(int arr[10]) {  
-  return arr;
+int global_arr1[10];
+
+ptr<int> h10(void) {  
+  return global_arr1;
 }
 
 array_ptr<int> h11(int arr checked[10]) {
@@ -860,8 +861,9 @@ int(*h19(int arr[10][10]))[10]{
   return arr;
 }
 
-ptr<int[10]> h20(int arr[10][10]) {
-  return arr;
+int global_arr2[10][10];
+ptr<int[10]> h20(void) {
+  return global_arr2;
 }
 
 array_ptr<int[10]> h21(int arr[10][10]) {
