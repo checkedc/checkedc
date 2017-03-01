@@ -1,8 +1,12 @@
 // Tests that the Array Subscript Operator works with dynamic checks
 //
-// In particular, this re-runs the tests in subscript-check.c with Optimizer at O3
-//
 // The following lines are for the clang automated test suite
+//
+// This builds the file `subscript-check.c` at optimisation level O3, outputting an
+// executable at %t. We then run this with the same arguments as we run the unoptimised
+// binary with, and use FileCheck to ensure the output is what we expected, as specified
+// in `subscript-check.c`. This is run as a seperate test so we know if optimisation is
+// breaking our dynamic checks.
 //
 // RUN: %clang -fcheckedc-extension %S/subscript-check.c -o %t -Werror -O3
 // RUN: %t 0 0 0 0  0 0   0 0 0  | FileCheck %S/subscript-check.c
