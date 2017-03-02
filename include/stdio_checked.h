@@ -56,8 +56,11 @@ int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 // TODO: handle strings
 // int sscanf(const char * restrict s,
 //            const char * restrict format, ...);
+// TODO: Apple System Headers Support
+#ifndef __APPLE__
 int snprintf(char * restrict s : count(n), size_t n,
              const char * restrict format, ...);
+#endif
 
 int vfprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
              const char * restrict format,
@@ -71,9 +74,12 @@ int vfscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 //             va_list arg);
 // int vscanf(const char * restrict format,
 //            va_list arg);
+// TODO: Apple System Headers Support
+#ifndef __APPLE__
 int vsnprintf(char * restrict s : count(n), size_t n,
               const char * restrict format,
               va_list arg);
+#endif
 // OMITTED INTENTIONALLY:
 // vsprintf cannot be made checked. it is missing the bounds
 // for the output buffer.
