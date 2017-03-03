@@ -7,9 +7,14 @@
 //                                                                     //
 // TODO: revise string types after support for pointers to             //
 // null-terminated arrays is added to C.                               //
+//                                                                     //
+// TODO: Better Support for _FORTIFY_SOURCE > 0                        //
 /////////////////////////////////////////////////////////////////////////
 #include <string.h>
 
+
+// TODO: Apple System Headers Support
+#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
 void *memcpy(void * restrict dest : byte_count(n),
              const void * restrict src : byte_count(n),
              size_t n) : bounds(dest, (char *) dest + n);
@@ -17,6 +22,7 @@ void *memcpy(void * restrict dest : byte_count(n),
 void *memmove(void * restrict dest : byte_count(n),
               const void * restrict src : byte_count(n),
               size_t n) : bounds(dest, (char *)dest + n);
+#endif
 // TODO: strings
 // char *strcpy(char * restrict dest,
 //              const char * restrict src);
@@ -26,18 +32,24 @@ void *memmove(void * restrict dest : byte_count(n),
 // char *strcpy(char * restrict s1,
 //              const char * restrict s2);
 
+// TODO: Apple System Headers Support
+#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
 char *strncpy(char * restrict dest : count(n),
               const char * restrict src : count(n),
               size_t n) : bounds(dest, (char *)dest + n);
+#endif
 
 // OMITTED INTENTIONALLY: this cannot be made checked.
 // There is no bound on dest.
 // char *strcat(char * restrict dest,
 //              const char * restrict src);
 
+// TODO: Apple System Headers Support
+#ifndef __APPLE__
 char *strncat(char * restrict dest : count(n),
               const char * restrict src : count(n),
               size_t n) : bounds(dest, (char *)dest + n);
+#endif
 
 int memcmp(const void *src1 : byte_count(n), const void *src2 : byte_count(n),
            size_t n);
@@ -64,9 +76,14 @@ void *memchr(const void *s : byte_count(n), int c, size_t n) :
 // char *strtok(char * restrict s1,
 //              const char * restrict s2);
 
+// TODO: Apple System Headers Support
+#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
 void *memset(void *s : byte_count(n), int c, size_t n) :
   bounds(s, (char *) s + n);
+#endif
 
 // TODO: strings
 // char *strerror(int errnum);
 // size_t strlen(const char *s);
+
+#include "_builtin_string_checked.h"
