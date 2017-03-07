@@ -9,24 +9,25 @@
 // RUN: %t 2 4 8 8  0 4   0 3 2  | FileCheck %s
 // RUN: %t 2 4 8 8  1 3   0 1 5  | FileCheck %s
 // RUN: %t 2 4 8 8  2 -1  2 -1 2 | FileCheck %s
-// RUN: not --crash %t 3        | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t 0 5      | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t 0 0 0 9  | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: not --crash %t 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: not --crash %t 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: not --crash %t 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: not --crash %t 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: not --crash %t 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: not --crash %t 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: not --crash %t 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: not --crash %t 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: not --crash %t 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t 3        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t 0 5      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t 0 0 0 9  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 
+#include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "../../include/stdchecked.h"
@@ -41,9 +42,20 @@ int ma2 checked[3][3][3] = {
 
 array_ptr<int> a1 : count(3) = a0;
 
+// Handle an out-of-bounds reference by immediately exiting. This causes
+// some output to be missing.
+void handle_error(int err) {
+  _Exit(0);
+}
+
 // This signature for main is exactly what we want here,
 // it also means any uses of argv[i] are checked too!
 int main(int argc, array_ptr<char*> argv : count(argc)) {
+
+  // Set up the handler for a failing bounds check.  Currently the Checked C
+  // clang implementation raises a SIGILL when a bounds check fails.  This
+  // may change in the future.
+  signal(SIGILL, handle_error);
 
   // Unfortunately, using atoi everywhere below isn't super
   // great, as it will return 0 if it can't parse, which is a valid, 

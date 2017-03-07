@@ -5,15 +5,16 @@
 // RUN: %clang -fcheckedc-extension %s -o %t -Werror
 // RUN: %t pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
 // RUN: %t pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
-// RUN: not --crash %t fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-1
-// RUN: not --crash %t fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-2
-// RUN: not --crash %t fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-3
-// RUN: not --crash %t fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-4
+// RUN: %t fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-1
+// RUN: %t fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-2
+// RUN: %t fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-3
+// RUN: %t fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-4
 
+#include <assert.h>
+#include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <assert.h>
 #include "../../include/stdchecked.h"
 
 void passing_test_1(void);
@@ -25,9 +26,20 @@ void failing_test_2(void);
 void failing_test_3(array_ptr<int> a : count(0));
 void failing_test_4(array_ptr<int> a : count(len), int len);
 
+// Handle an out-of-bounds reference by immediately exiting. This causes
+// some output to be missing.
+void handle_error(int err) {
+  _Exit(0);
+}
+
 // This signature for main is exactly what we want here,
 // it also means any uses of argv[i] are checked too!
 int main(int argc, array_ptr<char*> argv : count(argc)) {
+
+  // Set up the handler for a failing bounds check.  Currently the Checked C
+  // clang implementation raises a SIGILL when a bounds check fails.  This
+  // may change in the future.
+  signal(SIGILL, handle_error);
 
   // This makes sure output is not buffered for when
   // we hit errors.
