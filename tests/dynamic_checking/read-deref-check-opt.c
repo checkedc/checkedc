@@ -8,13 +8,13 @@
 // in `deref-check.c`. This is run as a seperate test so we know if optimisation is
 // breaking our dynamic checks.
 //
-// RUN: %clang -fcheckedc-extension %S/deref-check.c -o %t -Werror -O3
-// RUN: %t pass1 | FileCheck %S/deref-check.c --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
-// RUN: %t pass2 | FileCheck %S/deref-check.c --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
-// RUN: %t fail1 | FileCheck %S/deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-1
-// RUN: %t fail2 | FileCheck %S/deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-2
-// RUN: %t fail3 | FileCheck %S/deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-3
-// RUN: %t fail4 | FileCheck %S/deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-4
+// RUN: %clang -fcheckedc-extension %S/read-deref-check.c -o %t -Werror -O3
+// RUN: %t pass1 | FileCheck %S/read-deref-check.c --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
+// RUN: %t pass2 | FileCheck %S/read-deref-check.c --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
+// RUN: %t fail1 | FileCheck %S/read-deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-1
+// RUN: %t fail2 | FileCheck %S/read-deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-2
+// RUN: %t fail3 | FileCheck %S/read-deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-3
+// RUN: %t fail4 | FileCheck %S/read-deref-check.c --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-4
 
 #import <stdlib.h>
 
