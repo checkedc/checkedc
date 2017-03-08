@@ -2,10 +2,10 @@
 //
 // The following lines are for the clang automated test suite
 //
-// This builds the file `deref-arith-check.c` at optimisation level O3, outputting an
+// This builds the file `read-deref-arith-check.c` at optimisation level O3, outputting an
 // executable at %t. We then run this with the same arguments as we run the unoptimised
 // binary with, and use FileCheck to ensure the output is what we expected, as specified
-// in `deref-arith-check.c`. This is run as a seperate test so we know if optimisation is
+// in `read-deref-arith-check.c`. This is run as a seperate test so we know if optimisation is
 // breaking our dynamic checks.
 //
 // RUN: %clang -fcheckedc-extension %S/read-deref-arith-check.c -o %t -Werror -O3
