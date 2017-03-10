@@ -140,10 +140,11 @@ void passing_test_3(array_ptr<int> a : count(len), int len) {
 
 // Bounds describe empty range, no deref
 void failing_test_1(void) {
-  array_ptr<int> a : bounds(a, a) = 0;
+  int a checked[2] = { 0, 0 };
+  array_ptr<int> b : bounds(a, a) = a;
   
-  (*a)++;
-  printf("Unassignable: %d\n", *a);
+  (*b)++;
+  printf("Unassignable: %d\n", *b);
   
   puts("Unexpected Success");
 }
