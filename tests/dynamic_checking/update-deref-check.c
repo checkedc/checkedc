@@ -62,37 +62,37 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   puts("Starting Test");
 
   if (strcmp(argv[1], "pass1") == 0) {
-    // CHECK-PASS-1: Printable
+    // CHECK-PASS-1: Assignable
     // CHECK-PASS-1: Expected Success
     passing_test_1();
   }
   else if (strcmp(argv[1], "pass2") == 0) {
-    // CHECK-PASS-2: Printable
+    // CHECK-PASS-2: Assignable
     // CHECK-PASS-2: Expected Success
     passing_test_2(a);
   }
   else if (strcmp(argv[1], "pass3") == 0) {
-    // CHECK-PASS-3: Printable
+    // CHECK-PASS-3: Assignable
     // CHECK-PASS-3: Expected Success
     passing_test_3(a, 3);
   }
   else if (strcmp(argv[1], "fail1") == 0) {
-    // CHECK-FAIL-1-NOT: Unprintable
+    // CHECK-FAIL-1-NOT: Unassignable
     // CHECK-FAIL-1-NOT: Unexpected Success
     failing_test_1();
   }
   else if (strcmp(argv[1], "fail2") == 0) {
-    // CHECK-FAIL-2-NOT: Unprintable
+    // CHECK-FAIL-2-NOT: Unassignable
     // CHECK-FAIL-2-NOT: Unexpected Success
     failing_test_2();
   }
   else if (strcmp(argv[1], "fail3") == 0) {
-    // CHECK-FAIL-3-NOT: Unprintable
+    // CHECK-FAIL-3-NOT: Unassignable
     // CHECK-FAIL-3-NOT: Unexpected Success
     failing_test_3(a);
   }
   else if (strcmp(argv[1], "fail4") == 0) {
-    // CHECK-FAIL-4-NOT: Unprintable
+    // CHECK-FAIL-4-NOT: Unassignable
     // CHECK-FAIL-4-NOT: Unexpected Success
     failing_test_4(a, 0);
   }
@@ -114,14 +114,16 @@ void passing_test_1(void) {
   int a checked[10] = { 0,0,0,0,0,0,0,0,0,0 };
   array_ptr<int> b : count(5) = &a[2];
 
-  printf("Printable: %d\n", *b);
+  *b += 1;
+  printf("Assignable: %d\n", *b);
 
   puts("Expected Success");
 }
 
 // Bounds Describe valid pointer, within array, deref is fine
 void passing_test_2(array_ptr<int> a : count(1)) {
-  printf("Printable: %d\n", *a);
+  *a -= 2;
+  printf("Assignable: %d\n", *a);
 
   puts("Expected Success");
 }
@@ -130,7 +132,8 @@ void passing_test_2(array_ptr<int> a : count(1)) {
 void passing_test_3(array_ptr<int> a : count(len), int len) {
   assert(len > 0);
 
-  printf("Printable: %d\n", *a);
+  *a *= 3;
+  printf("Assignable: %d\n", *a);
 
   puts("Expected Success");
 }
@@ -140,7 +143,8 @@ void failing_test_1(void) {
   int a checked[2] = { 0, 0 };
   array_ptr<int> b : bounds(a, a) = a;
   
-  printf("Unprintable: %d\n", *b);
+  *b += 1;
+  printf("Unassignable: %d\n", *b);
   
   puts("Unexpected Success");
 }
@@ -150,14 +154,16 @@ void failing_test_2(void) {
   int a checked[3] = { 0, 0, 0 };
   array_ptr<int> b : bounds(a + 2, a) = a;
 
-  printf("Unprintable: %d\n", *b);
+  *b -= 2;
+  printf("Unassignable: %d\n", *b);
 
   puts("Unexpected Success");
 }
 
 // Bounds describe empty range, no deref
 void failing_test_3(array_ptr<int> a : count(0)) {
-  printf("Unprintable: %d\n", *a);
+  *a *= 3;
+  printf("Unassignable: %d\n", *a);
 
   puts("Unexpected Success");
 }
@@ -166,7 +172,8 @@ void failing_test_3(array_ptr<int> a : count(0)) {
 void failing_test_4(array_ptr<int> a : count(len), int len) {
   assert(len == 0);
 
-  printf("Unprintable: %d\n", *a);
+  *a /= 4;
+  printf("Unassignable: %d\n", *a);
 
   puts("Unexpected Success");
 }
