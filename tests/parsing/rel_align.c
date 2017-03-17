@@ -100,16 +100,14 @@ extern void f6(int *arr checked[] : count(5)) {
 
 extern void f7(array_ptr<int> arr : count(5)) {
   array_ptr<int> p : bounds(start, end + 5) rel_align(char) = 0; // expected-error {{undeclared identifier 'start'}} \
-                                                                 // expected-error {{undeclared identifier 'end'}} \
-                                                                 // expected-error {{expected bounds expression before relative bounds clause}} 
+                                                                 // expected-error {{undeclared identifier 'end'}} 
   array_ptr<ptr<int(int len, array_ptr<int> arr : count(badvar))>> x // expected-error {{undeclared identifier 'badvar'}}
       : bounds(x, x + 5) rel_align(char) = 0;
 }
 
 extern void f7s(array_ptr<int> arr : count(5)) {
   array_ptr<int> p : bounds(start, end + 5) rel_align_value(sizeof(char)) = 0; // expected-error {{undeclared identifier 'start'}}\
-                                                                               // expected-error {{undeclared identifier 'end'}} \
-                                                                 // expected-error {{expected bounds expression before relative bounds clause}} 
+                                                                               // expected-error {{undeclared identifier 'end'}} 
   array_ptr<ptr<int(int len, array_ptr<int> arr : count(badvar))>> x // expected-error {{undeclared identifier 'badvar'}}
       : bounds(x, x + 5) rel_align_value(sizeof(p)) = 0;
 }
@@ -206,9 +204,9 @@ int f18(void) {
   int buffer checked[100];
   struct S30 {
     int len;
-    array_ptr<int> arr : bounds(buffer, buffer + len) rel_align(char); // expected-error 2 {{use of undeclared member 'buffer'}} expected-error {{expected bounds expression before relative bounds clause}}
-    array_ptr<int> arr1: bounds(buffer, buffer + len) rel_align_value(sizeof(len));// expected-error 2 {{use of undeclared member 'buffer'}} expected-error {{expected bounds expression before relative bounds clause}}
-    array_ptr<int> arr2: bounds(buffer, buffer + len) rel_align_value(sizeof(char));// expected-error 2 {{use of undeclared member 'buffer'}} expected-error {{expected bounds expression before relative bounds clause}}
+    array_ptr<int> arr : bounds(buffer, buffer + len) rel_align(char); // expected-error 2 {{use of undeclared member 'buffer'}}
+    array_ptr<int> arr1: bounds(buffer, buffer + len) rel_align_value(sizeof(len));// expected-error 2 {{use of undeclared member 'buffer'}}
+    array_ptr<int> arr2: bounds(buffer, buffer + len) rel_align_value(sizeof(char));// expected-error 2 {{use of undeclared member 'buffer'}}
   };
 }
 
@@ -229,12 +227,13 @@ struct S3 {
   array_ptr<int> arr2 : count(none);
   array_ptr<int> arr3 : bounds(none + arr2, none + arr2 + 5) rel_align(1);  // expected-error {{expected ')'}} \
                                                               // expected-note {{to match this '('}} \
-	// expected-error {{expected a type}} expected-error {{expected bounds expression before relative bounds clause}}
+                                                              // expected-error {{expected a type}} \
+                                                              // expected-error {{expected range bounds expression}} 
   array_ptr<int> arr4 : bounds(arr2, arr2 + none) rel_align(char);
   
   array_ptr<int> arr5 : bounds(none + arr2, none + arr2 + 5) rel_align_value(sizeof(char));// expected-error {{expected ')'}} \
-                                                              // expected-note {{to match this '('}} \
-	// expected-error {{expected bounds expression before relative bounds clause}}
+                                                                                           // expected-note {{to match this '('}} \
+                                                                                           // expected-error {{expected range bounds expression}} 
   array_ptr<int> arr6 : bounds(arr2, arr2 + none) rel_align_value(1);
 };
 
@@ -304,43 +303,38 @@ struct S10 {
 };
 
 struct S11 {
-  array_ptr<int> arr : bounds(arr, unknown_id) rel_align(char); // expected-error {{use of undeclared member}} \
-                                                                // expected-error {{expected bounds expression before relative bounds clause}}
-  array_ptr<int> arr1: bounds(arr1, unknown_id) rel_align_value(sizeof(char)); // expected-error {{use of undeclared member}} \
-                                                                // expected-error {{expected bounds expression before relative bounds clause}}  
+  array_ptr<int> arr : bounds(arr, unknown_id) rel_align(char); // expected-error {{use of undeclared member}} 
+
+  array_ptr<int> arr1: bounds(arr1, unknown_id) rel_align_value(sizeof(char)); // expected-error {{use of undeclared member}} 
+
 };
 
 struct S12 {
   int len;
   array_ptr<int> arr : boounds(arr, arr + 5) rel_align(char);  // expected-error 2 {{use of undeclared identifier 'arr'}} \
-                                               // expected-warning {{implicit declaration of function 'boounds'}} \
-              				       // expected-error {{expected bounds expression before relative bounds clause}}  
+                                               // expected-warning {{implicit declaration of function 'boounds'}} 
   array_ptr<int> arr1: booundss(arr1, arr1 + 5) rel_align_value(sizeof(int)); // expected-error 2 {{use of undeclared identifier 'arr1'}} \
-                                               // expected-warning {{implicit declaration of function 'booundss'}}\
-                                               // expected-error {{expected bounds expression before relative bounds clause}}  
+                                               // expected-warning {{implicit declaration of function 'booundss'}}
 };
 
 struct S13 {
   int len;
-  array_ptr<int> arr : bounds() rel_align(char); // expected-error {{expected expression}} \
-                                                 // expected-error {{expected bounds expression before relative bounds clause}}  
+  array_ptr<int> arr : bounds() rel_align(char); // expected-error {{expected expression}} 
+
   array_ptr<int> arr1: bounds() rel_align_value(len); // expected-error {{expected expression}} \
-                                                 // expected-error {{expected bounds expression before relative bounds clause}}  \
 						      // expected-error {{expression is not an integer constant expression}} 
-  array_ptr<int> arr3 : bounds() rel_align(); // expected-error {{expected expression}}  expected-error {{expected a type}} \
-                                                 // expected-error {{expected bounds expression before relative bounds clause}}  
-  array_ptr<int> arr4 : bounds() rel_align_value(); // expected-error 2 {{expected expression}}\
-                                                   // expected-error {{expected bounds expression before relative bounds clause}}  
+  array_ptr<int> arr3 : bounds() rel_align(); // expected-error {{expected expression}}  expected-error {{expected a type}} 
+
+  array_ptr<int> arr4 : bounds() rel_align_value(); // expected-error 2 {{expected expression}}
 };
 
 array_ptr<int> global_bound;
 
 struct S14 {
   int len;
-  array_ptr<int> arr : bounds(global_bound, global_bound + len) rel_align(int); // expected-error 2 {{use of undeclared member 'global_bound'}}\
-                                                   // expected-error {{expected bounds expression before relative bounds clause}}  
+  array_ptr<int> arr : bounds(global_bound, global_bound + len) rel_align(int); // expected-error 2 {{use of undeclared member 'global_bound'}}
+
   array_ptr<int> arr1
-      : bounds(global_bound, global_bound + len) rel_align_value(sizeof(int)); // expected-error 2 {{use of undeclared member 'global_bound'}}\
-                                                   // expected-error {{expected bounds expression before relative bounds clause}}  
+      : bounds(global_bound, global_bound + len) rel_align_value(sizeof(int)); // expected-error 2 {{use of undeclared member 'global_bound'}}
 };
 
