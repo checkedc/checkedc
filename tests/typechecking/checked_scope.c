@@ -16,9 +16,9 @@ checked int f0(int len, int *p, ptr<int> q, array_ptr<int> r, int *s : itype(ptr
 checked int* f1(int len, int *p, int *q, int *r : itype(array_ptr<int>)) {  // expected-error 2 {{invalid parameter type}} \
                                                                             // expected-error {{invalid return type}}
 }
-checked ptr<int> f2() { // expected-error {{function with no prototype cannot have a return type that is a checked type}} expected-error {{checked scope prevents function with no prototype}}
+checked ptr<int> f2() { // expected-error {{function with no prototype cannot have a return type that is a checked type}} expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
-checked int* f3() : itype(array_ptr<int>) { // expected-error {{invalid return type}} expected-error {{checked scope prevents function with no prototype}}
+checked int* f3() : itype(array_ptr<int>) { // expected-error {{invalid return type}} expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
 checked int* f4(int len, int *p, int *q, array_ptr<int> r) : itype(ptr<int>) { // expected-error 2 {{invalid parameter type}}
 }
@@ -182,4 +182,37 @@ int f24(void) {
     }
   }
 }
+
+int f25(void) {
+  int a = 5;
+  checked {
+    {
+      // checked scope inheritance
+      struct s0 {
+        int *a; // expected-error {{invalid member type}}
+        char *b; // expected-error {{invalid member type}}
+        ptr<int> pc;
+        array_ptr<int> pd : count(len);
+        int len;
+      } a;
+    }
+  }
+}
+
+struct s0 checked {
+  int *a; // expected-error {{invalid member type}}
+  char *b; // expected-error {{invalid member type}}
+  ptr<int> pc;
+  array_ptr<int> pd : count(len);
+  int len;
+  // checked scope inheritance
+  struct s1 {
+    int *a; // expected-error {{invalid member type}}
+    char *b; // expected-error {{invalid member type}}
+    ptr<int> pc;
+    array_ptr<int> pd : count(len);
+    int len;
+  } d;
+};
+
 
