@@ -23,7 +23,7 @@ checked int* f3() : itype(array_ptr<int>) { //expected-error {{return cannot hav
 }
 checked int* f4(int len, int *p, int *q, array_ptr<int> r) : itype(ptr<int>) { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
 }
-checked int f5(int p[]) { // expected-error {{parameter cannot have an unchecked pointer type in a checked scope}}
+checked int f5(int p[]) { // expected-error {{parameter cannot have an unchecked array type in a checked scope}}
   int a = 5;
   int *upa = &a; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   ptr<int> pb = &a;
@@ -106,7 +106,7 @@ checked int* f15(void) checked { // expected-error {{return cannot have an unche
 checked int* f16(int a checked[][5], int b checked[][5]) : itype(ptr<int>) checked {
 }
 
-checked int* f17(int a [][5], int b [][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter cannot have an unchecked pointer type in a checked scope}}
+checked int* f17(int a [][5], int b [][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}}
 }
 
 checked int* f18(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) checked {
@@ -116,6 +116,9 @@ checked int* f18(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : ity
   ptr<int> pb = f16(e, e);
   ptr<int> pc = f17(f, f);
   return upa;
+}
+
+checked int* f19(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) checked { // expected-error 3 {{type must be a checked type}} expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}} expected-error {{return cannot have an unchecked pointer type}}
 }
 
 // checked scope test
