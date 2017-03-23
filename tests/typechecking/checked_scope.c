@@ -5,7 +5,7 @@
 // RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
 #include "../../include/stdchecked.h"
-
+#if 0
 // checked function test
 // - check if function declaration (return/param) is checked
 // - check if function body (compound statement) is checked
@@ -239,5 +239,83 @@ struct s0 checked {
     int len;
   } d;
 };
+#endif
+// change type produced by address-of operator(&) in checked block
+// checked { .... int a; ptr<int> pb = &a; }
+void test_addrof_checked_scope(void) checked {
+  int a checked[10];
+  array_ptr<int> b;
+  int i;
 
+  // address-of operator output type _Ptr<T>
+  ptr<int> x = &a[i]; // UnaryOperator _Ptr<int>
+  ptr<int> y = &b[0]; // UnaryOperator _Ptr<int>
+  ptr<int> z = &i; // UnaryOperator _Ptr<int>
 
+  x = &a[i]; // UnaryOperator _Ptr<int>
+  y = &b[0]; // UnaryOperator _Ptr<int>
+  z = &i; // UnaryOperator _Ptr<int>
+
+  // incompatible type error, assigning to from incompatible type
+  x = b;
+
+  // address-of operator output _Ptr<T> is incompatible with _Array_ptr
+  // initialization of incompatible type
+  array_ptr<int> ax = &a[i];
+  array_ptr<int> ay = &b[0];
+  array_ptr<int> az = &i;
+
+  ax = &a[i];
+  ay = &b[0];
+  az = &i;
+
+  // &*(b+i) is different from &b[i]
+  // &*(b+i) result type = type of (b+i) = array_ptr<int>
+  // &b[i] result type = pointer type of int = ptr<int>
+  array_ptr<int> px = &(*(b+i));
+  array_ptr<int> py = &b[i];
+  array_ptr<int> pz = &(*(a+i));
+
+  px = &(*(b+i));
+  py = &b[i];
+  pz = &(*(a+i));
+}
+
+void test_addrof_unchecked_scope(void) {
+  int a checked[10];
+  array_ptr<int> b;
+  int i;
+
+  // checkSingleAssignmentConstraints(int * -> _Ptr<int> implicit casting)
+  ptr<int> x = &a[i]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
+  ptr<int> y = &b[0]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
+  ptr<int> z = &i; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
+
+  x = &a[i]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
+  y = &b[0]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
+  z = &i; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
+
+  // checkSingleAssignmentConstraints(int * -> _Array_ptr<int> implicit casting)
+  array_ptr<int> ax = &a[i]; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+  array_ptr<int> ay = &b[0]; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+  array_ptr<int> az = &i; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+
+  ax = &a[i]; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+  ay = &b[0]; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+  az = &i; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+
+  // &E, T(type of E)
+  // address of operand = UnaryOperator(UO_AddrOf, E)
+  // address of type
+  // if E is *SE, &E = &*SE = type of SE
+  // if E is in unchecked block, it is unchecked pointer type of E(T *)
+  // if E is in checked block, it is checked pointer type of E(_Ptr<T>)
+
+  array_ptr<int> px = &(*(b+i)); // UnaryOperator _Array_ptr<int>(ParenExpr(UnaryOperator(*))
+  array_ptr<int> py = &b[i]; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+  array_ptr<int> pz = &(*(a+i)); // UnaryOperator _Array_ptr<int>(ParenExpr(UnaryOperator(*)))
+
+  px = &(*(b+i)); // UnaryOperator _Array_ptr<int>()
+  py = &b[i]; // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
+  pz = &(*(a+i)); // UnaryOperator _Array_ptr<int>()
+}
