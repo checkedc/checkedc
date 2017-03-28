@@ -193,14 +193,14 @@ extern void f16(void) {
       : bounds(arr, arr + len) rel_align(char);
 }
 
-extern array_ptr<int> f178(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}} 
+extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}} expected-error {{expected a type}}
 													    }
-extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(char) { // expected-error {{expected bounds expression}}
+extern array_ptr<int> f18(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(char) { // expected-error {{expected bounds expression}}
 }
-extern array_ptr<int> fs171(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}}
+extern array_ptr<int> f19(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}} expected-error {{expression is not an integer constant expression}}
 }
 
-int f18(void) {
+int f20(void) {
   int buffer checked[100];
   struct S30 {
     int len;
@@ -208,6 +208,33 @@ int f18(void) {
     array_ptr<int> arr1: bounds(buffer, buffer + len) rel_align_value(sizeof(len));// expected-error 2 {{use of undeclared member 'buffer'}}
     array_ptr<int> arr2: bounds(buffer, buffer + len) rel_align_value(sizeof(char));// expected-error 2 {{use of undeclared member 'buffer'}}
   };
+}
+
+extern void f21(int *p : itype(ptr<int>) rel_alive(1), int y) {  // expected-error {{expected ')'}} expected-note {{to match this '('}}
+   *p = y; // expected-error {{use of undeclared}}
+}
+
+extern void f22(array_ptr<int> p : bounds(p, p+1) rel_alive(1), int y) { // expected-error {{expected ')'}} expected-note {{to match this '('}}
+  *p = y; //expected-error {{use of undeclared identifier 'y'}}
+}
+
+extern void f23(int *p : iitype(ptr<int>) rel_alive(1), int y) {// expected-error {{expected bounds expression or bounds-safe interface type}} 
+   *p = y;
+}
+
+extern array_ptr<int> f24(array_ptr<int> arr : bounds(arr, arr + 5) rel_align(1))// expected-error {{expected a type}}
+  : bounds(arr, arr + 5) rel_align(1);// expected-error {{expected a type}}
+
+extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1){} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
+
+extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
+
+extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds() rel_alive(1) { // expected-error {{expected bounds expression or bounds-safe interface type}}
+}
+extern void f28(void) {
+  array_ptr<int> arg : bo0unds(arg, arg + 5) rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
+  array_ptr<int> arg1 : bo0unds rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
+  array_ptr<int> arg2 : bo0unds rel_align(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}  expected-error {{expected a type}}
 }
 
 struct S1 {
@@ -337,4 +364,3 @@ struct S14 {
   array_ptr<int> arr1
       : bounds(global_bound, global_bound + len) rel_align_value(sizeof(int)); // expected-error 2 {{use of undeclared member 'global_bound'}}
 };
-
