@@ -42,9 +42,9 @@ unsigned long long int strtoull(const char * restrict nptr,
 // TODO: express alignment constraints once where clauses have been added.
 void *aligned_alloc(size_t alignment, size_t size) : byte_count(size);
 void *calloc(size_t nmemb, size_t size) : byte_count(nmemb * size);
-void free(void *ptr : itype(_Ptr<void>));
+void free(void *pointer : itype(_Ptr<void>));
 void *malloc(size_t size) : byte_count(size);
-void *realloc(void *ptr  : itype(_Ptr<void>), size_t size) : byte_count(size);
+void *realloc(void *pointer  : itype(_Ptr<void>), size_t size) : byte_count(size);
 
 // TODO: strings
 // char *getenv(const char *n);
