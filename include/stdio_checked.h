@@ -106,11 +106,11 @@ int putc(int c, FILE *stream : itype(_Ptr<FILE>));
 // int puts(const char *str);
 int ungetc(int c, FILE *stream : itype(_Ptr<FILE>));
 
-size_t fread(void * restrict ptr : byte_count(size * nmemb),
+size_t fread(void * restrict pointer : byte_count(size * nmemb),
              size_t size, size_t nmemb,
              FILE * restrict stream : itype(restrict _Ptr<FILE>));
 
-size_t fwrite(const void * restrict ptr : byte_count(size * nmemb),
+size_t fwrite(const void * restrict pointer : byte_count(size * nmemb),
               size_t size, size_t nmemb,
               FILE * restrict stream : itype(restrict _Ptr<FILE>));
 
