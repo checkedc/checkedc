@@ -289,9 +289,9 @@ extern void check_assign_cv(int param[10],
   p = checked_param;              // expected-error {{incompatible type}}
   p_const = checked_param;        // expected-error {{incompatible type}}
   p_volatile = checked_param;     // expected-error {{incompatible type}} 
-  q = checked_param;              // expected-correct {{incompatible type}}, ptr<T> = array_ptr<T> OK
-  q_const = checked_param;        // expected-correct {{incompatible type}}, ptr<T> = array_ptr<T> OK
-  q_volatile = checked_param;     // expected-correct {{incompatible type}}, ptr<T> = array_ptr<T> OK
+  q = checked_param;              // ptr<T> = array_ptr<T> OK
+  q_const = checked_param;        // ptr<T> = array_ptr<T> OK
+  q_volatile = checked_param;     // ptr<T> = array_ptr<T> OK
   r = checked_param;
   r_const = checked_param;
   r_volatile = checked_param;
@@ -308,7 +308,7 @@ extern void check_assign_cv(int param[10],
   r_volatile = const_param;     // expected-warning {{discards qualifiers}}
 
   // the rhs is an checked array where the element type has modifiers  
-  q = const_checked_param;      // expected-correct {{incompatible type}}, expected-warning {{discards qualifiers}}
+  q = const_checked_param;      // expected-warning {{discards qualifiers}}
                                 // ptr<T> = array_ptr<T> OK 
   r = const_checked_param;      // expected-warning {{discards qualifiers}}
   r_const = const_checked_param;
@@ -332,9 +332,9 @@ extern void check_assign_cv(int param[10],
   p = b;              // expected-error {{incompatible type}}
   p_const = b;        // expected-error {{incompatible type}}
   p_volatile = b;     // expected-error {{incompatible type}} 
-  q = b;              // expected-correct {{incompatible type}}, ptr<T> = array_ptr<T> OK
-  q_const = b;        // expected-correct {{incompatible type}}, ptr<T> = array_ptr<T> OK
-  q_volatile = b;     // expected-correct {{incompatible type}}, ptr<T> = array_ptr<T> OK
+  q = b;              // ptr<T> = array_ptr<T> OK
+  q_const = b;        // ptr<T> = array_ptr<T> OK
+  q_volatile = b;     // ptr<T> = array_ptr<T> OK
   r = b;
   r_const = b;
   r_volatile = b;
@@ -351,7 +351,7 @@ extern void check_assign_cv(int param[10],
   r_volatile = const_a;     // expected-warning {{discards qualifiers}}
 
   // the rhs is an checked array where the element type has modifiers  
-  q = const_b;      // expected-correct {{incompatible type}} expected-warning {{discards qualifiers}}
+  q = const_b;      // expected-warning {{discards qualifiers}}
                     // ptr<T> = array_ptr<T> OK
   r = const_b;      // expected-warning {{discards qualifiers}}
   r_const = const_b;
@@ -813,7 +813,7 @@ int *h6(void) {
 }
 
 ptr<int> h7(void) {
-  return checked_global; // expected-correct {{incompatible result type}}, ptr<T> = array_ptr<T> OK
+  return checked_global; // ptr<T> = array_ptr<T> OK
 }
 
 array_ptr<int> h8(void) {
@@ -839,7 +839,7 @@ int *h12(int arr checked[10]) {
 }
 
 ptr<int> h13(int arr checked[10]) {
-  return arr;  // expected-correct {{incompatible result type}}, ptr<T> = array_ptr<T> OK
+  return arr;  // ptr<T> = array_ptr<T> OK
 }
 
 array_ptr<int> h14(int arr checked[10]) {
@@ -851,7 +851,7 @@ int *h15(int arr checked[]) {
 }
 
 ptr<int> h17(int arr checked[]) {
-  return arr;  // expected-correct {{incompatible result type}}, ptr<T> = array_ptr<T> OK expected-error {{expression has no bounds}}
+  return arr;  // expected-error {{expression has no bounds}}, ptr<T> = array_ptr<T> OK
 }
 
 array_ptr<int> h18(int arr checked[]) {
@@ -891,7 +891,7 @@ int (*h25(int arr checked[10][10])) checked[10]{
 }
 
 ptr<int checked[10]> h26(int arr checked[10][10]) {
-  return arr;  // expected-correct {{incompatible result type}}, ptr<T> = array_ptr<T> OK
+  return arr;  // ptr<T> = array_ptr<T> OK
 }
 
 array_ptr<int checked[10]> h27(int arr checked[10][10]) {

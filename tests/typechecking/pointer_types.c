@@ -74,10 +74,9 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
                               // T * = ptr<T> not OK;
     int *t7 = r;              // expected-error {{incompatible type}}
                               // T * = array_ptr<T> not OK
-    ptr<int> t8 = r;          // expected-correct {{incompatible type}} expected-error {{expression has no bounds}}
+    ptr<int> t8 = r;          // expected-error {{expression has no bounds}}
                               // ptr<T> = array_ptr<T> OK
-    array_ptr<int> t9 = q;    // expected-correct {{incompatible type}}
-                              // array_ptr<T> = ptr<T> OK
+    array_ptr<int> t9 = q;    // array_ptr<T> = ptr<T> OK
 
     // check assigning different kinds of pointers with different referent
     // types
@@ -235,12 +234,11 @@ extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
                              // void * = array_ptr<void> not OK.
     ptr<void> t10 = (void *) &val; // ptr<void> = void * OK provided void * has known bounds
     ptr<void> t11 = t;       // ptr<void> = ptr<void> OK
-    ptr<void> t12 = u;       // expected-correct {{incompatible type}} expected-error {{expression has no bounds}}
+    ptr<void> t12 = u;       // expected-error {{expression has no bounds}}
                              // ptr<void> = array_ptr<void> OK.
     array_ptr<void> t13 = u; // array_ptr<void> = void * OK when array_ptr has no
                              // bounds
-    array_ptr<void> t14 = t; // expected-correct {{incompatible type}}
-                             // array_ptr<void> = ptr<void> OK.
+    array_ptr<void> t14 = t; // array_ptr<void> = ptr<void> OK.
     array_ptr<void> t15 = u; // array_ptr<void> = array_ptr<void> OK
 
     // pointer to integer = pointer to void for the different kinds of pointers.
@@ -747,10 +745,9 @@ extern void check_call(void) {
     f3(&val, 0);   // param array_ptr<int>, arg int * OK, when param has no bounds and arg has known bounds
 
 
-    f2(r, 0);      // expected-correct {{incompatible type}} expected-error {{expression has no bounds}}
+    f2(r, 0);      // expected-error {{expression has no bounds}}
                    // param ptr<int>, arg array_ptr<int> OK
-    f3(q, 0);      // expected-correct {{incompatible type}}
-                   // param array_ptr<int>, arg ptr<int> OK
+    f3(q, 0);      // param array_ptr<int>, arg ptr<int> OK
 
     // Test different kinds of pointers where the referent type differs.  These are all
     // expected to fail to typecheck.
@@ -824,10 +821,8 @@ extern void check_call(void) {
                                // int * = ptr<int> not OK
     int *t10 = h3();           // expected-error {{incompatible type}}
                                // int * = array_ptr<int> not OK
-    ptr<int> t11 = h3();       // expected-correct {{incompatible type}}
-                               // ptr<int> = array_ptr<int> OK
-    array_ptr<int> t12 = h2(); // expected-correct {{incompatible type}}
-                               // array_ptr<int> = ptr<int> OK
+    ptr<int> t11 = h3();       // ptr<int> = array_ptr<int> OK
+    array_ptr<int> t12 = h2(); // array_ptr<int> = ptr<int> OK
 
     int t13 = h2();            // expected-error {{incompatible type}}
                                // int = ptr<int>
@@ -878,10 +873,9 @@ extern void check_call_void(void) {
 
     f1_void(t, val);  // expected-error {{incompatible type}}
     f1_void(u, val);  // expected-error {{incompatible type}}
-    f2_void(u, val);  // expected-correct {{incompatible type}} expected-error {{expression has no bounds}}
+    f2_void(u, val);  // expected-error {{expression has no bounds}}
                       // param ptr<void>, arg array_ptr<void>, OK
-    f3_void(t, val);  // expected-correct {{incompatible type}}
-                      // param array_ptr<void>, arg ptr<void>, OK
+    f3_void(t, val);  // param array_ptr<void>, arg ptr<void>, OK
 
     // Test parameter types that are pointer to integers and argument types that are pointers to void
     f1(s, val);       // param int *, arg void * OK
