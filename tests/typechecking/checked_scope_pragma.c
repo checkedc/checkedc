@@ -5,6 +5,12 @@
 // RUN: %clang_cc1 -fcheckedc-extension -Wno-unused-value -Wno-pointer-bool-conversion -verify -verify-ignore-unexpected=note %s
 //
 
+// Top level scope is a checked scope.
+// - By default, global variables are within a checked scope.
+// - By default, all functions are within a checked scope.
+// - To use unchecked function, unchecked function specifier is required
+
+#pragma BOUNDS_CHECKED on
 #include "../../include/stdchecked.h"
 
 // Test for checked function specifier.
@@ -14,30 +20,30 @@
 // If declaration has an unchecked type error in a checked scope,
 // it produces error message for declaration.
 // Otherwise, it produces an error message for each use of declaration.
-checked int func0(int len, int *p, ptr<int> q, array_ptr<int> r, int *s : itype(ptr<int>)) { // expected-error {{parameter cannot have an unchecked pointer type}}
+int func0(int len, int *p, ptr<int> q, array_ptr<int> r, int *s : itype(ptr<int>)) { // expected-error {{parameter cannot have an unchecked pointer type}}
   int result = *p + *q + *s;
   return result;
 }
 
-checked int* func1(int len, int *p, int *q, int *r : itype(array_ptr<int>)) { // expected-error 2 {{parameter cannot have an unchecked pointer type}} \
+int* func1(int len, int *p, int *q, int *r : itype(array_ptr<int>)) { // expected-error 2 {{parameter cannot have an unchecked pointer type}} \
                                                                               // expected-error {{return cannot have an unchecked pointer type}}
   int result = *p + *q + *r;
   int *presult = &result;   // expected-error {{variable cannot have an unchecked pointer type}}
   return presult;
 }
 
-checked ptr<int> func2() {  // expected-error {{function with no prototype cannot have a return type that is a checked type}} \
+ptr<int> func2() {  // expected-error {{function with no prototype cannot have a return type that is a checked type}} \
                             // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
 
-checked int* func3() : itype(array_ptr<int>) {  //expected-error {{return cannot have an unchecked pointer type in a checked scope}} \
+int* func3() : itype(array_ptr<int>) {  //expected-error {{return cannot have an unchecked pointer type in a checked scope}} \
                                                 //expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
 
-checked int* func4(int len, int *p, int *q, array_ptr<int> r) : itype(ptr<int>) { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+int* func4(int len, int *p, int *q, array_ptr<int> r) : itype(ptr<int>) { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
 }
 
-checked int func5(int p[]) {  // expected-error {{parameter cannot have an unchecked array type in a checked scope}}
+int func5(int p[]) {  // expected-error {{parameter cannot have an unchecked array type in a checked scope}}
   int a = 5;
   int *upa = &a;  // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   ptr<int> pb = &a;
@@ -46,14 +52,14 @@ checked int func5(int p[]) {  // expected-error {{parameter cannot have an unche
   return *p;
 }
 
-checked int func6(ptr<int> p, int *q) { // expected-error {{parameter cannot have an unchecked pointer type}}
+int func6(ptr<int> p, int *q) { // expected-error {{parameter cannot have an unchecked pointer type}}
   int a = 5;
   int *upa = &a;  // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   ptr<int> pb = p;
   return *pb;
 }
 
-checked int func7(ptr<int> p, int *q : itype(ptr<int>)) {
+int func7(ptr<int> p, int *q : itype(ptr<int>)) {
   int a = 5;
   int *upa = &a;  // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   int *upb = q;   // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
@@ -62,7 +68,7 @@ checked int func7(ptr<int> p, int *q : itype(ptr<int>)) {
   return *pc;
 }
 
-checked int* func8(ptr<int> p, int *q : itype(ptr<int>)) { // expected-error {{return cannot have an unchecked pointer type in a checked scope}}
+int* func8(ptr<int> p, int *q : itype(ptr<int>)) { // expected-error {{return cannot have an unchecked pointer type in a checked scope}}
   int a = 5;
   ptr<int> pa = &a;
   ptr<int> pb = p;
@@ -70,7 +76,7 @@ checked int* func8(ptr<int> p, int *q : itype(ptr<int>)) { // expected-error {{r
   return upc;
 }
 
-checked int* func9(ptr<int> p, int *q : itype(ptr<int>)) : itype(ptr<int>) {
+int* func9(ptr<int> p, int *q : itype(ptr<int>)) : itype(ptr<int>) {
   int a = 5;
   ptr<int> pa = &a;
   ptr<int> pb = p;
@@ -79,7 +85,7 @@ checked int* func9(ptr<int> p, int *q : itype(ptr<int>)) : itype(ptr<int>) {
 }
 
 // Test for checked function specifier & checked block.
-int* func10(array_ptr<int> x, int len) checked {
+int* func10(array_ptr<int> x, int len) checked {  // expected-error {{return cannot have an unchecked pointer type}}
   int *upa;   // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   return upa;
 }
@@ -89,29 +95,27 @@ array_ptr<int> func11(array_ptr<int> x, int len) : bounds(x,x+len) checked {
   return upa;
 }
 
-array_ptr<int> func12(int *x, int *y) checked {
-  int *upa = x; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}} \
-                // expected-error {{cannot use a parameter with an unchecked type}}
-  int *upb = y; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}} \
-                // expected-error {{cannot use a parameter with an unchecked type}}
+array_ptr<int> func12(int *x, int *y) checked {   // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+  int *upa = x; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
+  int *upb = y; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   return upb;
 }
 
-checked ptr<int> func13(void) checked {
+ptr<int> func13(void) checked {
   int *upa; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   ptr<int> pb = 0;
   array_ptr<int> pc;
   return pb;
 }
 
-checked array_ptr<char> func14(void) checked {
+array_ptr<char> func14(void) checked {
   int *upa; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   ptr<int> pb = 0 ;
   array_ptr<char> pc;
   return pc;
 }
 
-checked int* func15(void) checked { // expected-error {{return cannot have an unchecked pointer type in a checked scope}}
+int* func15(void) checked { // expected-error {{return cannot have an unchecked pointer type in a checked scope}}
   int a[5]; // expected-error {{variable cannot have an unchecked array type in a checked scope}}
   int *upa; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   ptr<int> pb = 0;
@@ -119,25 +123,24 @@ checked int* func15(void) checked { // expected-error {{return cannot have an un
   return upa;
 }
 
-checked int* func16(int a checked[][5], int b checked[][5]) : itype(ptr<int>) checked {
+int* func16(int a checked[][5], int b checked[][5]) : itype(ptr<int>) checked {
 }
 
-checked int* func17(int a [][5], int b [][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}}
+int* func17(int a [][5], int b [][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}}
 }
 
-checked int* func18(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) checked {
+int* func18(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) checked {
   int e checked[5][5];
   int f[5][5];                // expected-error {{variable cannot have an unchecked array type in a checked scope}}
   int *upa = func16(e, e);    // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
   ptr<int> pb = func16(e, e);
   ptr<int> pc = 0;
   pc = func17(f, f);
-  int *upd = func10(upa, 10); // expected-error {{variable cannot have an unchecked pointer type}} \
-                              // expected-error {{cannot use a return with an unchecked type}}
+  int *upd = func10(upa, 10); // expected-error {{variable cannot have an unchecked pointer type}}
   return upa;
 }
 
-checked int* func19(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) checked {// expected-error 3 {{type must be a checked type}} \
+int* func19(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) checked {// expected-error 3 {{type must be a checked type}} \
                                                                                               // expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}} \
                                                                                               // expected-error {{return cannot have an unchecked pointer type}}
 }
@@ -171,13 +174,13 @@ int func21(void) {
 
 int func22(void) {
   int a = 5;
-  int *upa = &a;
+  int *upa = &a;  // expected-error {{variable cannot have an unchecked pointer type}}
   checked {
     int b[5][5];    // expected-error {{variable cannot have an unchecked array type in a checked scope}}
   checked {
     for (int i = 0; i < 5; i++) checked {
       for (int j = 0; j < 5; j++) checked {
-        b[i][j] = *upa; // expected-error {{cannot use a variable with an unchecked type}}
+        b[i][j] = *upa;
       }
     }
   }
@@ -217,28 +220,28 @@ int func24(void) {
 
 int func25(void) {
   int a = 5;
-  int *upa = &a;
-  int b[5][5];
+  int *upa = &a;    // expected-error {{variable cannot have an unchecked pointer type}}
+  int b[5][5];      // expected-error {{variable cannot have an unchecked array type}}
   for (int i = 0; i < 5; i++) checked {
     for (int j = 0; j < 5; j++) {
-      b[i][j] = -1; // expected-error {{cannot use a variable with an unchecked type}}
+      b[i][j] = -1;
     }
   }
 }
 
-int func26(ptr<int> p, int *q) {
+int func26(ptr<int> p, int *q) {  // expected-error {{parameter cannot have an unchecked pointer type}}
   int a = 5;
-  int *upa;
+  int *upa;           // expected-error {{variable cannot have an unchecked pointer type}}
   array_ptr<int> pc;
-  upa = pc;           // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
+  upa = pc;
   checked {
-    upa = &a;         // expected-error {{cannot use a variable with an unchecked type}}
+    upa = &a;
   }
   ptr<int> pb = p;
   return *pb;
 }
 
-checked void func27(void) {
+void func27(void) {
   int *upa;   // expected-error {{variable cannot have an unchecked pointer type}}
   array_ptr<int> pb;
   ptr<int> pc = 0;
@@ -247,11 +250,11 @@ checked void func27(void) {
 }
 
 void func28(void) {
-  int *upa;
+  int *upa; // expected-error {{variable cannot have an unchecked pointer type}}
   array_ptr<int> pb;
   ptr<int> pc = 0;
-  upa = pb; // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-  upa = pc; // expected-error {{assigning to 'int *' from incompatible type '_Ptr<int>'}}
+  upa = pb;
+  upa = pc;
 }
 
 int func29(void) {
@@ -265,8 +268,6 @@ int func29(void) {
         array_ptr<int> pd : count(len);
         int len;
         short e[10];  // expected-error {{member cannot have an unchecked array type}}
-        int *f : itype(ptr<int>);
-        char *g : itype(array_ptr<char>);
       } a;
     }
   }
@@ -283,7 +284,7 @@ void func30(void) {
 // Test for unchecked scope.
 // - unchecked scope clears checked property & prevents inheritance of checked property.
 // - unchecked scope keyword clears checked function specifier.
-checked int * func40(int *p, int *q) unchecked {// expected-error {{return cannot have an unchecked pointer type}} \
+int * func40(int *p, int *q) unchecked {// expected-error {{return cannot have an unchecked pointer type}} \
                                                 // expected-error 2 {{parameter cannot have an unchecked pointer type}}
   int a = 5;
   *p = *q = 0;
@@ -297,7 +298,7 @@ checked int * func40(int *p, int *q) unchecked {// expected-error {{return canno
   return 0;
 }
 
-checked int * func41(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) unchecked { // expected-error {{return cannot have an unchecked pointer type}} \
+int * func41(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) unchecked { // expected-error {{return cannot have an unchecked pointer type}} \
                                                                                                     // expected-error {{parameter cannot have an unchecked pointer type}}
   int a = 5;
   checked {
@@ -319,7 +320,7 @@ checked int * func41(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : co
   return 0;
 }
 
-checked int func42(ptr<int> p, int q[], int r[5]) unchecked {  // expected-error 2 {{parameter cannot have an unchecked array type}}
+int func42(ptr<int> p, int q[], int r[5]) unchecked {  // expected-error 2 {{parameter cannot have an unchecked array type}}
   int a = 5;
   checked {
     int *upa = &a;  // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
@@ -337,7 +338,7 @@ checked int func42(ptr<int> p, int q[], int r[5]) unchecked {  // expected-error
   return 0;
 }
 
-checked int * func43(void) : itype(array_ptr<int>) unchecked {
+int * func43(void) : itype(array_ptr<int>) unchecked {
   int a = 5;
   {
     {
@@ -363,7 +364,7 @@ checked int * func43(void) : itype(array_ptr<int>) unchecked {
   }
 }
 
-checked int * func44(void) unchecked {  // expected-error {{return cannot have an unchecked pointer type}}
+int * func44(void) unchecked {  // expected-error {{return cannot have an unchecked pointer type}}
   int a = 5;
   checked {
     int *upa = &a;  // expected-error {{variable cannot have an unchecked pointer type in a checked scope}}
@@ -383,7 +384,7 @@ checked int * func44(void) unchecked {  // expected-error {{return cannot have a
   }
 }
 
-checked int func45(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+int func45(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
   int sum = 0;
   int a = 5;
   int *upa = &a;
@@ -397,7 +398,7 @@ checked int func45(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(arra
   return sum;
 }
 
-int func46(ptr<int> p, int *q) unchecked {
+int func46(ptr<int> p, int *q) unchecked {  // expected-error {{parameter cannot have an unchecked pointer type}}
   int a = 5;
   int *upa;
   array_ptr<int> pc;
@@ -416,7 +417,7 @@ int func46(ptr<int> p, int *q) unchecked {
   return *pb;
 }
 
-checked array_ptr<int> func47(void) {
+array_ptr<int> func47(void) {
   int *upa;   // expected-error {{variable cannot have an unchecked pointer type}}
   unchecked {
   int *upb;
@@ -430,7 +431,7 @@ checked array_ptr<int> func47(void) {
   }
 }
 
-checked int * func48(void) : itype(ptr<int>) unchecked {
+int * func48(void) : itype(ptr<int>) unchecked {
   int *upa;
   array_ptr<int> pb;
   ptr<int> pc = 0;
@@ -455,8 +456,6 @@ int func49(void) {
         int len;
         short e[10];  // expected-error {{member cannot have an unchecked array type}}
         char f[10];   // expected-error {{member cannot have an unchecked array type}}
-        int *g : itype(ptr<int>);
-        char *h : itype(array_ptr<char>);
       } a;
       struct s1 unchecked {
         int *a;
@@ -466,8 +465,6 @@ int func49(void) {
         int len;
         short e[10];
         char f[10];
-        int *g : itype(ptr<int>);
-        char *h : itype(array_ptr<char>);
       } b;
 
     }
@@ -667,60 +664,52 @@ struct s0 checked {
   char *b;    // expected-error {{member cannot have an unchecked pointer type}}
   ptr<int> pc;
   array_ptr<int> pd : count(len);
-  int *e : itype(array_ptr<int>);
   int len;
   struct s1 {
     int *a;   // expected-error {{member cannot have an unchecked pointer type}}
     char *b;  // expected-error {{member cannot have an unchecked pointer type}}
     ptr<int> pc;
     array_ptr<int> pd : count(len);
-    int *e : itype(ptr<int>);
     int len;
   } d;
 };
 
 struct s2 {
-  int *a;
-  char *b;
+  int *a;   // expected-error {{member cannot have an unchecked pointer type}}
+  char *b;  // expected-error {{member cannot have an unchecked pointer type}}
   ptr<int> pc;
   array_ptr<int> pd : count(len);
-  int *e : itype(ptr<int>);
   int len;
   struct s3 {
-    int *a;
-    char *b;
+    int *a;   // expected-error {{member cannot have an unchecked pointer type}}
+    char *b;  // expected-error {{member cannot have an unchecked pointer type}}
     ptr<int> pc;
     array_ptr<int> pd : count(len);
-    int *e : itype(array_ptr<int>);
     int len;
   } d;
 };
 
-checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
+int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   int sum = *(st0->a) + *(st1->a);
   sum += *(st0->b) + *(st1->b);
   sum += *(st0->pc) + *(st1->pc);
   sum += *(st0->pd) + *(st1->pd);
-  sum += *(st0->e) + *(st1->e);
 
   struct s2 sta;
   ptr<struct s2> pstb = 0;
-  sum += *(sta.a) + *(sta.b) + *(sta.pc) + *(sta.pd); // expected-error 2 {{cannot use a member with an unchecked type}}
-  sum += *(sta.e);
-  sum += *(pstb->a) + *(pstb->b); // expected-error 2 {{cannot use a member with an unchecked type}}
-  sum += *(pstb.a) + *(pstb.b);   // expected-error 2 {{cannot use a member with an unchecked type}} expected-error 2 {{member reference type}}
-  sum += *(sta->a) + *(sta->b);   // expected-error 2 {{cannot use a member with an unchecked type}} expected-error 2 {{member reference type}}
+  sum += *(sta.a) + *(sta.b) + *(sta.pc) + *(sta.pd);
+  sum += *(pstb->a) + *(pstb->b);
+  sum += *(pstb.a) + *(pstb.b);   // expected-error 2 {{member reference type}}
+  sum += *(sta->a) + *(sta->b);   // expected-error 2 {{member reference type}}
 
   ptr<struct s2> st2 = 0;
   ptr<struct s2> st3 = 0;
-  sum += *(st2->a)  + *(st3->a); // expected-error 2 {{cannot use a member with an unchecked type}}
-  sum += *(st2->b)  + *(st3->b); // expected-error 2 {{cannot use a member with an unchecked type}}
+  sum += *(st2->a)  + *(st3->a);
+  sum += *(st2->b)  + *(st3->b);
   sum += *(st2->pc) + *(st3->pc);
   sum += *(st2->pd) + *(st3->pd);
-  sum += *(st2->e) + *(st2->e);
-  sum += *(st2->d.a) + *(st3->d.a); // expected-error 2 {{cannot use a member with an unchecked type}}
-  sum += *(st2->d.b) + *(st3->d.b); // expected-error 2 {{cannot use a member with an unchecked type}}
-  sum += *(st2->d.e) + *(st3->d.e);
+  sum += *(st2->d.a) + *(st3->d.a);
+  sum += *(st2->d.b) + *(st3->d.b);
   return sum;
 }
 
@@ -821,13 +810,13 @@ void test_addrof_unchecked_scope(void) unchecked {
 
 int *gptr0 : itype(ptr<int>);
 int *gptr1 : itype(array_ptr<int>);
-int *gptr2;
+int *gptr2; // expected-error {{variable cannot have an unchecked pointer type}}
 
-extern void check_indirection_unchecked(int p[10], const int const_p[10], int y) checked {
-  *p = y;       // expected-error {{cannot use a parameter with an unchecked type}}
-  y = *p;       // expected-error {{cannot use a parameter with an unchecked type}}
-  *const_p = y; // expected-error {{cannot use a parameter with an unchecked type}}
-  y = *const_p; // expected-error {{cannot use a parameter with an unchecked type}}
+extern void check_indirection_unchecked(int p[10], const int const_p[10], int y) checked {  // expected-error 2 {{parameter cannot have an unchecked array type}}
+  *p = y;
+  y = *p;
+  *const_p = y;
+  y = *const_p;
 }
 
 extern void check_indirection_checked(int p checked[10], const int const_p checked[10], int y) checked {
@@ -846,22 +835,22 @@ extern void check_indirection_checked_incomplete(int p checked[] : count(len),
   y = *const_p;
 }
 
-extern void check_subscript_unchecked(int p[10], int y) checked {
-  p[0] = y;     // expected-error {{cannot use a parameter with an unchecked type}}
-  y = p[0];     // expected-error {{cannot use a parameter with an unchecked type}}
-  0[p] = y;     // expected-error {{cannot use a parameter with an unchecked type}}
-  y = 0[p];     // expected-error {{cannot use a parameter with an unchecked type}}
+extern void check_subscript_unchecked(int p[10], int y) checked { // expected-error {{parameter cannot have an unchecked array type}}
+  p[0] = y;
+  y = p[0];
+  0[p] = y;
+  y = 0[p];
 }
 
-extern void check_subscript_checked(int p checked[10], const int p_const[10], int y) checked {
+extern void check_subscript_checked(int p checked[10], const int p_const[10], int y) checked {  // expected-error {{parameter cannot have an unchecked array type}}
   p[0] = y;  // OK
   y = p[0];  // OK
   0[p] = y;  // OK
   y = 0[p];  // OK
-  p_const[0] = y;  // expected-error {{cannot use a parameter with an unchecked type}}
-  y = p_const[0];  // expected-error {{cannot use a parameter with an unchecked type}}
-  0[p_const] = y;  // expected-error {{cannot use a parameter with an unchecked type}}
-  y = 0[p_const];  // expected-error {{cannot use a parameter with an unchecked type}}
+  p_const[0] = y;
+  y = p_const[0];
+  0[p_const] = y;
+  y = 0[p_const];
 }
 
 extern void check_subscript_checked_incomplete(int p checked[] : count(len),
@@ -877,14 +866,14 @@ extern void check_subscript_checked_incomplete(int p checked[] : count(len),
   y = 0[p_const];  // OK
 }
 
-static int global_arr[10];
+static int global_arr[10];  // expected-error {{variable cannot have an unchecked array type}}
 static int global_checked_arr checked[10];
 
 typedef int unchecked_arr_type[10];
 typedef int checked_arr_type[10];
 
 // Test assignments between pointers and arrays, excluding const/volatile attributes.
-extern void check_assign(int val, int p[10], int q[], int r checked[10], int s checked[],
+extern void check_assign(int val, int p[10], int q[], int r checked[10], int s checked[], // expected-error 2 {{parameter cannot have an unchecked array type}}
                          int s2d checked[10][10]) checked {
   int t[10];              // expected-error {{variable cannot have an unchecked array type}}
   int t2d[10][10];        // expected-error {{variable cannot have an unchecked array type}}
@@ -894,11 +883,9 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
                             // not propagate through typedefs
 
   // Single-dimensional array type conversions to pointer types.
-  int *t1 = p;          // expected-error {{variable cannot have an unchecked pointer type}} \
-                        // expected-error {{cannot use a parameter with an unchecked type}}
+  int *t1 = p;          // expected-error {{variable cannot have an unchecked pointer type}}
                         // T *  = T[constant] OK
-  int *t2 = q;          // expected-error {{variable cannot have an unchecked pointer type}} \
-                        // expected-error {{cannot use a parameter with an unchecked type}}
+  int *t2 = q;          // expected-error {{variable cannot have an unchecked pointer type}}
                         // T *  = T[] OK
   int *t3 = t;          // expected-error {{variable cannot have an unchecked pointer type}}
                         // T *  = T[constant] OK;
@@ -912,8 +899,8 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   //
   // Note if there need to be known bounds, the bounds of p and q are unknown
   // because C does not guarantee that array sizes match for parameter passing
-  array_ptr<int> t7 = p;        // expected-error {{cannot use a parameter with an unchecked type}}
-  array_ptr<int> t8 = q;        // expected-error {{cannot use a parameter with an unchecked type}}
+  array_ptr<int> t7 = p;
+  array_ptr<int> t8 = q;
   array_ptr<int> t9 = r;
   array_ptr<int> t10  = s;
   array_ptr<int> t11 = t;
@@ -943,20 +930,19 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
 
   // Assignments to array-typed parameters are allowed.  The outermost array modifier
   // is converted to a pointer type.
-  p = q;  // expected-error 2 {{cannot use a parameter with an unchecked type}}
-  q = p;  // expected-error 2 {{cannot use a parameter with an unchecked type}}
+  p = q;
+  q = p;
   s = r;
   r = t;
-  p = r;  // expected-error {{cannot use a parameter with an unchecked type}}
+  p = r;
           // assignment of checked pointer to unchecked pointer not allowed
 
   // Assignments to array-typed local and global variables are not allowed
-  t = p;  // expected-error {{cannot use a parameter with an unchecked type}}
+  t = p;
   t = r;  // use of unchecked type, invalid declaration ignore others
   u = r;  // expected-error {{array type 'int checked[10]' is not assignable}}
-  global_arr = p; // expected-error {{cannot use a variable with an unchecked type}} \
-                  // expected-error {{cannot use a parameter with an unchecked type}}
-  global_arr = r; // expected-error {{cannot use a variable with an unchecked type}}
+  global_arr = p;
+  global_arr = r;
   global_checked_arr = r; // expected-error {{array type 'int checked[10]' is not assignable}}
 }
 
@@ -992,45 +978,45 @@ extern void check_dimensions1(void) checked {
 }
 
 // Test that dimensions for incomplete array types are either all checked or unchecked arrays.
-checked void check_dimensions2(int r2d checked[][10] : count(len), int len) {
+void check_dimensions2(int r2d checked[][10] : count(len), int len) {
 }
 
-checked void check_dimensions3(int (r2d checked[])[10] : count(len), int len) {
+void check_dimensions3(int (r2d checked[])[10] : count(len), int len) {
 }
 
-checked void check_dimensions4(int r2d []checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
+void check_dimensions4(int r2d []checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
 }
 
-checked void check_dimensions5(int (r2d[])checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
+void check_dimensions5(int (r2d[])checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
 }
 
 // Test that qualifiers on the outermost dimension of a checked array-typed parameter are preserved.
-checked void check_dimensions6(int r2d checked[const][10] : count(len), int len) {
+void check_dimensions6(int r2d checked[const][10] : count(len), int len) {
   r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
   int *t1 = r2d[0]; // expected-error {{variable cannot have an unchecked pointer type }}
 }
 
-checked void check_dimensions7(int (r2d checked[const])[10] : count(len), int len) {
+void check_dimensions7(int (r2d checked[const])[10] : count(len), int len) {
   r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
   int *t1 = r2d[0]; // expected-error {{variable cannot have an unchecked pointer type }}
 }
 
-checked void check_dimensions8(int (r2d) checked[const][10] : count(len), int len) {
+void check_dimensions8(int (r2d) checked[const][10] : count(len), int len) {
   r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
   int *t1 = r2d[0]; // expected-error {{variable cannot have an unchecked pointer type }}
 }
 
 // Test assignments between pointers of different kinds with const/volatile
 // attributes on referent types
-extern void check_assign_cv(int param[10],
+extern void check_assign_cv(int param[10],                                  // expected-error {{parameter cannot have an unchecked array type}}
                             int checked_param checked[10],
-                            int param_const_ptr[const 10],
+                            int param_const_ptr[const 10],                  // expected-error {{parameter cannot have an unchecked array type}}
                             int checked_param_const_ptr checked[const 10],
-                            const int const_param[10],
+                            const int const_param[10],                      // expected-error {{parameter cannot have an unchecked array type}}
                             const int const_checked_param checked[10],
-                            const int const_param_const_ptr[const 10],
+                            const int const_param_const_ptr[const 10],      // expected-error {{parameter cannot have an unchecked array type}}
                             const int const_checked_param_const_ptr checked[const 10],
-                            volatile int volatile_param[10],
+                            volatile int volatile_param[10],                // expected-error {{parameter cannot have an unchecked array type}}
                             volatile int checked_volatile_param checked[10]) checked {
   int a[10];                          // expected-error {{variable cannot have an unchecked array type}}
   int b checked[10];
@@ -1045,40 +1031,40 @@ extern void check_assign_cv(int param[10],
   // check assignments to parameters
   //
   // assign an unchecked array,where the element type does not have modifiers
-  param = a;                          //  expected-error {{cannot use a parameter with an unchecked type}}
+  param = a;
   checked_param = a;
-  param_const_ptr = a;                //  expected-error {{cannot use a parameter with an unchecked type}}
+  param_const_ptr = a;
   checked_param_const_ptr = a;
-  const_param = a;                    //  expected-error {{cannot use a parameter with an unchecked type}}
+  const_param = a;
   const_checked_param = a;
-  const_param_const_ptr = a;          //  expected-error {{cannot use a parameter with an unchecked type}}
+  const_param_const_ptr = a;
   const_checked_param_const_ptr = a;
-  volatile_param = a;                 //  expected-error {{cannot use a parameter with an unchecked type}}
+  volatile_param = a;
   checked_volatile_param = a;
 
   // assign a checked array, where the element type does not have modifiers
-  param = b;                          // expected-error {{cannot use a parameter with an unchecked type}}
+  param = b;
   checked_param = b;
-  param_const_ptr = b;                // expected-error {{cannot use a parameter with an unchecked type}}
+  param_const_ptr = b;
   checked_param_const_ptr = b;        // expected-error {{cannot assign to variable}}
-  const_param = b;                    // expected-error {{cannot use a parameter with an unchecked type}}
+  const_param = b;
   const_checked_param = b;
-  const_param_const_ptr = b;          // expected-error {{cannot use a parameter with an unchecked type}}
+  const_param_const_ptr = b;
   const_checked_param_const_ptr = b;  // expected-error {{cannot assign to variable}}
-  volatile_param = b;                 // expected-error {{cannot use a parameter with an unchecked type}}
+  volatile_param = b;
 
   // check assigning an unchecked array where the element type has modifiers
-  param = const_a;                    // expected-error {{cannot use a parameter with an unchecked type}}
+  param = const_a;
   checked_param = const_a;
-  const_param = const_a;              // expected-error {{cannot use a parameter with an unchecked type}}
+  const_param = const_a;
   const_checked_param = const_a;
-  volatile_param = const_a;           // expected-error {{cannot use a parameter with an unchecked type}}
+  volatile_param = const_a;
   checked_volatile_param = const_a;
 
   // spot check assigning a checked array where the element type has modifiers
   checked_param = const_b;            // expected-warning {{discards qualifiers}}
   const_checked_param = const_b;
-  volatile_param = const_b;           // expected-error {{cannot use a parameter with an unchecked type}}
+  volatile_param = const_b;
   checked_volatile_param = const_b;   // expected-warning {{discards qualifiers}}
 
   //
@@ -1097,15 +1083,15 @@ extern void check_assign_cv(int param[10],
   array_ptr<volatile int> r_volatile = 0;
 
   // the rhs is an unchecked array where the element type does not have modifiers
-  p = param;            // expected-error {{cannot use a parameter with an unchecked type}}
-  p_const = param;      // expected-error {{cannot use a parameter with an unchecked type}}
-  p_volatile = param;   // expected-error {{cannot use a parameter with an unchecked type}}
+  p = param;
+  p_const = param;
+  p_volatile = param;
   // q = param;          not allowed: param has unknown bounds
   // q_const = param;    not allowed: param has unknown bounds
   // q_volatile = param; not allowed: param has unknown bounds
-  r = param;            // expected-error {{cannot use a parameter with an unchecked type}}
-  r_const = param;      // expected-error {{cannot use a parameter with an unchecked type}}
-  r_volatile = param;   // expected-error {{cannot use a parameter with an unchecked type}}
+  r = param;
+  r_const = param;
+  r_volatile = param;
 
   // the rhs is a checked array where the element type does not have modifiers
   p = checked_param;
@@ -1119,15 +1105,15 @@ extern void check_assign_cv(int param[10],
   r_volatile = checked_param;
 
   // the rhs is an unchecked array where the element type has modifiers
-  p = const_param;              // expected-error {{cannot use a parameter with an unchecked type}}
-  p_const = const_param;        // expected-error {{cannot use a parameter with an unchecked type}}
-  p_volatile = const_param;     // expected-error {{cannot use a parameter with an unchecked type}}
+  p = const_param;
+  p_const = const_param;
+  p_volatile = const_param;
   // q = const_param;           not allowed: param has unknown bounds
   // q_const = const_param;     not allowed: param has unknown bounds
   // q_volatile = const_param;  not allowed: param has unknown bounds
-  r = const_param;              // expected-error {{cannot use a parameter with an unchecked type}}
-  r_const = const_param;        // expected-error {{cannot use a parameter with an unchecked type}}
-  r_volatile = const_param;     // expected-error {{cannot use a parameter with an unchecked type}}
+  r = const_param;
+  r_const = const_param;
+  r_volatile = const_param;
 
   // the rhs is an checked array where the element type has modifiers
   q = const_checked_param;      // expected-warning {{discards qualifiers}}
@@ -1375,20 +1361,20 @@ extern void check_condexpr_cv(void) checked {
 
 // Define functions used to test typechecking of call expressions.
 
-extern void f1(int *p, int y) {
+extern void f1(int *p, int y) { // expected-error {{parameter cannot have an unchecked pointer type}}
 }
 
-extern void f2(int p[10], int y) {
+extern void f2(int p[10], int y) {  // expected-error {{parameter cannot have an unchecked array type}}
 }
 
 extern void f3(int p checked[10], int y) {
   *p = y;
 }
 
-extern void f4(int **p, int y) {
+extern void f4(int **p, int y) {  // expected-error {{parameter cannot have an unchecked pointer type}}
 }
 
-extern void f5(int(*p)[10], int y) {
+extern void f5(int(*p)[10], int y) {  // expected-error {{parameter cannot have an unchecked pointer type}}
 }
 
 extern void f6(ptr<int[10]> p, int y) {
@@ -1406,7 +1392,7 @@ extern void f9(ptr<int checked[10]> p, int y) {
 extern void f10(array_ptr<int checked[10]> p, int y) {
 }
 
-extern void f11(int p[10][10], int y) {
+extern void f11(int p[10][10], int y) { // expected-error {{parameter cannot have an unchecked array type}}
 }
 
 extern void f12(int p checked[10][10],int y) {
@@ -1415,7 +1401,7 @@ extern void f12(int p checked[10][10],int y) {
 extern void f13(_Bool p, int y) {
 }
 
-extern void f1_void(void *p, int y) {
+extern void f1_void(void *p, int y) { // expected-error {{parameter cannot have an unchecked pointer type}}
 }
 
 extern void f2_void(ptr<void> p, int y) {
@@ -1424,7 +1410,7 @@ extern void f2_void(ptr<void> p, int y) {
 extern void f3_void(array_ptr<void> p, int y) {
 }
 
-extern void f1_const(const int p[10], int y) {
+extern void f1_const(const int p[10], int y) {  // expected-error {{parameter cannot have an unchecked array type}}
 }
 
 extern void f2_const(const int p checked[10], int y) {
@@ -1433,10 +1419,10 @@ extern void f2_const(const int p checked[10], int y) {
 // Spot check second parameter whose type invovles an array
 //
 
-extern void g1(int y, int *p) {
+extern void g1(int y, int *p) { // expected-error {{parameter cannot have an unchecked pointer type}}
 }
 
-extern void g2(int y, int p[10]) {
+extern void g2(int y, int p[10]) {  // expected-error {{parameter cannot have an unchecked array type}}
   *p = y;
 }
 
@@ -1597,113 +1583,113 @@ extern checked_arr_type h2(void) {    // expected-error {{function cannot return
   return 0;
 }
 
-int global[10];
+int global[10]; // expected-error {{variable cannot have an unchecked array type}}
 int checked_global checked[10];
-int global_arr1[10];
+int global_arr1[10];  // expected-error {{variable cannot have an unchecked array type}}
 
-checked int *h3(void) {   // expected-error {{return cannot have an unchecked pointer type}}
-  return global;    // expected-error {{cannot use a variable with an unchecked type}}
+int *h3(void) {   // expected-error {{return cannot have an unchecked pointer type}}
+  return global;
 }
 
-checked ptr<int> h4(void) {
-  return global;    // expected-error {{cannot use a variable with an unchecked type}}
+ptr<int> h4(void) {
+  return global;
 }
 
-checked array_ptr<int> h5(void) {
-  return global;    // expected-error {{cannot use a variable with an unchecked type}}
+array_ptr<int> h5(void) {
+  return global;
 }
 
-checked int *h6(void) {   // expected-error {{return cannot have an unchecked pointer type}}
+int *h6(void) {   // expected-error {{return cannot have an unchecked pointer type}}
   return checked_global;  // expected-error {{incompatible result type}}
 }
 
-checked ptr<int> h7(void) {
+ptr<int> h7(void) {
   return checked_global; // ptr<T> = array_ptr<T> OK
 }
 
-checked array_ptr<int> h8(void) {
+array_ptr<int> h8(void) {
   return checked_global;
 }
 
-checked int *h9(int arr[10]) {    // expected-error {{return cannot have an unchecked pointer type}} expected-error {{parameter cannot have an unchecked array type}}
+int *h9(int arr[10]) {    // expected-error {{return cannot have an unchecked pointer type}} expected-error {{parameter cannot have an unchecked array type}}
   return arr;
 }
 
-checked ptr<int> h10(void) {
-  return global_arr1;   // expected-error {{cannot use a variable with an unchecked type}}
+ptr<int> h10(void) {
+  return global_arr1;
 }
 
-checked array_ptr<int> h11(int arr checked[10]) {
+array_ptr<int> h11(int arr checked[10]) {
   return arr;
 }
 
-checked int *h12(int arr checked[10]) {   // expected-error {{return cannot have an unchecked pointer type}}
+int *h12(int arr checked[10]) {   // expected-error {{return cannot have an unchecked pointer type}}
   return arr;  // expected-error {{incompatible result type}}
 }
 
-checked ptr<int> h13(int arr checked[10]) {
+ptr<int> h13(int arr checked[10]) {
   return arr;  // ptr<T> = array_ptr<T> OK
 }
 
-checked array_ptr<int> h14(int arr checked[10]) {
+array_ptr<int> h14(int arr checked[10]) {
   return arr;
 }
 
-checked int *h15(int arr checked[]) {   // expected-error {{return cannot have an unchecked pointer type}}
+int *h15(int arr checked[]) {   // expected-error {{return cannot have an unchecked pointer type}}
   return arr;  // expected-error {{incompatible result type}}
 }
 
-checked ptr<int> h17(int arr checked[]) {
+ptr<int> h17(int arr checked[]) {
   return arr;  // ptr<T> = array_ptr<T> OK, expected-error {{expression has no bounds}}
 }
 
-checked array_ptr<int> h18(int arr checked[]) {
+array_ptr<int> h18(int arr checked[]) {
   return arr;
 }
 
 // h19 is a function that returns a pointer to a 10-element array of integers.
-checked int(*h19(int arr[10][10]))[10]{   // expected-error {{return cannot have an unchecked pointer type}} expected-error {{parameter cannot have an unchecked array type}}
+int(*h19(int arr[10][10]))[10]{   // expected-error {{return cannot have an unchecked pointer type}} expected-error {{parameter cannot have an unchecked array type}}
   return arr;
 }
 
-int global_arr2[10][10];
-checked ptr<int[10]> h20(void) {
-  return global_arr2; // expected-error {{cannot use a variable with an unchecked type}}
+int global_arr2[10][10];  // expected-error {{variable cannot have an unchecked array type}}
+ptr<int[10]> h20(void) {
+  return global_arr2;
 }
 
-checked array_ptr<int[10]> h21(int arr[10][10]) { // expected-error {{parameter cannot have an unchecked array type}}
+array_ptr<int[10]> h21(int arr[10][10]) { // expected-error {{parameter cannot have an unchecked array type}}
   return arr;
 }
 
 // h22 is a function that returns a pointer to a 10-element array of integers.
-checked int (*h22(int arr checked[10][10]))[10] { // expected-error {{return cannot have an unchecked pointer type}}
+int (*h22(int arr checked[10][10]))[10] { // expected-error {{return cannot have an unchecked pointer type}}
   return arr;  // expected-error {{incompatible result type}}
 }
 
-checked ptr<int[10]> h23(int arr checked[10][10]) {
+ptr<int[10]> h23(int arr checked[10][10]) {
   return arr;  // expected-error {{incompatible result type}}
 }
 
-checked array_ptr<int[10]> h24(int arr checked[10][10]) {
+array_ptr<int[10]> h24(int arr checked[10][10]) {
   return arr;  // expected-error {{incompatible result type}}
 }
 
 // h25 is a function that returns a pointer to 10-element array of integers.
-checked int (*h25(int arr checked[10][10])) checked[10]{
+int (*h25(int arr checked[10][10])) checked[10]{
   return arr;  // expected-error {{incompatible result type}}
 }
 
-checked ptr<int checked[10]> h26(int arr checked[10][10]) {
+ptr<int checked[10]> h26(int arr checked[10][10]) {
   return arr;  // ptr<T> = array_ptr<T> OK
 }
 
-checked array_ptr<int checked[10]> h27(int arr checked[10][10]) {
+array_ptr<int checked[10]> h27(int arr checked[10][10]) {
   return arr;
 }
 
 
 
-checked void check_pointer_arithmetic(void) {
+void check_pointer_arithmetic(void) {
   int p[5];           // expected-error {{variable cannot have an unchecked array type}}
   int r checked[5];
 
@@ -1747,7 +1733,7 @@ checked void check_pointer_arithmetic(void) {
   r + r; // expected-error {{invalid operands}}
 }
 
-checked void check_pointer_difference(int flag) {
+void check_pointer_difference(int flag) {
   int count;
   int val_int[5];                 // expected-error {{variable cannot have an unchecked array type}}
   float val_float[5];             // expected-error {{variable cannot have an unchecked array type}}
@@ -1784,7 +1770,7 @@ checked void check_pointer_difference(int flag) {
   count = checked_a_float - r_int;  // expected-error {{not pointers to compatible types}}
 }
 
-checked void check_pointer_relational_compare(void) {
+void check_pointer_relational_compare(void) {
   int result;
 
   int val_int[5];                 // expected-error {{variable cannot have an unchecked array type}}
@@ -1843,7 +1829,7 @@ checked void check_pointer_relational_compare(void) {
   result = r_int <= checked_val_float; // expected-warning {{comparison of distinct pointer types}}
 }
 
-checked void check_pointer_equality_compare(void) {
+void check_pointer_equality_compare(void) {
   int result;
 
   int val_int[5];                 // expected-error {{variable cannot have an unchecked array type}}
@@ -1901,7 +1887,7 @@ checked void check_pointer_equality_compare(void) {
   result = r_int == checked_val_float;  // expected-warning {{comparison of distinct pointer types}}
 }
 
-checked void check_logical_operators(void) {
+void check_logical_operators(void) {
   int p[5]; // expected-error {{variable cannot have an unchecked array type}}
   int r checked[5];
 
@@ -1927,7 +1913,7 @@ checked void check_logical_operators(void) {
   b = p && r;
 }
 
-checked void check_cast_operator(void) {
+void check_cast_operator(void) {
   int x = 0;
   int arr checked[5];
 
@@ -1980,11 +1966,11 @@ checked void check_cast_operator(void) {
   gptr1 = (ptr<int>)upa;
   gptr1 = (array_ptr<int>)upa;
 
-  gptr2 = upa;                      // expected-error {{cannot use a variable with an unchecked type}}
-  gptr2 = (ptr<int>)upa;            // expected-error {{cannot use a variable with an unchecked type}}
-  gptr2 = (array_ptr<int>)upa;      // expected-error {{cannot use a variable with an unchecked type}}
+  gptr2 = upa;
+  gptr2 = (ptr<int>)upa;
+  gptr2 = (array_ptr<int>)upa;
 }
-checked void check_illegal_operators(void) {
+void check_illegal_operators(void) {
   int p[5]; // expected-error {{variable cannot have an unchecked array type}}
   int r checked[5];
   p * 5;
