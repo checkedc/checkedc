@@ -16,9 +16,9 @@
 #include "../../include/stdchecked.h"
 
 // Test for pragma set/clear/set.
-#pragma BOUNDS_CHECKED on
-#pragma BOUNDS_CHECKED off
-#pragma BOUNDS_CHECKED on
+#pragma BOUNDS_CHECKED ON
+#pragma BOUNDS_CHECKED OFF
+#pragma BOUNDS_CHECKED ON
 
 // Test for checked function in top-level checked scope.
 // Check if paremeter, return, local variable is checked type
@@ -50,7 +50,8 @@ array_ptr<int> checked_func1_checked_body(int *x, int *y) {   // expected-error 
   return upb;
 }
 
-unchecked array_ptr<int> unchecked_func1_checked_body(int *x, int *y) checked {
+unchecked array_ptr<int> unchecked_func1_checked_body(int *x, int *y) {
+#pragma BOUNDS_CHECKED ON
   int *upa = x; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}} \
                 // expected-error {{cannot use a parameter with an unchecked type}}
   int *upb = y; // expected-error {{variable cannot have an unchecked pointer type in a checked scope}} \
@@ -64,7 +65,8 @@ unchecked array_ptr<int> unchecked_func1_unchecked_body(int *x, int *y) {
   return upb;
 }
 
-array_ptr<int> checked_func1_unchecked_body(int *x, int *y) unchecked {  // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+array_ptr<int> checked_func1_unchecked_body(int *x, int *y) {  // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+#pragma BOUNDS_CHECKED OFF
   int *upa = x;
   int *upb = y;
   return upb;
@@ -80,7 +82,7 @@ int* checked_func2_unchecked_parm_checked_ret(int a [][5], int b [][5]) : itype(
 int* checked_func2_checked_parm_unchecked_ret(int a checked[][5], int b checked[][5]) {  // expected-error {{return cannot have an unchecked pointer type}}
 }
 
-int* checked_func2_unchecked_parm_unchecked_ret(int a [][5], int b [][5]) {  // expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}} \
+int* checked_func2_unchecked_parm_unchecked_ret(int a [][5], int b [][5]) { // expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}} \
                                                                             // expected-error {{return cannot have an unchecked pointer type}}
 }
 
@@ -114,9 +116,43 @@ int * checked_func_u(int *p, int *q) unchecked {// expected-error {{return canno
   return 0;
 }
 
-int * checked_func_u_pragma0(int *p, int *q) unchecked {  // expected-error {{return cannot have an unchecked pointer type}} \
-                                                          // expected-error 2 {{parameter cannot have an unchecked pointer type}}
-#pragma BOUNDS_CHECKED on
+int * checked_func_u_pragma(int *p, int *q) { // expected-error {{return cannot have an unchecked pointer type}} \
+                                              // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+#pragma BOUNDS_CHECKED OFF
+  int a = 5;
+  *p = *q = 0;
+  ptr<int> pa = &a;
+  int b[5][5];
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+      b[i][j] = -1;
+    }
+  }
+  return 0;
+}
+
+int * checked_func_uc(int *p, int *q) unchecked { // expected-error {{return cannot have an unchecked pointer type}} \
+                                                  // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+  int *upa;
+  checked {
+    int a = 5;
+    *p = *q = 0;
+    ptr<int> pa = &a;
+    int b[5][5];  // expected-error {{variable cannot have an unchecked array type}}
+    for (int i = 0; i < 5; i++) {
+      for (int j = 0; j < 5; j++) {
+        b[i][j] = -1;
+      }
+    }
+  }
+  return upa;
+}
+
+int * checked_func_uc_pragma(int *p, int *q) {// expected-error {{return cannot have an unchecked pointer type}} \
+                                              // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+#pragma BOUNDS_CHECKED OFF
+  int *upa;
+#pragma BOUNDS_CHECKED ON
   int a = 5;
   *p = *q = 0;
   ptr<int> pa = &a;
@@ -126,28 +162,46 @@ int * checked_func_u_pragma0(int *p, int *q) unchecked {  // expected-error {{re
       b[i][j] = -1;
     }
   }
-  return 0;
+#pragma BOUNDS_CHECKED OFF
+  return upa;
 }
 
-int * checked_func_u_pragma1(int *p, int *q) unchecked {  // expected-error {{return cannot have an unchecked pointer type}} \
-                                                          // expected-error 2 {{parameter cannot have an unchecked pointer type}}
-#pragma BOUNDS_CHECKED on
-#pragma BOUNDS_CHECKED off
+int * checked_func_uc1(int *p, int *q) unchecked {// expected-error {{return cannot have an unchecked pointer type}} \
+                                                  // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+  int *upa;
+  int a = 5;
+  *p = *q = 0;
+  ptr<int> pa = &a;
+  int b[5][5];
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) checked {
+      b[i][j] = -1; // expected-error {{cannot use a variable with an unchecked type}}
+    }
+  }
+  checked {
+  return upa; // expected-error {{cannot use a variable with an unchecked type}}
+  }
+}
+
+int * checked_func_uc1_pragma(int *p, int *q) { // expected-error {{return cannot have an unchecked pointer type}} \
+                                                // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+#pragma BOUNDS_CHECKED OFF
+  int *upa;
   int a = 5;
   *p = *q = 0;
   ptr<int> pa = &a;
   int b[5][5];
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
-#pragma BOUNDS_CHECKED on
+#pragma BOUNDS_CHECKED ON
       b[i][j] = -1; // expected-error {{cannot use a variable with an unchecked type}}
     }
   }
-  return 0;
+#pragma BOUNDS_CHECKED ON
+  return upa; // expected-error {{cannot use a variable with an unchecked type}}
 }
 
-int * checked_func_u1(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) {// expected-error {{return cannot have an unchecked pointer type}} \
-                                                                                          // expected-error {{parameter cannot have an unchecked pointer type}}
+ptr<int> checked_func_u1(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) { // expected-error {{parameter cannot have an unchecked pointer type}}
   int a = 5;
   *p = 1;
   *q = 2;
@@ -156,14 +210,35 @@ int * checked_func_u1(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : c
   unchecked {
     ptr<int> pa = &a;
     int b checked[5][5];
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < 5; j++) {
+    for (int i = 0; i < 5; i++) checked {
+      for (int j = 0; j < 5; j++) unchecked {
         b[i][j] += *q + *r; // expected-error {{expression has no bounds}}
-      b[i][j] += *p + *q + *r + *s;
       }
+      b[i][4] += *p + *q + *r + *s;
     }
   }
-  return 0;
+  return q;
+}
+
+ptr<int> checked_func_u1_pragma(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) {// expected-error {{parameter cannot have an unchecked pointer type}}
+  int a = 5;
+  *p = 1;
+  *q = 2;
+  *r = 3; // expected-error {{expression has no bounds}}
+  *s = 4;
+#pragma BOUNDS_CHECKED OFF
+  ptr<int> pa = &a;
+  int b checked[5][5];
+  for (int i = 0; i < 5; i++) {
+#pragma BOUNDS_CHECKED ON
+    for (int j = 0; j < 5; j++) {
+#pragma BOUNDS_CHECKED OFF
+      b[i][j] += *q + *r; // expected-error {{expression has no bounds}}
+    }
+    b[i][4] += *p + *q + *r + *s;
+  }
+#pragma BOUNDS_CHECKED ON
+  return q;
 }
 
 int * checked_func_uc(void) : itype(array_ptr<int>) unchecked {
@@ -186,7 +261,29 @@ int * checked_func_uc(void) : itype(array_ptr<int>) unchecked {
   return upa;
 }
 
-int checked_func_ucu(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+int * checked_func_uc_pragma(void) : itype(array_ptr<int>) {
+#pragma BOUNDS_CHECKED OFF
+  int a = 5;
+  int *upa = &a;
+  int b[5][5];
+#pragma BOUNDS_CHECKED ON
+  int c checked[5][5];
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+      b[i][j] += c[i][j];   // expected-error {{cannot use a variable with an unchecked type}}
+    }
+  }
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+#pragma BOUNDS_CHECKED OFF
+      c[i][j] += b[i][j];
+    }
+  }
+#pragma BOUNDS_CHECKED OFF
+  return upa;
+}
+
+int checked_func_ucu1(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
   int sum = 0;
   int a = 5;
   int *upa = &a;
@@ -194,6 +291,23 @@ int checked_func_ucu(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(ar
   for (int i = 0; i < 5; i++) checked {
     sum += b[i][0] + *upa; // expected-error 2 {{cannot use a variable with an unchecked type}}
     for (int j = 1; j < 5; j++) unchecked {
+      sum += b[i][j];
+    }
+  }
+  return sum;
+}
+
+int checked_func_ucu1_pragma(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) { // expected-error 2 {{parameter cannot have an unchecked pointer type}}
+#pragma BOUNDS_CHECKED OFF
+  int sum = 0;
+  int a = 5;
+  int *upa = &a;
+  int b[5][5];
+  for (int i = 0; i < 5; i++) {
+#pragma BOUNDS_CHECKED ON
+    sum += b[i][0] + *upa; // expected-error 2 {{cannot use a variable with an unchecked type}}
+    for (int j = 1; j < 5; j++) {
+#pragma BOUNDS_CHECKED OFF
       sum += b[i][j];
     }
   }
@@ -216,26 +330,29 @@ int checked_func_ucu2(ptr<int> p, int *q) unchecked {  // expected-error {{param
     pc = &a;
   }
   ptr<int> pb = p;
+  int *upc;
+  int *upd;
   return *pb;
 }
 
-int checked_func_ucu2_pragma(ptr<int> p, int *q) unchecked {  // expected-error {{parameter cannot have an unchecked pointer type}}
+int checked_func_ucu2_pragma(ptr<int> p, int *q) {// expected-error {{parameter cannot have an unchecked pointer type}}
+#pragma BOUNDS_CHECKED OFF
   int a = 5;
   int *upa;
   array_ptr<int> pc;
   upa = pc; // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-#pragma BOUNDS_CHECKED on
+#pragma BOUNDS_CHECKED ON
   upa = &a; // expected-error {{cannot use a variable with an unchecked type}}
   pc = &a;
-#pragma BOUNDS_CHECKED off
+#pragma BOUNDS_CHECKED OFF
   upa = &a;
   pc = &a;
-#pragma BOUNDS_CHECKED on
+#pragma BOUNDS_CHECKED ON
   upa = &a; // expected-error {{cannot use a variable with an unchecked type}}
   pc = &a;
+#pragma BOUNDS_CHECKED OFF
   ptr<int> pb = p;
-  int *upc; // expected-error {{variable cannot have an unchecked pointer type}}
-#pragma BOUNDS_CHECKED off
+  int *upc;
   int *upd;
   return *pb;
 }
@@ -254,7 +371,8 @@ unchecked int * unchecked_func3_unchecked_body(int *p, int q[]) {
   return 0;
 }
 
-unchecked int * unchecked_func3_checked_body(int *p, int q[]) checked {
+unchecked int * unchecked_func3_checked_body(int *p, int q[]) {
+#pragma BOUNDS_CHECKED ON
   int a = 5;
   *p = *q = 0;  // expected-error 2 {{cannot use a parameter with an unchecked type}}
   ptr<int> pa = &a;
@@ -279,7 +397,8 @@ unchecked array_ptr<int> unchecked_func4_unchecked_body(int p[], int q[10], int 
   return upb; // array_ptr<int> = int *, OK
 }
 
-unchecked array_ptr<int> unchecked_func4_checked_body(int p[], int q[10], int r[][10]) checked {
+unchecked array_ptr<int> unchecked_func4_checked_body(int p[], int q[10], int r[][10]) {
+#pragma BOUNDS_CHECKED ON
   int *upa;   // expected-error {{variable cannot have an unchecked pointer type}}
   int *upb;   // expected-error {{variable cannot have an unchecked pointer type}}
   array_ptr<int> pb;
@@ -291,20 +410,20 @@ unchecked array_ptr<int> unchecked_func4_checked_body(int p[], int q[10], int r[
   return upb;
 }
 
-unchecked int * unchecked_func_cu(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) checked {
+unchecked int * unchecked_func_cu(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) {
+#pragma BOUNDS_CHECKED ON
   int a = 5;
   *p = 1; // expected-error {{cannot use a parameter with an unchecked type}}
   *q = 2;
   *r = 3; // expected-error {{expression has no bounds}}
   *s = 4;
-  unchecked {
-    ptr<int> pa = &a;
-    int b checked[5][5];
-    int c[5][5];
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < 5; j++) {
-        b[i][j] = *p + *q + *r + *s;  // expected-error {{expression has no bounds}}
-      }
+#pragma BOUNDS_CHECKED OFF
+  ptr<int> pa = &a;
+  int b checked[5][5];
+  int c[5][5];
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+      b[i][j] = *p + *q + *r + *s;  // expected-error {{expression has no bounds}}
     }
   }
   return 0;
@@ -315,9 +434,11 @@ unchecked int unchecked_func_cu2(int *p, int *q, int *r : itype(ptr<int>), int *
   int a = 5;
   int *upa = &a;
   int b[5][5];
-  for (int i = 0; i < 5; i++) checked {
+  for (int i = 0; i < 5; i++) {
+#pragma BOUNDS_CHECKED ON
     sum += b[i][0] + *upa; // expected-error 2 {{cannot use a variable with an unchecked type}}
-    for (int j = 1; j < 5; j++) unchecked {
+    for (int j = 1; j < 5; j++) {
+#pragma BOUNDS_CHECKED OFF
       sum += b[i][j];
     }
   }
@@ -420,18 +541,18 @@ int **a6 : itype(array_ptr<array_ptr<int>>) = 0;
 int ***a7 : itype(ptr<ptr<ptr<int>>>) = 0;
 int a8[10] : itype(int checked[10]);
 extern int a9[] : itype(int checked[]);
-#pragma BOUNDS_CHECKED off
+#pragma BOUNDS_CHECKED OFF
 int *a10;
-#pragma BOUNDS_CHECKED on
+#pragma BOUNDS_CHECKED ON
 int **a11;        // expected-error {{variable cannot have an unchecked pointer type}}
-#pragma BOUNDS_CHECKED off
+#pragma BOUNDS_CHECKED OFF
 int ***a12;
-#pragma BOUNDS_CHECKED on
+#pragma BOUNDS_CHECKED ON
 int a13[10];      // expected-error {{variable cannot have an unchecked array type}}
-#pragma BOUNDS_CHECKED off
+#pragma BOUNDS_CHECKED OFF
 extern int a14[];
 
-#pragma BOUNDS_CHECKED on
+#pragma BOUNDS_CHECKED ON
 int global[10]; // expected-error {{variable cannot have an unchecked array type}}
 int checked_global checked[10];
 int global_arr1[10];  // expected-error {{variable cannot have an unchecked array type}}
@@ -601,4 +722,34 @@ int checked_func_with_unchecked_struct(void) {
     int len;
   } a;
   return 0;
+}
+
+void variadic_func(int cnt, ...) {
+  for (int i = 0; i < cnt; i++) {}
+}
+
+void checked_func_call_variadic(void) {
+  ptr<char> a = 0, b = 0;
+  printf("check function call variadic %d\n", *a);  // expected-error {{call to variable argument function cannot be used in a checked scope}} \
+                                                    // expected-warning {{implicitly declaring library function}}
+#pragma BOUNDS_CHECKED OFF
+  printf("check function call variadic %d\n", *b);
+#pragma BOUNDS_CHECKED ON
+  printf("check function call variadic %d\n", *b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+#pragma BOUNDS_CHECKED OFF
+  printf("check function call variadic %d\n", *b);
+#pragma BOUNDS_CHECKED ON
+  printf("check function call variadic %d\n", *b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+#pragma BOUNDS_CHECKED OFF
+  printf("check function call variadic %d\n", *b);
+#pragma BOUNDS_CHECKED ON
+  variadic_func(1);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(2, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(3, a, a, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(4, a, a, a, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(5, a, a, a, b, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(6, a, a, a, b, b, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(7, a, a, a, a, b, b, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(8, a, a, a, a, a, b, b, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func(9, a, a, a, b, b, a, a, a, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
 }
