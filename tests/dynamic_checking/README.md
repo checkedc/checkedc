@@ -15,12 +15,18 @@ Each of these is duplicated for the following operators applied to these kinds o
 l-values:
 - `increment` applies `++` (post-increment) to the l-value
 - `read` reads the lvalue (aka does an "l-value conversion")
-- `update` applies compound assignment (such as `+=`, `-=`) to the l-value
+- `compound-assign` applies compound assignment (such as `+=`, `-=`) to the l-value
 - `write` assigns into the l-value with `=`
 
 This results in 24 total tests at the current count. As we add more l-value kinds
 this value will increase. We chose not to use the C preprocessor for this at this
 time.
+
+*Note:* do not use the words "install", "setup", "update" in test names where the files
+will be compiled and executed. Windows x86 has heuristics that decide executables with those
+words in the name need elevated privileges to run because they might be an installer,
+even if they don't actually install anything. Documentation is here:
+https://msdn.microsoft.com/en-us/enus/library/aa905330.aspx
 
 ### Optimised versions
 
