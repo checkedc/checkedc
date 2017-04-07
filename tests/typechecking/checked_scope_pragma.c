@@ -481,13 +481,15 @@ extern void f4(int **p, int y) {  // expected-error {{parameter cannot have an u
 extern void f5(int(*p)[10], int y) {  // expected-error {{parameter cannot have an unchecked pointer type}}
 }
 
-extern void f6(ptr<int[10]> p, int y) {
+extern void f6(ptr<int[10]> p, int y) { // expected-error {{parameter cannot have an unchecked array type}} \
+                                        // ptr<unchecked array> not OK in checked scope
 }
 
-extern void f7(array_ptr<int[10]> p, int y) {
+extern void f7(array_ptr<int[10]> p, int y) { // expected-error {{parameter cannot have an unchecked array type}} \
+                                              // array_ptr<unchecked array> not OK in checked scope
 }
 
-extern void f8(int(*p) checked[10], int y) {
+extern void f8(int(*p) checked[10], int y) {  // expected-error {{parameter cannot have an unchecked pointer type}}
 }
 
 extern void f9(ptr<int checked[10]> p, int y) {
@@ -624,11 +626,12 @@ int(*h19(int arr[10][10]))[10]{   // expected-error {{return cannot have an unch
 }
 
 int global_arr2[10][10];  // expected-error {{variable cannot have an unchecked array type}}
-ptr<int[10]> h20(void) {
+ptr<int[10]> h20(void) {  // expected-error {{return cannot have an unchecked array type}}
   return global_arr2;
 }
 
-array_ptr<int[10]> h21(int arr[10][10]) { // expected-error {{parameter cannot have an unchecked array type}}
+array_ptr<int[10]> h21(int arr[10][10]) { // expected-error {{return cannot have an unchecked array type}} \
+                                          // expected-error {{parameter cannot have an unchecked array type}}
   return arr;
 }
 
@@ -637,16 +640,16 @@ int (*h22(int arr checked[10][10]))[10] { // expected-error {{return cannot have
   return arr;  // expected-error {{incompatible result type}}
 }
 
-ptr<int[10]> h23(int arr checked[10][10]) {
+ptr<int[10]> h23(int arr checked[10][10]) { // expected-error {{return cannot have an unchecked array type}}
   return arr;  // expected-error {{incompatible result type}}
 }
 
-array_ptr<int[10]> h24(int arr checked[10][10]) {
+array_ptr<int[10]> h24(int arr checked[10][10]) { // expected-error {{return cannot have an unchecked array type}}
   return arr;  // expected-error {{incompatible result type}}
 }
 
 // h25 is a function that returns a pointer to 10-element array of integers.
-int (*h25(int arr checked[10][10])) checked[10]{
+int (*h25(int arr checked[10][10])) checked[10]{  // expected-error {{return cannot have an unchecked pointer type}}
   return arr;  // expected-error {{incompatible result type}}
 }
 
@@ -724,32 +727,126 @@ int checked_func_with_unchecked_struct(void) {
   return 0;
 }
 
-void variadic_func(int cnt, ...) {
+#pragma BOUNDS_CHECKED OFF
+extern void variadic_func0(int cnt, ...) {
   for (int i = 0; i < cnt; i++) {}
 }
 
+extern void variadic_func1(int cnt, ptr<int> p, array_ptr<int> q, ...) {
+}
+
+extern void variadic_func2(int cnt, ptr<int> p, ...) {
+}
+
+#pragma BOUNDS_CHECKED ON
+extern void variadic_func3(int cnt, ...) {  // expected-error {{variable arguments function cannot be made}}
+  for (int i = 0; i < cnt; i++) {}
+}
+
+extern void variadic_func4(int cnt, ptr<int> p, array_ptr<int> q, ...) {  // expected-error {{variable arguments function cannot be made}}
+}
+
+extern void variadic_func5(int cnt, ptr<int> p, ...) {  // expected-error {{variable arguments function cannot be made}}
+}
+
+
+#pragma BOUNDS_CHECKED ON
 void checked_func_call_variadic(void) {
-  ptr<char> a = 0, b = 0;
-  printf("check function call variadic %d\n", *a);  // expected-error {{call to variable argument function cannot be used in a checked scope}} \
+  ptr<int> a = 0;
+  array_ptr<int> b;
+  printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}} \
                                                     // expected-warning {{implicitly declaring library function}}
 #pragma BOUNDS_CHECKED OFF
-  printf("check function call variadic %d\n", *b);
+  printf("check function call variadic %d\n", *a);
 #pragma BOUNDS_CHECKED ON
-  printf("check function call variadic %d\n", *b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}}
 #pragma BOUNDS_CHECKED OFF
-  printf("check function call variadic %d\n", *b);
+  printf("check function call variadic %d\n", *a);
 #pragma BOUNDS_CHECKED ON
-  printf("check function call variadic %d\n", *b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}}
 #pragma BOUNDS_CHECKED OFF
-  printf("check function call variadic %d\n", *b);
+  printf("check function call variadic %d\n", *a);
 #pragma BOUNDS_CHECKED ON
-  variadic_func(1);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(2, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(3, a, a, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(4, a, a, a, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(5, a, a, a, b, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(6, a, a, a, b, b, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(7, a, a, a, a, b, b, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(8, a, a, a, a, a, b, b, b);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
-  variadic_func(9, a, a, a, b, b, a, a, a, a);  // expected-error {{call to variable argument function cannot be used in a checked scope}}
+  variadic_func0(10);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func1(10, a, b);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func2(10, a, a, a);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func0(10, a, a, a, b);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func1(10, a, b, a, b, b);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func2(10, a, a, a, b, b, a);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func0(10, a, a, a, a, b, b, b);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func1(10, a, b, a, a, a, b, b, b);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func2(10, a, a, a, b, b, a, a, a, a);  // expected-error {{cannot use a variable arguments function}}
+}
+
+#pragma BOUNDS_CHECKED ON
+ptr<void(int , ...)> fptr0;                             // expected-error {{variable cannot have variable arguments}}
+ptr<void(int , ptr<int>, array_ptr<int> , ...)> fptr1;  // expected-error {{variable cannot have variable arguments}}
+void (*fptr2)(int , ...); // expected-error {{variable cannot have an unchecked pointer type}}
+
+typedef struct _S3 checked {
+  int ((*gptr0)(int, ...));                               // expected-error {{member cannot have an unchecked pointer type}}
+  ptr<int*(int, ptr<int>, array_ptr<int>, ...)> gptr1;    // expected-error {{member cannot have an unchecked pointer type}}
+  ptr<int(int, ptr<int>, ...)> gptr2;                     // expected-error {{member cannot have variable arguments in a checked scope}}
+  ptr<int(int, ...)> gptr3;                               // expected-error {{member cannot have variable arguments in a checked scope}}
+  ptr<int(int, ptr<int(int, ptr<int(int, ...)>)>)> gptr4; // expected-error {{member cannot have variable arguments in a checked scope}}
+} S3;
+
+void checked_check_variadic(void) {
+  ptr<int> a = 0;
+  array_ptr<int> b;
+  fptr0 = &variadic_func0;  // expected-error {{cannot use a variable arguments function}}
+  fptr1 = &variadic_func1;  // expected-error {{cannot use a variable arguments function}}
+  fptr2 = &variadic_func2;  // expected-error {{cannot use a variable arguments function}}
+
+  (*fptr0)(1, a);
+  (*fptr0)(2, a, b);
+  (*fptr0)(5, a, a, b, b, b);
+
+  (*fptr1)(2, a, b);
+  (*fptr1)(5, a, b, a, a, b);
+}
+
+void check_checked_constructed_type_variadic(void) {
+#pragma BOUNDS_CHECKED ON
+  ptr<int> pa = 0;
+  array_ptr<int> apa;
+
+  ptr<void(int,int)> a = 0;
+  ptr<int(int,int)> b = 0;
+  ptr<int(int, ptr<int>, ...)> c = 0;           // expected-error {{variable cannot have variable arguments}}
+  ptr<int(int, ptr<int(int, ...)>)> d = 0;      // expected-error {{variable cannot have variable arguments}}
+  ptr<int(int, ptr<int(int,int)>, ...)> e = 0;  // expected-error {{variable cannot have variable arguments}}
+  ptr<int(int, ptr<int(int,...)>, ...)> f = 0;  // expected-error {{variable cannot have variable arguments}}
+  int (*g)(int, ...);                           // expected-error {{variable cannot have an unchecked}}
+  ptr<int*(int, int)> h = 0;                    // expected-error {{variable cannot have an unchecked}}
+  ptr<ptr<ptr<ptr<int*(int,int,...)>>>> i = 0;  // expected-error {{variable cannot have an unchecked}}
+  ptr<ptr<ptr<ptr<int(int,int,...)>>>> j = 0;   // expected-error {{variable cannot have variable arguments}}
+
+#pragma BOUNDS_CHECKED OFF
+  {
+  ptr<int(int,...)> var_b = 0;
+  ptr<int(int,ptr<int>,...)> var_c = 0;
+  ptr<int(int,ptr<int(int,...)>)> var_d = 0;
+  ptr<int(int,ptr<int(int,ptr<int>,...)>, ...)> var_e = 0;
+  ptr<int(int,ptr<int(int,ptr<int(int,...)>)>,ptr<int(int,ptr<int(int,ptr<int>,...)>, ...)>,...)> var_f = 0;
+  int (*g)(int, ...);
+  ptr<int*(int, int)> h = 0;
+  ptr<ptr<ptr<ptr<int*(int,int,...)>>>> var_i = 0;
+  ptr<ptr<ptr<ptr<int(int,int,...)>>>> var_j = 0;
+  (*a)(0, 0);
+  (*b)(1, 0);
+  (*var_c)(2, pa, pa);
+  (*var_d)(3, var_b);
+  (*var_e)(4, var_c, var_d);
+  (*var_f)(6, var_d, var_e, a, b, g, h);
+  (*h)(10,10);
+#pragma BOUNDS_CHECKED ON
+  (*a)(0, 0);
+  (*b)(1, 0);
+  (*var_c)(2, pa, pa);  // expected-error {{cannot use a variable having variable arguments}}
+  (*var_d)(3, var_b);   // expected-error 2 {{cannot use a variable having variable arguments}}
+  (*var_e)(4, var_c, var_d);  // expected-error 3 {{cannot use a variable having variable arguments}}
+  (*var_f)(6, var_d, var_e, a, b, g, h);  // expected-error 3 {{cannot use a variable having variable arguments}} \
+                                          // expected-error 2 {{cannot use a variable with an unchecked type}}
+  }
 }
