@@ -4,7 +4,6 @@
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
 #include "../../include/stdchecked.h"
-
 extern void f1(){
   array_ptr<int> a : count(1) =0;
   ptr<int> c = 0;
@@ -19,6 +18,7 @@ extern void f1(){
   checkedc_p = _Assume_bounds_cast<array_ptr<int>>(p,p,p+1);
   checkedc_p = _Dynamic_bounds_cast<array_ptr<int>>(p,p,p+1);
 }
+
 
 extern void f2(){
   char *p;
@@ -88,12 +88,12 @@ extern void f7(){
 
   // explicit casting vs dynamic_bounds_cast<T>
   p = (int *)q;
+
   p = _Assume_bounds_cast<int*>(q);
   p = (int *)r;
   p = _Assume_bounds_cast<int *>(r);
   p = (int *)s;
   p = _Assume_bounds_cast<int *>(s);
-
   q = p;  // expected-error 2 {{expression has no bounds}}
   q = r;  // expected-error 2 {{expression has no bounds}}
   q = s;
@@ -138,6 +138,7 @@ checked int * f9(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(
   return 0;
 }
 
+
 extern void f10(ptr<int> p, int y) {
     *p = y;
 }
@@ -164,6 +165,7 @@ extern void f11(){
        *char_unchecked_ptr_ub = (char *)i + 1;
 
   array_ptr<int> t20 : bounds(int_array_ptr_lb, char_array_ptr_ub) =  // expected-error {{pointer type mismatch}}
+
     _Assume_bounds_cast<array_ptr<int>>(i, int_array_ptr_lb, char_array_ptr_ub); // expected-error {{pointer type mismatch}}
   
   array_ptr<int> t21 : bounds(int_ptr_lb, char_array_ptr_ub) =  // expected-error {{pointer type mismatch}}
