@@ -973,35 +973,6 @@ extern void check_dimensions1(void) checked {
   array_ptr<int> t13 = t6[0];
 }
 
-// Test that dimensions for incomplete array types are either all checked or unchecked arrays.
-checked void check_dimensions2(int r2d checked[][10] : count(len), int len) {
-}
-
-checked void check_dimensions3(int (r2d checked[])[10] : count(len), int len) {
-}
-
-checked void check_dimensions4(int r2d []checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
-}
-
-checked void check_dimensions5(int (r2d[])checked[10] : count(len), int len) { // expected-error {{unchecked array of checked array not allowed}}
-}
-
-// Test that qualifiers on the outermost dimension of a checked array-typed parameter are preserved.
-checked void check_dimensions6(int r2d checked[const][10] : count(len), int len) {
-  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
-  int *t1 = r2d[0]; // expected-error {{variable cannot have an unchecked pointer type }}
-}
-
-checked void check_dimensions7(int (r2d checked[const])[10] : count(len), int len) {
-  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
-  int *t1 = r2d[0]; // expected-error {{variable cannot have an unchecked pointer type }}
-}
-
-checked void check_dimensions8(int (r2d) checked[const][10] : count(len), int len) {
-  r2d = 0;          // expected-error {{cannot assign to variable 'r2d' with const-qualified type}}
-  int *t1 = r2d[0]; // expected-error {{variable cannot have an unchecked pointer type }}
-}
-
 // Test conditional expressions where arms have different
 // kinds of checked and unchecked arrays.
 extern void check_condexpr(int val) {
