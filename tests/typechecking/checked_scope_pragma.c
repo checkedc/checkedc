@@ -682,16 +682,24 @@ struct S0 {
 };
 
 typedef struct _S1 {
+#pragma BOUNDS_CHECKED ON
   int *a;       // expected-error {{member cannot have an unchecked pointer type}}
+#pragma BOUNDS_CHECKED OFF
+#pragma BOUNDS_CHECKED ON
   char *b;      // expected-error {{member cannot have an unchecked pointer type}}
   ptr<int> pc;
   array_ptr<int> pd : count(len);
+#pragma BOUNDS_CHECKED OFF
+#pragma BOUNDS_CHECKED ON
   short e[10];  // expected-error {{member cannot have an unchecked array type}}
   char f[10];   // expected-error {{member cannot have an unchecked array type}}
   int len;
 } S1;
 
-typedef struct _S2 unchecked {
+typedef struct _S2 {
+#pragma BOUNDS_CHECKED OFF
+#pragma BOUNDS_CHECKED ON
+#pragma BOUNDS_CHECKED OFF
   int *a;
   char *b;
   ptr<int> pc;
@@ -703,6 +711,8 @@ typedef struct _S2 unchecked {
 
 int checked_func_with_checked_struct(void) {
   struct local_checked_s {
+#pragma BOUNDS_CHECKED OFF
+#pragma BOUNDS_CHECKED ON
     int *a;       // expected-error {{member cannot have an unchecked pointer type}}
     char *b;      // expected-error {{member cannot have an unchecked pointer type}}
     ptr<int> pc;
@@ -715,7 +725,8 @@ int checked_func_with_checked_struct(void) {
 }
 
 int checked_func_with_unchecked_struct(void) {
-  struct local_unchecked_s unchecked {
+  struct local_unchecked_s {
+#pragma BOUNDS_CHECKED OFF
     int *a;
     char *b;
     ptr<int> pc;
@@ -724,6 +735,16 @@ int checked_func_with_unchecked_struct(void) {
     char f[10];
     int len;
   } a;
+  typedef struct _S {
+#pragma BOUNDS_CHECKED ON
+    int *a; // expected-error {{member cannot have an unchecked pointer type}}
+  } S;
+  typedef struct _SS {
+#pragma BOUNDS_CHECKED OFF
+    int *a;
+  } *SS;
+  S b;
+  SS c; // expected-error {{variable cannot have an unchecked pointer type}}
   return 0;
 }
 
@@ -740,7 +761,6 @@ extern void variadic_func2(int cnt, ptr<int> p, ...) {
 
 #pragma BOUNDS_CHECKED ON
 extern void variadic_func3(int cnt, ...) {  // expected-error {{variable arguments function cannot be made}}
-  for (int i = 0; i < cnt; i++) {}
 }
 
 extern void variadic_func4(int cnt, ptr<int> p, array_ptr<int> q, ...) {  // expected-error {{variable arguments function cannot be made}}
@@ -760,22 +780,10 @@ void checked_func_call_variadic(void) {
   printf("check function call variadic %d\n", *a);
 #pragma BOUNDS_CHECKED ON
   printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}}
-#pragma BOUNDS_CHECKED OFF
-  printf("check function call variadic %d\n", *a);
-#pragma BOUNDS_CHECKED ON
-  printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}}
-#pragma BOUNDS_CHECKED OFF
-  printf("check function call variadic %d\n", *a);
 #pragma BOUNDS_CHECKED ON
   variadic_func0(10);  // expected-error {{cannot use a variable arguments function}}
   variadic_func1(10, a, b);  // expected-error {{cannot use a variable arguments function}}
   variadic_func2(10, a, a, a);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func0(10, a, a, a, b);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func1(10, a, b, a, b, b);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func2(10, a, a, a, b, b, a);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func0(10, a, a, a, a, b, b, b);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func1(10, a, b, a, a, a, b, b, b);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func2(10, a, a, a, b, b, a, a, a, a);  // expected-error {{cannot use a variable arguments function}}
 }
 
 #pragma BOUNDS_CHECKED ON
@@ -783,7 +791,11 @@ ptr<void(int , ...)> fptr0;                             // expected-error {{vari
 ptr<void(int , ptr<int>, array_ptr<int> , ...)> fptr1;  // expected-error {{variable cannot have variable arguments}}
 void (*fptr2)(int , ...); // expected-error {{variable cannot have an unchecked pointer type}}
 
-typedef struct _S3 checked {
+#pragma BOUNDS_CHECKED OFF
+typedef struct _S3 {
+#pragma BOUNDS_CHECKED ON
+#pragma BOUNDS_CHECKED OFF
+#pragma BOUNDS_CHECKED ON
   int ((*gptr0)(int, ...));                               // expected-error {{member cannot have an unchecked pointer type}}
   ptr<int*(int, ptr<int>, array_ptr<int>, ...)> gptr1;    // expected-error {{member cannot have an unchecked pointer type}}
   ptr<int(int, ptr<int>, ...)> gptr2;                     // expected-error {{member cannot have variable arguments in a checked scope}}
@@ -791,6 +803,7 @@ typedef struct _S3 checked {
   ptr<int(int, ptr<int(int, ptr<int(int, ...)>)>)> gptr4; // expected-error {{member cannot have variable arguments in a checked scope}}
 } S3;
 
+#pragma BOUNDS_CHECKED ON
 void checked_check_variadic(void) {
   ptr<int> a = 0;
   array_ptr<int> b;
@@ -798,11 +811,7 @@ void checked_check_variadic(void) {
   fptr1 = &variadic_func1;  // expected-error {{cannot use a variable arguments function}}
   fptr2 = &variadic_func2;  // expected-error {{cannot use a variable arguments function}}
 
-  (*fptr0)(1, a);
-  (*fptr0)(2, a, b);
   (*fptr0)(5, a, a, b, b, b);
-
-  (*fptr1)(2, a, b);
   (*fptr1)(5, a, b, a, a, b);
 }
 
@@ -819,8 +828,6 @@ void check_checked_constructed_type_variadic(void) {
   ptr<int(int, ptr<int(int,...)>, ...)> f = 0;  // expected-error {{variable cannot have variable arguments}}
   int (*g)(int, ...);                           // expected-error {{variable cannot have an unchecked}}
   ptr<int*(int, int)> h = 0;                    // expected-error {{variable cannot have an unchecked}}
-  ptr<ptr<ptr<ptr<int*(int,int,...)>>>> i = 0;  // expected-error {{variable cannot have an unchecked}}
-  ptr<ptr<ptr<ptr<int(int,int,...)>>>> j = 0;   // expected-error {{variable cannot have variable arguments}}
 
 #pragma BOUNDS_CHECKED OFF
   {
@@ -831,18 +838,12 @@ void check_checked_constructed_type_variadic(void) {
   ptr<int(int,ptr<int(int,ptr<int(int,...)>)>,ptr<int(int,ptr<int(int,ptr<int>,...)>, ...)>,...)> var_f = 0;
   int (*g)(int, ...);
   ptr<int*(int, int)> h = 0;
-  ptr<ptr<ptr<ptr<int*(int,int,...)>>>> var_i = 0;
-  ptr<ptr<ptr<ptr<int(int,int,...)>>>> var_j = 0;
-  (*a)(0, 0);
-  (*b)(1, 0);
   (*var_c)(2, pa, pa);
   (*var_d)(3, var_b);
   (*var_e)(4, var_c, var_d);
   (*var_f)(6, var_d, var_e, a, b, g, h);
   (*h)(10,10);
 #pragma BOUNDS_CHECKED ON
-  (*a)(0, 0);
-  (*b)(1, 0);
   (*var_c)(2, pa, pa);  // expected-error {{cannot use a variable having variable arguments}}
   (*var_d)(3, var_b);   // expected-error 2 {{cannot use a variable having variable arguments}}
   (*var_e)(4, var_c, var_d);  // expected-error 3 {{cannot use a variable having variable arguments}}
