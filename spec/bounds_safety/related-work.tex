@@ -744,7 +744,8 @@ arithmetic on unchecked C types.   In contrast, Checked C supersets C. This
 makes it possible to use Checked C extensions incrementally, while Cyclone
 requires that a program to be converted in its entirety.  Cyclone changes the representation of pointer types that allow arithmetic.  It introduces a new 
 pointer type that carries bounds information with it, similar to the \spanptr\
-type in Checked C. This causes compatibility problems when interoperating with existing 
+type described in Section~\ref{section:span-design} that we considered adding to Checked C.
+This causes  compatibility problems when interoperating with existing
 code.   Checked C allows programmers to declare bounds information separately from pointers using \arrayptr\ types.
 Cyclone also changes memory management in C.  It extends C with regions
 to allow arena-based memory management.  Checked C is addressing the

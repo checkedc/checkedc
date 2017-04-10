@@ -62,11 +62,10 @@ Checked C addresses the bounds checking problem for C by:
 \item
   Introducing different pointer types to capture the different ways in
   which pointers are used. The unchecked C pointer type \texttt{*} is kept
-  and three new {\it checked} pointer types are added: one for pointers that
-  are never used in pointer arithmetic and do not need bounds checking (\ptr),
-  one for \emph{array pointer types} that are involved in pointer
-  arithmetic and need bounds checking (\arrayptr), and one for pointer types
-  that carry their bounds with them dynamically (\spanptr).
+  and two new {\it checked} pointer types are added: one for pointers that
+  are never used in pointer arithmetic and do not need bounds checking (\ptr)
+  and one for \emph{array pointer types} that are involved in pointer
+  arithmetic and need bounds checking (\arrayptr).
 \item
   For array pointer types (\arrayptr), in keeping with the low-level
   nature of C,  bounds checking is placed under programmer control. 
@@ -145,14 +144,14 @@ write this knowledge down, to formalize existing practices, such as
 array pointer parameters being paired with length parameters, and to
 check this information.
 
-To simplify bounds and reasoning about bounds, for \spanptr\
-and \arrayptr\ types, pointer arithmetic overflow for these
+To simplify bounds and reasoning about bounds for
+\arrayptr\ types, pointer arithmetic overflow for \arrayptr\
 types is considered a runtime error. Pointer arithmetic involving a null
-pointer for these types is also a runtime error.
+pointer for \arrayptr\ types is also a runtime error.
 
 Efficiency is addressed by extending the static checking so that it can
 guarantee that specific bounds checks will always succeed at runtime for
-\arrayptr\ and \spanptr\ types. The static checking
+\arrayptr\ . The static checking
 supports the scenario of simple control-flow enclosing the bounds check
 guaranteeing that the bounds check will succeed. For example, a for-loop
 may iterate only over values within the declared bounds of an
