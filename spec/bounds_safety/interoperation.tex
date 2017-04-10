@@ -53,7 +53,7 @@ pointer type is valid when the following rules hold:
 \item If the destination pointer is a \ptrT\ type, the range of 
 memory that can be accessed beginning at the source pointer is
 large enough to hold a value of type \var{T}.
-\item If the destination pointer is an \arrayptrT\ or \spanptrT\ type,
+\item If the destination pointer is an \arrayptrT\ type,
 the bounds for the destination pointer are equal to or within the range of
 the memory accessible through the source pointer.
 \end{itemize}
@@ -146,10 +146,6 @@ used instead.
 \end{itemize}
 \item \arrayptrT: No new rules are needed.   The rules in
 Chapter~\ref{chapter:checking-bounds} already cover this case.
-\item \spanptrT: It must be provable statically that \var{e}
-and \bounds{\var{lb}}{\var{ub}} meet the relative alignment requirements of
-the destination \spanptr\ type.  At runtime, a new value of
-type \spanptrT\ with the value of \var{e} and \bounds{\var{lb}}{\var{ub}} will be created.
 \item \texttt{\var{T} *}: If the source type \var{S} is
 \begin{itemize}
 \item \ptrT, the checking succeeds. This handles the case where \var{T}
@@ -187,11 +183,10 @@ have it. It takes 1 to 3 arguments, depending on the kind of conversion being do
   converts \var{e1} to either a \ptr\ or * type.
 \item
   \dynamicboundscastinst{\var{T}}{(\var{e1},
-  \var{e2})} converts \var{e1} to an \arrayptr\ or
-  \spanptr\ type with bounds \boundscount{\var{e2}}.  
+  \var{e2})} converts \var{e1} to an \arrayptr\ type with bounds \boundscount{\var{e2}}.
 \item
   \dynamicboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})} converts \var{e1} to an
-  \arrayptr\ or \spanptr\ type with bounds
+  \arrayptr\ type with bounds
   \bounds{\var{e2}}{\var{e3}}.  \dynamicboundscastinst{\var{T}, \var{A}}
   {(\var{e1},\var{e2},\var{e3})}
    optionally changes the relative alignment of the bounds to \var{A}.
@@ -233,12 +228,11 @@ without verification:
 \begin{itemize}
 \item
   \assumeboundscastinst{\var{T}}{(\var{e1},\var{e2})}
-  converts \var{e1} to an \arrayptr\ or
-  \spanptr\ type with \boundscount{\var{e2}}
+  converts \var{e1} to an \arrayptr\ type with \boundscount{\var{e2}}
 \item
   \assumeboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})}
   converts \var{e1} to an
-  \arrayptr\ or \spanptr\ type with \bounds{\var{e2}}{\var{e3}}.
+  \arrayptr\ type with \bounds{\var{e2}}{\var{e3}}.
   It must be statically provable that \var{e1}, \var{e2} and \var{e3}
   are relatively aligned for \var{T} (or the optional
   relative alignment parameter instead, if there is one).
@@ -253,7 +247,7 @@ to check at compile-time.
 
 A subtle point about the C cast operator and \dynamicboundscast\
 are that they allow {\em bounds-safe casts} of an expression
-\var{e} of unchecked pointer type to a \spanptr\ or
+\var{e} of unchecked pointer type to an
 \arrayptr\ type. This is provided that the bounds for \var{e}
 can be determined. Only a few kinds of expressions with unchecked pointer
 types have bounds that can be determined: address-of expressions

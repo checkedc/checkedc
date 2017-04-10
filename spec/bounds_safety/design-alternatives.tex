@@ -48,6 +48,98 @@ lines instead. The resulting declarations would be
 declarators are fine: \texttt{int *pj, *pi;} becomes
 \texttt{\ptrint\ pi, pj;}.
 
+\section{Span pointer types}
+\label{section:span-design}
+
+We considered introducing a type called \spanptr\ for pointer types that carry their bounds with
+them dynamically.  We decided to postpone this for now because \spanptr\ is a type that
+seems appropriate to be defined in a library. The \spanptr\ type can be implemented using
+\arrayptr\ types, but not {\it vice versa}.   The main issue is that C does not provide support
+for generic types.
+Indeed, in C++, which has templates, a \spanptr\ type has already been proposed for the C++
+Standard Library \cite{Macintosh2016}.
+While the name \spanptr\ is new,
+the idea of a span type itself dates back to the early days of computer science.
+A \spanptr\ is an instance of a  dope vector, which is a data structure
+that describes the shape of an array.  Dope vectors were used in
+implementations of ALGOL60 \cite{Sattley1961}.
+
+In our proposal, a \spanptrT\ pointer would carry three values with it: the memory location that
+will be accessed by dereferencing the \spanptrT, a lower
+bound on the memory that can be accessed via the current pointer value,
+and an upper bound on accessible memory. Those values can be accessed
+using the \texttt{.} operator combined with the special field names
+\texttt{current}, \texttt{lower\_bound}, and \texttt{upper\_bound}. The
+resulting values have the type
+\arrayptrT. The
+special field names can only be read and cannot be modified by
+assignments.
+
+\begin{verbatim}
+span<int> p = ...
+array_ptr<int> low = p.lower_bound;
+array_ptr<int> high = p.upper_bound;
+array_ptr<int> current = p.current;
+\end{verbatim}
+
+The operations on a \spanptr\ would be similar to those on \arrayptr, except that
+the dynamic bounds values would be used:
+\begin{itemize}
+\item  Indirection: the \texttt{*} operator could be applied also to a value of type \spanptrT.
+It would produce a value of type \var{T}
+\item
+ Array reference: the \texttt{[]} operator could be applied also to a
+  value of type \spanptrT.    \texttt{\var{e1}[\var{e2}]} is equivalent to
+  \texttt{*(\var{e1} + \var{e2})}
+\item Pointer arithmetic: adding or subtracting a value of \spanptr\ pointer type and an integer
+      would be allowed. Pointer arithmetic overflow would be considered a runtime error.
+\end{itemize}
+
+A \spanptrT\ value would be created by casting a value of another pointer type to the
+\spanptrT\ type. A
+value of another pointer type could be converted implicitly to an
+\spanptrT\ in
+situations where a
+\spanptrT\ value is
+expected, the referent type of the other pointer type is \var{T}, and
+the bounds of the value can be determined automatically.
+
+For example, a variable of array type could be converted automatically to
+a \spanptr. First, the array type would be converted to a
+pointer type of either \var{T} \texttt{*} or
+\arrayptrT , depending
+on whether the array type is checked or unchecked. This pointer type
+would then be converted to an
+\spanptrT. The
+bounds of a variable of array type are easily determined at compile
+time, so the pointer type would then be converted to an
+\spanptrT:
+
+\begin{verbatim}
+int x[10]
+span<int> p = x;
+// p.current = x; p.lower_bound = x; p.upper_bound = x + 10;
+
+\end{verbatim}
+
+Similarly, an \arrayptr\ value with declared bounds can be
+converted implicitly to a \spanptr\ value:
+
+\begin{verbatim}
+array_ptr<int> src = ...
+span<int> p = src;
+\end{verbatim}
+
+The operators for casting in Section~\ref{section:pointer-casting} would be expanded
+to have rules that treat \spanptr\ values similarly to \arrayptr\ values.
+
+Having \spanptr\ values carry lower bounds is an important difference between our
+proposal and the C++ proposal.   In the proposed C++ design, \spanptr\ values
+carry counts of elements.  The C++ proposal does not
+support decrementing the \spanptr.   For symmetry with \arrayptr, we think it
+would be important in the Checked C extension that \spanptr\ values carry lower bounds.
+
+
 \section{Removing relative alignment}
 \label{section:design-alternatives:always-unaligned}
 
@@ -586,4 +678,5 @@ feature for C code bases.  The runtime benefit of eliminating non-null
 checks in pointer arithmetic is likely small.  Following the principal of 
 minimality, we have rejected the design choice of adding \texttt{object\_bounds} 
 for now. 
+
 

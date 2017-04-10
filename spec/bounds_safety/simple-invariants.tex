@@ -265,8 +265,8 @@ If \texttt{\var{e4} <= \var{e2}}, \var{e4} can be substituted for
 The rules used to check facts include the identities \texttt{\var{x} < \var{x} + \var{k}}
 for positive \var{k} and \texttt{\var{x} + \var{k} < \var{k}} for
 negative \var{k}, where \var{k} is a
-constant and \var{x} is a variable that has a new pointer type (\ptr,
-\spanptr, or \arrayptr). These identities are true
+constant and \var{x} is a variable that has a new pointer type (\ptr or \arrayptr).
+qThese identities are true
 because pointer arithmetic overflow is defined as a runtime error for
 new pointer types. This guarantees that adding \var{x} and \var{k} produces either
 an in-range value or a runtime error (no value).

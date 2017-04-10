@@ -132,12 +132,6 @@ Suppose there is a use of some variable \var{x}.
   \boundsinfer{\var{x}}{\boundsrel{\var{x}}{\var{x} \texttt{+ 1}}{\var{T}}}.
    On the right-hand side, \var{x} is reinterpreted as having \arrayptr\ type.
 \item
-  If \var{x} has type
-  \spanptrT, 
-  \boundsinfer{\var{x}}{\boundsrel{\var{x}\texttt{.lower\_bound}}
-                                  {\var{x}\texttt{.upper\_bound}}
-                                  {\var{T}}}
-\item
   If \var{x} has an array type, the rules depend on whether \var{x}  is a parameter
   variable.  Typechecking in C treats a parameter variable with the type ``array of \var{T}''
    as though it has the type ``pointer to \var{T}''.   It does not enforce 
