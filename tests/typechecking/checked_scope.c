@@ -1948,23 +1948,34 @@ checked void check_cast_operator(void) {
 
   // unchecked pointer to array
   ptr<int checked[5]> parr = 0;
-  parr = (int(*)checked[5]) &arr;
-  parr = (int(*)checked[5]) ((int(*)checked[]) &arr);
-  parr = (int(*)checked[3]) &arr;   // expected-error {{incompatible type}}
+  parr = (int(*)checked[5]) &arr; // expected-error {{invalid casting to unchecked pointer type}}
+  parr = (int(*)checked[5]) ((int(*)checked[]) &arr); // expected-error {{invalid casting to unchecked pointer type}}
+  parr = (int(*)checked[3]) &arr;   // expected-error {{invalid casting to unchecked pointer type}}
   parr = (int(*)[5]) &arr;          // expected-error {{invalid casting to unchecked pointer type}}
 
-  // ptr to array
+  // ptr to array, ptr to unchecked array
   parr = (ptr<int checked[5]>) &arr;
   parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr);
   parr = (ptr<int checked[3]>) &arr; // expected-error {{incompatible type}}
-  parr = (ptr<int [5]>) &arr;
+  parr = (ptr<int [5]>) &arr; // expected-error {{invalid casting to unchecked array type}}
 
-  // array_ptr to array
+  // array_ptr to array, array_ptr to unchecked array
   array_ptr<int checked[5]> aparr = 0;
   aparr = (array_ptr<int checked[5]>) &arr;
   aparr = (array_ptr<int checked[5]>) ((array_ptr<int checked[]>) &arr);
   aparr = (array_ptr<int checked[3]>) &arr; // expected-error {{incompatible type}}
-  aparr = (array_ptr<int [5]>) &arr;
+  aparr = (array_ptr<int [5]>) &arr;  // expected-error {{invalid casting to unchecked array type}}
+
+  // ptr to variadic func pointers, unchecked func pointer
+  ptr<int(int, ...)> vpa = 0; // expected-error {{variable cannot have variable arguments}}
+  ptr<int(int, int(int, ...), ...)> vpb = 0;  // expected-error {{variable cannot have an unchecked pointer type}}
+  ptr<int*(int,int)> vpc = 0; // expected-error {{variable cannot have an unchecked pointer type}}
+  ptr<int(int, ptr<int(int, ...)>, ...)> vpd;  // expected-error {{variable cannot have variable arguments}}
+
+  vpa = (ptr<int(int, ...)>) &arr;  // expected-error {{invalid casting to type having variable arguments}}
+  vpb = (ptr<int(int, int(int, ...), ...)>) &arr; // expected-error {{invalid casting to unchecked pointer type}}
+  vpc = (ptr<int*(int,int)>) &arr;  // expected-error {{invalid casting to unchecked pointer type}}
+  vpd = (ptr<int(int, ptr<int(int, ...)>, ...)>) &arr; // expected-error {{invalid casting to type having variable arguments}}
 
   int *upa;                         // expected-error {{variable cannot have an unchecked pointer type}}
   upa = arr;
@@ -2174,6 +2185,31 @@ checked void check_checked_constructed_type(void) {
   ptr<ptr<int checked[5]>> pe = 0;
   ptr<ptr<ptr<int[]>>> pf = 0;      // expected-error {{variable cannot have an unchecked array type}}
   ptr<ptr<ptr<int checked[]>>> pg = 0;
+
+  unchecked {
+    int arr checked[10];
+    ptr<int checked[10]> pa = 0;
+    ptr<ptr<int checked[10]>> pb = 0;
+    ptr<int> pc = 0;
+    ptr<ptr<int>> ppa = 0;
+
+    pc = arr;
+    ppa = pa; // expected-error {{incompatible type}}
+
+    checked {
+    pa = (ptr<int[10]>) &arr;   // expected-error {{invalid casting to unchecked array type}}
+    pa = (ptr<int checked[10]>) &arr;
+    pa = (ptr<int *>) &arr;     // expected-error {{invalid casting to unchecked pointer type}}
+    pa = (ptr<ptr<int>>) &arr;  // expected-error {{incompatible type}}
+
+    pb = (ptr<ptr<int[10]>>) &pa;       // expected-error {{invalid casting to unchecked array type}}
+    pb = (ptr<ptr<int checked[10]>>) &pa;
+    pb = (array_ptr<ptr<int[10]>>) &pa; // expected-error {{invalid casting to unchecked array type}}
+    pb = (ptr<ptr<ptr<int>>>) &pa;      // expected-error {{incompatible type}}
+
+    pc = (ptr<int>)arr;
+    }
+  }
 }
 
 int g(ptr<int *> p) {
@@ -2204,12 +2240,8 @@ void check_checked_constructed_type_variadic(void) checked {
   ptr<int(int, ptr<int(int,...)>, ...)> f = 0;  // expected-error {{variable cannot have variable arguments}}
   int (*g)(int, ...);                           // expected-error {{variable cannot have an unchecked}}
   ptr<int*(int, int)> h = 0;                    // expected-error {{variable cannot have an unchecked}}
-  ptr<ptr<ptr<ptr<int*(int,int,...)>>>> i = 0;  // expected-error {{variable cannot have an unchecked}}
-  ptr<ptr<ptr<ptr<int(int,int,...)>>>> j = 0;   // expected-error {{variable cannot have variable arguments}}
 
   unchecked {
-    ptr<void(int,int)> a = 0;
-    ptr<int(int,int)> b = 0;
     ptr<int(int,...)> var_b = 0;
     ptr<int(int,ptr<int>,...)> var_c = 0;
     ptr<int(int,ptr<int(int,...)>)> var_d = 0;
@@ -2217,23 +2249,16 @@ void check_checked_constructed_type_variadic(void) checked {
     ptr<int(int,ptr<int(int,ptr<int(int,...)>)>,ptr<int(int,ptr<int(int,ptr<int>,...)>, ...)>,...)> var_f = 0;
     int (*g)(int, ...);
     ptr<int*(int, int)> h = 0;
-    ptr<ptr<ptr<ptr<int*(int,int,...)>>>> var_i = 0;
-    ptr<ptr<ptr<ptr<int(int,int,...)>>>> var_j = 0;
-    (*a)(0, 0);
-    (*b)(1, 0);
     (*var_c)(2, pa, pa);
     (*var_d)(3, var_b);
     (*var_e)(4, var_c, var_d);
     (*var_f)(6, var_d, var_e, a, b, g, h);
-    (*h)(10,10);
     checked {
-      (*a)(0, 0);
-      (*b)(1, 0);
-      (*var_c)(2, pa, pa);  // expected-error {{cannot use a variable having variable arguments}}
-      (*var_d)(3, var_b);   // expected-error 2 {{cannot use a variable having variable arguments}}
-      (*var_e)(4, var_c, var_d);  // expected-error 3 {{cannot use a variable having variable arguments}}
-      (*var_f)(6, var_d, var_e, a, b, g, h);  // expected-error 3 {{cannot use a variable having variable arguments}} \
-                                              // expected-error 2 {{cannot use a variable with an unchecked type}}
+    (*var_c)(2, pa, pa);  // expected-error {{cannot use a variable having variable arguments}}
+    (*var_d)(3, var_b);   // expected-error 2 {{cannot use a variable having variable arguments}}
+    (*var_e)(4, var_c, var_d);  // expected-error 3 {{cannot use a variable having variable arguments}}
+    (*var_f)(6, var_d, var_e, a, b, g, h);// expected-error 3 {{cannot use a variable having variable arguments}} \
+                                          // expected-error 2 {{cannot use a variable with an unchecked type}}
     }
   }
 }
