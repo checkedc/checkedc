@@ -218,3 +218,16 @@ extern void f15(){
   r = _Assume_bounds_cast<ptr<int>, rel_align(int)>(q, q, q+4); 
   p = _Assume_bounds_cast<int *, rel_align_value(sizeof(int))>(q, q, q+4);
 }
+
+extern void f16(){
+  int *p;
+  int len=5;
+  array_ptr<int> q = 0;
+  ptr<int> r = 0;
+  r = _Dynamic_bounds_cast<ptr<int>, rel_align(len)>(q, q, q+4); //expected-error {{unknown type name 'len'}}
+  p = _Dynamic_bounds_cast<int *, rel_align_value(len)>(q, q, q+4); //expected-error {{expression is not an integer constant expression}}
+  p = _Dynamic_bounds_cast<int *, rel_align_value(1)>(q, q, q+4);
+  
+  p = _Dynamic_bounds_cast<int *, rel_align_value(1)>(q);
+  p = _Dynamic_bounds_cast<int *, rel_align(int)>(q);
+}
