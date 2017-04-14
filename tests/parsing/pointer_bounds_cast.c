@@ -180,6 +180,10 @@ extern void f12(){
   q = _Assume_bounds_cast<ptr<int>>(h4());
 }
 
+extern int h5(void){
+  int k=0;
+  return k;
+}
 extern void f13(){
   int *p;
   ptr<int> q = 0;
@@ -188,12 +192,25 @@ extern void f13(){
   ptr<ptr<int>> t = 0;
   r = _Assume_bounds_cast<ptr<int>>(q);
   p = _Assume_bounds_cast<int *>(q);
+
+  r = _Dynamic_bounds_cast<ptr<int>>(q);
+  p = _Dynamic_bounds_cast<int *>(q);
   
   s = _Assume_bounds_cast<ptr<int*>>(q);
   t = _Assume_bounds_cast<ptr<ptr<int>>>(q);
 
-  r = _Assume_bounds_cast<ptr<int>>(q); 
+  s = ynamic_bounds_cast<ptr<int*>>(q); //expected-error {{use of undeclared identifier}} //expected-error {{expected expression}}
+  t = _Dynamic_bounds_cast<ptr<ptr<int>>>(q);
+
+  r = _Assume_bounds_cast<ptr<int>>(q);
   p = _Assume_bounds_cast<int *>(q);
+  p = _Dssume_bounds_cast<int *>(h5);  //expected-error{{expected expression}} expected-error {{use of undeclared identifier}}
+  p = _Dynamic_bounds_cast<int *>(h5); //expected-error{{expected expression with pointer type}}
+}
+
+extern int* f14(int arr checked[]) {
+  int k;
+  return _Assume_bounds_cast<int*>(k); //expected-error {{expected expression with pointer type}}
 }
 
 extern void f14(){
