@@ -4,6 +4,7 @@
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
 #include "../../include/stdchecked.h"
+
 extern void f1(){
   array_ptr<int> a : count(1) =0;
   ptr<int> c = 0;
@@ -195,3 +196,38 @@ extern void f13(){
   p = _Assume_bounds_cast<int *>(q);
 }
 
+extern void f14(){
+  array_ptr<int> r : count(3) = 0;
+  ptr<int> q = 0;
+  r = _Assume_bounds_cast<array_ptr<int>,rel_align(int)>(h4(),r, r+4);
+  q = _Assume_bounds_cast<ptr<int>, rel_align_value(sizeof(int))>(h4(), r, r+4);
+}
+
+extern void f15(){
+  int *p;
+  array_ptr<int> q = 0;
+  ptr<int> r = 0;
+  ptr<int*> s = 0;
+  ptr<ptr<int>> t = 0;
+  r = _Assume_bounds_cast<ptr<int>, rel_align(int)>(q, q, q+4);
+  p = _Assume_bounds_cast<int *, rel_align_value(sizeof(int))>(q, q, q+4);
+  
+  s = _Assume_bounds_cast<ptr<int*>, rel_align(int)>(q, q, q+4);
+  t = _Assume_bounds_cast<ptr<ptr<int>>, rel_align_value(sizeof(int))>(q, q, q+4);
+
+  r = _Assume_bounds_cast<ptr<int>, rel_align(int)>(q, q, q+4); 
+  p = _Assume_bounds_cast<int *, rel_align_value(sizeof(int))>(q, q, q+4);
+}
+
+extern void f16(){
+  int *p;
+  int len=5;
+  array_ptr<int> q = 0;
+  ptr<int> r = 0;
+  r = _Dynamic_bounds_cast<ptr<int>, rel_align(len)>(q, q, q+4); //expected-error {{unknown type name 'len'}}
+  p = _Dynamic_bounds_cast<int *, rel_align_value(len)>(q, q, q+4); //expected-error {{expression is not an integer constant expression}}
+  p = _Dynamic_bounds_cast<int *, rel_align_value(1)>(q, q, q+4);
+  
+  p = _Dynamic_bounds_cast<int *, rel_align_value(1)>(q);
+  p = _Dynamic_bounds_cast<int *, rel_align(int)>(q);
+}
