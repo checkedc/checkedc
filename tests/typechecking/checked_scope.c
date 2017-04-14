@@ -1709,3 +1709,50 @@ checked void checked_check_variadic5(int cnt, ...) {  // expected-error {{variab
 void checked_check_variadic6(int cnt, ...) {
 }
 
+
+// Test for function pointer in checked block
+// Change type produced by address-of operator(&) in checked block.
+// By default, address-of (&) operator produces array_ptr<T>
+// For function type, it produces ptr<T> not array_ptr<T>
+// Also, FunctionToPointerDecay implicit casting works as same
+
+int id_int(int x) { return 0; }
+int id_intp(int *x) { return 0; }
+ptr<int> id_checked_intp(ptr<int> x) { return 0; }
+
+extern void test_function_pointer(void) checked {
+  // address-of (&) operator produces ptr<T> for function type
+  ptr<int(int)> fn0 = &id_int;
+  // CHECK: VarDecl {{0x[0-9a-f]+}} fn0 '_Ptr<int (int)>' cinit
+  // CHECK: `-UnaryOperator {{0x[0-9a-f]+}} '_Ptr<int (int)>' prefix '&
+  // CHECK:   `-DeclRefExpr {{0x[0-9a-f]+}} 'int (int)' Function {{0x[0-9a-f]+}} 'id_int' 'int (int)'
+
+  ptr<int(int)> fn1 = id_int;
+  // CHECK: VarDecl {{0x[0-9a-f]+}} fn1 '_Ptr<int (int)>' cinit
+  // CHECK: `-ImplicitCastExpr {{0x[0-9a-f]+}} '_Ptr<int (int)>' <FunctionToPointerDecay>
+  // CHECK:   `-DeclRefExpr {{0x[0-9a-f]+}} 'int (int)' Function {{0x[0-9a-f]+}} 'id_int' 'int (int)'
+
+  int (*fn2)(int) = &id_int;   // expected-error {{variable cannot have an unchecked pointer type}}
+  int (*fn3)(int) = id_int;  // expected-error {{variable cannot have an unchecked pointer type}}
+
+  ptr<int(int*)> fn4 = &id_intp;   // expected-error {{variable cannot have an unchecked pointer type}}
+  ptr<int(int*)> fn5 = id_intp;  // expected-error {{variable cannot have an unchecked pointer type}}
+
+  ptr<ptr<int>(ptr<int>)> fn6 = &id_intp;  // expected-error {{incompatible type}}
+  ptr<ptr<int>(ptr<int>)> fn7 = id_intp; // expected-error {{incompatible type}}
+
+  ptr<ptr<int>(ptr<int>)> fn8 = &id_checked_intp;
+  // CHECK: VarDecl {{0x[0-9a-f]+}} fn8 '_Ptr<ptr<int> (ptr<int>)>' cinit
+  // CHECK: `-UnaryOperator {{0x[0-9a-f]+}} '_Ptr<ptr<int> (ptr<int>)>' prefix '&
+  // CHECK:   `-DeclRefExpr {{0x[0-9a-f]+}} 'ptr<int> (ptr<int>)' Function {{0x[0-9a-f]+}} 'id_checked_intp' 'ptr<int> (ptr<int>)'
+
+  ptr<ptr<int>(ptr<int>)> fn9 = id_checked_intp;
+  // CHECK: VarDecl {{0x[0-9a-f]+}} fn9 '_Ptr<ptr<int> (ptr<int>)>' cinit
+  // CHECK: `-ImplicitCastExpr {{0x[0-9a-f]+}} '_Ptr<ptr<int> (ptr<int>)>' <FunctionToPointerDecay>
+  // CHECK:   `-DeclRefExpr {{0x[0-9a-f]+}} 'ptr<int> (ptr<int>)' Function {{0x[0-9a-f]+}} 'id_checked_intp' 'ptr<int> (ptr<int>)'
+
+  int val0;
+  // address-of (&) operator produces array_ptr<T> except for function type
+  ptr<int> pa = &val0;
+  array_ptr<int> apa = &val0;
+}
