@@ -193,7 +193,7 @@ extern void f16(void) {
       : bounds(arr, arr + len) rel_align(char);
 }
 
-extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}} expected-error {{expected a type}} expected-error{{invalid rel_align}}
+extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}} expected-error {{expected a type}}
 													    }
 extern array_ptr<int> f18(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(char) { // expected-error {{expected bounds expression}}
 }
@@ -222,19 +222,19 @@ extern void f23(int *p : iitype(ptr<int>) rel_alive(1), int y) {// expected-erro
    *p = y;
 }
 
-extern array_ptr<int> f24(array_ptr<int> arr : bounds(arr, arr + 5) rel_align(1))// expected-error {{expected a type}} expected-error{{invalid rel_align}}
-  : bounds(arr, arr + 5) rel_align(1);// expected-error {{expected a type}} expected-error{{invalid rel_align}}
+extern array_ptr<int> f24(array_ptr<int> arr : bounds(arr, arr + 5) rel_align(1))// expected-error {{expected a type}}
+  : bounds(arr, arr + 5) rel_align(1);// expected-error {{expected a type}}
 
-extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1){} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}  expected-error{{invalid rel_align}}
+extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1){} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
 
-extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}  expected-error{{invalid rel_align}}
+extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
 
 extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds() rel_alive(1) { // expected-error {{expected bounds expression or bounds-safe interface type}}
 }
 extern void f28(void) {
   array_ptr<int> arg : bo0unds(arg, arg + 5) rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
   array_ptr<int> arg1 : bo0unds rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
-  array_ptr<int> arg2 : bo0unds rel_align(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}  expected-error {{expected a type}}  expected-error{{invalid rel_align}}
+  array_ptr<int> arg2 : bo0unds rel_align(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}  expected-error {{expected a type}}
 }
 
 struct S1 {
@@ -252,7 +252,7 @@ struct S2 {
 struct S3 {
   int none;
   array_ptr<int> arr2 : count(none);
-  array_ptr<int> arr3 : bounds(none + arr2, none + arr2 + 5) rel_align(1);  // expected-error {{expected ')'}} expected-note {{to match this '('}} expected-error {{expected a type}} expected-error {{expected range bounds expression}}  expected-error{{invalid rel_align}}
+  array_ptr<int> arr3 : bounds(none + arr2, none + arr2 + 5) rel_align(1);  // expected-error {{expected ')'}} expected-note {{to match this '('}} expected-error {{expected a type}} expected-error {{expected range bounds expression}}
   array_ptr<int> arr4 : bounds(arr2, arr2 + none) rel_align(char);
   
   array_ptr<int> arr5 : bounds(none + arr2, none + arr2 + 5) rel_align_value(sizeof(char));// expected-error {{expected ')'}} \
@@ -347,9 +347,9 @@ struct S13 {
 
   array_ptr<int> arr1: bounds() rel_align_value(len); // expected-error {{expected expression}} \
 						      // expected-error {{expression is not an integer constant expression}} 
-  array_ptr<int> arr3 : bounds() rel_align(); // expected-error {{expected expression}} expected-error {{expected a type}} expected-error{{invalid rel_align}}
+  array_ptr<int> arr3 : bounds() rel_align(); // expected-error {{expected expression}} expected-error {{expected a type}}
 
-  array_ptr<int> arr4 : bounds() rel_align_value(); // expected-error 2 {{expected expression}} expected-error{{invalid rel_align}}
+  array_ptr<int> arr4 : bounds() rel_align_value(); // expected-error 2 {{expected expression}}
 };
 
 array_ptr<int> global_bound;
