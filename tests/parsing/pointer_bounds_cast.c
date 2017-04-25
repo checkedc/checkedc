@@ -5,6 +5,16 @@
 
 #include "../../include/stdchecked.h"
 
+extern void f0(){
+  int a checked[10];
+  void *e;
+  array_ptr<void> g: count(10) = 0; //expected-error{{expected 'g' to have}}
+  array_ptr<int> b: count(10) = (array_ptr<int>) a;
+  array_ptr<int> c: count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a,5);
+  array_ptr<int> f: count(10) = _Dynamic_bounds_cast<array_ptr<int>>(e,4); //expected-error{{count bounds expression}} expected-error{{expression has no}}
+  array_ptr<int> h: count(10) = _Dynamic_bounds_cast<array_ptr<int>>(g,4); //expected-error{{count bounds expression}}
+}
+
 extern void f1(){
   array_ptr<int> a : count(1) =0;
   int i;
@@ -33,6 +43,9 @@ extern void f1(){
 extern void f2(){
   char *p;
   array_ptr<int>a : count(1) = 0;
+  int b checked[10];
+  array_ptr<int> c: count(10) = (array_ptr<int>) a;
+  array_ptr<int> d: count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a,5);
   a = _Assume_bounds_cast<array_ptr<int>> (p); //expected-error{{invalid bounds cast}} expected-error{{expression has no bounds}}
   a = _Assume_bounds_cast<array_ptr<int>> (p,1); //expected-error {{expression has no bounds}}
   a = _Assume_bounds_cast<array_ptr<int>> (p, p, p+1);//expected-error {{expression has no bounds}}
@@ -364,4 +377,3 @@ extern void f18(int i){
   c = _Assume_bounds_cast<int>(cq); //expected-error {{invalid bounds cast}}
   p = _Assume_bounds_cast<int*>(r);
 }
-
