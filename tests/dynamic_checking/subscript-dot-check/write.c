@@ -145,7 +145,7 @@ void passing_test_3(struct S2 s, int i) {
 // Out-of-bounds dereference of struct member
 // array
 void failing_test_1(int i) { 
-  assert(i <= 0 || i >= 10);
+  assert(i < 0 || i >= 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
   s.arr[i] = 1;
   printf("Unassignable: %d\n", s.arr[i]);
@@ -154,7 +154,7 @@ void failing_test_1(int i) {
 }
 
 void failing_test_3(struct S2 s, int i) {
-  assert(i <= 0 || i >= 10);
+  assert(i < 0 || i >= 10);
   s.arr[i] = 1;
   printf("Unassignable: %d\n", s.arr[i]);
 
