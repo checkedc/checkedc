@@ -1,7 +1,5 @@
-// Tests that reading through pointers obtained using members accessed via
-// the arrow operator works with dynamic checks.  This is a copy of
-// read-member-dot-pointer-check.c, modified to use pointers to structures
-// and the arrow operator instead of the dot operator.
+// Tests that writing through pointers obtained using members accessed via
+// the dot operator works with dynamic checks.
 //
 // The following lines are for the clang automated test suite
 //
@@ -34,13 +32,13 @@ struct S2 {
 
 void passing_test_1(void);
 void passing_test_2(void);
-void passing_test_3(struct S1 *s);  // struct member bounds expected to be non-empty
-void passing_test_4(struct S2 *s);  // struct member bounds expected to be non-empty
+void passing_test_3(struct S1 s);  // struct member bounds expected to be non-empty
+void passing_test_4(struct S2 s);  // struct member bounds expected to be non-empty
 
 void failing_test_1(void);
 void failing_test_2(void);
-void failing_test_3(struct S1 *s);  // struct member bounds expected to be non-empty
-void failing_test_4(struct S2 *s);  // struct member bounds expected to be non-empty
+void failing_test_3(struct S1 s);  // struct member bounds expected to be non-empty
+void failing_test_4(struct S2 s);  // struct member bounds expected to be non-empty
 
 // Handle an out-of-bounds reference by immediately exiting. This causes
 // some output to be missing.
@@ -83,44 +81,44 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   puts("Starting Test");
 
   if (strcmp(argv[1], "pass1") == 0) {
-    // CHECK-PASS-1: Printable
+    // CHECK-PASS-1: Assignable
     // CHECK-PASS-1: Expected Success
     passing_test_1();
   }
   else if (strcmp(argv[1], "pass2") == 0) {
-    // CHECK-PASS-2: Printable
+    // CHECK-PASS-2: Assignable
     // CHECK-PASS-2: Expected Success
     passing_test_2();
   }
   else if (strcmp(argv[1], "pass3") == 0) {
-    // CHECK-PASS-3: Printable
+    // CHECK-PASS-3: Assignable
     // CHECK-PASS-3: Expected Success
-    passing_test_3(&s1_nonempty);
+    passing_test_3(s1_nonempty);
   }
   else if (strcmp(argv[1], "pass4") == 0) {
-    // CHECK-PASS-4: Printable
+    // CHECK-PASS-4: Assignable
     // CHECK-PASS-4: Expected Success
-    passing_test_4(&s2_nonempty);
+    passing_test_4(s2_nonempty);
   }
   else if (strcmp(argv[1], "fail1") == 0) {
-    // CHECK-FAIL-1-NOT: Unprintable
+    // CHECK-FAIL-1-NOT: Unassignable
     // CHECK-FAIL-1-NOT: Unexpected Success
     failing_test_1();
   }
   else if (strcmp(argv[1], "fail2") == 0) {
-    // CHECK-FAIL-2-NOT: Unprintable
+    // CHECK-FAIL-2-NOT: Unassignable
     // CHECK-FAIL-2-NOT: Unexpected Success
     failing_test_2();
   }
   else if (strcmp(argv[1], "fail3") == 0) {
-    // CHECK-FAIL-3-NOT: Unprintable
+    // CHECK-FAIL-3-NOT: Unassignable
     // CHECK-FAIL-3-NOT: Unexpected Success
-    failing_test_3(&s1_empty);
+    failing_test_3(s1_empty);
   }
   else if (strcmp(argv[1], "fail4") == 0) {
-    // CHECK-FAIL-4-NOT: Unprintable
+    // CHECK-FAIL-4-NOT: Unassignable
     // CHECK-FAIL-4-NOT: Unexpected Success
-    failing_test_4(&s2_empty);
+    failing_test_4(s2_empty);
   }
   else {
     // CHECK-NOT: Unexpected Test Name
@@ -139,8 +137,9 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 void passing_test_1(void) {
   int a checked[10] = { 0,0,0,0,0,0,0,0,0,0 };
   struct S1 s = {a, 10};
-  struct S1 *sp = &s;
-  printf("Printable: %d\n", *(sp->p + 5));
+
+  *(s.p + 5) = 1;
+  printf("Assignable: %d\n", *(s.p + 5));
 
   puts("Expected Success");
 }
@@ -149,27 +148,30 @@ void passing_test_1(void) {
 void passing_test_2(void) {
   int a checked[10] = { 0,0,0,0,0,0,0,0,0,0 };
   struct S2 s = { a + 2, a, a + 10 };
-  struct S2 *sp = &s;
 
-  printf("Printable: %d\n", *(sp->p));
+  *(s.p) = 2;
+  printf("Assignable: %d\n", *(s.p));
 
   puts("Expected Success");
 }
 
 // Dereference pointer in struct member with valid bounds given by a count,
 // where the struct is a parameter.
-void passing_test_3(struct S1 *s) {
-  assert(s->len > 0);
-  printf("Printable: %d\n", *(s->p));
+void passing_test_3(struct S1 s) {
+  assert(s.len > 0);
+  *(s.p) = 3;
+  printf("Assignable: %d\n", *(s.p));
 
   puts("Expected Success");
 }
 
 // Dereference pointer in struct member with valid bounds given by a range
 // where the struct is a parameter.
-void passing_test_4(struct S2 *s) {
-  assert(s->p >= s->low && s->p < s->high);
-  printf("Printable: %d\n", *(s->p));
+void passing_test_4(struct S2 s) {
+  assert(s.p >= s.low && s.p < s.high);
+
+  *(s.p) = 4;
+  printf("Assignable: %d\n", *(s.p));
 
   puts("Expected Success");
 }
@@ -178,9 +180,9 @@ void passing_test_4(struct S2 *s) {
 void failing_test_1(void) {
   int a checked[2] = { 0, 0 };
   struct S1 s = {a , 0};
-  struct S1 *sp = &s;
-  
-  printf("Unprintable: %d\n", *(sp->p));
+
+  *(s.p) = 1;
+  printf("Unassignable: %d\n", *(s.p));
   
   puts("Unexpected Success");
 }
@@ -190,26 +192,30 @@ void failing_test_1(void) {
 void failing_test_2(void) {
   int a checked[3] = { 0, 0, 0 };
   struct S2 s = { a, a + 2, a };
-  struct S2 *sp = &s;
 
-  printf("Unprintable: %d\n", *(sp->p));
-
-  puts("Unexpected Success");
-}
-
-// Struct member bounds describe empty range, no deref
-void failing_test_3(struct S1 *s) {
-  assert(s->len == 0);
-  printf("Unprintable: %d\n", *(s->p));
+  *(s.p) = 2;
+  printf("Unassignable: %d\n", *(s.p));
 
   puts("Unexpected Success");
 }
 
 // Struct member bounds describe empty range, no deref
-void failing_test_4(struct S2 *s) {
-  assert(s->low == s->high);
+void failing_test_3(struct S1 s) {
+  assert(s.len == 0);
 
-  printf("Unprintable: %d\n", *(s->p));
+  *(s.p) = 3;
+  printf("Unassignable: %d\n", *(s.p));
+
+
+  puts("Unexpected Success");
+}
+
+// Struct member bounds describe empty range, no deref
+void failing_test_4(struct S2 s) {
+  assert(s.low == s.high);
+
+  *(s.p) = 4;
+  printf("Unassignable: %d\n", *(s.p));
 
   puts("Unexpected Success");
 }

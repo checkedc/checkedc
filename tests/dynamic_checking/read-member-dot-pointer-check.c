@@ -1,4 +1,5 @@
-// Tests that the Dereference Operator works with dynamic checks
+// Tests that reading through pointers obtained using members accessed via
+// the dot operator works with dynamic checks.
 //
 // The following lines are for the clang automated test suite
 //
