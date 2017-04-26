@@ -5,21 +5,29 @@ dynamic behaviour includes exiting/stopping when dynamic checks fail.
 
 ## Similar Tests
 
-There are 3 (6 including their optimised verisons) different duplicated tests, each
-for a different kind of l-value.
-- `deref-arith-check.c` and `deref-arith-check-opt.c`
-- `deref-check.c` and `deref-check-opt.c`
-- `subscript-check.c` and `subscript-check-opt.c`
+There are 7 different groups of tests of bounds checking, with each group covering a
+different kind of l-value-producing expression.  Each group has its own subdirectory:
+- `deref-arith-check`.  This is for `*` applied to pointer arithmetic expressions.
+- `deref-arrow-check`.  This is for `*` applied to member accesses using the `->` operator.
+- `deref-check`.  This is for `*`  applied to variables.
+- `deref-dot-check`.  This is for `*` applied to member accesses using the `.` operator.
+- `subscript-arrow-check`.  This is for `[]` applied member accesses using the `->` operator.
+- `subscript-check`.   This is for `[]` applied array variables.
+- `subscript-dot-check`.  This is for `[]` applied member accesses using the `.` operator.
 
-Each of these is duplicated for the following operators applied to these kinds of
-l-values:
-- `increment` applies `++` (post-increment) to the l-value
-- `read` reads the lvalue (aka does an "l-value conversion")
-- `compound-assign` applies compound assignment (such as `+=`, `-=`) to the l-value
-- `write` assigns into the l-value with `=`
+We still need to write tests for `.` where the base expression requires a bounds
+check and `->`, where the `->` incorporates a bound check.
 
-This results in 24 total tests at the current count. As we add more l-value kinds
-this value will increase. We chose not to use the C preprocessor for this at this
+Within a subdirectory, each test is duplicated for the following operators applied to the
+l-value expression:
+- `increment.c` applies `++` (post-increment) to the l-value
+- `read.c` reads the lvalue (aka does an "l-value conversion")
+- `compound-assign.c` applies compound assignment (such as `+=`, `-=`) to the l-value
+- `write.c` assigns into the l-value with `=`
+
+Each of these tests has an unoptimized and optimized version.  The optimized version ends in `-opt.c'
+
+This results in 56 total tests at the current count.We chose not to use the C preprocessor for this at this
 time.
 
 *Note:* do not use the words "install", "setup", "update" in test names where the files
@@ -30,12 +38,12 @@ https://msdn.microsoft.com/en-us/enus/library/aa905330.aspx
 
 ### Optimised versions
 
-Each of these 3 tests has an optimized counterpart, (the files with `-opt` as
+Each of these tests has an optimized counterpart, (the files with `-opt` as
 a filename suffix). This runs the original test, but with `-O3`, and tests
 against the same source file using FileCheck. This is so that we know high levels
 of optimization don't delete our dynamic checks.
 
 ## Other Tests
 
-Tests with the `dynamic_check-` filename prefix test the `dynamic_check` builtin,
-these are not duplicated in the same way as the tests above.
+Tests in the`dynamic_check` subdirectory test the `dynamic_check` builtin.
+These are not duplicated in the same way as the tests above.
