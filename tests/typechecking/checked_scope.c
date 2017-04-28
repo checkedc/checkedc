@@ -1607,17 +1607,25 @@ checked void check_cast_operator(void) {
   ptr<int> q = 0;
   array_ptr<int> r : count(5) = 0;
   checked {
-  /* DestType : unchecked, Src->Type : ptr */
   p = _Dynamic_bounds_cast<int *>(q);           // expected-error {{cannot use a variable with an unchecked type}} \
                                                 // expected-error {{invalid casting to unchecked pointer type}} \
 
-  /* DestType : unchecked, Src->Type : array_ptr */
   p = _Dynamic_bounds_cast<int *>(r);           // expected-error {{cannot use a variable with an unchecked type}} \
                                                 // expected-error {{invalid casting to unchecked pointer type}} \
 
-  q = _Assume_bounds_cast<ptr<int>>(r);             // expected-error {{invalid _Assume_bounds_cast in a checked scope or function}}
-  r = _Assume_bounds_cast<array_ptr<int>>(r,4);     // expected-error {{invalid _Assume_bounds_cast in a checked scope or function}}
-  r = _Assume_bounds_cast<array_ptr<int>>(r,r,r+1); // expected-error {{invalid _Assume_bounds_cast in a checked scope or function}}
+  q = _Assume_bounds_cast<ptr<int>>(r);             // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+  r = _Assume_bounds_cast<array_ptr<int>>(r,4);     // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+  r = _Assume_bounds_cast<array_ptr<int>>(r,r,r+1); // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+
+  vpa = _Dynamic_bounds_cast<ptr<int(int,...)>>(r);   // expected-error {{invalid casting to type having variable arguments}}
+  vpa = _Dynamic_bounds_cast<ptr<int(int,ptr<int(int, ...)>)>>(r);  // expected-error {{invalid casting to type having variable arguments}}
+  vpa = _Dynamic_bounds_cast<ptr<int*(int,int)>>(r);  // expected-error {{invalid casting to unchecked pointer type}}
+  vpa = _Dynamic_bounds_cast<ptr<int(int,ptr<int(int, ...)>, ...)>>(r);  // expected-error {{invalid casting to type having variable arguments}}
+
+  vpa = _Assume_bounds_cast<ptr<int(int,...)>>(r);   // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+  vpa = _Assume_bounds_cast<ptr<int(int,ptr<int(int, ...)>)>>(r);  // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+  vpa = _Assume_bounds_cast<ptr<int*(int,int)>>(r);  // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+  vpa = _Assume_bounds_cast<ptr<int(int,ptr<int(int, ...)>, ...)>>(r);  // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
   }
   }
 }
