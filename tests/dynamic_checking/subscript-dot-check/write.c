@@ -7,9 +7,12 @@
 // RUN: %t pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
 // RUN: %t pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
 // RUN: %t pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-3
+// RUN: %t pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-4
 // RUN: %t fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-1
 // RUN: %t fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-2
 // RUN: %t fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-3
+// RUN: %t fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-4
+// RUN: %t fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-5
 
 #include <assert.h>
 #include <signal.h>
@@ -29,10 +32,12 @@ struct S2 {
 };
 
 void passing_test_1(int i);
-void passing_test_2(void);
-void passing_test_3(struct S2 s, int i);
+void passing_test_2(int i);
+void passing_test_3(void);
+void passing_test_4(struct S2 s, int i);
 
 void failing_test_1(int i);
+void failing_test_2(int i);
 void failing_test_3(struct S2 s, int i);
 
 // Handle an out-of-bounds reference by immediately exiting. This causes
@@ -65,7 +70,9 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     return EXIT_FAILURE;
   }
 
-  struct S2 s1 = { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, -1 };
+  int v checked[5] = { 0, 1, 2, 3, 4};
+  struct S1 s1 = { v, 5 };
+  struct S2 s2 = { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, -1 };
   
   // CHECK: Starting Test
   puts("Starting Test");
@@ -73,17 +80,22 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   if (strcmp(argv[1], "pass1") == 0) {
     // CHECK-PASS-1: Assignable: 1
     // CHECK-PASS-1: Expected Success
-    passing_test_1(5);
+    passing_test_1(6);
   }
   else if (strcmp(argv[1], "pass2") == 0) {
-    // CHECK-PASS-2: Assignable: 2
+    // CHECK-PASS-2: Assignable: 1
     // CHECK-PASS-2: Expected Success
-    passing_test_2();
+    passing_test_2(5);
   }
   else if (strcmp(argv[1], "pass3") == 0) {
-    // CHECK-PASS-3: Assignable: 3
+    // CHECK-PASS-3: Assignable: 2
     // CHECK-PASS-3: Expected Success
-    passing_test_3(s1, 5);
+    passing_test_3();
+  }
+  else if (strcmp(argv[1], "pass4") == 0) {
+    // CHECK-PASS-4: Assignable: 3
+    // CHECK-PASS-4: Expected Success
+    passing_test_4(s2, 5);
   }
   else if (strcmp(argv[1], "fail1") == 0) {
     // CHECK-FAIL-1-NOT: Unassignable
@@ -98,7 +110,17 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   else if (strcmp(argv[1], "fail3") == 0) {
     // CHECK-FAIL-3-NOT: Unassignable
     // CHECK-FAIL-3-NOT: Unexpected Success
-    failing_test_3(s1, 11);
+    failing_test_2(11);
+  }
+  else if (strcmp(argv[1], "fail4") == 0) {
+    // CHECK-FAIL-4-NOT: Unassignable
+    // CHECK-FAIL-4-NOT: Unexpected Success
+    failing_test_2(-1);
+  }
+  else if (strcmp(argv[1], "fail5") == 0) {
+    // CHECK-FAIL-5-NOT: Unassignable
+    // CHECK-FAIL-5-NOT: Unexpected Success
+    failing_test_3(s2, 11);
   }
   else {
     // CHECK-NOT: Unexpected Test Name
@@ -113,8 +135,19 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   return EXIT_SUCCESS;
 }
 
-// Subscript struct member array
+// Subscript struct member pointer
 void passing_test_1(int i) {
+  assert(0 <= i && i < 10);
+  int v checked[10] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+  struct S1 s = { v, 10 };
+  s.p[i] = 1;
+  printf("Assignable: %d\n", s.p[i]);
+
+  puts("Expected Success");
+}
+
+// Subscript struct member array
+void passing_test_2(int i) {
   assert(0 <= i && i < 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10};
   s.arr[i] = 1;
@@ -124,7 +157,7 @@ void passing_test_1(int i) {
 }
 
 // Dereference struct member array
-void passing_test_2(void) {
+void passing_test_3(void) {
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
   *(s.arr) = 2;
   printf("Assignable: %d\n", *(s.arr));
@@ -134,7 +167,7 @@ void passing_test_2(void) {
 
 // Subscript struct member array passed
 // as an argument.
-void passing_test_3(struct S2 s, int i) {
+void passing_test_4(struct S2 s, int i) {
   assert(0 <= i && i < 10);
   s.arr[i] = 3;
   printf("Assignable: %d\n", s.arr[i]);
@@ -143,8 +176,20 @@ void passing_test_3(struct S2 s, int i) {
 }
 
 // Out-of-bounds dereference of struct member
+// pointer
+void failing_test_1(int i) {
+  assert(i < 0 || i >= 10);
+  int v checked[10] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+  struct S1 s = { v, 10 };
+  s.p[i] = 5;
+  printf("Unassignable: %d\n", s.p[i]);
+
+  puts("Unexpected Success");
+}
+
+// Out-of-bounds dereference of struct member
 // array
-void failing_test_1(int i) { 
+void failing_test_2(int i) {
   assert(i < 0 || i >= 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
   s.arr[i] = 1;
