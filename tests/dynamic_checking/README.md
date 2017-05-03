@@ -27,8 +27,8 @@ l-value expression:
 
 Each of these tests has an unoptimized and optimized version.  The optimized version ends in `-opt.c'
 
-This results in 56 total tests at the current count.We chose not to use the C preprocessor for this at this
-time.
+This results in 56 total tests at the current count.  We chose not to use the C
+preprocessor for this at this time.
 
 *Note:* do not use the words "install", "setup", "update" in test names where the files
 will be compiled and executed. Windows x86 has heuristics that decide executables with those
