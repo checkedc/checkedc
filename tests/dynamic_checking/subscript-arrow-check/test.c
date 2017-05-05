@@ -3,100 +3,208 @@
 //
 // The following lines are for the clang automated test suite
 //
-// RUN: %clang -fcheckedc-extension %s -o %t1 -DTEST_READ -Werror
-// RUN: %t1 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
-// RUN: %t1 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
-// RUN: %t1 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
-// RUN: %t1 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-READ
-// RUN: %t1 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t1 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t1 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t1 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t1 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// -----------------------------------------------------------------------------------
+// Arrow operator versions of tests
 //
-// RUN: %clang -fcheckedc-extension %s -o %t2 -DTEST_WRITE -Werror
-// RUN: %t2 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-WRITE
-// RUN: %t2 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-WRITE
-// RUN: %t2 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-WRITE
-// RUN: %t2 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-WRITE
-// RUN: %t2 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t2 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t2 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t2 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t2 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// These have the preprocessor symbol ARROW_OPERATOR defined..
+// -----------------------------------------------------------------------------------
+//
+// RUN: %clang -fcheckedc-extension %s -o %t1 -DTEST_READ -DARROW_OPERATOR -Werror
+// RUN: %t1 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-READ
+// RUN: %t1 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-READ
+// RUN: %t1 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-READ
+// RUN: %t1 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-READ
+// RUN: %t1 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t1 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t1 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t1 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t1 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
+//
+// RUN: %clang -fcheckedc-extension %s -o %t2 -DTEST_WRITE -DARROW_OPERATOR -Werror
+// RUN: %t2 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-WRITE
+// RUN: %t2 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-WRITE
+// RUN: %t2 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-WRITE
+// RUN: %t2 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-WRITE
+// RUN: %t2 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t2 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t2 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t2 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t2 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %s -o %t3 -DTEST_INCREMENT -Werror
-// RUN: %t3 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-INCREMENT
-// RUN: %t3 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-INCREMENT
-// RUN: %t3 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-INCREMENT
-// RUN: %t3 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-INCREMENT
-// RUN: %t3 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t3 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t3 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t3 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t3 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// RUN: %clang -fcheckedc-extension %s -o %t3 -DTEST_INCREMENT -DARROW_OPERATOR -Werror
+// RUN: %t3 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-INCREMENT
+// RUN: %t3 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-INCREMENT
+// RUN: %t3 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-INCREMENT
+// RUN: %t3 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-INCREMENT
+// RUN: %t3 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t3 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t3 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t3 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t3 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %s -o %t4 -DTEST_COMPOUND_ASSIGN -Werror
-// RUN: %t4 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-COMPOUND-ASSIGN
-// RUN: %t4 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-COMPOUND-ASSIGN
-// RUN: %t4 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-COMPOUND-ASSIGN
-// RUN: %t4 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-COMPOUND-ASSIGN
-// RUN: %t4 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t4 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t4 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t4 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t4 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// RUN: %clang -fcheckedc-extension %s -o %t4 -DTEST_COMPOUND_ASSIGN -DARROW_OPERATOR -Werror
+// RUN: %t4 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-COMPOUND-ASSIGN
+// RUN: %t4 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-COMPOUND-ASSIGN
+// RUN: %t4 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-COMPOUND-ASSIGN
+// RUN: %t4 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-COMPOUND-ASSIGN
+// RUN: %t4 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t4 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t4 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t4 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t4 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
 
 // -----------------------------------------------------------------------------------
-// Optimized versions of tests
+// Optimized versions of arrow operator tests.
 //
 // These are just cut-and-pasted versions of the prior lines, with -O3 added
 // and new temporary names used.
 // -----------------------------------------------------------------------------------
 
-// RUN: %clang -fcheckedc-extension %s -o %t5 -DTEST_READ -Werror -O3
-// RUN: %t5 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
-// RUN: %t5 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
-// RUN: %t5 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
-// RUN: %t5 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-READ
-// RUN: %t5 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t5 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t5 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t5 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t5 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// RUN: %clang -fcheckedc-extension %s -o %t5 -DTEST_READ -DARROW_OPERATOR -Werror -O3
+// RUN: %t5 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-READ
+// RUN: %t5 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-READ
+// RUN: %t5 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-READ
+// RUN: %t5 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-READ
+// RUN: %t5 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t5 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t5 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t5 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t5 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
 //
-// RUN: %clang -fcheckedc-extension %s -o %t6 -DTEST_WRITE -Werror -O3
-// RUN: %t6 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-WRITE
-// RUN: %t6 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-WRITE
-// RUN: %t6 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-WRITE
-// RUN: %t6 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-WRITE
-// RUN: %t6 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t6 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t6 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t6 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t6 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// RUN: %clang -fcheckedc-extension %s -o %t6 -DTEST_WRITE -DARROW_OPERATOR -Werror -O3
+// RUN: %t6 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-WRITE
+// RUN: %t6 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-WRITE
+// RUN: %t6 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-WRITE
+// RUN: %t6 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-WRITE
+// RUN: %t6 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t6 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t6 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t6 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t6 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %s -o %t7 -DTEST_INCREMENT -Werror -O3
-// RUN: %t7 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-INCREMENT
-// RUN: %t7 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-INCREMENT
-// RUN: %t7 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-INCREMENT
-// RUN: %t7 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-INCREMENT
-// RUN: %t7 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t7 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t7 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t7 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t7 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// RUN: %clang -fcheckedc-extension %s -o %t7 -DTEST_INCREMENT -DARROW_OPERATOR -Werror -O3
+// RUN: %t7 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-INCREMENT
+// RUN: %t7 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-INCREMENT
+// RUN: %t7 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-INCREMENT
+// RUN: %t7 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-INCREMENT
+// RUN: %t7 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t7 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t7 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t7 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t7 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %s -o %t8 -DTEST_COMPOUND_ASSIGN -Werror -O3
-// RUN: %t8 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-COMPOUND-ASSIGN
-// RUN: %t8 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-COMPOUND-ASSIGN
-// RUN: %t8 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-COMPOUND-ASSIGN
-// RUN: %t8 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-COMPOUND-ASSIGN
-// RUN: %t8 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
-// RUN: %t8 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
-// RUN: %t8 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
-// RUN: %t8 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
-// RUN: %t8 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+// RUN: %clang -fcheckedc-extension %s -o %t8 -DTEST_COMPOUND_ASSIGN -DARROW_OPERATOR -Werror -O3
+// RUN: %t8 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-COMPOUND-ASSIGN
+// RUN: %t8 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-COMPOUND-ASSIGN
+// RUN: %t8 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-COMPOUND-ASSIGN
+// RUN: %t8 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-4-COMPOUND-ASSIGN
+// RUN: %t8 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-1
+// RUN: %t8 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-2
+// RUN: %t8 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-3
+// RUN: %t8 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-4
+// RUN: %t8 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,ARROW,FAIL-5
+
+// -----------------------------------------------------------------------------------
+// Dot operator versions of tests
+//
+// These are just cut-and-pasted versions of the prior section, with -DARROW_OPERATOR
+// removed and new temporary names used.
+// -----------------------------------------------------------------------------------
+
+// RUN: %clang -fcheckedc-extension %s -o %t9 -DTEST_READ -Werror
+// RUN: %t9 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
+// RUN: %t9 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
+// RUN: %t9 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
+// RUN: %t9 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-READ
+// RUN: %t9 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t9 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t9 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t9 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t9 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+//
+// RUN: %clang -fcheckedc-extension %s -o %t10 -DTEST_WRITE -Werror
+// RUN: %t10 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-WRITE
+// RUN: %t10 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-WRITE
+// RUN: %t10 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-WRITE
+// RUN: %t10 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-WRITE
+// RUN: %t10 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t10 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t10 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t10 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t10 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+
+// RUN: %clang -fcheckedc-extension %s -o %t11 -DTEST_INCREMENT -Werror
+// RUN: %t11 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-INCREMENT
+// RUN: %t11 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-INCREMENT
+// RUN: %t11 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-INCREMENT
+// RUN: %t11 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-INCREMENT
+// RUN: %t11 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t11 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t11 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t11 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t11 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+
+// RUN: %clang -fcheckedc-extension %s -o %t12 -DTEST_COMPOUND_ASSIGN -Werror
+// RUN: %t12 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-COMPOUND-ASSIGN
+// RUN: %t12 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-COMPOUND-ASSIGN
+// RUN: %t12 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-COMPOUND-ASSIGN
+// RUN: %t12 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-COMPOUND-ASSIGN
+// RUN: %t12 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t12 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t12 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t12 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t12 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+
+// -----------------------------------------------------------------------------------
+// Optimized versions of dot operator tests.
+//
+// These are just cut-and-pasted versions of the prior lines, with -O3 added
+// and new temporary names used.
+// -----------------------------------------------------------------------------------
+
+// RUN: %clang -fcheckedc-extension %s -o %t13 -DTEST_READ -Werror -O3
+// RUN: %t13 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
+// RUN: %t13 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
+// RUN: %t13 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
+// RUN: %t13 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-READ
+// RUN: %t13 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t13 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t13 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t13 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t13 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+//
+// RUN: %clang -fcheckedc-extension %s -o %t14 -DTEST_WRITE -Werror -O3
+// RUN: %t14 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-WRITE
+// RUN: %t14 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-WRITE
+// RUN: %t14 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-WRITE
+// RUN: %t14 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-WRITE
+// RUN: %t14 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t14 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t14 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t14 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t14 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+
+// RUN: %clang -fcheckedc-extension %s -o %t15 -DTEST_INCREMENT -Werror -O3
+// RUN: %t15 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-INCREMENT
+// RUN: %t15 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-INCREMENT
+// RUN: %t15 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-INCREMENT
+// RUN: %t15 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-INCREMENT
+// RUN: %t15 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t15 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t15 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t15 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t15 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
+
+// RUN: %clang -fcheckedc-extension %s -o %t16 -DTEST_COMPOUND_ASSIGN -Werror -O3
+// RUN: %t16 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-COMPOUND-ASSIGN
+// RUN: %t16 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-COMPOUND-ASSIGN
+// RUN: %t16 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-COMPOUND-ASSIGN
+// RUN: %t16 pass4 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-4-COMPOUND-ASSIGN
+// RUN: %t16 fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-1
+// RUN: %t16 fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-2
+// RUN: %t16 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
+// RUN: %t16 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
+// RUN: %t16 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
 
 #include <assert.h>
 #include <signal.h>
@@ -134,11 +242,19 @@ struct S2 {
 void passing_test_1(int i);
 void passing_test_2(int i);
 void passing_test_3(void);
+#ifdef ARROW_OPERATOR
 void passing_test_4(struct S2 *s, int i);
+#else
+void passing_test_4(struct S2 s, int i);
+#endif
 
 void failing_test_1(int i);
 void failing_test_2(int i);
+#ifdef ARROW_OPERATOR
 void failing_test_3(struct S2 *s, int i);
+#else
+void failing_test_3(struct S2 s, int i);
+#endif
 
 // Handle an out-of-bounds reference by immediately exiting. This causes
 // some output to be missing.
@@ -176,6 +292,12 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   
   // CHECK: Starting Test
   puts("Starting Test");
+#ifdef ARROW_OPERATOR
+  puts("Using arrow operator"); // ARROW: Using arrow operator
+#else
+  puts("Using dot operator");
+#endif 
+
 
   if (strcmp(argv[1], "pass1") == 0) {
     // PASS-1-READ: Result: 3
@@ -219,7 +341,12 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // PASS-4-INCREMENT: Expected Success
     // PASS-4-COMPOUND-ASSIGN: Result: 2
     // PASS-4-COMPOUND-ASSIGN: Expected Success
+#ifdef ARROW_OPERATOR
     passing_test_4(&s2, 5);
+#else
+    passing_test_4(s2, 5);
+#endif
+
   }
   else if (strcmp(argv[1], "fail1") == 0) {
     // FAIL-1-NOT: Unreachable
@@ -244,7 +371,11 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   else if (strcmp(argv[1], "fail5") == 0) {
     // FAIL-5-NOT: Unreachable
     // FAIL-5-NOT: Unexpected Success
+#ifdef ARROW_OPERATOR
     failing_test_3(&s2, 11);
+#else
+    failing_test_3(s2, 11);
+#endif
   }
   else {
     // CHECK-NOT: Unexpected Test Name
@@ -264,10 +395,14 @@ void passing_test_1(int i) {
   assert(0 <= i && i < 10);
   int v checked[10] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
   struct S1 s = { v, 10 };
+#ifdef ARROW_OPERATOR
   struct S1 *sp = &s;
   TEST_OP(sp->p[i], 1);
   printf("Result: %d\n", sp->p[i]);
-
+#else
+  TEST_OP(s.p[i], 1);
+  printf("Result: %d\n", s.p[i]);
+#endif
   puts("Expected Success");
 }
 
@@ -275,29 +410,47 @@ void passing_test_1(int i) {
 void passing_test_2(int i) {
   assert(0 <= i && i < 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10};
+#ifdef ARROW_OPERATOR
   struct S2 *sp = &s;
   TEST_OP(sp->arr[i], 1);
   printf("Result: %d\n", sp->arr[i]);
-
+#else
+  TEST_OP(s.arr[i], 1);
+  printf("Result: %d\n", s.arr[i]);
+#endif
   puts("Expected Success");
 }
 
 // Dereference struct member array
 void passing_test_3(void) {
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
+#ifdef ARROW_OPERATOR
   struct S2 *sp = &s;
   TEST_OP(*(sp->arr), 2);
   printf("Result: %d\n", *(sp->arr));
-
+#else
+  TEST_OP(*(s.arr), 2);
+  printf("Result: %d\n", *(s.arr));
+#endif
   puts("Expected Success");
 }
 
 // Subscript struct member array passed
 // as an argument.
+
+#ifdef ARROW_OPERATOR
 void passing_test_4(struct S2 *s, int i) {
+#else
+void passing_test_4(struct S2 s, int i) {
+#endif
   assert(0 <= i && i < 10);
+#if ARROW_OPERATOR
   TEST_OP(s->arr[i], 3);
   printf("Result: %d\n", s->arr[i]);
+#else
+  TEST_OP(s.arr[i], 3);
+  printf("Result: %d\n", s.arr[i]);
+#endif
 
   puts("Expected Success");
 }
@@ -308,10 +461,14 @@ void failing_test_1(int i) {
   assert(i < 0 || i >= 10);
   int v checked[10] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
   struct S1 s = { v, 10 };
+#ifdef ARROW_OPERATOR
   struct S1 *sp = &s;
   TEST_OP(sp->p[i], 5);
   printf("Unreachable: %d\n", sp->p[i]);
-
+#else
+  TEST_OP(s.p[i], 5);
+  printf("Unreachable: %d\n", s.p[i]);
+#endif
   puts("Unexpected Success");
 }
 
@@ -320,17 +477,31 @@ void failing_test_1(int i) {
 void failing_test_2(int i) {
   assert(i < 0 || i >= 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
+#ifdef ARROW_OPERATOR
   struct S2 *sp = &s;
   TEST_OP(sp->arr[i], 1);
   printf("Unreachable: %d\n", sp->arr[i]);
+#else
+  TEST_OP(s.arr[i], 1);
+  printf("Unreachable: %d\n", s.arr[i]);
+#endif
   
   puts("Unexpected Success");
 }
 
+#ifdef ARROW_OPERATOR
 void failing_test_3(struct S2 *s, int i) {
+#else
+void failing_test_3(struct S2 s, int i) {
+#endif
   assert(i < 0 || i >= 10);
+#ifdef ARROW_OPERATOR
   TEST_OP(s->arr[i], 1);
   printf("Unreachable: %d\n", s->arr[i]);
+#else
+  TEST_OP(s.arr[i], 1);
+  printf("Unreachable: %d\n", s.arr[i]);
+#endif
 
   puts("Unexpected Success");
 }
