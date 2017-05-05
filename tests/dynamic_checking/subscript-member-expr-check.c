@@ -211,7 +211,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../include/stdchecked.h"
+#include "../../include/stdchecked.h"
 
 #ifdef TEST_READ
 #define TEST_OP(e1, e2)

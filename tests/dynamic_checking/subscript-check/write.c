@@ -2,35 +2,127 @@
 //
 // The following lines are for the clang automated test suite
 //
-// RUN: %clang -fcheckedc-extension %s -o %t -Werror
-// RUN: %t 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t 1 2 4 4  1 2   1 1 1  | FileCheck %s
-// RUN: %t 2 4 8 8  2 1   2 2 2  | FileCheck %s
-// RUN: %t 2 4 8 8  0 4   0 3 2  | FileCheck %s
-// RUN: %t 2 4 8 8  1 3   0 1 5  | FileCheck %s
-// RUN: %t 2 4 8 8  2 -1  2 -1 2 | FileCheck %s
-// RUN: %t 3        | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t 0 5      | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t 0 0 0 9  | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %clang -fcheckedc-extension %s -DTEST_READ -o %t1 -Werror
+// RUN: %t1 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t1 1 2 4 4  1 2   1 1 1  | FileCheck %s
+// RUN: %t1 2 4 8 8  2 1   2 2 2  | FileCheck %s
+// RUN: %t1 2 4 8 8  0 4   0 3 2  | FileCheck %s
+// RUN: %t1 2 4 8 8  1 3   0 1 5  | FileCheck %s
+// RUN: %t1 2 4 8 8  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t1 3        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 5      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 9  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+//
+// RUN: %clang -fcheckedc-extension %s -DTEST_WRITE -o %t2 -Werror
+// RUN: %t2 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t2 1 2 4 4  1 2   1 1 1  | FileCheck %s
+// RUN: %t2 2 4 8 8  2 1   2 2 2  | FileCheck %s
+// RUN: %t2 2 4 8 8  0 4   0 3 2  | FileCheck %s
+// RUN: %t2 2 4 8 8  1 3   0 1 5  | FileCheck %s
+// RUN: %t2 2 4 8 8  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t2 3        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 5      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 0 0 9  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+//
+// RUN: %clang -fcheckedc-extension %s -DTEST_INCREMENT -o %t3 -Werror
+// RUN: %t3 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t3 1 2 4 4  1 2   1 1 1  | FileCheck %s
+// RUN: %t3 2 4 8 8  2 1   2 2 2  | FileCheck %s
+// RUN: %t3 2 4 8 8  0 4   0 3 2  | FileCheck %s
+// RUN: %t3 2 4 8 8  1 3   0 1 5  | FileCheck %s
+// RUN: %t3 2 4 8 8  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t3 3        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 5      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 0 0 9  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+//
+// RUN: %clang -fcheckedc-extension %s -DTEST_COMPOUND_ASSIGN -o %t4 -Werror
+// RUN: %t4 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t4 1 2 4 4  1 2   1 1 1  | FileCheck %s
+// RUN: %t4 2 4 8 8  2 1   2 2 2  | FileCheck %s
+// RUN: %t4 2 4 8 8  0 4   0 3 2  | FileCheck %s
+// RUN: %t4 2 4 8 8  1 3   0 1 5  | FileCheck %s
+// RUN: %t4 2 4 8 8  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t4 3        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 5      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 0 0 9  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "../../../include/stdchecked.h"
+
+#ifdef TEST_READ
+#define TEST_OP(e1, e2)
+#endif
+
+#ifdef TEST_WRITE
+#define TEST_OP(e1, e2) e1 = e2
+#endif
+
+#ifdef TEST_INCREMENT
+#define TEST_OP(e1, e2) (e1)++
+#endif
+
+#ifdef TEST_COMPOUND_ASSIGN
+#define TEST_OP(e1, e2) e1 -= e2;
+#endif
+
 
 int a0 checked[9] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 int ma1 checked[3][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 } };
@@ -83,19 +175,19 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   int a3 checked[9] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 
   int i = atoi(argv[idx++]);
-  a1[i] = i;
+  TEST_OP(a1[i], i);
   printf("a1[%d] = %d;\n", i, a1[i]);
 
   i = atoi(argv[idx++]);
-  a2[i] = i;
+  TEST_OP(a2[i], i);
   printf("a2[%d] = %d;\n", i, a2[i]);
 
   i = atoi(argv[idx++]);
-  a3[i] = i;
+  TEST_OP(a3[i], i);
   printf("a3[%d] = %d;\n", i, a3[i]);
 
   i = atoi(argv[idx++]);
-  a0[i] = i;
+  TEST_OP(a0[i], i);
   printf("a0[%d] = %d;\n", i, a0[i]);
 
   // CHECK: 1-Dimensional Checks Passed
@@ -106,7 +198,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   i = atoi(argv[idx++]);
   int j = atoi(argv[idx++]);
-  ma1[i][j] = i + j;
+  TEST_OP(ma1[i][j], i + j);
   printf("ma1[%d][%d] = %d;\n", i, j, ma1[i][j]);
 
   // CHECK: 2-Dimensional Checks Passed
@@ -118,7 +210,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   i = atoi(argv[idx++]);
   j = atoi(argv[idx++]);
   int k = atoi(argv[idx++]);
-  ma2[i][j][k] = i + j + k;
+  TEST_OP(ma2[i][j][k], i + j + k);
   printf("ma2[%d][%d][%d] = %d;\n", i, j, k, ma2[i][j][k]);
 
 
