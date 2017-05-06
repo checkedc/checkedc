@@ -107,20 +107,45 @@
 #include <stdio.h>
 #include "../../../include/stdchecked.h"
 
+#ifdef POINTER_ARITHMETIC
+#define ACCESS_DIM1(e1, index1) (*(e1 + index1))
+#define ACCESS_DIM2(e1, index1, index2) (*(*(e1 + index1) + index2))
+#define ACCESS_DIM3(e1, index1, index2, index3)  (*(*(*(e1 + index1) + index2) + index3))
+char *format_dim1 = "*(%s + %d) = %d\n";
+char *format_dim2 = "*(*(%s + %d) + %d) = %d\n";
+char *format_dim3 = "*(*(*(%s + %d) + %d) + %d) = %d\n";
+#else
+#define ACCESS_DIM1(e1, index1) (e1[index1])
+#define ACCESS_DIM2(e1, index1, index2) (e1[index1][index2])
+#define ACCESS_DIM3(e1, index1, index2, index3) (e1[index1][index2][index3])
+char *format_dim1 = "%s[%d] = %d\n";
+char *format_dim2 = "%s[%d][%d] = %d\n";
+char *format_dim3 = "%s[%d][%d][%d] = %d\n";
+#endif
+
 #ifdef TEST_READ
-#define TEST_OP(e1, e2)
+#define TEST_OP_DIM1(e1, index1, e2)
+#define TEST_OP_DIM2(e1, index1, index2, e2)
+#define TEST_OP_DIM3(e1, index1, index2, index3, e2)
+
 #endif
 
 #ifdef TEST_WRITE
-#define TEST_OP(e1, e2) e1 = e2
+#define TEST_OP_DIM1(e1, index1, e2) ACCESS_DIM1(e1,index1) = e2
+#define TEST_OP_DIM2(e1, index1, index2, e2) ACCESS_DIM2(e1,index1, index2) = e2
+#define TEST_OP_DIM3(e1, index1, index2, index3, e2) ACCESS_DIM3(e1, index1, index2, index3) = e2
 #endif
 
 #ifdef TEST_INCREMENT
-#define TEST_OP(e1, e2) (e1)++
+#define TEST_OP_DIM1(e1, index1, e2) (ACCESS_DIM1(e1,index1))++
+#define TEST_OP_DIM2(e1, index1, index2, e2) (ACCESS_DIM2(e1,index1, index2))++
+#define TEST_OP_DIM3(e1, index1, index2, index3, e2) (ACCESS_DIM3(e1, index1, index2, index3))++
 #endif
 
 #ifdef TEST_COMPOUND_ASSIGN
-#define TEST_OP(e1, e2) e1 -= e2;
+#define TEST_OP_DIM1(e1, index1, e2) ACCESS_DIM1(e1,index1) -= e2
+#define TEST_OP_DIM2(e1, index1, index2, e2) ACCESS_DIM2(e1,index1, index2) -= e2
+#define TEST_OP_DIM3(e1, index1, index2, index3, e2) ACCESS_DIM3(e1, index1, index2, index3) -= e2
 #endif
 
 
@@ -175,20 +200,20 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   int a3 checked[9] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 
   int i = atoi(argv[idx++]);
-  TEST_OP(a1[i], i);
-  printf("a1[%d] = %d;\n", i, a1[i]);
+  TEST_OP_DIM1(a1, i, i);
+  printf(format_dim1, "a1", i, ACCESS_DIM1(a1, i));
 
   i = atoi(argv[idx++]);
-  TEST_OP(a2[i], i);
-  printf("a2[%d] = %d;\n", i, a2[i]);
+  TEST_OP_DIM1(a2, i, i);
+  printf(format_dim1, "a2", i, ACCESS_DIM1(a2, i));
 
   i = atoi(argv[idx++]);
-  TEST_OP(a3[i], i);
-  printf("a3[%d] = %d;\n", i, a3[i]);
+  TEST_OP_DIM1(a3, i, i);
+  printf(format_dim1, "a3", i, ACCESS_DIM1(a3, i));
 
   i = atoi(argv[idx++]);
-  TEST_OP(a0[i], i);
-  printf("a0[%d] = %d;\n", i, a0[i]);
+  TEST_OP_DIM1(a0, i, i);
+  printf(format_dim1, "a0", i, ACCESS_DIM1(a0, i));
 
   // CHECK: 1-Dimensional Checks Passed
   // CHECK-FAIL-1-NOT: 1-Dimensional Checks Passed
@@ -198,8 +223,8 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   i = atoi(argv[idx++]);
   int j = atoi(argv[idx++]);
-  TEST_OP(ma1[i][j], i + j);
-  printf("ma1[%d][%d] = %d;\n", i, j, ma1[i][j]);
+  TEST_OP_DIM2(ma1, i, j, i + j);
+  printf(format_dim2, "ma1", i, j, ACCESS_DIM2(ma1, i, j));
 
   // CHECK: 2-Dimensional Checks Passed
   // CHECK-FAIL-1-NOT: 2-Dimensional Checks Passed
@@ -210,8 +235,8 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   i = atoi(argv[idx++]);
   j = atoi(argv[idx++]);
   int k = atoi(argv[idx++]);
-  TEST_OP(ma2[i][j][k], i + j + k);
-  printf("ma2[%d][%d][%d] = %d;\n", i, j, k, ma2[i][j][k]);
+  TEST_OP_DIM3(ma2, i, j, k, i + j + k);
+  printf(format_dim3, "ma2", i, j, k, ACCESS_DIM3(ma2, i, j, k));
 
 
   // CHECK: 3-Dimensional Checks Passed
