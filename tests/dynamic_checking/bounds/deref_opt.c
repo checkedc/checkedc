@@ -1,12 +1,17 @@
-// Tests that the Dereference Operator works with dynamic checks
+// Test bounds checking of uses of pointer dereference expressions with
+// optimization enabled.
 //
-// The following lines are for the clang automated test suite
+// Uses are tested in read, assignment,increment, and compound assignment 
+// expressions.
 //
-// This builds the file `deref.c` at optimisation level O3, outputting an
-// executables %t.n We then run these with the same arguments as we run
-// the unoptimised binary with, and use FileCheck to ensure the output is
-// what we expected, as specified in `deref.c`. This is run as a separate
-// test so we know if optimisation is breaking our dynamic checks.
+// This builds the file `deref.c` at optimisation level O3, 
+// outputting executables at %tn. We then run these with the same arguments as
+// we run the unoptimised binaries with, and use FileCheck to ensure the
+// output is what we expected, as specified in `deref.c`. This
+// is run as a separate test so we know if optimisation is breaking some
+// dynamic checks.
+//
+// The following lines are for the clang automated test suite.
 //
 // RUN: %clang -fcheckedc-extension %S\deref.c -o %t1 -DTEST_READ -Werror
 // RUN: %t1 pass1 | FileCheck %S\deref.c --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ

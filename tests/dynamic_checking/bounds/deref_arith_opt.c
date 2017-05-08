@@ -1,13 +1,17 @@
-// Tests that the dereference operator applied to pointer arithmetic 
-// with dynamic checks
+// Test bounds checking of uses of pointer dereference expressions
+// where the pointer derefence operator is applied to a pointer arithmetic
+// expressions.  An example:
 //
-// The following lines are for the clang automated test suite
+// int *p;
+// *(p + 5) = 0
 //
 // This builds the file `subscript.c` for different operations with -DPOINTER_ARITHMETIC
 // defined and /O3 producing a different executable for each operation. -DPOINTER_ARITHMEMTIC
 // causes the file to be built using pointer arithmetic and dereference in place of subscripting.  
 // We then run these executables with the same arguments that we run the original subscripting
 // versions of the executables with.
+//
+// The following lines are for the clang automated test suite.
 //
 // RUN: %clang -fcheckedc-extension %S/subscript.c -DTEST_READ -o %t1 -Werror -O3
 // RUN: %t1 0 0 0 0  0 0   0 0 0  | FileCheck %S/subscript.c

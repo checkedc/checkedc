@@ -1,14 +1,18 @@
-// Tests that the Array Subscript Operator works with dynamic checks
+// Test bounds checking of uses of array subscript expressions where the
+// pointer values are member expressions (formed using the dot or arrow
+// operators), with optimization enabled.
 //
-// The following lines are for the clang automated test suite
+// Uses are tested in read, assignment,increment, and compound assignment 
+// expressions.
 //
 // This builds the file `subscript_member_expr.c` at optimisation level O3, 
-// outputting executables at %tn. We then run these executables with the same 
-// arguments as we run the unoptimised binaroes with, and use FileCheck to 
-// ensure the output is what we expected, as specified in 
-// `subscript_member_expr.c`. This is run as a separate test so we know if 
-// optimisation is breaking the dynamic checks.
-
+// outputting executables at %tn. We then run these with the same arguments as
+// we run the unoptimised binaries with, and use FileCheck to ensure the
+// output is what we expected, as specified in `subscript_member_expr.c`. This
+// is run as a separate test so we know if optimisation is breaking some
+// dynamic checks.
+//
+// The following lines are for the clang automated test suite.
 //
 // RUN: %clang -fcheckedc-extension %S/subscript_member_expr.c -o %t1 -DTEST_READ -DARROW_OPERATOR -Werror -O3
 // RUN: %t1 pass1 | FileCheck %S/subscript_member_expr.c --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-READ

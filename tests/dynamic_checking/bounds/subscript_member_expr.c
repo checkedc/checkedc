@@ -1,7 +1,22 @@
-// Tests that operations involving member arrays accessed using the arrow operators
-// work with dynamic checks.
+// Test bounds checking of uses of array subscript expressions where the
+// pointer values are member expressions (formed using the dot or arrow
+// operators).   Here are some examples:
 //
-// The following lines are for the clang automated test suite
+// struct S v;
+// struct S *pv;
+// v.f[e]
+// (p->v)[e]
+//
+// Uses are tested in read, assignment,increment, and compound assignment 
+// expressions.  The type of use is controlled by the macro names TEST_READ,
+// TEST_WRITE, TEST_INCREMENT, and TEST_COMPOUND_ASSIGNMENT.  The file must
+// be compiled with exactly one of those macro names defined.
+// 
+// The member access operator is controlled by macro name ARROW.  When the
+// the macro name is undefined, the dot (.) operator is used.  When it is
+// defined, the arrow (->) operator is used.
+//
+// The following lines are for the clang automated test suite.
 //
 // -----------------------------------------------------------------------------------
 // Arrow operator versions of tests

@@ -1,5 +1,22 @@
-// Tests that operation involving dereferencing members accessed via
-// the dot or arrow operators work with dynamic bounds checks.
+// Test bounds checking of uses of pointer dereference expressions where the
+// pointer values are member expressions (formed using the dot or arrow
+// operators).   Here are some examples:
+//
+// struct S v;
+// struct S *pv;
+// *(v.f)
+// *(p->v)
+//
+// Uses are tested in read, assignment,increment, and compound assignment 
+// expressions.  The type of use is controlled by the macro names TEST_READ,
+// TEST_WRITE, TEST_INCREMENT, and TEST_COMPOUND_ASSIGNMENT.  The file must
+// be compiled with exactly one of those macro names defined.
+// 
+// The member access operator is controlled by macro name ARROW.  When the
+// the macro name is undefined, the dot (.) operator is used.  When it is
+// defined, the arrow (->) operator is used.
+//
+// The following lines are for the clang automated test suite.
 //
 // RUN: %clang -fcheckedc-extension %s -o %t1 -DTEST_READ -DARROW_OPERATOR -Werror
 // RUN: %t1 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-READ

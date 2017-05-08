@@ -1,6 +1,11 @@
-// Tests that the Dereference Operator works with dynamic checks
+// Test bounds checking of uses of pointer dereference expressions.
 //
-// The following lines are for the clang automated test suite
+// Uses are tested in read, assignment,increment, and compound assignment 
+// expressions.  The type of use is controlled by the macro names TEST_READ,
+// TEST_WRITE, TEST_INCREMENT, and TEST_COMPOUND_ASSIGNMENT.  The file must
+// be compiled with exactly one of those macro names defined.
+//
+// The following lines are for the clang automated test suite.
 //
 // RUN: %clang -fcheckedc-extension %s -o %t1 -DTEST_READ -Werror
 // RUN: %t1 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ

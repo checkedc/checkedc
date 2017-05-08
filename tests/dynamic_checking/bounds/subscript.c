@@ -1,6 +1,22 @@
-// Tests that the Array Subscript Operator works with dynamic checks
+// Test bounds checking of uses of array subscript expressions.  
 //
-// The following lines are for the clang automated test suite
+// Uses are tested in read, assignment,increment, and compound assignment 
+// expressions.  The type of use is controlled by the macro names TEST_READ,
+// TEST_WRITE, TEST_INCREMENT, and TEST_COMPOUND_ASSIGNMENT.  The file must
+// be compiled with exactly one of those macro names defined.
+//
+// This file is also used to test bounds checking of uses pointer dereference
+// expressions where the pointer dereference operator is applied to pointer
+// arithmetic expressions.  This is controlled by the macro name
+// POINTER_ARITHMETIC.  When this macro is undefined, array subscript is
+// used. When it is defined the array subscripting is replaced by equivalent
+// expressions that use pointer arithmetic and the dereferences.
+//
+// To shorten test times (and keep the parallelism more balanced when tests are
+// run in parallel), separate test suite driver files are used for pointer
+// arithmetic.
+//
+// The following lines are for the clang automated test suite.
 //
 // RUN: %clang -fcheckedc-extension %s -DTEST_READ -o %t1 -Werror
 // RUN: %t1 0 0 0 0  0 0   0 0 0  | FileCheck %s

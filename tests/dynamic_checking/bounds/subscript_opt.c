@@ -1,15 +1,18 @@
-// Tests that the Array Subscript Operator works with dynamic checks
+// Test bounds checking of uses of array subscript expressions with
+// optimization enabled.
 //
-// The following lines are for the clang automated test suite
+// Uses are tested in read, assignment,increment, and compound assignment 
+// expressions.
 //
-// This builds the file `subscript.c` at optimisation level O3, outputting an
-// executable at %t. We then run this with the same arguments as we run the unoptimised
-// binary with, and use FileCheck to ensure the output is what we expected, as specified
-// in `subscript.c`. This is run as a seperate test so we know if optimisation is
-// breaking our dynamic checks.
+// This builds the file `subscript.c` at optimisation level O3, 
+// outputting executables at %tn. We then run these with the same arguments as
+// we run the unoptimised binaries with, and use FileCheck to ensure the
+// output is what we expected, as specified in `subscript.c`. This
+// is run as a separate test so we know if optimisation is breaking some
+// dynamic checks.
 //
-
-// The following lines are cut and passed
+// The following lines are for the clang automated test suite.
+//
 // RUN: %clang -fcheckedc-extension %S/subscript.c -DTEST_READ -o %t1 -Werror -O3
 // RUN: %t1 0 0 0 0  0 0   0 0 0  | FileCheck %S/subscript.c
 // RUN: %t1 1 2 4 4  1 2   1 1 1  | FileCheck %S/subscript.c
