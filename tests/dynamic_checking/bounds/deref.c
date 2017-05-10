@@ -222,7 +222,6 @@ void failing_test_2(void) {
   array_ptr<int> b : bounds(a + 2, a) = a;
 
   TEST_OP(*b, 2);
-  *b = 2;
   printf("Unreachable: %d\n", *b);
 
   puts("Unexpected Success");
