@@ -90,7 +90,7 @@ extern array_ptr<int> h5(void) {
 
 extern void f6() {
   int *p;
-  p = _Dynamic_bounds_cast<int *>(h5); // expected-error{{expression has no bounds}}
+  p = _Dynamic_bounds_cast<int *>(h5); // expected-error{{expected h5 to have a pointer, array, or integer type}}
 }
 
 extern int *f7(int arr checked[]) {
