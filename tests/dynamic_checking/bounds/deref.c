@@ -7,7 +7,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang -fcheckedc-extension %s -o %t1 -DTEST_READ -Werror
+// RUN: %clang -fcheckedc-extension %s -o %t1 -DTEST_READ -Werror -Wno-unused-value
 // RUN: %t1 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
 // RUN: %t1 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
 // RUN: %t1 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
@@ -51,7 +51,7 @@
 #include "../../../include/stdchecked.h"
 
 #ifdef TEST_READ
-#define TEST_OP(e1, e2)
+#define TEST_OP(e1, e2) e1
 #endif
 
 #ifdef TEST_WRITE

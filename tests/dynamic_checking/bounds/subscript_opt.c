@@ -13,7 +13,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang -fcheckedc-extension %S/subscript.c -DTEST_READ -o %t1 -Werror -O3
+// RUN: %clang -fcheckedc-extension %S/subscript.c -DTEST_READ -o %t1 -Werror -Wno-unused-value -O3
 // RUN: %t1 0 0 0 0  0 0   0 0 0  | FileCheck %S/subscript.c
 // RUN: %t1 1 2 4 4  1 2   1 1 1  | FileCheck %S/subscript.c
 // RUN: %t1 2 4 8 8  2 1   2 2 2  | FileCheck %S/subscript.c

@@ -18,7 +18,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang -fcheckedc-extension %s -DTEST_READ -o %t1 -Werror
+// RUN: %clang -fcheckedc-extension %s -DTEST_READ -o %t1 -Werror -Wno-unused-value
 // RUN: %t1 0 0 0 0  0 0   0 0 0  | FileCheck %s
 // RUN: %t1 1 2 4 4  1 2   1 1 1  | FileCheck %s
 // RUN: %t1 2 4 8 8  2 1   2 2 2  | FileCheck %s
@@ -140,10 +140,9 @@ char *format_dim3 = "%s[%d][%d][%d] = %d\n";
 #endif
 
 #ifdef TEST_READ
-#define TEST_OP_DIM1(e1, index1, e2)
-#define TEST_OP_DIM2(e1, index1, index2, e2)
-#define TEST_OP_DIM3(e1, index1, index2, index3, e2)
-
+#define TEST_OP_DIM1(e1, index1, e2) ACCESS_DIM1(e1,index1)
+#define TEST_OP_DIM2(e1, index1, index2, e2) ACCESS_DIM2(e1, index1, index2)
+#define TEST_OP_DIM3(e1, index1, index2, index3, e2) ACCESS_DIM3(e1, index1, index2, index3)
 #endif
 
 #ifdef TEST_WRITE

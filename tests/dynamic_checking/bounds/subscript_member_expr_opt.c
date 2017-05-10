@@ -14,7 +14,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang -fcheckedc-extension %S/subscript_member_expr.c -o %t1 -DTEST_READ -DARROW_OPERATOR -Werror -O3
+// RUN: %clang -fcheckedc-extension %S/subscript_member_expr.c -o %t1 -DTEST_READ -DARROW_OPERATOR -Werror  -Wno-unused-value -O3
 // RUN: %t1 pass1 | FileCheck %S/subscript_member_expr.c --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-READ
 // RUN: %t1 pass2 | FileCheck %S/subscript_member_expr.c --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-READ
 // RUN: %t1 pass3 | FileCheck %S/subscript_member_expr.c --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-READ
@@ -65,7 +65,7 @@
 // removed and new temporary names used.
 // -----------------------------------------------------------------------------------
 
-// RUN: %clang -fcheckedc-extension %S/subscript_member_expr.c -o %t5 -DTEST_READ -Werror -O3
+// RUN: %clang -fcheckedc-extension %S/subscript_member_expr.c -o %t5 -DTEST_READ -Werror  -Wno-unused-value -O3
 // RUN: %t5 pass1 | FileCheck %S/subscript_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
 // RUN: %t5 pass2 | FileCheck %S/subscript_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
 // RUN: %t5 pass3 | FileCheck %S/subscript_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
