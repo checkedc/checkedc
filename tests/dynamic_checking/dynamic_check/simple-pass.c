@@ -8,7 +8,7 @@
 // expected-no-diagnostics
 
 #include <stdbool.h>
-#include "../../include/stdchecked.h"
+#include "../../../include/stdchecked.h"
 
 int main(void) {
   dynamic_check(true);
