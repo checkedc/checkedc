@@ -13,7 +13,7 @@
 //
 // The source code for this test is parameterized by the member access operator
 // so that it can be re-used for member expressions formed using the arrow
-// operator.  The member access operator is controlled by macro name ARROW.  
+// operator.  The member access operator is controlled by macro name ARROW.
 // When the the macro name is undefined, the dot (.) operator is used.  When it is
 // defined, the arrow (->) operator is used.
 //
