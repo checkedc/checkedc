@@ -11,7 +11,7 @@
 // `subscript_dot_member_expr.c`. This is run as a separate test so we know
 // if optimisation is breaking some dynamic checks.
 //
-// RUN: %clang -fcheckedc-extension %S/deref_dot_member_expr.c -o %t1 -DTEST_READ -DARROW_OPERATOR -Wer/ror -Wno-unused-value -O3
+// RUN: %clang -fcheckedc-extension %S/deref_dot_member_expr.c -o %t1 -DTEST_READ -DARROW_OPERATOR -Werror -Wno-unused-value -O3
 // RUN: %t1 pass1 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-1-READ
 // RUN: %t1 pass2 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-2-READ
 // RUN: %t1 pass3 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,ARROW,PASS-3-READ
