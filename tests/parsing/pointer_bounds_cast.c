@@ -130,3 +130,19 @@ extern void f13() {
   p = _Dynamic_bounds_cast<int *, rel_align_value(1)>(q);
   p = _Dynamic_bounds_cast<int *, rel_align(int)>(q);
 }
+
+extern void f14(array_ptr<int> arr : count(5)) {
+  int p[10];
+  array_ptr<int> x : count(10) = 0;
+  array_ptr<int> q : count(10) = 0;
+  int len = 5;
+  static array_ptr<int> cache1 : count(5);
+
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, count(10));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 10));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr)); // expected-error {{expected ','}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(3 + 2));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(len));
+}

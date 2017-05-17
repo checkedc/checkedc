@@ -83,14 +83,14 @@ checked int *f5(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s: count(2)
   return 0;
 }
 
-extern int h5(void) {
-  int k = 0;
+extern array_ptr<int> h5(void) {
+  array_ptr<int> k = 0;
   return k;
 }
 
 extern void f6() {
   int *p;
-  p = _Dynamic_bounds_cast<int *>(h5); // expected-error{{expression has no bounds}}
+  p = _Dynamic_bounds_cast<int *>(h5); // expected-error{{expected h5 to have a pointer, array, or integer type}}
 }
 
 extern int *f7(int arr checked[]) {
@@ -156,3 +156,28 @@ extern void f18(int i) {
   q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
   p = _Assume_bounds_cast<int *>(r);
 }
+
+extern float h6(void) {
+  float k = 0;
+  return k;
+}
+
+extern void f19(){
+  int p[10];
+  int a : bounds(p, p+1) = 0;    
+  float b;
+  array_ptr<int> x : count(10) = 0;
+
+  p = _Dynamic_bounds_cast<int *>(h6); // expected-error {{to have a pointer}}
+  p = _Dynamic_bounds_cast<int *>(h6, 2); // expected-error {{to have a pointer}}
+  p = _Dynamic_bounds_cast<int *>(h6, p, p + 1); // expected-error {{to have a pointer}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(a, 10);
+  x = _Dynamic_bounds_cast<int *>(b); // expected-error {{to have a pointer}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(b, 1); // expected-error {{to have a pointer}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(b, p, p + 1); // expected-error {{to have a pointer}}
+
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, b); // expected-error {{invalid argument type}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, p, 1); // expected-error {{expected expression with}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1);
+}
+

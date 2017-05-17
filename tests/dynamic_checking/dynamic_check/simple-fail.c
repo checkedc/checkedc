@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <stdlib.h>
-#include "../../include/stdchecked.h"
+#include "../../../include/stdchecked.h"
 
 void handle_error(int err) {
   _Exit(0);
