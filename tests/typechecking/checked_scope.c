@@ -188,6 +188,33 @@ void test_bounds_safe_interface(void) {
   array_ptr<int> arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{cannot use a variable with an unchecked type in a checked scope or function}}
 }
 
+// Test for no-prototype function
+// Especially, test KNR parameters function, that func(a,b,c) int a,b,c; {...}
+// KNR parameter function has valid parameters but declared outside of function
+// In function call, it is treated as no-prototype function call
+// Therefore, this type of function call SHOULD be prevented in checked scope
+
+int KNR_func1(a, b, c) int a,b,c; {
+  return 1;
+}
+
+int KNR_func2(a, b) ptr<int> a; int b; {
+  return 1;
+}
+
+int KNR_func3(a, b) ptr<char> a; ptr<int> b; {
+  return 1;
+}
+
+void KNR_test(void) {
+  ptr<int> px = 0;
+  ptr<char> py = 0;
+  int a,b,c;
+  KNR_func1(a,b,c); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+  KNR_func2(px,a);  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+  KNR_func3(py,px); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+}
+
 #pragma BOUNDS_CHECKED OFF
 
 // Test for checked block.
