@@ -2,6 +2,7 @@
 //
 // RUN: %clang -fcheckedc-extension %s -o %t -Werror
 // RUN: %t pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
+// RUN: %t pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
 // RUN: %t fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-1
 // RUN: %t fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-2
 // RUN: %t fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-3
@@ -15,6 +16,7 @@
 #include "../../include/stdchecked.h"
 
 void passing_test_1(void);
+void passing_test_2(void);
 
 void failing_test_1(void);
 void failing_test_2(void);
@@ -63,6 +65,12 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-PASS-1: Printable3
     // CHECK-PASS-1: Expected Success
     passing_test_1();
+  }
+  else if (strcmp(argv[1], "pass2") == 0) {
+    // CHECK-PASS-2: Printable0
+    // CHECK-PASS-2: Printable1
+    // CHECK-PASS-2: Expected Success
+    passing_test_2();
   }
   else if (strcmp(argv[1], "fail1") == 0) {
     // CHECK-FAIL-1-NOT: Unprintable
@@ -120,6 +128,30 @@ void passing_test_1(void) {
   printf("Printable2\n");
 
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, s, s+3);
+  printf("Printable3\n");
+
+  puts("Expected Success");
+}
+
+// dynamic_check(base == NULL || ...)
+// dynamic_check(base == NULL || ...)
+void passing_test_2(void) {
+  ptr<int> q = 0;
+  int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
+  array_ptr<int> s : count(5) = r;
+
+  // constant folded
+  q = _Dynamic_bounds_cast<ptr<int>>(NULL);
+  printf("Printable0\n");
+
+  q = _Dynamic_bounds_cast<array_ptr<int>>(NULL, r, r+5);
+  printf("Printable1\n");
+
+  s = NULL;
+  q = _Dynamic_bounds_cast<ptr<int>>(s);
+  printf("Printable2\n");
+
+  q = _Dynamic_bounds_cast<array_ptr<int>>(s, r, r+5);
   printf("Printable3\n");
 
   puts("Expected Success");
