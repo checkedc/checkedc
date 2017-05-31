@@ -69,6 +69,8 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   else if (strcmp(argv[1], "pass2") == 0) {
     // CHECK-PASS-2: Printable0
     // CHECK-PASS-2: Printable1
+    // CHECK-PASS-2: Printable2
+    // CHECK-PASS-2: Printable3
     // CHECK-PASS-2: Expected Success
     passing_test_2();
   }
