@@ -14,6 +14,7 @@
 // If declaration has an unchecked type error in a checked scope,
 // it produces error message for declaration.
 // Otherwise, it produces an error message for each use of declaration.
+
 checked int func0(int len, int *p, ptr<int> q, array_ptr<int> r, int *s : itype(ptr<int>)) { // expected-error {{parameter cannot have an unchecked pointer type}}
   int result = *p + *q + *s;
   return result;
@@ -141,6 +142,80 @@ checked int* func19(int a[] : itype(int *), char b[] : itype(char *)) : itype(in
                                                                                               // expected-error 2 {{parameter cannot have an unchecked array type in a checked scope}} \
                                                                                               // expected-error {{return cannot have an unchecked pointer type}}
 }
+
+#pragma BOUNDS_CHECKED ON
+
+// Test for bounds-safe interface
+// - check variable declaration with bounds-safe interface
+// - check function declaration(return & parameter) with bounds-safe interface
+int *garr : count(10);
+int *gptr : bounds(garr, garr + 5);
+int gval : bounds(garr, garr+10);
+
+#define size_t int
+void *checked_aligned_alloc(size_t alignment, size_t size) : byte_count(size);
+void *checked_calloc(size_t nmemb, size_t size) : byte_count(nmemb * size);
+void checked_free(void *pointer : itype(ptr<void>));
+void *checked_malloc(size_t size) : byte_count(size);
+void *checked_realloc(void *pointer  : itype(ptr<void>), size_t size) : byte_count(size);
+
+void *bsearch(const void *key : byte_count(size),
+              const void *base : byte_count(nmemb * size),
+              size_t nmemb, size_t size,
+              int ((*compar)(const void *, const void *)) :
+                itype(ptr<int(ptr<const void>, ptr<const void>)>)) :
+                byte_count(size);
+
+void qsort(void *base : byte_count(nmemb * size),
+           size_t nmemb, size_t size,
+           int ((*compar)(const void *, const void *)) :
+             itype(ptr<int (ptr<const void>, ptr<const void>)>));
+
+int mblen(const char *s : count(n), size_t n);
+
+void test_bounds_safe_interface(void) {
+  array_ptr<int> arr0 : count(4) = checked_calloc(4, sizeof(size_t));
+
+  for (int i = 0; i < 4; i++)
+    unchecked {
+      checked_malloc(arr0[i]);
+    }
+  ptr<int> arr1 = checked_malloc(10);
+#pragma BOUNDS_CHECKED OFF
+  void *unchecked_ptr;
+#pragma BOUNDS_CHECKED ON
+  array_ptr<int> arr2 = checked_realloc(arr1, 20);
+  array_ptr<int> arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{cannot use a variable with an unchecked type in a checked scope or function}}
+}
+
+// Test for no-prototype function
+// Especially, test KNR parameters function, that func(a,b,c) int a,b,c; {...}
+// KNR parameter function has valid parameters but declared outside of function
+// In function call, it is treated as no-prototype function call
+// Therefore, this type of function call SHOULD be prevented in checked scope
+
+int KNR_func1(a, b, c) int a,b,c; {
+  return 1;
+}
+
+int KNR_func2(a, b) ptr<int> a; int b; {
+  return 1;
+}
+
+int KNR_func3(a, b) ptr<char> a; ptr<int> b; {
+  return 1;
+}
+
+void KNR_test(void) {
+  ptr<int> px = 0;
+  ptr<char> py = 0;
+  int a,b,c;
+  KNR_func1(a,b,c); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+  KNR_func2(px,a);  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+  KNR_func3(py,px); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+}
+
+#pragma BOUNDS_CHECKED OFF
 
 // Test for checked block.
 // - check if compound statments are checked.
