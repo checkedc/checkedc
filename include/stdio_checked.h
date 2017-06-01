@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 
+#pragma BOUNDS_CHECKED ON
 
 // TODO: handle strings
 // int remove(const char *name);
@@ -22,8 +23,10 @@ FILE *tmpfile(void) : itype(_Ptr<FILE>);
 // char *tmpnam(char *source);
 int fclose(FILE *stream : itype(_Ptr<FILE>));
 int fflush(FILE *stream : itype(_Ptr<FILE>));
+_Unchecked
 FILE *fopen(const char * restrict filename,
             const char * restrict mode) : itype(_Ptr<FILE>);
+_Unchecked
 FILE *freopen(const char * restrict filename,
               const char * restrict mode,
               FILE * restrict stream : itype(restrict _Ptr<FILE>)) :
@@ -42,8 +45,10 @@ int setvbuf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 // * Any pointer arguments may not meet the requirements of the
 //  format string.
 //
+_Unchecked
 int fprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
             const char * restrict format, ...);
+_Unchecked
 int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
            const char * restrict format, ...);
 // TODO: handle strings
@@ -61,13 +66,16 @@ int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 //            const char * restrict format, ...);
 // TODO: Apple System Headers Support
 #if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+_Unchecked
 int snprintf(char * restrict s : count(n), size_t n,
              const char * restrict format, ...);
 #endif
 
+_Unchecked
 int vfprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
              const char * restrict format,
              va_list arg);
+_Unchecked
 int vfscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
             const char * restrict format,
             va_list arg);
@@ -79,6 +87,7 @@ int vfscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 //            va_list arg);
 // TODO: Apple System Headers Support
 #if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+_Unchecked
 int vsnprintf(char * restrict s : count(n), size_t n,
               const char * restrict format,
               va_list arg);
@@ -95,9 +104,11 @@ int vsnprintf(char * restrict s : count(n), size_t n,
 //            va_list arg);
 
 int fgetc(FILE *stream : itype(_Ptr<FILE>));
+_Unchecked
 char *fgets(char * restrict s : count(n), int n,
             FILE * restrict stream : itype(restrict _Ptr<FILE>)) :
   bounds(s, s + n);
+_Unchecked
 int fputs(const char * restrict s,
           FILE * restrict stream : itype(restrict _Ptr<FILE>));
 int getc(FILE *stream : itype(_Ptr<FILE>));
@@ -131,3 +142,5 @@ int ferror(FILE *stream : itype(_Ptr<FILE>));
 // void perror(const char *s);
 
 #include "_builtin_stdio_checked.h"
+
+#pragma BOUNDS_CHECKED OFF

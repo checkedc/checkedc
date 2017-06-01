@@ -11,6 +11,8 @@
 
 #include <math.h>
 
+#pragma BOUNDS_CHECKED ON
+
 double frexp(double value, int *exp : itype(_Ptr<int>));
 float frexpf(float value, int *exp : itype(_Ptr<int>));
 long double frexpl(long double value, int *exp : itype(_Ptr<int>));
@@ -23,6 +25,8 @@ long double modfl(long double value,
 double remquo(double x, double y, int *quo : itype(_Ptr<int>));
 float remquof(float x, float y, int *quo : itype(_Ptr<int>));
 long double remquol(long double x, long double y, int *quo : itype(_Ptr<int>));
+
+#pragma BOUNDS_CHECKED OFF
 
 // TODO: strings
 // double nan(const char *t);

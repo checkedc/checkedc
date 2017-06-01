@@ -13,19 +13,23 @@
 // null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 
+#include "_builtin_common.h"
+
 #ifndef __has_builtin
 #define _undef__has_builtin
 #define __has_builtin(x) 0
 #endif
 
 #if __has_builtin(__builtin___snprintf_chk) || defined(__GNUC__)
-extern int __snprintf_chk(char * __restrict s : count(n),
+extern _Unchecked
+int __snprintf_chk(char * __restrict s : count(n),
                           size_t n,
                           int flag,
                           size_t obj_size,
                           const char * __restrict format,
                           ...);
 
+_Unchecked
 int __builtin___snprintf_chk(char * restrict s : count(n),
                              size_t n,
                              int flag,
@@ -36,13 +40,15 @@ int __builtin___snprintf_chk(char * restrict s : count(n),
 
 
 #if __has_builtin(__builtin___vsnprintf_chk) || defined(__GNUC__)
-extern int __vsnprintf_chk(char * __restrict s : count(n),
+extern _Unchecked
+int __vsnprintf_chk(char * __restrict s : count(n),
                            size_t n,
                            int flag,
                            size_t obj_size,
                            const char * __restrict format,
                            va_list);
 
+_Unchecked
 int __builtin___vsnprintf_chk(char * restrict s : count(n),
                               size_t n,
                               int flag,

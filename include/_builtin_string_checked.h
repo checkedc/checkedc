@@ -13,46 +13,51 @@
 // null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 
+#include "_builtin_common.h"
+
 #ifndef __has_builtin
 #define _undef__has_builtin
 #define __has_builtin(x) 0
 #endif
 
 #if __has_builtin(__builtin___memcpy_chk) || defined(__GNUC__)
-
-
+_Unchecked
 void *__builtin___memcpy_chk(void * restrict dest : byte_count(n),
                              const void * restrict src : byte_count(n),
                              size_t n,
-                             size_t obj_size) : bounds(dest, (char *) dest + n);
+                             size_t obj_size) : bounds(dest, (_Array_ptr<char>) dest + n);
 #endif
 
 #if __has_builtin(__builtin__memmove_chk) || defined(__GNUC__)
+_Unchecked
 void *__builtin__memmove_chk(void * restrict dest : byte_count(n),
                              const void * restrict src : byte_count(n),
                              size_t n,
-                             size_t obj_size) : bounds(dest, (char *)dest + n);
+                             size_t obj_size) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 
 #if __has_builtin(__builtin__memset_chk) || defined(__GNUC__)
+_Unchecked
 void *__builtin__memset_chk(void * s : byte_count(n),
                             int c,
                             size_t n,
-                            size_t obj_size) : bounds(s, (char *) s + n);
+                            size_t obj_size) : bounds(s, (_Array_ptr<char>) s + n);
 #endif
 
 #if __has_builtin(__builtin___strncat_chk) || defined(__GNUC__)
+_Unchecked
 char *__builtin___strncat_chk(char * restrict dest : count(n),
                               const char * restrict src : count(n),
                               size_t n,
-                              size_t obj_size) : bounds(dest, (char *)dest + n);
+                              size_t obj_size) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 
 #if __has_builtin(__builtin___strncpy_chk) || defined(__GNUC__)
+_Unchecked
 char *__builtin___strncpy_chk(char * restrict dest : count(n),
                               const char * restrict src : count(n),
                               size_t n,
-                              size_t obj_size) : bounds(dest, (char *)dest + n);
+                              size_t obj_size) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 
 #ifdef _undef__has_builtin
