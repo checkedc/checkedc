@@ -59,7 +59,13 @@ int memcmp(const void *src1 : byte_count(n), const void *src2 : byte_count(n),
 // int strcmp(const char *src1, const char *src2);
 // int strcoll(const char *src1, const char *src2);
 
-int strncmp(const char *src : count(n), const char *s2 : count(n), size_t n);
+// TODO: On some linuxes, strncmp is defined using a macro
+// which will break this redeclaration.
+#ifndef strncmp
+int strncmp(const char *src : count(n),
+            const char *s2 : count(n),
+            size_t n);
+#endif
 
 _Unchecked
 size_t strxfrm(char * restrict dest : count(n),
