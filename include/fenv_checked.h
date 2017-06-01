@@ -8,9 +8,13 @@
 
 #include <fenv.h>
 
+#pragma BOUNDS_CHECKED ON
+
 int fesetexceptflag(const fexcept_t *flagp : itype(_Ptr<const fexcept_t>),
                     int excepts);
 int fegetenv(fenv_t *envp : itype(_Ptr<fenv_t>));
 int feholdexcept(fenv_t *envp : itype(_Ptr<fenv_t>));
 int fesetenv(const fenv_t *envp : itype(_Ptr<const fenv_t>));
 int feupdateenv(const fenv_t *envp : itype(_Ptr<const fenv_t>));
+
+#pragma BOUNDS_CHECKED OFF
