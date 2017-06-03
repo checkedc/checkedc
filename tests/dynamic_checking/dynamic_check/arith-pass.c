@@ -7,7 +7,7 @@
 
 // expected-no-diagnostics
 
-#include "../../../include/stdchecked.h"
+#include <stdchecked.h>
 
 void f1(int i) {
   dynamic_check(i < 30);

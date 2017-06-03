@@ -1,6 +1,6 @@
 // Simple Example of Checked C, from Section 2.8 of the spec
 
-#include "../include/stdchecked.h"
+#include <stdchecked.h>
 
 /* lexicographic comparison of two arrays of integers */
 int compare(array_ptr<int> x : bounds(x, x_end),

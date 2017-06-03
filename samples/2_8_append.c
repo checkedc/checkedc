@@ -1,7 +1,7 @@
 // Simple Example of Checked C, from Section 2.8 of the spec
 
 #include <stddef.h>
-#include "../include/stdchecked.h"
+#include <stdchecked.h>
 
 void append(array_ptr<char> dst : count(dst_count),
             array_ptr<char> src : count(src_count),

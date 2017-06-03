@@ -13,7 +13,7 @@
 // - By default, all structure/union declarations is checked type
 // - To declare function as undeclared, use unchecked function specifier
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 // Test for pragma set/clear/set.
 #pragma BOUNDS_CHECKED ON

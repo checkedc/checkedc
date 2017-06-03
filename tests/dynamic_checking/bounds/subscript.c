@@ -121,7 +121,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "../../../include/stdchecked.h"
+#include <stdchecked.h>
 
 #ifdef POINTER_ARITHMETIC
 #define ACCESS_DIM1(e1, index1) (*(e1 + index1))

@@ -4,7 +4,7 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 struct S1 {
   array_ptr<int> arr : count(5);

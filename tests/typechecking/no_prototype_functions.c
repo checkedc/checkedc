@@ -4,7 +4,7 @@
 //
 // RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 struct S1 {
   ptr<int> m1;

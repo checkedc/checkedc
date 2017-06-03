@@ -5,7 +5,7 @@
 // RUN: %clang_cc1 -fcheckedc-extension -Wno-unused-value -Wno-pointer-bool-conversion -verify -verify-ignore-unexpected=note %s
 //
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 // Test for checked function specifier.
 // - check if function declaration (return/param) is checked.

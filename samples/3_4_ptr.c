@@ -1,6 +1,6 @@
 // Simple Example of Checked C, from Section 3.4 of the spec
 
-#include "../include/stdchecked.h"
+#include <stdchecked.h>
 
 // Original Function
 int deref_orig(ptr<int> x : bounds(x, x + c), int c) {
