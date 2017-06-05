@@ -3,7 +3,7 @@
 # directory for clang so that they can easily be found/used.
 #
 # Checked C does not require runtime system changes, and it would
-# by unnecesarily heavyweight to require people to pick up a new
+# be unnecesarily heavyweight to require people to pick up a new
 # library just to get the Checked C include wrpaper files.
 # So we place the header files with the compiler.
 
@@ -23,7 +23,7 @@ set(files
   )
 
 # Hack - compute the CLANG version from the LLVM version.  The
-# CLANG_VERSION variable is not available at this during the build.
+# CLANG_VERSION variable is not available at this point during the build.
 
 string(REGEX MATCH "[0-9]+\\.[0-9]+(\\.[0-9]+)?" CHECKEDC_CLANG_VERSION
   ${PACKAGE_VERSION})
