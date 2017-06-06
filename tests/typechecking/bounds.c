@@ -7,7 +7,7 @@
 // Test expressions with standard signed and unsigned integers types as
 // arguments to count and byte_count.
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 static int A = 8;
 static long long int B = 8;

@@ -5,7 +5,7 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 // Check that declarations of automatic variables with Checked C bounds 
 // declarations or _Ptr types always have initializers.

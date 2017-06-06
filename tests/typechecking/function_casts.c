@@ -4,7 +4,7 @@
 // RUN: %clang_cc1 -fcheckedc-extension -verify %s
 //
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 int f0(int a) {
   return a;

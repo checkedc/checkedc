@@ -11,7 +11,7 @@
 
 #include <signal.h>
 #include <stdlib.h>
-#include "../../../include/stdchecked.h"
+#include <stdchecked.h>
 
 void f1(int i) {
   // This is expected fail at runtime

@@ -4,7 +4,7 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 extern int cLen;
 extern array_ptr<int> f : byte_count(cLen * sizeof(int));

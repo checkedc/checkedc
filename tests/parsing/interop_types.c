@@ -6,7 +6,7 @@
 //
 // RUN: %clang_cc1 -verify -fcheckedc-extension %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 //
 // parameters with interop type annotations

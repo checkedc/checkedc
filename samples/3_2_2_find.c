@@ -1,6 +1,6 @@
 // Simple Example of Checked C, from Section 3.2.2 of the spec
 
-#include "../include/stdchecked.h"
+#include <stdchecked.h>
 
 array_ptr<int> find(int key, 
                     array_ptr<int> a : count(len), 

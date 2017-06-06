@@ -59,6 +59,14 @@ int memcmp(const void *src1 : byte_count(n), const void *src2 : byte_count(n),
 // int strcmp(const char *src1, const char *src2);
 // int strcoll(const char *src1, const char *src2);
 
+// Linux header files declare strncmp and also define a macro for it.
+// Undef the macro so that we can redeclare strncmp.
+//
+// Section 7.1.4 of the C11 standard allows the use of #undef to prevent
+// macros from interfering  with explicit declarations of library functions.
+// It is legal to #undef a macro that isn't defined, so we don't need to
+// conditionalize this.
+#undef strncmp
 int strncmp(const char *src : count(n), const char *s2 : count(n), size_t n);
 
 _Unchecked

@@ -5,7 +5,7 @@
 //
 // RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 //---------------------------------------------------------------------------//
 // Declarations of functions with unchecked parameters are compatible with   //

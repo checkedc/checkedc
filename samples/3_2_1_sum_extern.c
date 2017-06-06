@@ -1,6 +1,6 @@
 // Simple Example of Checked C, from Section 3.2.1 of the spec
 
-#include "../include/stdchecked.h"
+#include <stdchecked.h>
 
 // external-scoped variables that hold a buffer and its length
 int buflen = 0;
