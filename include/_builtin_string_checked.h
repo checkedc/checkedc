@@ -21,31 +21,27 @@
 #endif
 
 #if __has_builtin(__builtin___memcpy_chk) || defined(__GNUC__)
-_Unchecked
 void *__builtin___memcpy_chk(void * restrict dest : byte_count(n),
                              const void * restrict src : byte_count(n),
                              size_t n,
                              size_t obj_size) : bounds(dest, (_Array_ptr<char>) dest + n);
 #endif
 
-#if __has_builtin(__builtin__memmove_chk) || defined(__GNUC__)
-_Unchecked
-void *__builtin__memmove_chk(void * restrict dest : byte_count(n),
+#if __has_builtin(__builtin___memmove_chk) || defined(__GNUC__)
+void *__builtin___memmove_chk(void * restrict dest : byte_count(n),
                              const void * restrict src : byte_count(n),
                              size_t n,
                              size_t obj_size) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 
-#if __has_builtin(__builtin__memset_chk) || defined(__GNUC__)
-_Unchecked
-void *__builtin__memset_chk(void * s : byte_count(n),
+#if __has_builtin(__builtin___memset_chk) || defined(__GNUC__)
+void *__builtin___memset_chk(void * s : byte_count(n),
                             int c,
                             size_t n,
                             size_t obj_size) : bounds(s, (_Array_ptr<char>) s + n);
 #endif
 
 #if __has_builtin(__builtin___strncat_chk) || defined(__GNUC__)
-_Unchecked
 char *__builtin___strncat_chk(char * restrict dest : count(n),
                               const char * restrict src : count(n),
                               size_t n,
@@ -53,7 +49,6 @@ char *__builtin___strncat_chk(char * restrict dest : count(n),
 #endif
 
 #if __has_builtin(__builtin___strncpy_chk) || defined(__GNUC__)
-_Unchecked
 char *__builtin___strncpy_chk(char * restrict dest : count(n),
                               const char * restrict src : count(n),
                               size_t n,

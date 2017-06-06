@@ -15,6 +15,10 @@
 
 #pragma BOUNDS_CHECKED ON
 
+extern FILE *stdin : itype(_Ptr<FILE>);
+extern FILE *stdout : itype(_Ptr<FILE>);
+extern FILE *stderr : itype(_Ptr<FILE>);
+
 // TODO: handle strings
 // int remove(const char *name);
 // int rename(const char *from, const char *to);
@@ -104,6 +108,7 @@ int vsnprintf(char * restrict s : count(n), size_t n,
 //            va_list arg);
 
 int fgetc(FILE *stream : itype(_Ptr<FILE>));
+int fputc(int c, FILE *stream : itype(_Ptr<FILE>));
 _Unchecked
 char *fgets(char * restrict s : count(n), int n,
             FILE * restrict stream : itype(restrict _Ptr<FILE>)) :

@@ -20,6 +20,7 @@ set(files
   time_checked.h
   _builtin_stdio_checked.h
   _builtin_string_checked.h
+  _builtin_common.h
   )
 
 # Hack - compute the CLANG version from the LLVM version.  The
