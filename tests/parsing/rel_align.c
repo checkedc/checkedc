@@ -252,10 +252,7 @@ struct S2 {
 struct S3 {
   int none;
   array_ptr<int> arr2 : count(none);
-  array_ptr<int> arr3 : bounds(none + arr2, none + arr2 + 5) rel_align(1);  // expected-error {{expected ')'}} \
-                                                              // expected-note {{to match this '('}} \
-                                                              // expected-error {{expected a type}} \
-                                                              // expected-error {{expected range bounds expression}} 
+  array_ptr<int> arr3 : bounds(none + arr2, none + arr2 + 5) rel_align(1);  // expected-error {{expected ')'}} expected-note {{to match this '('}} expected-error {{expected a type}} expected-error {{expected range bounds expression}}
   array_ptr<int> arr4 : bounds(arr2, arr2 + none) rel_align(char);
   
   array_ptr<int> arr5 : bounds(none + arr2, none + arr2 + 5) rel_align_value(sizeof(char));// expected-error {{expected ')'}} \
@@ -350,7 +347,7 @@ struct S13 {
 
   array_ptr<int> arr1: bounds() rel_align_value(len); // expected-error {{expected expression}} \
 						      // expected-error {{expression is not an integer constant expression}} 
-  array_ptr<int> arr3 : bounds() rel_align(); // expected-error {{expected expression}}  expected-error {{expected a type}} 
+  array_ptr<int> arr3 : bounds() rel_align(); // expected-error {{expected expression}} expected-error {{expected a type}}
 
   array_ptr<int> arr4 : bounds() rel_align_value(); // expected-error 2 {{expected expression}}
 };
@@ -364,3 +361,4 @@ struct S14 {
   array_ptr<int> arr1
       : bounds(global_bound, global_bound + len) rel_align_value(sizeof(int)); // expected-error 2 {{use of undeclared member 'global_bound'}}
 };
+
