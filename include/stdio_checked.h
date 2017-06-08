@@ -15,9 +15,16 @@
 
 #pragma BOUNDS_CHECKED ON
 
+#if defined(_WIN32) || defined(_WIN64)
+// stdin, stdout, and stderr only have to be expressions that have
+// type FILE *.  On Windows, they are function calls, so we need to change
+// the return type of the function being called.
+_ACRTIMP_ALT FILE* __cdecl __acrt_iob_func(unsigned) : itype(_Ptr<FILE>);
+#else
 extern FILE *stdin : itype(_Ptr<FILE>);
 extern FILE *stdout : itype(_Ptr<FILE>);
 extern FILE *stderr : itype(_Ptr<FILE>);
+#endif
 
 // TODO: handle strings
 // int remove(const char *name);
