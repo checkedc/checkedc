@@ -10,6 +10,7 @@
 \usepackage{tikz} % drawing support
 \usepackage{soul} % provide highlighting support
 \usepackage{color}
+\usepackage{listings}
 \usetikzlibrary{patterns}
 
 % use upquote if available, for straight quotes in verbatim environments
@@ -54,6 +55,37 @@
 \definecolor{lightyellow}{rgb}{1.0,1.0,0.6}
 \sethlcolor{lightyellow}
 
+\lstdefinelanguage[checked]{C}[]{C}
+{morekeywords={array_ptr,_Array_ptr,
+               assume_bounds_cast, _Assume_bounds_cast,
+               bool, _Bool, % C11
+               bounds,
+               byte_count,
+               checked,_Checked,
+               count,
+               dynamic_bounds_cast, _Dynamic_bounds_cast,
+               dynamic_check, _Dynamic_check,
+               ptr,_Ptr,
+               unchecked,_Unchecked,
+               where, _Where},
+ moredelim=[is][\it \color{purple}]{|-}{-|}
+}
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  % frame=L,
+  xleftmargin=\parindent,
+  language=[checked]C,
+  showstringspaces=false,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\color{purple!40!black},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+}
+\lstset{language=C,style=customc}
+
+
 %
 % meta variables are italicized.  Use the macro name var
 % to save on typing.
@@ -72,11 +104,12 @@
 % array_ptr type macros
 %
 \newcommand{\arrayptr}{\texttt{array\_ptr}}
+\newcommand{\plainarrayptr}{\texttt{array\_ptr}}
 \newcommand{\arrayptrinst}[1]{\texttt{array\_ptr<#1>}}
 \newcommand{\arrayptrT}{\arrayptrinst{\var{T}}}
-\newcommand{\arrayptrchar}{\arrayptrinst{\texttt{char}}}
-\newcommand{\arrayptrint}{\arrayptrinst{\texttt{int}}}
-\newcommand{\arrayptrvoid}{\arrayptrinst{\texttt{void}}}
+\newcommand{\arrayptrchar}{\arrayptrinst{\keyword{char}}}
+\newcommand{\arrayptrint}{\arrayptrinst{\keyword{int}}}
+\newcommand{\arrayptrvoid}{\arrayptrinst{\keyword{void}}}
 
 % use the name spanptr because span is already a command
 % in tex

@@ -177,7 +177,7 @@ declarations. The first function sums the integers stored in memory
 between \texttt{start} and \texttt{end}, where the integer stored at
 \texttt{end} is not included.
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
     int result = 0;
@@ -189,12 +189,12 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
     }
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This can be written using \keyword{where} clauses as well, at the
 inconvenience of typing variable names twice in declarations:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> end)
 { 
     int result = 0;
@@ -204,13 +204,13 @@ int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> en
     }
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This function searches for an integer in an array. If it finds the
 integer, it returns the index in the array where the integer occurs.
 Otherwise, it returns -1.
 
-\begin{verbatim}
+\begin{lstlisting}
 int find(int key, array_ptr<int> a : count(len), int len)
 {
     for (int i = 0; i < len; i++) {
@@ -221,13 +221,13 @@ int find(int key, array_ptr<int> a : count(len), int len)
     }
     return -1;
 }
-\end{verbatim}
+\end{lstlisting}
 
 If the code was written assuming that it would always find the integer,
 bounds-checking would detect the buffer overrun in the case the integer
 was not present:
 
-\begin{verbatim}
+\begin{lstlisting}
 int bad_find(int key, array_ptr<int> a : count(len), int len)
 {
     int i = 0;
@@ -240,11 +240,11 @@ int bad_find(int key, array_ptr<int> a : count(len), int len)
     return -1;
 }
 
-\end{verbatim}
+\end{lstlisting}
 
 This function adds two arrays of 2x2 arrays.
 
-\begin{verbatim}
+\begin{lstlisting}
 int add(int a checked[][2][2] : count(len), int b checked[][2][2] : count(len), 
         int len) 
 {
@@ -256,11 +256,11 @@ int add(int a checked[][2][2] : count(len), int b checked[][2][2] : count(len),
         a[i][1][1] += b[i][1][1];
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 Externally-scoped variables can have bounds as well:
 
-\begin{verbatim}
+\begin{lstlisting}
 // external-scoped variables that hold a buffer and its length
 int buflen = 0;
 array_ptr<int> buf : count(buflen) = NULL;
@@ -273,37 +273,37 @@ int sum(void)
     }
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This is a declaration of a function that copies bytes provided that the
 pointers and lengths are aligned:
-\begin{verbatim}
-int aligned_memcpy(array<char> dest where dest : count(len) && aligned(dest, 4),
+\begin{lstlisting}
+int aligned_memcpy(array<char> dst where dst : count(len) && aligned(dst, 4),
                    array<char> src where src : count(len) && aligned(src, 4),
                    int len where len % 4 == 0);
-\end{verbatim}
+\end{lstlisting}
 
 The declaration can be shortened using in-line bounds declarations to:
 
-\begin{verbatim}
-int aligned_memcpy(array<char> dest : count(len) where aligned(dest, 4),
+\begin{lstlisting}
+int aligned_memcpy(array<char> dst : count(len) where aligned(dst, 4),
                    array<char> src : count(len) where aligned(src, 4),
                    int len where len % 4 == 0);
-\end{verbatim}
+\end{lstlisting}
 
 This example is adapted from the OpenSSL library. The signature of a
 method has been modified to have bounds declaration. The size of input
 and output buffers must be multiples of 16 because the function operates
 on 16-byte chunks of data.
 
-\begin{verbatim}
+\begin{lstlisting}
 void AES_cbc_encrypt(array_ptr<const unsigned char> in : count(len),
                      array_ptr<unsigned char> out : count(len),
                      size_t len where len % 16 == 0,
                      ptr<const AES_KEY> key,
                      array_ptr<unsigned char> ivec : count(16),
                      const int enc);
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Bounds declarations for return values}
 
@@ -319,7 +319,7 @@ The following example show the \texttt{find} function from
 Section~\ref{section:variable-declarations} modified
 to return a pointer to the element instead of the index:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> find(int key, array_ptr<int> a : count(len), int len)
  : bounds(a, a + len)
 {
@@ -331,22 +331,22 @@ array_ptr<int> find(int key, array_ptr<int> a : count(len), int len)
     }
     return NULL;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This also can be written as:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> find(int key, array_ptr<int> a : count(len), int len)
   where return_value : bounds(a, a + len)
 {
    ...
 }
-\end{verbatim}
+\end{lstlisting}
 Here is the declaration of a function that allocates memory:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<char> alloc(size_t size) : count(size);
-\end{verbatim}
+\end{lstlisting}
 
 
 
@@ -377,7 +377,7 @@ statements. The variable \texttt{tmp} first points to an array with 5
 elements and then points to an array with 10 elements; the bounds are
 adjusted accordingly.
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(void) 
 {
    int x[5];
@@ -387,12 +387,12 @@ void f(void)
    ...
    tmp = y where tmp : count(10);
 }
-\end{verbatim}
+\end{lstlisting}
 
 In the second example, an \arrayptr\ \texttt{c} and its length are initialized
 lazily to either \texttt{a} or \texttt{b}, depending on another parameter \texttt{val}:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* use either a or b depending on val */
 int choose(int val, array_ptr<int> a : count(alen), int alen,
                     array_ptr<int> b : count(blen), int blen) 
@@ -409,14 +409,14 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
     }    
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 Declaring bounds at assignments supports updating of variables that are
 used in the bounds for an existing \arrayptr\ variable. New
 bounds for the \arrayptr\ variable can be declared to reflect
 the update. Consider the following example:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
@@ -424,7 +424,7 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
     // Adjusting end. Can declare new bounds for start at the assignment
     end = end - 1 where start : bounds(start, end + 1);
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 \subsection{Invariant bounds declarations}
@@ -477,25 +477,25 @@ described in Section~\ref{section:function-bounds-safe-interfaces}.
 However, if they were to return checked pointer
 types, their bounds declarations would be:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<void> malloc(size_t num) : byte_count(num);
 
-int memcmp(array_ptr<const void> dest : byte_count(num),
+int memcmp(array_ptr<const void> dst : byte_count(num),
            array_ptr<const void> src : byte_count(num), size_t num);
 
-array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
+array_ptr<void> memcpy(array_ptr<void> dst : byte_count(num),
                        array_ptr<const void> src : byte_count(num), size_t num) :
     byte_count(num);
-\end{verbatim}
+\end{lstlisting}
 
-The return value of \texttt{memcpy} is \texttt{dest}. The bounds for
+The return value of \texttt{memcpy} is \texttt{dst}. The bounds for
 this return value could be described more precisely by:
 
-\begin{verbatim}
-array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
+\begin{lstlisting}
+array_ptr<void> memcpy(array_ptr<void> dst : byte_count(num),
                        array_ptr<void> src : byte_count(num), size_t num) :
-  bounds((<array_ptr<char>) dest, (array_ptr<char>) dest + num) rel_align(char)
-\end{verbatim}
+  bounds((<array_ptr<char>) dst, (array_ptr<char>) dst + num) rel_align(char)
+\end{lstlisting}
 \section{Syntax changes}
 The grammar from the ``C Programming Language'' \cite{Ritchie1988} is extended to include
 in-line bounds declarations and \keyword{where} clauses for declarations:
@@ -586,13 +586,11 @@ value of \var{e1}.
 Consider as an example, \verb|z = *x;| where 
 \verb|x : bounds(x, x + c)|. The compiler will produce code of the form
 
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
 dynamic_check(x != null);
 dynamic_check(x <= x && x < x + c);
 z = *x;
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 The condition \texttt{x <= x} is trivially true. The
 condition \texttt{x < x + c} simplifies to \texttt{0
 < c}, that is \texttt{c > 0}, which is what one
@@ -605,14 +603,12 @@ The expression \texttt{x + 5} must point into the same object as
 \boundsdecl{\texttt{x + 5}}{\bounds{\texttt{x}}{\texttt{x + c}}}.
 The compiler will produce code of the form:
 
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
 dynamic_check(x != null);
 t1 = x + 5;
 dynamic_check(t1 != null && x <= t1 && t1 < x + c);
 z = *t1;
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 
 Array subscripting works as expected. For \texttt{e1[e2]}, the
 compiler computes the bounds of \texttt{e1}. The compiler inserts
@@ -626,11 +622,11 @@ The runtime checks simplify to \verb|5 < c|.
 The preceding example raises a subtle point, which is when bounds
 expressions are evaluated. Consider the following code:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> x;
 x = malloc ((sizeof(int) * 5)
 where x : bounds(x, x + 5);
-\end{verbatim}
+\end{lstlisting}
 
 When is \texttt{x + 5} evaluated?  In this design, 
 the evaluation of a bounds expression in a bounds declaration is
@@ -654,7 +650,7 @@ grouped into bundled blocks.  Bounds declarations are checked only at the end of
 
 Consider the following example where a function is added to the earler sum
 example that allows a buffer to be reallocated:
-\begin{verbatim}
+\begin{lstlisting}
 // external-scoped variables that hold a buffer and its length
 int buflen = 0;
 array_ptr<int> buf : count(buflen) = NULL;
@@ -676,14 +672,14 @@ void resize(int len)
     buflen = len;  // fails at compile-time because the bounds are not true
     buf = tmp;
 }
-\end{verbatim}
+\end{lstlisting}
 Without bundling, the update to \texttt{buflen} will fail
 compile-time checking because the bounds declaration is not true after the
 assignment.
 
 The updates to \texttt{buflen} and \texttt{buf} can be grouped together,
 so the checker considers them to be one action:
-\begin{verbatim}
+\begin{lstlisting}
 /* correct resize function */
 void resize(int len) 
 {
@@ -694,7 +690,7 @@ void resize(int len)
       buf = tmp;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 The C syntax for is extended with:
 \begin{tabbing}
@@ -724,30 +720,30 @@ masse} after the required function calls have been made.
 
 Bundled blocks expose an interesting difference between regular C
 and Checked C programs.  In regular C, 
-\begin{verbatim}
+\begin{lstlisting}
 expr1, expr2;
-\end{verbatim}
+\end{lstlisting}
 
 is always the same as:
 
-\begin{verbatim}
+\begin{lstlisting}
 expr1;
 expr2;
-\end{verbatim}
+\end{lstlisting}
 
 In Checked C, however, bounds are checked only at the ends of
 statements.  Thus bounds could be valid after
 \verb+expr1, expr+, but not valid after \verb+expr1+ alone.
 In the resize example, the following suceeds with a bundle
 block:
-\begin{verbatim}
+\begin{lstlisting}
 void resize(int len) 
 {
     array_ptr<int> tmp = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
     buflen = len, buf = tmp; // succeeds, surprisingly
 }
-\end{verbatim}
+\end{lstlisting}
 Bundled blocks are still necessary because new declarations
 cannot be introduced within a comma operator.  They also provide
 easier-to-read syntax for complex updates to variables.
@@ -863,7 +859,7 @@ within the extent of the bounds declaration. This will limit the ability
 to update the {\it other} variables used in the bounds declaration.  There will be
 no way to update the hidden variable to make the bounds declaration be valid.
 Here is a simple example:
-\begin{verbatim}
+\begin{lstlisting}
 /* function that will fail checking */
 void bad(int i)
 {
@@ -874,7 +870,7 @@ void bad(int i)
                        // would no longer be valid;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 When compilers insert bounds checks, they need to use the appropriately-scoped
 variables, even if some of the variables are hidden.
 
@@ -897,7 +893,7 @@ remain valid.
 To see what can go wrong without this requirement, consider the
 following example:
 
-\begin{verbatim}
+\begin{lstlisting}
 extern int size;
 
 void update_size(int i)
@@ -917,7 +913,7 @@ void go(void)
 int size = 10;
 int arr[10];
 array_ptr<int> ap = arr : count(size);
-\end{verbatim}
+\end{lstlisting}
 
 The checking of bounds declarations does not know at
 \texttt{update\_size} that \texttt{ap} needs to have at least \texttt{i}
@@ -953,15 +949,15 @@ This section informally examines why and the additional conditions that
 are needed. We start by looking at an allocation using malloc with an
 old-style \texttt{char *} return type and a bounds declaration:
 
-\begin{verbatim}
+\begin{lstlisting}
 extern char *malloc(size_t s) : count(s);
-\end{verbatim}
+\end{lstlisting}
 
 An array of type T is allocated with:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<T> p : count(e1) = (arrayptr<T>) malloc(sizeof(T) * e1);
-\end{verbatim}
+\end{lstlisting}
 
 The size computation in the count expression differs subtly from the
 explicit computation on the right-hand side. In the count expression,
@@ -1042,14 +1038,14 @@ higher-level functions that takes the element count and the size of
 elements and handle overflow. C already has a function that is suitable
 for unsigned integer counts:
 
-\begin{verbatim}
+\begin{lstlisting}
 void *calloc(size_t nobj, size_t size);
-\end{verbatim}
+\end{lstlisting}
 
 A signed version is needed too:
-\begin{verbatim}
+\begin{lstlisting}
 void *signed_calloc(signed_size_t nobj, size_t size);
-\end{verbatim}
+\end{lstlisting}
 However, \texttt{calloc} also zeros the allocated memory.  For the sake of efficiency,
 new allocation functions that compute sizes but do not zero memory may be needed.
 
@@ -1059,18 +1055,19 @@ new allocation functions that compute sizes but do not zero memory may be needed
 Function types can be declared to have parameters and return values that have bounds
 declarations, just like functions.  The bounds declarations become part of the function types.
 Here are simple examples of function pointer types with bounds declarations:
-\begin{verbatim}
-// Function that takes a pointer to a 5 element array and returns an integer.
+\begin{lstlisting}
+// Function that takes a pointer to a 5 element array and returns an 
+// integer.
 int (array_ptr<int> arr : count(5))
 // checked function pointer
 ptr<int (array_ptr<int> arr : count(i), int i)>
 // unchecked function pointer
 int (*) (array_ptr<int> arr : count(i), int i)
-\end{verbatim}
+\end{lstlisting}
 Functions that take pointers to functions and arrays of function pointers can
 be declared also.  A typedef for the function type is used in the following example
 to keep the syntax understandable:
-\begin{verbatim}
+\begin{lstlisting}
 typedef int fn(array_ptr<int> arr : count(5));
 
 // Takes g and arg and calls g with arg.
@@ -1078,7 +1075,7 @@ int apply(ptr<fn> g, array_ptr<int> arg : count(5));
 
 // Checked array of 10 function pointers
 ptr<fn> dispatch_table checked[10];
-\end{verbatim}
+\end{lstlisting}
 
 Compatibility of function types is extended to take into account
 bounds declarations.  Two function types are compatible if
@@ -1106,7 +1103,7 @@ declared in the same scope.
 Canonical forms place semantically equivalent but syntactically distinct
 expressions into the same form.  This allows things like commutativity and constant
 folding to be taken into account:
-\begin{verbatim}
+\begin{lstlisting}
 // These function types are equivalent taking into account commutativity.
 int (array_ptr<int> arr : count(i + j), int i, int j)
 int (array_ptr<int> arr : count(j + i), int i, int j)
@@ -1115,9 +1112,9 @@ int (array_ptr<int> arr : count(j + i), int i, int j)
 int (array_ptr<int> arr : count(5))
 int (array_ptr<int> arr : count(2 + 3))
 int (array_ptr<int> arr : count(4 + 1))
-\end{verbatim}
+\end{lstlisting}
 
-\section{Bounds declarations for results of casts between \arrayptr\ types}
+\section{Bounds declarations for results of casts between \plainarrayptr\ types}
 \label{section:pointer-cast-results}
 
 Typically \arrayptr\ pointers and their bounds are relatively
@@ -1249,12 +1246,12 @@ conjunction with pointer casts. In the first example, there is an
 cast to be an \arrayptrint . However,
 the relative alignment remains \texttt{char}:
 
-\begin{verbatim}
+\begin{lstlisting}
 // cast data to be an array_ptr<int> instead
 array_ptr<char> raw_data : bounds(lower, upper) = ...
 array_ptr<int> data : bounds(lower, upper) rel_align(char) =
     (array_ptr<int>) raw_data;
-\end{verbatim}
+\end{lstlisting}
 
 In the second example, the code starts with an
 \arrayptrint. The pointer is cast to
@@ -1265,11 +1262,11 @@ be an \arrayptrchar. That
 alignment for an \arrayptrint\ is
 \texttt{int}.
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> data : bounds(lower, upper) = ...
 array_ptr<char> byte_data : bounds(lower, upper) rel_align(int) = (array_ptr<char>) data;
 array_ptr<int> finish : bounds(lower, upper) = (array_ptr(int>) byte_data;
-\end{verbatim}
+\end{lstlisting}
 
 The third example illustrates a subtlety when an
 \arrayptrT\ has a
@@ -1278,11 +1275,11 @@ use of pointer arithmetic may require that relative alignment be
 lowered. Suppose that the size of \texttt{short int} is 2 bytes and the
 size of an \texttt{int} is 4 bytes:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> d : bounds(lower, upper) = ...
 array_ptr<short int> e : bounds(lower, upper) rel_align(int) = (array_ptr<short int>) d;
 array_ptr<short int> f : bounds(lower, upper) rel_align(short int) = e + 1;
-\end{verbatim}
+\end{lstlisting}
 
 While \texttt{e} can have relative alignment of \texttt{int}, \texttt{f}
 cannot because pointer arithmetic is done at the granularity of
@@ -1292,54 +1289,54 @@ The final example illustrates the use of a dynamic check to allow an
 \arrayptrchar\ to be cast to a larger type with a larger relative alignment.
 It is a function that does a memory copy and uses an optimized aligned copy if
 possible.  For simplicity, it is assumed that the memory pointed to by
-\texttt{dest} and \texttt{src} does not overlap and that \texttt{sizeof(int)} is 4:
-\begin{verbatim}
-void copy(array_ptr<char> dest : bounds(dest, dest + num),
+\texttt{dst} and \texttt{src} does not overlap and that \texttt{sizeof(int)} is 4:
+\begin{lstlisting}
+void copy(array_ptr<char> dst : bounds(dst, dst + num),
           array_ptr<char> src : bounds(src, src + num), 
           size_t num)
 {
   if (num % 4 == 0) {
-    array_ptr<int> aligned_dest : bounds(dest, dest + num) rel_align(char) =
-        (array_ptr<int>) dest;
+    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(char) =
+        (array_ptr<int>) dst;
     array_ptr<int> aligned_src : bounds(src, src + num) rel_align(char) =
         (array_ptr<int>) src;
     int n = num / 4;
     for (int i = 0; i < n; i++) {
-       aligned_dest[i] = aligned_src[i];
+      aligned_dst[i] = aligned_src[i];
     }
  }
  else {
     for (int i = 0; i < num; i++) {
-        dest[i] = src[i];
+      dst[i] = src[i];
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
-However, \texttt{num \% 4 == 0} implies that \texttt{aligned\_dest} and
+However, \texttt{num \% 4 == 0} implies that \texttt{aligned\_dst} and
 \texttt{align\_src} are relatively aligned to their bounds, so the
 relative alignment can be changed:
 
-\begin{verbatim}
-void copy(array_ptr<char> dest : bounds(dest, dest + num),
+\begin{lstlisting}
+void copy(array_ptr<char> dst : bounds(dst, dst + num),
           array_ptr<char> src : bounds(src, src + num), 
           size_t num)
 {
   if (num % 4 == 0) {
-    // num % 4 == 0 implies that aligned_dest and aligned_src are relatively
+    // num % 4 == 0 implies that aligned_dst and aligned_src are relatively
     // aligned to their bounds.
-    array_ptr<int> aligned_dest : bounds(dest, dest + num) rel_align(int) =
-        (array_ptr<int>) dest;
+    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(int) =
+        (array_ptr<int>) dst;
     array_ptr<int> aligned_src : bounds(src, src + num) rel_align(int) =
         (array_ptr<int>) src;
     int n = num / 4;
     for (int i = 0; i<n; i++) {
-       aligned_dest[i] = aligned_src[i];
+      aligned_dst[i] = aligned_src[i];
     }
  }
  else  
    ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 Of course, the \texttt{rel\_align(int)} is redundant and can be omitted.
 
@@ -1352,11 +1349,11 @@ easily be cast to be a pointer to a larger type. Suppose in the
 following example that the size of integers is 4 bytes. A pointer to 8
 bytes of characters can be converted easily a pointer to 2 integers:
 
-\begin{verbatim}
+\begin{lstlisting}
 char a[] = "0123456";
 array_ptr<char> p : count(8) = a;
 array_ptr<int> r : count(2) = (array_ptr<int>) p;
-\end{verbatim}
+\end{lstlisting}
 
 \section{Extent of bounds declared at statements}
 \label{section:extent-of-declarations}
@@ -1470,7 +1467,7 @@ used in the bounds expression for the variable \texttt{start} and then
 uses the variable \texttt{start} after that. This function will be
 rejected by the compiler.
 
-\begin{verbatim}
+\begin{lstlisting}
 /* buggy function */
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
@@ -1480,40 +1477,37 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
     start[5] = 0;
    ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 A correct function declares new bounds for \texttt{start}:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
-    end = end + 1 where start : bounds(start, end - 1);
-    start[5] = 0; // program accepted by compiler; may fail bounds check at 
-                  // run time
-    ...
+  end = end + 1 where start : bounds(start, end - 1);
+  start[5] = 0; // program accepted by compiler; may fail bounds check 
+                // at run time
+  ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 The following example shows the extents of the two bounds declarations for
 \texttt{start}.  The bounds declaration at the declaration of \texttt{start} and 
 its extent is highlighted in blue. The bounds declaration at the assignment 
 to \texttt{end} and its extent is highlighted in yellow:
 
-% The package for highlighting does not work well with the alltt
-% package, so just use a teletype font and handle spacing and line
-% breaking manually.
-\begin{tt}
 \sethlcolor{lightblue}
-/* sum integers stored between start and end, where end is not included */ \\  
-int sum(array\_ptr<int> start~:~\hl{bounds(start, end)}, array\_ptr<int> end)\\
-\hl{\{\\
-~~~~start[5] = 0; // bounds checked using (start, end)}\\
-\mbox{~~~~end} = \hl{end + 1} where \sethlcolor{lightyellow}\hl{start : bounds(start, end - 1);\\
-~~~~start[5] = 0; // bounds checked using (start, end - 1)\\
-\mbox{~~~~}...\\
-}\}
-\end{tt}
+\begin{lstlisting}[escapechar=\|]
+/* sum integers stored between start and end, where end is not included */  
+int sum(array_ptr<int> start : |\hl{bounds(start, end)}|, array_ptr<int> end)
+|\hl{\{\\
+ start[5] = 0; // bounds checked using (start, end)}\\
+\mbox{end} = \hl{end + 1}| where |\sethlcolor{lightyellow}\hl{start : bounds(start, end - 1);\\
+start[5] = 0; // bounds checked using (start, end - 1)\\
+...}|
+}
+\end{lstlisting}
 
 Figure~\ref{fig:bounds-extent:choose} expands on the \texttt{choose} function earlier. 
 There are 4 explicit bounds declarations for \texttt{c}. The bounds declarations
@@ -1528,40 +1522,37 @@ length is decremented.  The increment invalidates the bounds declaration
 is needed after the increment.
 
 \begin{figure}
-% The package for highlighting does not work well with the alltt
-% package, so just use a teletype font and handle spacing and line
-% breaking manually.
-\begin{tt}
-/* use either a or b depending on val */\\
-int choose(int val, array\_ptr<int> a~:~count(alen), int alen,\\
-\mbox{~~~~~~~~~~~~~~~~~~~~}array\_ptr<int> b~:~count(blen), int blen)\\
-\{\\
-\mbox{~~~~}array\_ptr<int> c;\\
-\mbox{~~~~}int clen;\\
-\mbox{~~~~}int result = 0;\\
-\\
-\mbox{~~~~}if (val) \{\\
-\mbox{~~~~~~~~}clen = alen;\\
-\mbox{~~~~~~~~}c = a where \sethlcolor{lightblue}\hl{c : count(clen);\\
-\mbox{~~~~}\}}\\
-\mbox{~~~~}else \{\\
-\mbox{~~~~~~~~}clen = blen;\\
-\mbox{~~~~~~~~}c = b where \hl{c : count(clen);\\
-\mbox{~~~~}\}\\
-\mbox{~~~~}if (clen > 1) \{\\
-\mbox{~~~~~~~~}result = c[0];\\
-\mbox{~~~~}\}\\
-\\
-\mbox{~~~~}if (cond  \&\& clen > 1) \{}\\
-\mbox{~~~~~~~~}c = \hl{c + 1} where \sethlcolor{lightyellow}\hl{c : count(clen - 1);}\\
-\mbox{~~~~~~~~}clen = \hl{clen - 1} where \sethlcolor{lightblue}\hl{c : count(clen);\\
-\mbox{~~~~~~~~}result += c[0];\\
-\mbox{~~~~}\}\\
-\\ 
-\mbox{~~~~}...\\
-\mbox{~~~~}return result;\\
-}\}\\
-\end{tt}
+\begin{lstlisting}[escapechar=\|]
+/* use either a or b depending on val */
+int choose(int val, array_ptr<int> a: count(alen), int alen,
+           array_ptr<int> b : count(blen), int blen)
+{
+  array_ptr<int> c;
+  int clen;
+  int result = 0;
+
+  if (val) {
+    clen = alen;
+    c = a where |\sethlcolor{lightblue}\hl{c : count(clen);}|
+  |\hl{\}}|
+  else {
+    clen = blen;
+    c = b where |\hl{c : count(clen);}|
+  |\hl{\}}|
+  
+  |\hl{if (clen > 1) \{}|
+    |\hl{result = c[0];}|
+  |\hl{\}}|
+  
+  |\hl{if (cond \&\& clen > 1) \{}|
+    c = |\hl{c + 1}| where |\sethlcolor{lightyellow}\hl{c : count(clen - 1);}|
+    clen = |\sethlcolor{lightyellow}\hl{clen - 1}| where |\sethlcolor{lightblue}\hl{c : count(clen);}|
+    |\hl{result += c[0];}|
+  |\hl{\}}| 
+  |\hl{...}|
+  |\hl{return result;}|
+}
+\end{lstlisting}
 \caption{An expanded version of the choose function from earlier, with extents of different bounds declarations color-coded.}
 \label{fig:bounds-extent:choose}
 \end{figure}
@@ -1644,7 +1635,7 @@ this. The variable \texttt{current} is declared with bounds before a
 loop. The loop modifies \texttt{current}, but the bounds for
 \texttt{current} do not change:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> end)
 { 
@@ -1656,7 +1647,7 @@ int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> en
        current += 1; // bounds do not need to be redeclared here.
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 A programmer can declare bounds expressions that change on each
 iteration of the loop. This may be necessary if an \arrayptr\
@@ -1672,7 +1663,7 @@ itself, to reduce register pressure in the loop. This can enable
 compilers to generate better code. Note that an optimizing compiler will
 eliminate the runtime bounds checks easily.
 
-\begin{verbatim}
+\begin{lstlisting}
 /* lexicographic comparison of two arrays of integers */
 int compare(array_ptr<int> x : bounds(x, x_end), 
             array_ptr<int> y : bounds(y, y_end)
@@ -1701,5 +1692,5 @@ int compare(array_ptr<int> x : bounds(x, x_end),
         return -1; 
     }
 }
-\end{verbatim}
+\end{lstlisting}
 

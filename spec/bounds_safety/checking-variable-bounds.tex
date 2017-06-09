@@ -225,7 +225,7 @@ bounds need to be computed. In the code, the programmer wraps a call to
 function \texttt{alloc\_helper} returns an \arrayptr\ value
 that is passed as an argument to \texttt{init}, which initializes the array
 and returns the \arrayptr\ value.
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> alloc_helper(int n) : count(n)
 {
     array_ptr<int> result : count(n) = malloc((sizeof(int) * n);
@@ -247,13 +247,13 @@ void go(int size)
     array_ptr<int> x : count(size) = init(alloc_helper(size), size);
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 First, syntactic forms for bounds expressions are expanded to eliminate
 count expressions and in-line return expressions, as well as make
 relative alignment explicit.
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> alloc_helper(int n)
 where return_value : bounds(return_value, return_value + n) rel_align(int)
 {
@@ -279,15 +279,15 @@ void go(int size)
       init(alloc_helper(size), size);
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 The valid bounds for the call to \texttt{init(alloc\_helper(size),
 size)} in \texttt{go} are computed using the return bounds for
 \texttt{init}:
 
-\begin{verbatim}
+\begin{lstlisting}
     return_value : bounds(return_value, return_value + s) rel_align(int)
-\end{verbatim}
+\end{lstlisting}
 
 First, there is a check that all the actual arguments corresponding to
 the formal parameters used by the return bounds expression are valid
@@ -306,30 +306,30 @@ The argument \texttt{size} is substituted for \texttt{s}, producing
 
 It would not be possible to represent the bounds if \texttt{size} were a
 function call too:
-\begin{verbatim}
+\begin{lstlisting}
     array_ptr<int> x = init(alloc_helper(getsize()), getsize());
-\end{verbatim}
+\end{lstlisting}
 
 Function calls are not valid in bounds expressions:
 
-\begin{verbatim}
+\begin{lstlisting}
     bounds(expr_current_value, current_expr_value + getsize())  // illegal
-\end{verbatim}
+\end{lstlisting}
 
 The solution would be to assign the result of \texttt{getsize(}) to a
 variable:
-\begin{verbatim}
+\begin{lstlisting}
    int tmp = getsize();
    array_ptr<int> x = init(alloc_helper(tmp), tmp);
-\end{verbatim}
+\end{lstlisting}
 
 The parameters to the call to \texttt{init} also need to be validated
 (see Section~\ref{section:checking-function-call-arguments}). This
 requires determining the valid bounds for \texttt{alloc\_helper(size)}. The
 return bounds for \texttt{alloc\_helper} are used:
-\begin{verbatim}
+\begin{lstlisting}
    return_value : bounds(return_value, return_value + n) rel_align(int)
-\end{verbatim}
+\end{lstlisting}
 
 First, there is a check that the actual arguments that correspond to
 formal parameters used in the return bounds are valid non-modifying
@@ -453,9 +453,9 @@ function called \texttt{alloc\_helper} that returned some
 newly-allocated memory. Suppose there is an expression that offsets a
 pointer returned by a call to \texttt{alloc\_helper}.
 
-\begin{verbatim}
+\begin{lstlisting}
    alloc_helper(size) + 2
-\end{verbatim}
+\end{lstlisting}
 
 To compute the bounds for this expression, first the valid bounds for
 \texttt{alloc\_helper(size)} are computed:
@@ -581,14 +581,14 @@ A simple solution is to invalidate bounds expressions where x appears in
 the bounds. This does not work well when a variable that appears in its
 own bounds declaration is incremented or decremented. Consider the
 following example:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> x : bounds(x, high) = ...
 int sum = 0;
 while (x < high) {
     sum += *x;
     x++;  // bounds for x would be undefined for the simple solution
 }
-\end{verbatim}
+\end{lstlisting}
 
 A possible solution is to require programmers to copy variables in loops
 that are modified using only pointer arithmetic to temporary variables
@@ -648,56 +648,56 @@ the first example, suppose there is a declaration of an
 \arrayptr\ variable followed by a decrement of a variable
 involved in the bounds:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> a : count(len) = ...
 len = len - 1
-\end{verbatim}
+\end{lstlisting}
 
 The original value of \texttt{len} can be computed from the new value.
 In this case, a valid new bounds after the decrement of \texttt{len} is
 \texttt{count(a) == len + 1.} The bounds for \texttt{a} after the
 assignment are:
-\begin{verbatim}
+\begin{lstlisting}
 len = len - 1
 where a : count(len + 1);
-\end{verbatim}
+\end{lstlisting}
 
 For the second example, consider an update to a pointer variable that
 appears in its own bounds:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> p : bounds(p, high) = ...         
 while (p < high) {
     ...
           p = p + 1;
 }
-\end{verbatim}
+\end{lstlisting}
 
-First, the new bounds expression for the expression \verb|p + 1| is
+First, the new bounds expression for the expression \lstinline|p + 1| is
 computed. It is the same as the original bounds expression
-\verb|bounds(p, high)|. Because p is modified by the assignment, the
-inverted expression for \verb|p + 1| is substituted into 
-\verb|(p, high)|. The inverted expression for \verb|p + 1| is \verb|p - 1|.
-Substituting \verb|p-1| for \verb|p| leads to bounds of the form
-\verb|bounds(p - 1, high)|:
+\lstinline|bounds(p, high)|. Because p is modified by the assignment, the
+inverted expression for \lstinline|p + 1| is substituted into
+\lstinline|(p, high)|. The inverted expression for \lstinline|p + 1| is \lstinline|p - 1|.
+Substituting \lstinline|p-1| for \lstinline|p| leads to bounds of the form
+\lstinline|bounds(p - 1, high)|:
 
-\begin{verbatim}
+\begin{lstlisting}
 while (p < high) {
     ...
           p = p + 1 where p : bounds(p - 1, high);
 }
-\end{verbatim}
+\end{lstlisting}
 
 Bounds ty is preserved when the range of a bounds expression is
 narrowed. \texttt{(p - 1, high)} implies that \texttt{(p, high)} is a
 valid bounds expression. This reestablishes the loop bounds invariant
 for \texttt{p} of \texttt{(p, high)}.
 
-\begin{verbatim}
+\begin{lstlisting}
 while (p < high) {
     ...
           p = p + 1 where p : bounds(p, high);
 }
-\end{verbatim}
+\end{lstlisting}
 
 The correctness of narrowing depends on pointer arithmetic overflow
 for checked pointer types being a runtime error. For a lower bound \var{e1} in a bounds
@@ -785,12 +785,12 @@ e1)\tabularnewline
 Given \texttt{inverse(x}, \var{e}), the rules are applied repeatedly
 until the original value of x in e has been computed. Here is an example
 of computing the inverse of \texttt{x = (x + 4) + 5}:
-\begin{verbatim}
+\begin{lstlisting}
    inverse(x, (x + 4) + 5) =
        inverse(x - 5, x + 4) =
           inverse((x - 5) - 4, x) =
               (x - 5) - 4
-\end{verbatim}
+\end{lstlisting}
 
 \section{Bounds for expressions with nested assignment expressions}
 \label{section:checking-nested-assignment-expressions}
@@ -1153,136 +1153,142 @@ will be determined based on an empirical evaluation of C programs.
 \label{section:canonicalization-example}
 
 Here is how bounds for the following declaration and statement will be checked:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> x;
 x = malloc(sizeof(int)*5) where x : count(5);
-\end{verbatim}
+\end{lstlisting}
 
-The function \verb+malloc+ is assumed to have the bounds declaration:
+The function \lstinline+malloc+ is assumed to have the bounds declaration:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<void> malloc(size_t num) : byte_count(num);
-\end{verbatim}
+\end{lstlisting}
 
 even though in practice it will have a bounds-safe interface that does
 not use a checked pointer type.
 
 First, the implicit casts are made explicit and count is expanded to bounds:
 
-\begin{verbatim}
+\begin{lstlisting}
 x = (array_ptr<int>) malloc(sizeof(int)*(size_t) 5) where x : bounds(x, x + 5);
-\end{verbatim}
+\end{lstlisting}
 
 Next, the bounds for the right-hand expression are computed. The bounds
 declaration for malloc is expanded to:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<void> malloc(size_t num)  
 where return_value : bounds((array_ptr<char>) return_value, 
                             (array_ptr<char>) return_value + num)
-\end{verbatim}
+\end{lstlisting}
 
 The bounds for malloc are used to compute the bounds for the function
-call \verb+malloc(sizeof(int)*(size_t) 5)+. The actual argument
-\verb+sizeof(int)*(size_t) 5+ is substituted for \verb+num+ in the
-bounds expression for the return value of \verb+malloc+:
-\begin{verbatim}
+call \lstinline+malloc(sizeof(int)*(size_t) 5)+. The actual argument
+\lstinline+sizeof(int)*(size_t) 5+ is substituted for \lstinline+num+ in the
+bounds expression for the return value of \lstinline+malloc+:
+\begin{lstlisting}
 return_value : bounds((array_ptr<char>) return_value, 
                       (array_ptr<char>) return_value + sizeof(int)*(size_t) 5)
-\end{verbatim}
+\end{lstlisting}
 
-Next, \verb+expr_current_value+ is substituted for \verb+return_value+ :
-\begin{verbatim}
-expr_current_value : bounds((array_ptr<char>) expr_current_value, 
-                            (array_ptr<char>) expr_current_value + sizeof(int)*(size_t) 5)
-\end{verbatim}
+Next, \lstinline+expr_current_value+ is substituted for \lstinline+return_value+ :
+\begin{lstlisting}
+expr_current_value :
+  bounds((array_ptr<char>) expr_current_value,
+         (array_ptr<char>) expr_current_value + sizeof(int)*(size_t) 5)
+\end{lstlisting}
 
-Then, the bounds for \verb|(array_ptr<int>) malloc(sizeof(int)*(size_t) 5)|
-are computed. The inverse cast \verb|(array_ptr<void> expr_current_value)|
-is substituted for \verb|expr_current_value|:
+Then, the bounds for \lstinline|(array_ptr<int>) malloc(sizeof(int)*(size_t) 5)|
+are computed. The inverse cast \lstinline|(array_ptr<void> expr_current_value)|
+is substituted for \lstinline|expr_current_value|:
 
-\begin{verbatim}
-expr_current_value : bounds((array_ptr<char>) ((array_ptr<void>) expr_current_value), 
-                            (array_ptr<char>) ((array_ptr<void>) expr_current_value)
-                            + sizeof(int)*(size_t) 5) 
-\end{verbatim}
+\begin{lstlisting}
+expr_current_value :
+  bounds((array_ptr<char>) ((array_ptr<void>) expr_current_value),
+         (array_ptr<char>) ((array_ptr<void>) expr_current_value) +
+                               sizeof(int) * (size_t) 5)
+\end{lstlisting}
 
-Finally, \verb|x| is substituted for \verb|expr_current_value| :
+Finally, \lstinline|x| is substituted for \lstinline|expr_current_value| :
 
-\begin{verbatim}
+\begin{lstlisting}
 x : bounds((array_ptr<char>) ((array_ptr<void>) x), 
-           (array_ptr<char>) ((array_ptr<void>) x) + sizeof(int)*(size_t) 5) 
-\end{verbatim}
+           (array_ptr<char>) ((array_ptr<void>) x) +
+                                sizeof(int) * (size_t) 5)
+\end{lstlisting}
 
-Now, it has be shown that the computed bounds for \verb|x|\ imply the expected
-bounds for \verb|x|\ of \verb|bounds(x, x + 5)|. The bounds expressions are both
+Now, it has be shown that the computed bounds for \lstinline|x|\ imply the expected
+bounds for \lstinline|x|\ of \lstinline|bounds(x, x + 5)|. The bounds expressions are both
 converted to use integer arithmetic:
 
-\begin{alltt}
+\begin{lstlisting}[escapechar=\@]
 // computed bounds
-bounds((\arrayptrchar) ((\arrayptrvoid) x),
-       (\arrayptrchar) ((\arrayptrvoid) x) +\textsubscript{ovf} sizeof(int)*\textsubscript{unsigned}(size\_t) 5))
+bounds((array_ptr<char>) ((array_ptr<void>) x),
+       (array_ptr<char>) ((array_ptr<void>) x) @+\textsubscript{ovf}@
+                             sizeof(int)@*\textsubscript{unsigned}@(size_t) 5))
 // expected bounds
-bounds(x, x +\textsubscript{ovf} (5 *\textsubscript{ovf} (signed\_size\_t) sizeof(int)))
-\end{alltt}
+bounds(x, x @+\textsubscript{ovf}@ (5 @*\textsubscript{ovf}@(signed_size_t) sizeof(int)))
+\end{lstlisting}
 
 Next, unnecessary pointer casts are removed:
-\begin{alltt}
+\begin{lstlisting}[escapechar=\@]
 // computed bounds
-bounds(x, x +\textsubscript{ovf} (sizeof(int) *\textsubscript{unsigned} (size\_t) 5))
+bounds(x, x @+\textsubscript{ovf}@ (sizeof(int) @*\textsubscript{unsigned}@ (size_t) 5))
 // expected bounds
-bounds(x, x +\textsubscript{ovf} (5 *\textsubscript{ovf} (signed\_size\_t) sizeof(int)))
-\end{alltt}
+bounds(x, x @+\textsubscript{ovf}@ (5 @*\textsubscript{ovf}@ (signed_size_t) sizeof(int)))
+\end{lstlisting}
 
-After that, constant folding is done. If \verb+sizeof(int)+ is 4, the result is:
-\begin{alltt}
+After that, constant folding is done. If \lstinline+sizeof(int)+ is 4, the result is:
+\begin{lstlisting}[escapechar=\@]
 // computed bounds
-bounds(x, x +\textsubscript{ovf} 20)
+bounds(x, x @+\textsubscript{ovf}@ 20)
 // expected bounds
-bounds(x, x +\textsubscript{ovf} 20)
-\end{alltt}
+bounds(x, x @+\textsubscript{ovf}@ 20)
+\end{lstlisting}
 
 We must also show the expected bounds imply that the 
-\verb|rel_align(int)| requirement is met. This is straightforward for
-a constant-sized array. It involves showing given \bounds{\var{e1}}{\var{e2}}
-that \texttt{((\arrayptrchar) x - (\arrayptrchar) \var{e1}) \% 4} canonicalizes
-to 0, as does \texttt{((\arrayptrchar) \var{e2} - (\arrayptrchar) x) \% 4}.
+\lstinline|rel_align(int)| requirement is met. This is straightforward for
+a constant-sized array. It involves showing given the variable \lstinline+x+ with
+\bounds{\var{e1}}{\var{e2}} that
+\lstinline[mathescape]|((array_ptr<char>) x - (array_ptr<char>) $\var{e1}$) % 4| canonicalizes
+to 0, as does \lstinline[mathescape]|((array_ptr<char> $\var{e2}$ - (array_ptr<char>) x) \% 4|.
 
-For the first expression, \texttt{((\arrayptrchar) x - (\arrayptrchar) x) \% 4}
-simplifies to \texttt{0 \% 4}, which constant-folds to \texttt{0}.
-For the second expression, \texttt{((\arrayptrchar) (x + 5) - (\arrayptrchar) x) \% 4}
-simplifies to \texttt{((x +\textsubscript{ovf} 20) -\textsubscript{ovf\_diff} x) \% 4}. This
-simplifies to \texttt{20 \% 4}, which constant-folds to \texttt{0}.
+For the first expression, \lstinline|((array_ptr<char>) x - (array_ptr<char>) x) % 4|
+simplifies to \lstinline|0 % 4|, which constant-folds to \lstinline|0|.
+For the second expression, \lstinline|((array_ptr<char>) (x + 5) - (array_ptr<char>) x) % 4|
+simplifies to
+\lstinline[mathescape]|((x $\texttt{+}\textsubscript{ovf}$ 20) $\texttt{-}\textsubscript{ovf\_diff}$ x) % 4|.
+This simplifies to \lstinline|20 % 4|, which constant-folds to \lstinline|0|.
 
 If we change the example to make the number of elements variable instead
 of constant, we can see how canonicalization breaks down in the presence
 of integer wraparound. Suppose the number of elements is given by a
-variable \verb|k|. We would have:
+variable \lstinline|k|. We would have:
 
-\begin{alltt}
+\begin{lstlisting}[escapechar=\@]
 // computed bounds
-bounds(x, x +\textsubscript{ovf} (sizeof(int) *\textsubscript{unsigned} (size\_t) k))
+bounds(x, x @+\textsubscript{ovf}@ (sizeof(int) @*\textsubscript{unsigned}@ (size_t) k))
 // expected bounds
-bounds(x, x +\textsubscript{ovf} (k *\textsubscript{ovf} (signed\_size\_t) sizeof(int)))
-\end{alltt}
+bounds(x, x @+\textsubscript{ovf}@ (k @*\textsubscript{ovf}@ (signed_size_t) sizeof(int)))
+\end{lstlisting}
 
 After converting pointer arithmetic to integer arithmetic, we have:
-\begin{alltt}
+\begin{lstlisting}[escapechar=\@]
 // computed bounds
-bounds(x, x +\textsubscript{ovf} (4 *\textsubscript{unsigned} (size\_t) k))
+bounds(x, x @+\textsubscript{ovf}@ (4 @*\textsubscript{unsigned}@ (size_t) k))
 // expected bounds
-bounds(x, x +\textsubscript{ovf} (k *\textsubscript{ovf} 4))
-\end{alltt}
+bounds(x, x @+\textsubscript{ovf}@ (k @*\textsubscript{ovf}@ 4))
+\end{lstlisting}
 
 Canonicalization of the upper bounds expressions produces:
-\begin{alltt}
+\begin{lstlisting}[escapechar=\@]
 // computed bounds
-x +\textsubscript{ovf} (4 *\textsubscript{unsigned} (size\_t) k))
+x @+\textsubscript{ovf}@ (4 @*\textsubscript{unsigned}@ (size_t) k))
 // expected bounds
-x +\textsubscript{ovf} (4 *\textsubscript{ovf} k)
-\end{alltt}
+x @+\textsubscript{ovf}@ (4 @*\textsubscript{ovf}@ k)
+\end{lstlisting}
 
 The expressions are not identically syntactically, so bounds expression
-checking fails. The additional side conditions that \verb|k >= 0 && k <= UINTPTR_MAX/4|
+checking fails. The additional side conditions that \lstinline|k >= 0 && k <= UINTPTR_MAX/4|
 are needed to show that the computed upper bound implies the expected upper bound. More
 general techniques from Chapter~\ref{chapter:simple-invariants} are needed to show that the context
 bounds imply the expected bounds.
@@ -1389,43 +1395,40 @@ would have based on bounds declarations.
 
 For example, suppose a pointer assignment is introduced into the middle
 of the earlier example. The pointer assignment is highlighted in blue.
-The bounds for \verb|parr| at that point in the program based on the
-current context will be \verb|bounds(parr, parr + size)|.
+The bounds for \lstinline|parr| at that point in the program based on the
+current context will be \lstinline|bounds(parr, parr + size)|.
 
-% The package for highlighting does not work well with the alltt
-% package, so just use a teletype font and handle spacing and line
-% breaking manually.
-\begin{tt}
-int arr[DEFAULT\_SIZE];\\
-array\_ptr<int> parr~:~count(len) = arr;\\
-int plen = DEFAULT\_SIZE;\\
-\\
-f(int size) \{\\
-\mbox{~~~~}if (size > DEFAULT\_SIZE) \{\\
-\mbox{~~~~~~~~}bundle \{\\
-\mbox{~~~~~~~~~~~~}parr = malloc(sizeof(int) * size);\\
-\mbox{~~~~~~~~~~~~}\sethlcolor{lightblue}\hl{*parr = 314;}\\
-\mbox{~~~~~~~~~~~~}plen = size;\\
-\mbox{~~~~~~~~}\}\\
-\mbox{~~~~}\}\\
-\}
-\end{tt}
+\begin{lstlisting}[escapechar=\|]
+int arr[DEFAULT_SIZE];
+array_ptr<int> parr : count(len) = arr;
+int plen = DEFAULT_SIZE;
+
+f(int size) {
+  if (size > DEFAULT_SIZE) {
+    bundle {
+      parr = malloc(sizeof(int) * size);
+      |\sethlcolor{lightblue}\hl{*parr = 314;}|
+      plen = size;
+    }
+  }
+}
+\end{lstlisting}
 
 If the code were slightly rearranged, there would be a compile-time
 error. The assignment to \texttt{plen} invalidates the bounds for
 \texttt{parr} in the context at the point of the assignment.
 
-\begin{tt}
-f(int size) \{\\
-\mbox{~~~~}if (size > DEFAULT\_SIZE) \{\\
-\mbox{~~~~~~~~}bundle \{\\
-\mbox{~~~~~~~~~~~~}plen = size;\\
-\mbox{~~~~~~~~~~~~}\sethlcolor{lightblue}\hl{*parr = 314;} // error:~parr has bounds of none.\\
-\mbox{~~~~~~~~~~~~}parr = malloc(sizeof(int) * size);\\
-\mbox{~~~~~~~~}\}\\
-\mbox{~~~~}\}\\
-\}
-\end{tt}
+\begin{lstlisting}[escapechar=\|]
+f(int size) {
+  if (size > DEFAULT_SIZE) {
+    bundle {
+      plen = size;
+      |\sethlcolor{lightblue}\hl{*parr = 314;}| // error: parr has bounds of none.
+      parr = malloc(sizeof(int) * size);
+    }
+  }
+}
+\end{lstlisting}
 
 A function call within a bundled block require special treatment: the
 bounds declarations for variables with static storage must be valid
@@ -1561,11 +1564,11 @@ The meaning of an expression is undefined if:
 
 The following statements illustrate these problems:
 
-\begin{verbatim}
+\begin{lstlisting}
 y = (x = 5) + (x = 6);
 i = i++ + 1;
 a[i++] = i;
-\end{verbatim}
+\end{lstlisting}
 
 In the first case, the value of the right-hand side expression is 11,
 yet at the end of the expression, the value of x could be 5 or 6. In the
@@ -1583,11 +1586,11 @@ bounds check and the variable assignment is undefined.
 
 This example illustrates this problem:
 
-\begin{verbatim}
+\begin{lstlisting}
 w = ...
 where w : bounds(x, x + y);
 int t = *w + (y = tmp);
-\end{verbatim}
+\end{lstlisting}
 
 The variable y is an integer variable that is a count of elements. It is
 overwritten during the evaluation of an expression that dereferences w,
