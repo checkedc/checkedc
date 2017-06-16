@@ -15,7 +15,7 @@
 #pragma BOUNDS_CHECKED ON
 
 // TODO: Apple System Headers Support
-#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
 void *memcpy(void * restrict dest : byte_count(n),
              const void * restrict src : byte_count(n),
              size_t n) : bounds(dest, (_Array_ptr<char>) dest + n);
@@ -34,7 +34,7 @@ void *memmove(void * restrict dest : byte_count(n),
 //              const char * restrict s2);
 
 // TODO: Apple System Headers Support
-#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
 char *strncpy(char * restrict dest : count(n),
               const char * restrict src : count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
@@ -46,7 +46,7 @@ char *strncpy(char * restrict dest : count(n),
 //              const char * restrict src);
 
 // TODO: Apple System Headers Support
-#ifndef __APPLE__
+#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
 char *strncat(char * restrict dest : count(n),
               const char * restrict src : count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
@@ -88,7 +88,7 @@ void *memchr(const void *s : byte_count(n), int c, size_t n) :
 //              const char * restrict s2);
 
 // TODO: Apple System Headers Support
-#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
 void *memset(void *s : byte_count(n), int c, size_t n) :
   bounds(s, (_Array_ptr<char>) s + n);
 #endif
