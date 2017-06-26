@@ -32,6 +32,8 @@ void CallGenericFunction() {
   // as if generic functions were never implemented, in the case that the code
   // tried to call generic function call on a non-generic function.
   Bar<unsigned int>(); //expected-error{{expected expression}}
-  Foo<>(x, y); //expected-error{{unexpected token in generic function call}}
-  Foo<void*, > (x, y); //expected-error{{unexpected token in generic function call}}
+  Foo<void* unsigned int>(x, y); //expected-error{{expected , or >}}
+  Foo<void*, >(x, y); //expected-error{{expected a type}}
+  Foo<, , >(x, y); //expected-error{{expected a type}}
+  Foo(x, y); //expected-error{{expected a list of types expression for generic function application}}
 }
