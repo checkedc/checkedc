@@ -31,9 +31,9 @@ int callPolymorphicTypes() {
   void *x, *y, *z;
   // Testing to make sure function declaration is registered in decl scope
   // outside of forany scope.
-  TestDefinitionWithNoParameter();
-  TestDefinitionWithParameter(x, y, z);
-  TestDeclarationWithNoParameter();
-  TestDeclarationWithParameter(x, y, z);
+  TestDefinitionWithNoParameter<void *>();
+  TestDefinitionWithParameter<void *, void *>(x, y, z);
+  TestDeclarationWithNoParameter<void *>();
+  TestDeclarationWithParameter<void *>(x, y, z);
   return 0;
 }
