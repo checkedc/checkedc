@@ -6,7 +6,7 @@
 //    or definition is registered to a correct scope.
 // For this test file, we expect that there are no errors.
 //
-// RUN: %clang_cc1 -fcheckedc-extension -S -emit-llvm -verify %s
+// RUN: %clang_cc1 -fcheckedc-extension -verify %s
 // expected-no-diagnostics
 
 // Testing for function declaration with function body, without parameters.

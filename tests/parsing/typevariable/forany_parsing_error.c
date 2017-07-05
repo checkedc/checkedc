@@ -6,7 +6,7 @@
 // 3) _For_any scope should be confined within function declaration.
 // For this test file, we expect that there are no errors.
 //
-// RUN: %clang_cc1 -fcheckedc-extension -S -emit-llvm -verify %s
+// RUN: %clang_cc1 -fcheckedc-extension -verify %s
 
 _For_any(R) R foo(void);
 // Testing scope created by for any specifier is exited successfully.
