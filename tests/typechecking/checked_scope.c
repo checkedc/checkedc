@@ -815,12 +815,10 @@ void test_addrof_checked_scope(void) checked {
 
   x = &a[i];  // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>)
   y = &b[1];  // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>) \
-              // expected-error {{expression has no bounds, right-hand side of assignment expected to have bounds}} \
               // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
   z = &i;     // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
 
   x = b;      // BinaryOperator (ImplicitCastExpr _Ptr (_Array_ptr)) \
-              // expected-error {{expression has no bounds, right-hand side of assignment expected to have bounds}} \
               // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
 
   array_ptr<int> ax = &a[i];
@@ -861,12 +859,10 @@ void test_addrof_unchecked_scope(void) unchecked {
   // implicit cast for _Ptr<T> requires source bounds
   x = &a[i];  // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &))
   y = &b[0];  // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)) \
-              // expected-error {{expression has no bounds, right-hand side of assignment expected to have bounds}} \
               // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
   z = &i;     // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &))
 
   x = b;      // BinaryOperator(ImplicitCastExpr()) \
-              // expected-error {{expression has no bounds, right-hand side of assignment expected to have bounds}} \
               // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
 
   // checkSingleAssignmentConstraints(int * -> _Array_ptr<int> implicit casting)
