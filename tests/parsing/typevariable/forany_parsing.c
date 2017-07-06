@@ -10,7 +10,7 @@
 // expected-no-diagnostics
 
 // Testing for function declaration with function body, without parameters.
-_For_any(T) T TestDefinitionWithNoParameter() {
+_For_any(T) T TestDefinitionWithNoParameter(void) {
   // Testing the scope created by forany specifier contains function body scope
   T returnVal;
   return returnVal;
@@ -23,7 +23,7 @@ _For_any(T, S) T TestDefinitionWithParameter(T at, T bt, S cs) {
 }
 
 // Testing for function declaration without function body, without parameters.
-_For_any(R) R TestDeclarationWithNoParameter();
+_For_any(R) R TestDeclarationWithNoParameter(void);
 // Testing for function declaration without function body, with parameters
 _For_any(Q) Q TestDeclarationWithParameter(Q aq, Q bq, Q cq);
 
