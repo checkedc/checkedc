@@ -6,11 +6,11 @@
 //    or definition is registered to a correct scope.
 // For this test file, we expect that there are no errors.
 //
-// RUN: %clang_cc1 -fcheckedc-extension -S -emit-llvm -verify %s
+// RUN: %clang_cc1 -fcheckedc-extension -verify %s
 // expected-no-diagnostics
 
 // Testing for function declaration with function body, without parameters.
-_For_any(T) T TestDefinitionWithNoParameter() {
+_For_any(T) T TestDefinitionWithNoParameter(void) {
   // Testing the scope created by forany specifier contains function body scope
   T returnVal;
   return returnVal;
@@ -23,7 +23,7 @@ _For_any(T, S) T TestDefinitionWithParameter(T at, T bt, S cs) {
 }
 
 // Testing for function declaration without function body, without parameters.
-_For_any(R) R TestDeclarationWithNoParameter();
+_For_any(R) R TestDeclarationWithNoParameter(void);
 // Testing for function declaration without function body, with parameters
 _For_any(Q) Q TestDeclarationWithParameter(Q aq, Q bq, Q cq);
 
@@ -31,9 +31,9 @@ int callPolymorphicTypes() {
   void *x, *y, *z;
   // Testing to make sure function declaration is registered in decl scope
   // outside of forany scope.
-  TestDefinitionWithNoParameter();
-  TestDefinitionWithParameter(x, y, z);
-  TestDeclarationWithNoParameter();
-  TestDeclarationWithParameter(x, y, z);
+  TestDefinitionWithNoParameter<void *>();
+  TestDefinitionWithParameter<void *, void *>(x, y, z);
+  TestDeclarationWithNoParameter<void *>();
+  TestDeclarationWithParameter<void *>(x, y, z);
   return 0;
 }

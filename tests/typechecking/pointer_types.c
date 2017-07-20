@@ -709,7 +709,7 @@ extern void g4(int y, _Bool p) {
 // returns a new pointer type
 //
 
-extern int *h1(void) {
+extern int *h1(void) : itype(ptr<int>) {
     return 0;
 }
 
@@ -717,7 +717,7 @@ extern ptr<int> h2(void) {
    return 0;
 }
 
-extern array_ptr<int> h3(void) {
+extern array_ptr<int> h3(void) : count(0) {
    return 0;
 }
 
@@ -805,7 +805,6 @@ extern void check_call(void) {
     // Check return values
     //
     int *t1 = h1();
-    // TODO: h1 needs bounds-safe interface
     ptr<int> t2 = h1();
     array_ptr<int> t3 = h1();  // OK, provided that t3 has no bounds.
     ptr<int> t4 = h2();

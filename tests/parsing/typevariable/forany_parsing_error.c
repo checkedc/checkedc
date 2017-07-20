@@ -6,11 +6,11 @@
 // 3) _For_any scope should be confined within function declaration.
 // For this test file, we expect that there are no errors.
 //
-// RUN: %clang_cc1 -fcheckedc-extension -S -emit-llvm -verify %s
+// RUN: %clang_cc1 -fcheckedc-extension -verify %s
 
-_For_any(R) R foo();
+_For_any(R) R foo(void);
 // Testing scope created by for any specifier is exited successfully.
 R thisShouldProduceError; //expected-error{{unknown type name 'R'}}
-_For_any() void foo2(); // expected-error{{expected type variable identifier}}
-_For_any(R, ) R foo3(); // expected-error{{expected type variable identifier}}
-_For_any(R T) R foo4(); // expected-error{{expected , or )}}
+_For_any() void foo2(void); // expected-error{{expected type variable identifier}}
+_For_any(R, ) R foo3(void); // expected-error{{expected type variable identifier}}
+_For_any(R T) R foo4(void); // expected-error{{expected , or )}}
