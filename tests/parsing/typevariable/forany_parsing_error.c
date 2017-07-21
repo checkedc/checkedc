@@ -8,9 +8,9 @@
 //
 // RUN: %clang_cc1 -fcheckedc-extension -verify %s
 
-_For_any(R) R foo(void);
+_For_any(R) _Ptr<R> foo(void);
 // Testing scope created by for any specifier is exited successfully.
-R thisShouldProduceError; //expected-error{{unknown type name 'R'}}
+_Ptr<R> thisShouldProduceError; //expected-error{{unknown type name 'R'}}
 _For_any() void foo2(void); // expected-error{{expected type variable identifier}}
-_For_any(R, ) R foo3(void); // expected-error{{expected type variable identifier}}
-_For_any(R T) R foo4(void); // expected-error{{expected , or )}}
+_For_any(R, ) _Ptr<R> foo3(void); // expected-error{{expected type variable identifier}}
+_For_any(R T) _Ptr<R> foo4(void); // expected-error{{expected , or )}}

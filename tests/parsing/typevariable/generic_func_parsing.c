@@ -10,8 +10,8 @@
 // RUN: %clang_cc1 -fcheckedc-extension -verify %s
 // expected-no-diagnostics
 
-_For_any(T) T foo(T a, T b) {
-  T a;
+_For_any(T) _Ptr<T> foo(_Ptr<T> a, _Ptr<T> b) {
+  _Ptr<T> a;
   return a;
 }
 
@@ -20,9 +20,10 @@ void bar() {
 }
 
 void callPolymorphicTypes() {
-  void *x, *y;
+  int num = 0;
+  int *x = &num, *y = &num;
   // This line tests that the compiler is parsing generic function call.
-  foo<void*>(x, y);
+  foo<int>(x, y);
   // This line tests that the compiler is parsing non generic function call.
   bar();
   int a, b;

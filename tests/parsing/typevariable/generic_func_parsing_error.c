@@ -4,15 +4,14 @@
 //
 // RUN: %clang_cc1 -fcheckedc-extension -verify %s
 
-_For_any(T) T Foo(T a, T b) {
-  T a;
+_For_any(T) _Ptr<T> Foo(_Ptr<T> a, _Ptr<T> b) {
   return a;
 }
 
 void CallGenericFunction() {
   void *x, *y;
-  Foo<void* unsigned int>(x, y); //expected-error{{expected , or >}}
-  Foo<void*, >(x, y); //expected-error{{expected a type}}
+  Foo<int int>(x, y); //expected-error{{expected , or >}}
+  Foo<void, >(x, y); //expected-error{{expected a type}}
   Foo<, , >(x, y); //expected-error{{expected a type}}
   Foo(x, y); //expected-error{{expected a list of type arguments for a generic function}}
 }
