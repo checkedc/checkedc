@@ -10,7 +10,7 @@
 
 _For_any(R) _Ptr<R> foo(void);
 // Testing scope created by for any specifier is exited successfully.
-_Ptr<R> thisShouldProduceError; //expected-error{{unknown type name 'R'}}
+R *thisShouldProduceError; //expected-error{{unknown type name 'R'}}
 _For_any() void foo2(void); // expected-error{{expected type variable identifier}}
 _For_any(R, ) _Ptr<R> foo3(void); // expected-error{{expected type variable identifier}}
 _For_any(R T) _Ptr<R> foo4(void); // expected-error{{expected , or )}}
