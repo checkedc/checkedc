@@ -1,6 +1,5 @@
-// Tests to make sure generic function call errors are parsed correctly.
-//
-// Make sure that syntatic error in calling generic functions are handled
+// Tests to make sure parsing errors for generic function calls are detected
+// properly.
 //
 // RUN: %clang_cc1 -fcheckedc-extension -verify %s
 
