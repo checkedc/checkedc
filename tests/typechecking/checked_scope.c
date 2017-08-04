@@ -190,7 +190,7 @@ void test_bounds_safe_interface(void) {
 
 // Test that functions declared with old-style K&R parameter lists cannot
 // be declared or used in checked scopes.  These are no prototype functions,
-// so no typechecking of actual arguments against formal argument is done.
+// so no typechecking of actual arguments against formal arguments is done.
 // This could lead to uncaught errors at runtime, so we do not allow them
 // in checked scopes.
 
@@ -215,9 +215,21 @@ int KNR_func3(a, b)    // expected-error {{function without a prototype cannot b
   return 1;
 }
 
+// Test the case where a function with a K&R style parameter list is preceded
+// by a prototype declaration.  In this case, the function definition inherits
+// the prototype and is allowed.
+int KNR_with_proto(ptr<char> a, ptr<char> b);
+int KNR_with_proto(a, b)
+ptr<char> a;
+ptr<int> b;
+{
+  return 1;
+}
+#pragma BOUNDS_CHECKED OFF
+
 // Now test uses within checked scopes.
 // First we have to declared some K&R style functions.
-#pragma BOUNDS_CHECKED OFF
+
 int KNR_func4(a, b, c)
 int a, b, c;
 {
@@ -248,6 +260,9 @@ void KNR_test(void) {
   KNR_func6(py,px); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
 #pragma BOUNDS_CHECKED OFF
+
+
+
 
 // Test for checked block.
 // - check if compound statments are checked.
