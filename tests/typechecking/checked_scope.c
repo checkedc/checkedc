@@ -222,8 +222,9 @@ int KNR_func3(a, b)    // expected-error {{function without a prototype cannot b
 }
 
 // Test the case where a function with a K&R style parameter list is preceded
-// by a prototype declaration.  In this case, the function definition inherits
-// the prototype and is allowed.
+// by a prototype declaration.  In this case, the function definition is
+// compatible with the prototype and all subsequent uses will use the prototype,
+// so it is allowed.
 //
 // However, the parameter types cannot be checked pointers because
 // no-prototype function types are not compatible with prototype function
