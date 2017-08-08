@@ -189,12 +189,18 @@ void test_bounds_safe_interface(void) {
 }
 
 // Test that functions declared with old-style K&R parameter lists cannot
-// be declared or used in checked scopes.  These are no prototype functions,
-// so no typechecking of actual arguments against formal argument is done.
-// This could lead to uncaught errors at runtime, so we do not allow them
-// in checked scopes.
+// be declared or used in checked scopes, unless they are preceded by
+// prototype declarations.
+//
+// First, test definitions of functions with K&R parameter lists.
+// According to the C11 specification, a function defined with an old-style
+// K&R parameter lists does not create a prototype for the function.  This
+// means that there may be no typechecking of actual arguments against
+// formal arguments for subsequent uses of the function.  That could lead
+// to uncaught errors at runtime.  We only allow such definitions
+// in checked scopes when they are preceded by prototype declarations.
 
-// First test declarations.
+// First test definitions without preceding prototypes.
 int KNR_func1(a, b, c) // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
   int a, b, c;
 {
@@ -215,9 +221,26 @@ int KNR_func3(a, b)    // expected-error {{function without a prototype cannot b
   return 1;
 }
 
+// Test the case where a function with a K&R style parameter list is preceded
+// by a prototype declaration.  In this case, the function definition is
+// compatible with the prototype and all subsequent uses will use the prototype,
+// so it is allowed.
+//
+// However, the parameter types cannot be checked pointers because
+// no-prototype function types are not compatible with prototype function
+// types with checked pointers.
+int KNR_with_proto(int, int b);
+int KNR_with_proto(a, b)
+int a;
+int b;
+{
+  return 1;
+}
+#pragma BOUNDS_CHECKED OFF
+
 // Now test uses within checked scopes.
 // First we have to declared some K&R style functions.
-#pragma BOUNDS_CHECKED OFF
+
 int KNR_func4(a, b, c)
 int a, b, c;
 {
@@ -248,6 +271,7 @@ void KNR_test(void) {
   KNR_func6(py,px); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
 #pragma BOUNDS_CHECKED OFF
+
 
 // Test for checked block.
 // - check if compound statments are checked.
