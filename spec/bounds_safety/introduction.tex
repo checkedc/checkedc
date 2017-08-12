@@ -62,10 +62,12 @@ Checked C addresses the bounds checking problem for C by:
 \item
   Introducing different pointer types to capture the different ways in
   which pointers are used. The unchecked C pointer type \texttt{*} is kept
-  and two new {\it checked} pointer types are added: one for pointers that
-  are never used in pointer arithmetic and do not need bounds checking (\ptr)
-  and one for \emph{array pointer types} that are involved in pointer
-  arithmetic and need bounds checking (\arrayptr).
+  and three new {\it checked} pointer types are added: one for pointers
+  that are never used in pointer arithmetic and do not need bounds
+  checking (\ptr),  one for \emph{array pointer types} that are involved
+  in pointer arithmetic and need bounds checking (\arrayptr), and one
+  for \emph{array pointer types where the array is null-terminated}
+  (\ntarrayptr).
 \item
   For array pointer types (\arrayptr), in keeping with the low-level
   nature of C,  bounds checking is placed under programmer control. 
@@ -80,19 +82,30 @@ Checked C addresses the bounds checking problem for C by:
   bounds information properly. The bounds are used at runtime to enforce
   bounds safety, if necessary.
 \item
+  Null-terminated array types (\ntarrayptr) extend 
+  array pointer types.  An \ntarrayptr\ variable points to
+  an array that is followed in memory by a sequence of elements
+  that ends with a null terminator.  The runtime bounds checking
+  and the static checking are extended to handle the sequence.
+  This allows C string-processing code to be bounds checked.
+\item
   Introducing different array types to distinguish between arrays whose
   accesses are bounds-checked and existing C arrays whose accesses are
   not bounds-checked. A programmer places the modifier \keyword{checked}
   before the declaration of the bound(s) of the array: \texttt{int x
   checked[5][5]} declares a 2-dimensional array for which all
-  accesses will be bounds-checked.
+  accesses will be bounds-checked.  Arrays with null terminators
+  as their last element can be declared using \keyword{nt\_checked}
+  instead of \keyword{checked}.
 \item
   For structure types with \arrayptr -typed members, a
   programmer declares \emph{member bounds} for those members. A member
   bounds declares the bounds for a member in terms of members of the
   structure type. Member bounds can be suspended temporarily for
   specific variables and objects. Static checking ensures that updates
-  to members maintain the member bounds.
+  to members maintain the member bounds.   A programmer may declare
+  bounds for \ntarrayptr -typed embers also, although that is often
+  not necessary.
 \item
   Introducing bounds-safe interfaces to address the problem of
   interoperation between checked code and unchecked code. A bounds-safe
@@ -147,7 +160,7 @@ check this information.
 To simplify bounds and reasoning about bounds for
 \arrayptr\ types, pointer arithmetic overflow for \arrayptr\
 types is considered a runtime error. Pointer arithmetic involving a null
-pointer for \arrayptr\ types is also a runtime error.
+pointer for \arrayptr\ or \ntarrayptr types is also a runtime error.
 
 Efficiency is addressed by extending the static checking so that it can
 guarantee that specific bounds checks will always succeed at runtime for
