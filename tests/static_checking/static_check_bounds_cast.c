@@ -63,7 +63,8 @@ extern ptr<int> f4(int arr checked[]) {
   return _Dynamic_bounds_cast<ptr<int>>(arr); // expected-error{{expression has no bounds}}
 }
 
-checked int *f5(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s: count(2)) unchecked { // expected-error {{return cannot have an unchecked pointer type}} expected-error {{parameter cannot have an unchecked pointer type}}
+checked int *f5(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s: count(2)) unchecked { // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}} \
+     expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
   ptr<int> t8 = 0;
   t8 = _Assume_bounds_cast<ptr<int>>(r, 1); // expected-error{{invalid bounds cast}}
   int a = 5;
