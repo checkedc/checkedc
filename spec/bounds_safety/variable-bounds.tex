@@ -663,7 +663,7 @@ Bounds checks for \ntarrayptr\ values differ from those for
 memory at the upper bound differently.  The checks also depend on
 whether the result is used to read or write memory.   For memory reads,
 given \texttt{*\var{e1}} where {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}}, 
-the compiler computer \var{e1} to some temporary \var{t}.
+the compiler computes \var{e1} to some temporary \var{t}.
 the compiler inserts a runtime check that  \texttt{\var{e2} <= \var{t} \&\&
 \var{t} <= \var{e3}}.   For memory writes, the compiler inserts a check that 
 \texttt{(\var{e2} <= \var{t} \&\& \var{t} < \var{e3}) ||
