@@ -65,9 +65,8 @@ Checked C addresses the bounds checking problem for C by:
   and three new {\it checked} pointer types are added: one for pointers
   that are never used in pointer arithmetic and do not need bounds
   checking (\ptr),  one for \emph{array pointer types} that are involved
-  in pointer arithmetic and need bounds checking (\arrayptr), and one
-  for \emph{array pointer types where the array is null-terminated}
-  (\ntarrayptr).
+  in pointer arithmetic and need bounds checking (\arrayptr), and an
+  extension to \arrayptr for null-terminated arrays (\ntarrayptr).
 \item
   For array pointer types (\arrayptr), in keeping with the low-level
   nature of C,  bounds checking is placed under programmer control. 
@@ -80,14 +79,6 @@ Checked C addresses the bounds checking problem for C by:
   operators such as addition, subtraction, and address-of (\texttt{\&})
   operators. Static checking ensures that programs declare and maintain
   bounds information properly. The bounds are used at runtime to enforce
-  bounds safety, if necessary.
-\item
-  Null-terminated array types (\ntarrayptr) extend 
-  array pointer types.  An \ntarrayptr\ variable points to
-  an array that is followed in memory by a sequence of elements
-  that ends with a null terminator.  The runtime bounds checking
-  and the static checking are extended to handle the sequence.
-  This allows C string-processing code to be bounds checked.
 \item
   Introducing different array types to distinguish between arrays whose
   accesses are bounds-checked and existing C arrays whose accesses are
@@ -103,9 +94,7 @@ Checked C addresses the bounds checking problem for C by:
   bounds declares the bounds for a member in terms of members of the
   structure type. Member bounds can be suspended temporarily for
   specific variables and objects. Static checking ensures that updates
-  to members maintain the member bounds.   A programmer may declare
-  bounds for \ntarrayptr -typed embers also, although that is often
-  not necessary.
+  to members maintain the member bounds.
 \item
   Introducing bounds-safe interfaces to address the problem of
   interoperation between checked code and unchecked code. A bounds-safe
@@ -160,7 +149,7 @@ check this information.
 To simplify bounds and reasoning about bounds for
 \arrayptr\ types, pointer arithmetic overflow for \arrayptr\
 types is considered a runtime error. Pointer arithmetic involving a null
-pointer for \arrayptr\ or \ntarrayptr types is also a runtime error.
+pointer for \arrayptr\ types is also a runtime error.
 
 Efficiency is addressed by extending the static checking so that it can
 guarantee that specific bounds checks will always succeed at runtime for

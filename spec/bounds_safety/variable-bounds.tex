@@ -72,7 +72,8 @@ Section~\ref{section:non-modifying-expressions}  describes
 non-modifying expressions in detail.
 
 In a bounds declaration of the form \boundsdecl{\var{x}}{\var{bounds-exp}},
-\var{x} can have an \arrayptr\ or a checked array type.
+\var{x} can have an \arrayptr\, \ntarrayptr\,  checked array type, or
+checked null-terminated array type.
 For the form  \boundsdecl{\var{x}}{\boundscount{\var{e1}}},  the type of
 \var{x} cannot be \arrayptrvoid\ and the type of \var{e1} must be an integral type.
 The usual C integer conversions are applied to \var{e1}.\footnote{If the
@@ -87,21 +88,22 @@ This is useful for describing the results of casts and
 bounds for \arrayptrvoid\ pointers.
 
 For any variable with a bounds declaration, the variable must be
-non-null when memory is accessed There is no requirement that an
-\arrayptr\ variable stay within its bounds. The requirement is
-that the \arrayptr\ variable can only be dereferenced if it is
-in bounds. This avoids bound checks on pointer arithmetic.
+non-null when memory is accessed.  There is no requirement that an
+\arrayptr\ or \ntarrayptr\ variable stay within its bounds. The requirement 
+is that the \arrayptr\ or \ntarrayptr variable can only be dereferenced if it
+is in bounds. This avoids bound checks on pointer arithmetic.
 
 Count expressions have limits on their ranges to prevent signed integer
 overflow and unsigned integer wraparound from affecting size
 computations. Section~\ref{section:integer-overflow-informal}
 explains these limits in detail. The limits
-depend on the element type of the \arrayptr\ and the type of the count
+depend on the element type of the \arrayptr\ or \ntarrayptr\ 
+and the type of the count
 expression. For \boundsdecl{\var{x}}{\boundscount{\var{e1}}}, where \var{x}
-has type \arrayptrT ,
+has type \arrayptrT or \ntarrayptrT,
 \var{e1} must be greater than or equal to 0. \var{e1} must be less
 than the maximum number of an
-\arrayptrT\ elements
+\arrayptrT\ or \ntarrayptrT\ elements
 that can be indexed by an integer whose type matches that of \var{e1}.
 A bounds declaration \boundsdecl{\var{x}}{\boundscount{\var{e1}}} is an
 abbreviation for \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}}} with additional conditions that \var{e1}
@@ -113,7 +115,7 @@ abbreviation for \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e
 The conditions may require programmers to add additional checks at memory allocations
 to show that \var{e1} is in range. However, the conditions have advantages too.
 They provide scaffolding for proving that expressions based on
-element counts of \arrayptr\ variables do not overflow or wraparound.
+element counts of \arrayptr\ or \ntarrayptr\ variables do not overflow or wraparound.
 
 The meaning and correctness of bounds are based on the C semantics for
 pointers and pointer arithmetic. At runtime, any non-null pointer in C
@@ -564,28 +566,46 @@ must be the identifier \texttt{any} or the identifier \texttt{none}.
 \section{Insertion of bounds checks at pointer dereferences}
 
 \label{section:bounds-checking-indirections}
-
-Given *\var{e1}, where \var{e1} is an expression of type
+The semantics of C expressions is subtle.  The expression
+\texttt{*\var{e1}} does not dereference memory.  It
+produces an lvalue that can be used to access memory. If the expression
+occurs on the left-hand side of an assigment, the memory pointed to
+by the lvalue is updated with the value of the right-hand side of
+the assignment.
+For example, given \texttt{*\var{e1} = \var{e2}},
+the memory pointed to by the lvalue is updated with the value of \var{e2}.
+If the expression occurs within another expression, the lvalue is usually 
+(but not always)  used to read memory.  In the terminology of the C Standard,
+an lvalue conversion is inserted that reads memory. For example, given \texttt{*\var{e1} + 5},
+an lvalue conversion is inserted for \texttt{*\var{e1}}.  A case where a
+conversion is not inserted is  when the address of an expression is taken:
+\texttt{\&*\var{e1}}. Subscript expression behave similarly to pointer
+dereference expressions.  The expression \texttt{\var{e1}{[\var{e2}]}} produces
+an lvalue that can be used to access memory.
+ 
+A bounds check is inserted at a dereference expression or subscript expression 
+of an \arrayptr\ or \ntarrayptr\ whose result will be used to directly
+access mmemory (the result must be used by the left-hand side of an
+assignment or an lvalue conversion).
+Given \texttt{*\var{e1}}, where \var{e1} is an expression of type
 \arrayptr, the compiler determines the bounds for \var{e1}
 following the rules in Section~\ref{section:inferring-expression-bounds}.
 Special rules are followed in
 \texttt{bundled} blocks to determine the bounds for \var{e1}. The
-compiler inserts checks before the memory pointed to by \var{e1} is
-read or written that \var{e1} is non-null and that the value of
-\var{e1} is in bounds.
+compiler inserts the bounds check as part of the evaluation of \var{*e1}.
+The bound check is inserted after \var{e1} is evaluated and before the result of
+\var{*e1} is produced.  The compiler also inserts a null check.
 
-If \boundsinfer{\var{e1}}{\bounds{\var{e2}}{\var{e3}}},
-the compiler inserts a runtime check that \texttt{\var{e2} <= \var{e1} \&\&
-\var{e1} < \var{e3}}. If the runtime check fails, the program
+If {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}}, the compiler
+computes \var{e1} to a temporary \var{t}.   The compiler inserts a runtime check that
+\texttt{\var{e2} <= \var{t} \&\&
+\var{t} < \var{e3}}. If the runtime check fails, the program
 will be terminated by the runtime system or in, systems that support it,
-a runtime exception will be raised.   If \boundsinfer{\var{e1}}{\boundscount{\var{e2}}},
-this is expanded to \boundsinfer{\var{e1}}{\bounds{\var{e1}}{\var{e1} + \var{e2}}}
-before inserting checks.  Of course a temporary variable would be used to hold the
-value of \var{e1}.
+a runtime exception will be raised.   If {\var{e1}} has bounds {\boundscount{\var{e2}}},
+the bounds are expanded to \bounds{\var{t}}{\var{t} + \var{e2}} before inserting a check.
 
-Consider as an example, \verb|z = *x;| where 
-\verb|x : bounds(x, x + c)|. The compiler will produce code of the form
-
+Consider as an example \verb|z = *x;| where 
+\verb|x| has \verb|bounds(x, x + c)|. The compiler will produce code equivalent to:
 \begin{quote}
 \begin{verbatim}
 dynamic_check(x != null);
@@ -602,29 +622,71 @@ Now suppose pointer arithmetic is involved and \texttt{z = *(x + 5)}. The
 bounds of \texttt{x + 5} will be the same as the bounds of \texttt{x}.
 The expression \texttt{x + 5} must point into the same object as
 \texttt{x} for this to be a valid memory access. This means that
-\boundsdecl{\texttt{x + 5}}{\bounds{\texttt{x}}{\texttt{x + c}}}.
-The compiler will produce code of the form:
+{\texttt{x + 5}} has {\bounds{\texttt{x}}{\texttt{x + c}}}.
+The compiler will produce code equivalent to:
 
 \begin{quote}
 \begin{verbatim}
 dynamic_check(x != null);
 t1 = x + 5;
-dynamic_check(t1 != null && x <= t1 && t1 < x + c);
+dynamic_check(t1 != null)
+dynamic_check(x <= t1 && t1 < x + c);
 z = *t1;
 \end{verbatim}
 \end{quote}
 
-Array subscripting works as expected. For \texttt{e1[e2]}, the
-compiler computes the bounds of \texttt{e1}. The compiler inserts
-runtime checks that \texttt{e1 + e2} is within this bounds. For example,
-given \verb|x[5]| where \verb|x : bounds(x, x + c)|, the
+Array subscripting works as expected. For \texttt{\var{e1}[\var{e2}]}, the
+compiler inserts bounds checks if the result of \texttt{\var{e1}[\var{e2}]}
+is used to access memory.   The compiler computes the bounds of
+\texttt{e1}. The compiler inserts
+runtime checks that \texttt{\var{e1} + \var{e2}} is within this bounds as
+part of the evaluation of \texttt{\var{e1}[\var{e2}]} For example,
+given \verb|x[5]| where \verb|x| has \verb|bounds(x, x + c)|, the
 compiler inserts runtime checks that \verb|x <= x + 5 < x + c|. 
 The runtime checks simplify to \verb|5 < c|.
 
-\subsection{Evaluation of bounds at bounds checks}
+For a multi-dimensional array access, only one bounds check is done.
+The check ensures that the memory access is within the bounds of the entire multi-dimensional
+array.  Given \texttt{\var{e1}[\var{e2}][e3]}, the expression \texttt{\var{e1}[\var{e2}]} is
+evaluated.  However, \texttt{\var{e1}[\var{e2}]} has array type, so no lvalue
+conversion is inserted. That means that no bounds check is inserted:
+\texttt{\var{e1}[\var{e2}]} becomes pointer arithmetic.  The bounds check
+is inserted as part of the subscript operation involving \var{e3}. 
 
-The preceding example raises a subtle point, which is when bounds
-expressions are evaluated. Consider the following code:
+This means that bounds are not checked for each individual dimension access.
+Accessing outside of the bounds for an
+individual dimension is a violation of the C Standard and logically incorrect,
+but it does not compromise memory safety or type safety.
+
+Bounds checks for \ntarrayptr\ values differ from those for
+\arrayptr\ values because they need to treat access to
+memory at the upper bound differently.  The checks also depend on
+whether the result is used to read or write memory.   For memory reads,
+given \texttt{*\var{e1}} where {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}}, 
+the compiler computer \var{e1} to some temporary \var{t}.
+the compiler inserts a runtime check that  \texttt{\var{e2} <= \var{t} \&\&
+\var{t} <= \var{e3}}.   For memory writes, the compiler inserts a check that 
+\texttt{(\var{e2} <= \var{t} \&\& \var{t} < \var{e3}) ||
+(\var{t} ==\var{e3} \&\& *\var{t} != 0)}.
+
+No bounds checks are inserted when the \texttt{\&} operator is applied to 
+a dereference or subscript exression.    
+The dereference or subscript expression does not produce a result that is used
+to access memory.  This expression \texttt{\&\var{e1}[\var{e2}]} works as
+expected by C programmers.  It is equivalent to pointer arithmetic computed using 
+\texttt{\var{e1} + \var{e2}}.   Similarly, \texttt{+\&\var{e}} works 
+as expected.  The \texttt{\&} and the \texttt{*} operator cancel so that
+the value of the entire expression is \var{e}.
+
+\subsection{Deferring evaluation of bounds expressions to bounds checks}
+
+The previous section covered an important point about the evaluation of
+bounds expression in passing that is worth emphasizing:
+the evaluation of a bounds expression that occurs in
+a bounds declaration is {\em deferred} until a bounds check uses the
+bounds expression.
+
+Consider the following code:
 
 \begin{verbatim}
 array_ptr<int> x;
@@ -632,13 +694,16 @@ x = malloc ((sizeof(int) * 5)
 where x : bounds(x, x + 5);
 \end{verbatim}
 
-When is \texttt{x + 5} evaluated?  In this design, 
-the evaluation of a bounds expression in a bounds declaration is
-{\em deferred} until a bounds check uses the bounds expression. 
-This avoids the need for temporary storage to 
-hold the value of \texttt{x + 5}.  The need for temporary storage would
-be particularly problematic when bounds declarations are extended
-to structures.   It also avoids complications when \texttt{x} is
+The bounds expression \texttt{bounds(x, x + 5)} is not evaluated at the
+bounds declaration.   it is evaluated at any bounds check involving a
+pointer derived from \var{x}.  The reason for deferring the
+evaluation of bounds expressions is that it avoids the need for
+storage to hold the ranges produced by the bounds
+expressions (in this case, the values of \texttt{x} and \texttt{x + 5}).
+Additional storage would be particularly
+problematic when bounds declarations are extend to structure members.
+It would cause the size and layout of data structures to change.
+Deferring evaluation also avoids complications when \texttt{x} is
 \texttt{null}. Section~\ref{section:bounds-declarations-alternate-semantics} 
 discusses eager evaluation of bounds expressions at
 bounds declarations in more detail and explains why this was not chosen.
