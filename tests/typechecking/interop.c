@@ -170,7 +170,6 @@ void g2_md(array_ptr<int checked[10]> ap : count(len), int len) {
   f2_incomplete_md_arr(ap, len);
   f3_incomplete_md_arr(ap, len);
   f4_incomplete_md_arr(ap, len);
-
 }
 
 void g2_incomplete_md_array_param(int ap checked[][10] : count(len), int len) {
@@ -554,4 +553,54 @@ void g49(ptr<union U1> p, array_ptr<float> p1 : count(10)) {
   p->arr1 = p1;  // expected-error {{incompatible type}}
   p->arr2 = p1;  // expected-error {{incompatible type}}
   p->arr3 = p1;  // expected-error {{incompatible type}}
+}
+
+//
+// Test function pointers
+//
+
+//
+// Function pointers with parameters with bounds-safe interfaces.
+//
+
+// Bounds-safe interface type is an array_ptr.
+typedef int(*callback_fn1) (int *a : count(n), int n);
+
+void g60(callback_fn1 fn, array_ptr<int> arr : count(k), int k) {
+  (*fn)(arr, k);
+}
+
+void g61(callback_fn1 fn, array_ptr<float> arr : count(k), int k) {
+  (*fn)(arr, k); // expected-error {{incompatible type}}
+}
+
+// Bounds-safe interface type is 1-D checked array.
+typedef int(*callback_fn2) (int *a : itype(int checked[10]));
+void g70(callback_fn2 fn, int arr checked[10]) {
+  (*fn)(arr);
+}
+
+void g71(callback_fn2 fn, int arr checked[11]) {
+  (*fn)(arr);
+}
+
+void g72(callback_fn2 fn) {
+  int arr checked[10];
+  (*fn)(arr);
+}
+
+
+// Bounds-safe interface type is 2-D checked array.
+typedef int(*callback_fn3) (int(*a)[10] : itype(int checked[10][10]));
+void g80(callback_fn3 fn, int arr checked[10][10]) {
+  (*fn)(arr);
+}
+
+void g81(callback_fn3 fn, int arr checked[10][11]) {
+  (*fn)(arr);  // expected-error {{incompatible type}}
+}
+
+void g82(callback_fn3 fn) {
+  int arr checked[10][10];
+  (*fn)(arr);
 }
