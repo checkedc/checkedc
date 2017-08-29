@@ -79,7 +79,7 @@ void f23(void) {
     free(y);
 }
 
-// Test you can always `free` a `aligned_alloc`d ptr
+// Test you can always `free` a `aligned_alloc`d array_ptr
 void f24(void) {
     array_ptr<int> x : count(4) = aligned_alloc(_Alignof(int), 4 * sizeof(int));
     free(x);
