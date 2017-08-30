@@ -734,8 +734,7 @@ extern void check_call_void(void) {
   // Expected to not typecheck
   f1_void(r, val);    // expected-error {{incompatible type}}
                       // param void *, arg int checked[10] not OK
-  f2_void(r, val);    // expected-error {{incompatible type}}
-                      // param ptr<void>, arg int checked[10] not OK
+  f2_void(r, val);    // param ptr<void>, arg int checked[10] OK
 
   // Try passing void pointers to functions expected array types
   // f1(int *, int)

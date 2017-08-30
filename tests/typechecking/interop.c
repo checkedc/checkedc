@@ -228,16 +228,21 @@ void g4(array_ptr<float> ap : count(len), int len) {
 
 void g5(ptr<int> p) {
   f1_void(p);
+  f3_void(p, 1);
+  f4_void(p, sizeof(int));
 }
 
 void g6(array_ptr<int> ap : count(len), int len) {
+  if (len >= 1)
+    f1_void(ap);
   f3_void(ap, len);
-  f4_void(ap, len);
+  f4_void(ap, len * sizeof(int));
 }
 
 void g7(ptr<void> p) {
   f1(p); // expected-error {{incompatible type}}
   f1_void(p);
+  f4_void(p, 1);
 }
 
 void g8(array_ptr<void> ap : byte_count(len), int len) {
