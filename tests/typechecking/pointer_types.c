@@ -834,7 +834,7 @@ extern void check_call_void(void) {
     float fval = 0.0;
     int *p = 0;
     ptr<int> q = 0;
-    array_ptr<int> r = 0;
+    array_ptr<int> r : count(1) = 0;
 
     // TODO: s will need bounds information
     void *s = 0;
@@ -857,10 +857,8 @@ extern void check_call_void(void) {
                         // param void *, arg ptr<int> not OK
     f1_void(r, val);    // expected-error {{incompatible type}}
                         // param void *, arg array_ptr<int> not OK
-    f2_void(r, val);    // expected-error {{incompatible type}}
-                        // param ptr<void>, arg array_ptr<int> not OK
-    f3_void(q, val);    // expected-error {{incompatible type}}
-                        // param array_ptr<void>, arg ptr<int> not OK
+    f2_void(r, val);    // param ptr<void>, arg array_ptr<int> OK
+    f3_void(q, val);    // param array_ptr<void>, arg ptr<int> OK
 
     // Test different kinds of pointers where the parameter type is a pointer to void and the
     // referent type is a pointer to void
@@ -868,7 +866,7 @@ extern void check_call_void(void) {
     f2_void((void *) &val, val);  // param ptr<void>, arg void * OK
     f2_void(t, val);  // param ptr<void>, arg ptr<void OK
     f3_void(s, val);  // param array_ptr<void>, arg void * OK.
-    f3_void(u, val);  // param array_ptr<void< arg array_ptr<void OK.
+    f3_void(u, val);  // param array_ptr<void> arg array_ptr<void> OK.
 
     f1_void(t, val);  // expected-error {{incompatible type}}
     f1_void(u, val);  // expected-error {{incompatible type}}
