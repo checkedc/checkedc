@@ -52,7 +52,7 @@ lowercase versions of the keywords.  It is assumed
 that \keyword{checkedc.h} is included before examples.
 
 \section{New kinds of pointer types}
-New pointer types are added to C. Each pointer type can be
+Three new checked pointer types are added to C. Each pointer type can be
 used in place of `\texttt{*}':
 \begin{enumerate}
 \item
@@ -75,6 +75,9 @@ used in place of `\texttt{*}':
   bounds are checked at runtime if necessary. Pointer arithmetic can be
   done on these pointer types. The resulting pointers do not need to be
   in bounds.
+\item
+ \ntarrayptrT: this is a variant of \arrayptrT\ for null-terminated
+ arrays.  It is described in Section~\ref{section:nullterm-types}
 \end{enumerate}
 
 Unchecked C pointer types that use `\texttt{*}' and are unchecked in their
@@ -264,30 +267,41 @@ t2 x checked[10];  // error: mismatched checked properties
 \section{New types for null-terminated arrays}
 \label{section:nullterm-types}
 
-C has the notion of a null-terminated array.  This is a sequence of elements
-in memory that ends with a null terminator value.  We add a new type 
+C programmers are familiar with the concept of
+a null-terminated array.  This is a sequence of elements
+in memory that ends with a null terminator value.  We add a new type
 \ntarrayptrT\
 to represent pointers to these kinds of arrays.  We divide
 these arrays into two parts: a prefix with known bounds and
 a sequence of additional elements that ends
 with a null terminator.  The element type \var{T} of an \ntarrayptrT\ must be
 an integral or pointer type.   \ntarrayptrT\ extends \arrayptrT: the
-prefix is treated the same as if an \arrayptrT pointed to it.
+prefix is treated the same as if an \arrayptrT\ pointed to it.
+An \ntarrayptrT\ value can be converted to an \arrayptrT\ value
+with the same bounds.
 
 A programmer may declare bounds for an \ntarrayptr\ variable.
 If no bounds are declared, the prefix with known bounds is
 assumed to be a 0-element array.  In that case, the
-programmer is working directly with the sequence.  In
-fact, the common case for \ntarrayptr\ variables is that
-no bounds are declared.   Here is a declaration of a function that
-takes a null-terminated 
-character of arrays and counts it length:
+programmer is working directly with the sequence.
+The common case for \ntarrayptr\ variables is that
+no bounds are declared.
+
+Here is a declaration of a function that takes a null-terminated
+character of arrays and counts its length:
 \begin{verbatim}
 int compute_length(nt_array_ptr<char> s);
 \end{verbatim}
 
+% We haven't introduced checked scopes yet - need to put thissomehwere
+% else.
+%Conversion of \arrayptrT\ values to \ntarrayptrT\ values is
+%not allowed in checked code because it may be possible
+%to overwrite the null terminator value via the \arrayptrT\ value
+% or another \arrayptrT\ value.
+
 Modifiers can be applied to the reference type of
-an \ntarrayptr, just as they can be applied to the
+an \ntarrayptr, in the same way that they can be applied to the
 referent type of an \arrayptr.
 The function \verb+compute_length+
 should not modify the contents of a string. Here
@@ -295,32 +309,32 @@ is a version that uses \verb+const+ to declare that:
 \begin{verbatim}
 int compute_length(nt_array_ptrconst char> s);
 \end{verbatim}
-When values of \ntarrayptrT\ are use to read or write memory,
-they follow the same rules as \arrayptrT, except that bounds
+When values of \ntarrayptrT\ type are use to read or write memory,
+they follow the same rules as values of \arrayptrT\ type, except that bounds
 checking is extended to allow access to the first element
 of the sequence. It can always be read so that it can be
 determined whether it contains a null terminator.
 It can be written too,
 provided that it does not contain a null terminator.
 
-\ntarrayptr\ differs in some important ways from 
+\ntarrayptr\ differs in some important ways from
 \arrayptr. Even without a bounds declaration,
 there is guaranteed to be least one element of memory
 that is accessible.   For example, \verb+compute_length+
 can always read the character pointed to by \verb+s+, provided that
 \verb+s+ is not null.
 
-Just as \arrayptr\ has checked arrays, \ntarrayptr\ has
-checked null-terminated arrays.  These are useful
-for declaring  checked types for string constants. 
+Just as there are new checked array types for \arrayptr s,
+there are new checked null-terminated array types for \ntarrayptr s.
+These are useful for declaring  checked types for string constants.
 Null-terminated array types are declared using the
-\keyword{nt\_checked} instead of \keyword{checked} before
-the array dimensions:
+\keyword{nt\_checked} keyword before the array dimensions,
+instead of the \keyword{checked} keyword:
 \begin{verbatim}
 int arr nt_checked[10];
 \end{verbatim}
-\verb+nt_checked+ declares an array that is followed by a null 
-terminator.  The null terminator is {\em not} included in the 
+\verb+nt_checked+ declares an array that is followed by a null
+terminator.  The null terminator is {\em not} included in the
 the dimension size.
 
 Here is an example of a declaration of a checked null-terminated
@@ -330,11 +344,18 @@ char s nt_checked[5] = "hello";
 \end{verbatim}
 
 A \keyword{nt\_checked} array with a dimension \var{d} converts
-to a \ntarrayptr with \var{d} elements.   This means that programs
-can still read the element containing the null terminator.  However, 
-attempting to overwrite it is a runtime error.  The \verb+sizesof+
+to an \ntarrayptr\ with \var{d} elements.   This means that programs
+can still read the element containing the null terminator.  However,
+attempting to overwrite it is a runtime error.  The \verb+sizeof+
 operator applied to a null-terminated array includes the null
 terminator in the size computation.
+
+Because \ntarrayptr\ extends \arrayptr, the discussion and rules for
+\arrayptr\ in the rest of the specification usually apply to \ntarrayptr\
+too.  Most mentions of \arrayptr\ can usually be read as
+``\arrayptr\ or \ntarrayptr.''.  We omit the ``or \ntarrayptr'' clause
+for brevity. We discuss \ntarrayptr\ only when there is a difference between
+it and \arrayptr.
 
 \section{Operations involving pointer types}
 
@@ -343,11 +364,10 @@ The following operations involving pointer-typed values are allowed:
 \begin{itemize}
 \item
   Indirection: the \texttt{*} operator can be applied to a value of type
-  \var{T} \texttt{*}, \ptrT, \arrayptrT, or \ntarrayptrT.  It produces a
-  value of type \var{T}.
+  \var{T} \texttt{*}, \ptrT, or \arrayptrT. It produces a value of type \var{T}.
 \item
   Array reference: the \texttt{[]} operator can be applied to a
-  value of type \var{T} \texttt{*}, \arrayptrT, or \ntarrayptrT. It
+  value of type \var{T} \texttt{*} or \arrayptrT. It
   cannot be applied to a value of type \ptrT.
   \texttt{\var{e1}[\var{e2}]} is equivalent to
   \texttt{*(\var{e1} + \var{e2})}
@@ -355,7 +375,7 @@ The following operations involving pointer-typed values are allowed:
   Assignment: two pointers of the same type can be assigned.
 \item
   Adding or subtracting a pointer type and an integer. This is allowed
-  for \var{T} \texttt{*}, \arrayptrT, and \ntarrayptrT\ types.
+  for \var{T} \texttt{*} and \arrayptrT\ types.
 \item
   Pointers to objects of the same type can be compared for equality or
   inequality. The pointers do not have to be the same kind of pointer.
@@ -408,7 +428,7 @@ of type \var{T}, the following rules apply:
 If the type of an expression is ``checked array of
 \var{T}'', the type of the expression is altered to be
 \arrayptrT.  If the type of an expression is ``checked null-terminated
-array of \var{T}'', the type of the expression is altered to 
+array of \var{T}'', the type of the expression is altered to
 be \ntarrayptrT.
 
 Following existing C language rules, this alteration does not happen if
@@ -499,7 +519,7 @@ minimum value of a signed integer that can be added to an address shall
 be given by \texttt{INTPTR\_MIN}.
 
 For the new
-\arrayptrT\ and \ntarrayptrT\ pointer
+\arrayptrT\ pointer
 types, there are distinct operations for addition and subtraction of
 pointers by signed and unsigned integers. The operations behave
 similarly, but have different overflow conditions for scaling because
@@ -520,7 +540,7 @@ the ranges of signed integers and unsigned integers are different.
   shall produce a runtime error.
 \item
   \var{p} \texttt{+} \var{i}, where \var{p} is an
-  \arrayptrT\ or \ntarrayptrT\ pointer
+  \arrayptrT\ pointer
   and \var{i} is an integer. The integer \var{i} shall be scaled by
   \sizeof{\var{T}}, producing an integer \var{j}. The
   pointer \var{p} will be interpreted as an unsigned integer. The mathematical
@@ -529,7 +549,7 @@ the ranges of signed integers and unsigned integers are different.
   produce a runtime error.
 \item
   \var{i} \texttt{+} \var{p}, where \var{p} is an
-  \arrayptrT\ or \ntarrayptrT\ pointer
+  \arrayptrT\ pointer
   and \var{i} is an integer, shall be defined as \var{p} \texttt{+}
   \var{i}.
 \item
@@ -543,7 +563,7 @@ the ranges of signed integers and unsigned integers are different.
   operation shall produce a runtime error.
 \item
   \var{p} \texttt{-} \var{q}, where \var{p} and \var{q} are
-  \arrayptrT\ or \ntarrayptrT\
+  \arrayptrT\
   pointers. The two pointers will be interpreted as unsigned integers
   and the mathematical value \var{p} - \var{q} shall be computed,
   producing an integer \var{j}. If \var{j} is out of range for signed
