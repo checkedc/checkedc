@@ -1940,10 +1940,9 @@ int *f101(int len) : count(len) {
   return 0;
 }
 
-
-// Return an _Array_ptr from a checked scope for a function with a
-// a bounds-safe interface return type of _Array_ptr, where the
-// returned value has a bounds-afe interface type.
+// Return an _Ptr from a checked scope for a function with a
+// a bounds-safe interface return type of _Ptr, where the
+// returned value has a bounds-safe interface type.
 int *f102(int * p : itype(_Ptr<int>)) : itype(_Ptr<int >) {
   _Checked{
     return p;
