@@ -305,27 +305,25 @@ void g14(array_ptr<const int> ap : count(len), int len) {
 
 //
 //
-// There are no bounds-safe interface implicit conversions when a value with a
+// There is a bounds-safe interface implicit conversion when a value with a
 // checked pointer type is returned from a function that has an unchecked
-// return pointer type with an interop bounds declaration.  An explicit cast
-// must be used in this case.
-//
+// return pointer type with an interop bounds declaration.
 //
 
 int *g15(ptr<int> p) : itype(ptr<int>) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 int *g16(array_ptr<int> p : count(10)) : count(10) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 int *g17(array_ptr<int> p : count(10)) : byte_count(10 * sizeof(int)) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 void *g18(array_ptr<int> p : count(10)) : byte_count(10 * sizeof(int)) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 //
