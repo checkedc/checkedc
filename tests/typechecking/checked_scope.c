@@ -1914,3 +1914,72 @@ typedef ptr<int *(void) : itype(ptr<int>)> callback_fn2;
 checked void test_function_pointer_return(callback_fn2 fn) {
   ptr<int> p = (*fn)();
 }
+
+//-----------------------------------------------------------------------
+// Test return statements in checked blocks where there is a bounds-safe
+// interface on the return type.
+//-----------------------------------------------------------------------
+
+// Return a _Ptr from a checked scope for a function with a
+// a bounds-safe interface return type of _Ptr.
+int *f100(void) : itype(_Ptr<int>) {
+  _Checked{
+    _Ptr<int> p = 0;
+    return p;
+  }
+  return 0;
+}
+
+// Return an _Array_ptr from a checked scope for a function with a
+// a bounds-safe interface return type of _Array_ptr.
+int *f101(int len) : count(len) {
+  _Checked{
+    _Array_ptr<int> p = 0;
+    return p;
+  }
+  return 0;
+}
+
+// Return an _Ptr from a checked scope for a function with a
+// a bounds-safe interface return type of _Ptr, where the
+// returned value has a bounds-safe interface type.
+int *f102(int * p : itype(_Ptr<int>)) : itype(_Ptr<int >) {
+  _Checked{
+    return p;
+  }
+}
+
+//
+// Return a checked value from a checked scope, with the return
+// type missing a bounds-safe interface.
+//
+
+int *f103(void) {
+  _Checked{
+    _Ptr<int> p = 0;
+    return p;  // expected-error {{returning '_Ptr<int>' from a function with incompatible result type 'int *'}}
+  }
+  return 0;
+}
+
+int *f104(int len) {
+  _Checked{
+    _Array_ptr<int> p = 0;
+    return p; // expected-error {{returning '_Array_ptr<int>' from a function with incompatible result type 'int *'}}
+  }
+  return 0;
+}
+
+int *f105(int *p : itype(_Ptr<int>)) {
+  _Checked{
+    return p;  // TODO: Github issue #339.  This should be an error.
+  }
+}
+
+// Omit returning a value when one is expected.
+int *f106(void) : itype(_Ptr<int>) {
+  _Checked{
+    return; // expected-error {{non-void function 'f106' should return a value}}
+  }
+  return 0;
+}
