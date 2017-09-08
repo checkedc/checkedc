@@ -661,18 +661,19 @@ Accessing outside of the bounds for an
 individual dimension is a violation of the C Standard and logically incorrect,
 but it does not compromise memory safety or type safety.
 
-Bounds checks for \ntarrayptr\ values allow access to memory exactly
+Bounds checks for \ntarrayptr\ values allow read access to memory exactly
 at the upper bound.  This is the beginning of the null-terminated
 sequence (bounds checks for \arrayptr\ values only allow access to
-memory below the upper bounds).  Bounds checks for \ntarrayptr\ values also
-depends on whether the value is being used to read to read or write memory.
-for \arrayptr\ values.  For \arrayptr  For memory reads,
+memory below the upper bounds).  For memory reads,
 given \texttt{*\var{e1}} where {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}},
 the compiler computes \var{e1} to some temporary \var{t}.
-the compiler inserts a runtime check that  \texttt{\var{e2} <= \var{t} \&\&
-\var{t} <= \var{e3}}.   For memory writes, the compiler inserts a check that
-\texttt{(\var{e2} <= \var{t} \&\& \var{t} < \var{e3}) ||
-(\var{t} ==\var{e3} \&\& *\var{t} != 0)}.
+The compiler inserts a runtime check that  \texttt{\var{e2} <= \var{t} \&\&
+\var{t} <= \var{e3}}.   For memory writes, the compiler inserts the
+same check as for \arrayptr:
+\texttt{\var{e2} <= \var{t} \&\& \var{t} < \var{e3}}.
+If the bounds for \var{e1} are inferred, the checks
+must be provably true at compile time.
+
 
 No bounds checks are inserted when the \texttt{\&} operator is applied to
 a dereference or subscript exression.
