@@ -295,9 +295,10 @@ than expected and it may make it difficult to understand
 failures.
 To avoid these problems, we require that memory accesses
 using inferred bounds be provably in-range at compile time.
-To make it provable, pointer arithmetic is limited to
-pointer variables plus constant offsets.  This is enough
-to handle simple cases such as:
+At a minimum, the proof system should support local
+reasoning about widened bounds involving pointer
+variables with constant offsets.
+This is enough to handle simple cases such as:
 \begin{verbatim}
 nt_array_ptr<char> p = ...
 if (*p == 'a')
@@ -317,7 +318,7 @@ array of characters and counts its length:
 int compute_length(nt_array_ptr<char> s);
 \end{verbatim}
 
-% We haven't introduced checked scopes yet - need to put thissomehwere
+% We haven't introduced checked scopes yet - need to put this somehwere
 % else.
 %Conversion of \arrayptrT\ values to \ntarrayptrT\ values is
 %not allowed in checked code because it may be possible
@@ -331,7 +332,7 @@ The function \verb+compute_length+
 should not modify the contents of a string. Here
 is a version that uses \verb+const+ to declare that:
 \begin{verbatim}
-int compute_length(nt_array_ptrconst char> s);
+int compute_length(nt_array_ptr<const char> s);
 \end{verbatim}
 
 Just as there are new checked array types for \arrayptr s,
