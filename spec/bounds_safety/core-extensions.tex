@@ -272,23 +272,47 @@ a null-terminated array.  This is a sequence of elements
 in memory that ends with a null terminator value.  We add a new type
 \ntarrayptrT\
 to represent pointers to these kinds of arrays.  We divide
-these arrays into two parts: a prefix with known bounds and
+these arrays into two parts: a prefix with bounds and
 a sequence of additional elements that ends
-with a null terminator.  The element type \var{T} of an \ntarrayptrT\ must be
+with a null terminator.  The initial elements of the 
+sequence can be read, providing that preceding elements
+are not the null terminator.  The bounds can be 
+{\em widened} based on the number of elements read.
+
+A programmer may declare bounds for an \ntarrayptr\ variable.  If bounds
+are declared, they are used to check that accesses to memory are in range
+at runtime.
+
+If no bounds are declared, the bounds are inferred.  At variable declarations,
+the declared bounds are for arrays with 0 elements.  At variable uses, 
+the bounds are determined using a program analysis that widens
+bounds based on control-flow.
+The bounds are then used to check memory accesses.
+A problem with using an analysis to determine bounds
+is that the bounds are not written down in the program. 
+This may lead to unexpected failures if the bounds are narrower
+than expected and it may make it difficult to understand
+failures.
+To avoid these problems, we require that memory accesses
+using inferred bounds be provably in-range at compile time.
+To make it provable, pointer arithmetic is limited to
+pointer variables plus constant offsets.  This is enough
+to handle simple cases such as:
+\begin{verbatim}
+nt_array_ptr<char> p = ...
+if (*p == 'a')
+ if (*(p + 1) == 'b')
+   if (*(p + 2) == 'c')
+\end{verbatim}
+   
+The element type \var{T} of an \ntarrayptrT\ must be
 an integral or pointer type.   \ntarrayptrT\ extends \arrayptrT: the
-prefix is treated the same as if an \arrayptrT\ pointed to it.
-An \ntarrayptrT\ value can be converted to an \arrayptrT\ value
+prefix with bounds is treated the same as if an \arrayptrT\ pointed 
+to it. An \ntarrayptrT\ value can be converted to an \arrayptrT\ value
 with the same bounds.
 
-A programmer may declare bounds for an \ntarrayptr\ variable.
-If no bounds are declared, the prefix with known bounds is
-assumed to be a 0-element array.  In that case, the
-programmer is working directly with the sequence.
-The common case for \ntarrayptr\ variables is that
-no bounds are declared.
-
 Here is a declaration of a function that takes a null-terminated
-character of arrays and counts its length:
+array of characters and counts its length:
 \begin{verbatim}
 int compute_length(nt_array_ptr<char> s);
 \end{verbatim}
@@ -309,20 +333,6 @@ is a version that uses \verb+const+ to declare that:
 \begin{verbatim}
 int compute_length(nt_array_ptrconst char> s);
 \end{verbatim}
-When values of \ntarrayptrT\ type are use to read or write memory,
-they follow the same rules as values of \arrayptrT\ type, except that bounds
-checking is extended to allow access to the first element
-of the sequence. It can always be read so that it can be
-determined whether it contains a null terminator.
-It can be written too,
-provided that it does not contain a null terminator.
-
-\ntarrayptr\ differs in some important ways from
-\arrayptr. Even without a bounds declaration,
-there is guaranteed to be least one element of memory
-that is accessible.   For example, \verb+compute_length+
-can always read the character pointed to by \verb+s+, provided that
-\verb+s+ is not null.
 
 Just as there are new checked array types for \arrayptr s,
 there are new checked null-terminated array types for \ntarrayptr s.
@@ -336,26 +346,25 @@ int arr nt_checked[10];
 \verb+nt_checked+ declares an array that is followed by a null
 terminator.  The null terminator is {\em not} included in the
 the dimension size.
-
 Here is an example of a declaration of a checked null-terminated
 array type for a string constant:
 \begin{verbatim}
 char s nt_checked[5] = "hello";
 \end{verbatim}
 
-A \keyword{nt\_checked} array with a dimension \var{d} converts
+An \keyword{nt\_checked} array with a dimension \var{d} converts
 to an \ntarrayptr\ with \var{d} elements.   This means that programs
 can still read the element containing the null terminator.  However,
 attempting to overwrite it is a runtime error.  The \verb+sizeof+
 operator applied to a null-terminated array includes the null
 terminator in the size computation.
 
+\subsection{\ntarrayptr\ usually follows the rules for \arrayptr}
 Because \ntarrayptr\ extends \arrayptr, the discussion and rules for
 \arrayptr\ in the rest of the specification usually apply to \ntarrayptr\
 too.  Most mentions of \arrayptr\ can usually be read as
-``\arrayptr\ or \ntarrayptr.''.  We omit the ``or \ntarrayptr'' clause
-for brevity. We discuss \ntarrayptr\ only when there is a difference between
-it and \arrayptr.
+``\arrayptr\ or \ntarrayptr.''.  We discuss \ntarrayptr\ only when
+there is a difference between it and \arrayptr.
 
 \section{Operations involving pointer types}
 
