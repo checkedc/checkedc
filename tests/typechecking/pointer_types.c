@@ -217,7 +217,8 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
 // Test assignments between different kinds of pointers where the
 // the source and/or destination pointers are pointers to void.
 extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
-                              void *s, ptr<void> t, array_ptr<void> u) {
+                              void *s, ptr<void> t, 
+                              array_ptr<void> u : byte_count(sizeof(int))) {
     // pointer to void = pointer to integer for the different kinds of pointers
     void *t1 = p;            // void *  = T * OK;
     ptr<void> t2 = &val;     // ptr<void> = T * OK when T * has known bounds
@@ -234,7 +235,7 @@ extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
                              // void * = array_ptr<void> not OK.
     ptr<void> t10 = (void *) &val; // ptr<void> = void * OK provided void * has known bounds
     ptr<void> t11 = t;       // ptr<void> = ptr<void> OK
-    ptr<void> t12 = u;       // expected-error {{expression has no bounds}}
+    ptr<void> t12 = u;
                              // ptr<void> = array_ptr<void> OK.
     array_ptr<void> t13 = u; // array_ptr<void> = void * OK when array_ptr has no
                              // bounds
@@ -250,14 +251,12 @@ extern void check_assign_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     ptr<int> t20 = (void *) &val; // ptr<int> = void * OK provided void * has known bounds
     ptr<int> t21 = t;        // expected-error {{incompatible type}}
                              // ptr<int> = ptr<void> not OK.
-    ptr<int> t22 = u;        // expected-error {{incompatible type}}
-                             // ptr<int> = array_ptr<void> not OK.
+    ptr<int> t22 = u;
     array_ptr<int> t23 = s;  // array_ptr<int> = void * OK when array_ptr<int> has no
                              // bounds.
     array_ptr<int> t24 = t;  // expected-error {{incompatible type}}
                              // array_ptr<int> = ptr<void> not OK.
-    array_ptr<int> t25 = u;  // expected-error {{incompatible type}}
-                             // array_ptr<int> = array_ptr<void> not OK.
+    array_ptr<int> t25 = u;
 
     // conversions between integers and safe void pointers.
     int t26 = t;             // expected-error {{incompatible type}}
@@ -839,7 +838,7 @@ extern void check_call_void(void) {
     // TODO: s will need bounds information
     void *s = 0;
     ptr<void> t = 0;
-    array_ptr<void> u = 0;
+    array_ptr<void> u : byte_count(sizeof(int)) = 0;
 
     // Test different kinds of pointers where the parameter type is a pointer to void and
     // the referent type is not a void pointer.
@@ -870,8 +869,7 @@ extern void check_call_void(void) {
 
     f1_void(t, val);  // expected-error {{incompatible type}}
     f1_void(u, val);  // expected-error {{incompatible type}}
-    f2_void(u, val);  // expected-error {{expression has no bounds}}
-                      // param ptr<void>, arg array_ptr<void>, OK
+    f2_void(u, val);  // param ptr<void>, arg array_ptr<void>, OK
     f3_void(t, val);  // param array_ptr<void>, arg ptr<void>, OK
 
     // Test parameter types that are pointer to integers and argument types that are pointers to void
@@ -883,13 +881,11 @@ extern void check_call_void(void) {
     f2((void *) &val, val);       // param ptr<int>, arg void * OK
     f2(t, val);       // expected-error {{incompatible type}}
                       // param ptr<int>, arg ptr<void>
-    f2(u, val);       // expected-error {{incompatible type}}
-                      // param ptr<int>, arg array_ptr<void> 
+    f2(u, val);       // param ptr<int>, arg array_ptr<void> OK
     f3(s, val);       // param array_ptr<int>, arg void * OK
     f3(t, val);       // expected-error {{incompatible type}}
                       // param array_ptr<int>, arg ptr<void>
-    f3(u, val);       // expected-error {{incompatible type}}
-                      // param array_ptr<int>, arg array_ptr<void>
+    f3(u, val);       // param array_ptr<int>, arg array_ptr<void> OK.
 
    // Test parameters that are integers and argument types that are safe pointers to void
     f1(0, t);         // expected-error {{incompatible type}}

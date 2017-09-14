@@ -1972,7 +1972,7 @@ int *f104(int len) {
 
 int *f105(int *p : itype(_Ptr<int>)) {
   _Checked{
-    return p;  // TODO: Github issue #339.  This should be an error.
+    return p; // expected-error {{returning '_Ptr<int>' from a function with incompatible result type 'int *'}}
   }
 }
 

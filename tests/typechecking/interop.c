@@ -246,9 +246,9 @@ void g7(ptr<void> p) {
 }
 
 void g8(array_ptr<void> ap : byte_count(len), int len) {
-  f2(ap, len / 4);  // expected-error {{incompatible type}}
-  f3(ap, len / 4);  // expected-error {{incompatible type}}
-  f4(ap, len / 4);  // expected-error {{incompatible type}}
+  f2(ap, len / 4);
+  f3(ap, len / 4);
+  f4(ap, len / 4);
   f3_void(ap, len);
   f4_void(ap, len);
 }
@@ -388,8 +388,8 @@ void g26(ptr<void> p) {
 }
 
 void g27(array_ptr<void> ap : byte_count(10 * sizeof(int))) {
-  v3 = ap;  // expected-error {{incompatible type}}
-  v4 = ap;  // expected-error {{incompatible type}}
+  v3 = ap;
+  v4 = ap;
   v3_void = ap;
   v4_void = ap;
 }
@@ -479,9 +479,9 @@ void g41(ptr<struct S1> p, ptr<float> p1, array_ptr<float> p2 : count(10)) {
 // of checked void pointers to void to non-void * members with bounds declarations.
 void g42(ptr<struct S1> p, ptr<void> p1, array_ptr<void> p2 : byte_count(10 * sizeof(int))) {
   p->pint = p1;  // expected-error {{incompatible type}}
-  p->arr1 = p2;  // expected-error {{incompatible type}}
-  p->arr2 = p2;  // expected-error {{incompatible type}}
-  p->arr3 = p2;  // expected-error {{incompatible type}}
+  p->arr1 = p2;
+  p->arr2 = p2;
+  p->arr3 = p2;
 }
 
 // Check assignments to void * members with bounds declarations
