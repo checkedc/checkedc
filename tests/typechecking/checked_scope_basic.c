@@ -17,13 +17,6 @@
 //   and it is used in a checked, scope, there is an error message at uses of the declared
 //   entity.
 
-
-
-checked int func3(int len, int *p, ptr<int> q, array_ptr<int> r, int *s : itype(ptr<int>)) { // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-  int result = *p + *q + *s;
-  return result;
-}
-
 checked int func4(int p[]) {  // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
   return 0;
 }
@@ -32,25 +25,19 @@ checked int func5(ptr<int> p, int *q) { // expected-error {{parameter in a check
   return 0;
 }
 
-checked int* func6(int a checked[][5], int b checked[][5]) : itype(ptr<int>) {
+checked int* func6(int a[][5], int b[][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
 }
 
-checked int* func7(int a[][5], int b[][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
+checked int* func7(void) : itype(ptr<int>) checked {
+ return 0;
 }
 
 checked int* func8(int len) {       // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
   return 0;
 }
 
-checked int func9(ptr<int> p, int *q : itype(ptr<int>)) {
+checked int func9(ptr<int> p) {
   int e[5][5];    // expected-error {{local variable in a checked scope must have a checked type}}
-  return 0;
-}
-
-checked int* func10(ptr<int> p, int *q : itype(ptr<int>)) : itype(ptr<int>) {
-  int a = 5;
-  ptr<int> pa = &a;
-  ptr<int> pb = p;
   return 0;
 }
 
@@ -78,29 +65,9 @@ array_ptr<int> func13(int *x, int *y) checked {
   return 0;
 }
 
-
-checked int* func14(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) checked {
-  int e checked[5][5];
-  int f[5][5];                // expected-error {{local variable in a checked scope must have a checked type}}
-  int *upa = func6(e, e);     // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pb = func6(e, e);
-  ptr<int> pc = 0;
-  pc = func7(f, f);
-  int *upd = func11(upa, 10); // expected-error {{local variable in a checked scope must have a checked type}} \
-                              // expected-error {{return used in a checked scope must have a checked type or a bounds-safe interface}}
-  return upa;
-}
-
-checked int* func15(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) checked {// expected-error 3 {{type must be a checked type}}
-}
-
-
-
 checked int func16() {               // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
   return 0;
 }
-
-checked int* func17() : itype(array_ptr<int>);  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 
 // Test that functions declared with old-style K&R parameter lists cannot
 // be declared or used in checked scopes, unless they are preceded by
@@ -184,52 +151,6 @@ void KNR_test(void) {
   KNR_func4(a,b,c); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
   KNR_func5(px,a);  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
   KNR_func6(py,px); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
-}
-#pragma BOUNDS_CHECKED OFF
-
-#pragma BOUNDS_CHECKED ON
-
-// Test for bounds-safe interface
-// - check variable declaration with bounds-safe interface
-// - check function declaration(return & parameter) with bounds-safe interface
-int *garr : count(10);
-int *gptr : bounds(garr, garr + 5);
-int gval : bounds(garr, garr + 10);
-
-#define size_t int
-void *checked_aligned_alloc(size_t alignment, size_t size) : byte_count(size);
-void *checked_calloc(size_t nmemb, size_t size) : byte_count(nmemb * size);
-void checked_free(void *pointer : itype(ptr<void>));
-void *checked_malloc(size_t size) : byte_count(size);
-void *checked_realloc(void *pointer  : itype(ptr<void>), size_t size) : byte_count(size);
-
-void *bsearch(const void *key : byte_count(size),
-              const void *base : byte_count(nmemb * size),
-              size_t nmemb, size_t size,
-              int((*compar)(const void *, const void *)) :
-              itype(ptr<int(ptr<const void>, ptr<const void>)>)) :
-  byte_count(size);
-
-void qsort(void *base : byte_count(nmemb * size),
-           size_t nmemb, size_t size,
-           int((*compar)(const void *, const void *)) :
-           itype(ptr<int(ptr<const void>, ptr<const void>)>));
-
-int mblen(const char *s : count(n), size_t n);
-
-void test_bounds_safe_interface(void) {
-  array_ptr<int> arr0 : count(4) = checked_calloc(4, sizeof(size_t));
-
-  for (int i = 0; i < 4; i++)
-    unchecked{
-    checked_malloc(arr0[i]);
-  }
-  ptr<int> arr1 = checked_malloc(10);
-#pragma BOUNDS_CHECKED OFF
-  void *unchecked_ptr;
-#pragma BOUNDS_CHECKED ON
-  array_ptr<int> arr2 = checked_realloc(arr1, 20);
-  array_ptr<int> arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{local variable used in a checked scope must have a checked type}}
 }
 #pragma BOUNDS_CHECKED OFF
 
@@ -424,7 +345,7 @@ checked int func42(ptr<int> p, int q[], int r[5]) unchecked {  // expected-error
   return 0;
 }
 
-checked int * func43(void) : itype(array_ptr<int>) unchecked {
+int * func43(void) unchecked {
   int a = 5;
   {
     {
@@ -470,7 +391,7 @@ checked int * func44(void) unchecked {  // expected-error {{return in a checked 
   }
 }
 
-checked int func45(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
+checked int func45(int *p, int *q) unchecked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
   int sum = 0;
   int a = 5;
   int *upa = &a;
@@ -511,17 +432,6 @@ checked array_ptr<int> func47(void) {
   upa = pb;
   upa = pc;
   return upb; // array_ptr<int> = int *, OK
-  }
-}
-
-checked int * func48(void) : itype(ptr<int>) unchecked {
-  int *upa;
-  array_ptr<int> pb;
-  ptr<int> pc = 0;
-  checked {
-    unchecked {
-    return upa;
-    }
   }
 }
 
@@ -608,7 +518,7 @@ unchecked int func52(ptr<int> p, int q[], int r[5]) unchecked {
   return 0;
 }
 
-unchecked int * func53(void) : itype(array_ptr<int>) unchecked {
+unchecked int * func53(void) unchecked {
   int a = 5;
   {
     {
@@ -654,7 +564,7 @@ unchecked int * func54(void) unchecked {
   }
 }
 
-unchecked int func55(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked {
+unchecked int func55(int *p, int *q) unchecked {
   int sum = 0;
   int a = 5;
   int *upa = &a;
@@ -696,7 +606,7 @@ unchecked array_ptr<int> func57(void) {
   }
 }
 
-unchecked int * func58(void) : itype(ptr<int>) unchecked {
+unchecked int * func58(void) unchecked {
   int *upa;
   array_ptr<int> pb;
   ptr<int> pc = 0;
@@ -1668,92 +1578,4 @@ extern void test_function_pointer(void) checked {
   // address-of (&) operator produces array_ptr<T> except for function type
   ptr<int> pa = &val0;
   array_ptr<int> apa = &val0;
-}
-
-// Make sure that bounds-safe interfaces on parameters are used when
-// checking function pointers in checked blocks.
-
-typedef ptr<int(int *a : count(n), int n)> callback_fn1;
-
-checked void test_function_pointer_parameter(callback_fn1 fn) {
-  int arr checked[10];
-  (*fn)(arr, 10);
-}
-
-// Make sure that bounds-safe interfaces on returns are used when
-// checking function pointers in checked blocks.
-
-typedef ptr<int *(void) : itype(ptr<int>)> callback_fn2;
-
-checked void test_function_pointer_return(callback_fn2 fn) {
-  ptr<int> p = (*fn)();
-}
-
-//-----------------------------------------------------------------------
-// Test return statements in checked blocks where there is a bounds-safe
-// interface on the return type.
-//-----------------------------------------------------------------------
-
-// Return a _Ptr from a checked scope for a function with a
-// a bounds-safe interface return type of _Ptr.
-int *f100(void) : itype(_Ptr<int>) {
-  _Checked{
-    _Ptr<int> p = 0;
-    return p;
-  }
-  return 0;
-}
-
-// Return an _Array_ptr from a checked scope for a function with a
-// a bounds-safe interface return type of _Array_ptr.
-int *f101(int len) : count(len) {
-  _Checked{
-    _Array_ptr<int> p = 0;
-    return p;
-  }
-  return 0;
-}
-
-// Return an _Ptr from a checked scope for a function with a
-// a bounds-safe interface return type of _Ptr, where the
-// returned value has a bounds-safe interface type.
-int *f102(int * p : itype(_Ptr<int>)) : itype(_Ptr<int >) {
-  _Checked{
-    return p;
-  }
-}
-
-//
-// Return a checked value from a checked scope, with the return
-// type missing a bounds-safe interface.
-//
-
-int *f103(void) {
-  _Checked{
-    _Ptr<int> p = 0;
-    return p;  // expected-error {{returning '_Ptr<int>' from a function with incompatible result type 'int *'}}
-  }
-  return 0;
-}
-
-int *f104(int len) {
-  _Checked{
-    _Array_ptr<int> p = 0;
-    return p; // expected-error {{returning '_Array_ptr<int>' from a function with incompatible result type 'int *'}}
-  }
-  return 0;
-}
-
-int *f105(int *p : itype(_Ptr<int>)) {
-  _Checked{
-    return p; // expected-error {{returning '_Ptr<int>' from a function with incompatible result type 'int *'}}
-  }
-}
-
-// Omit returning a value when one is expected.
-int *f106(void) : itype(_Ptr<int>) {
-  _Checked{
-    return; // expected-error {{non-void function 'f106' should return a value}}
-  }
-  return 0;
 }
