@@ -107,7 +107,7 @@ struct S3 {
 void passing_test_1(void);
 void passing_test_2(void);
 #ifdef ARROW_OPERATOR
-void passing_test_3(struct S1 *s);  // struct member bounds expected to be non-empty
+void passing_test_3(ptr<struct S1> s);  // struct member bounds expected to be non-empty
 void passing_test_4(struct S2 *s);  // struct member bounds expected to be non-empty
 #else
 void passing_test_3(struct S1 s);  // struct member bounds expected to be non-empty
@@ -314,7 +314,7 @@ void passing_test_2(void) {
 // Dereference pointer in struct member with valid bounds given by a count,
 // where the struct is a parameter.
 #ifdef ARROW_OPERATOR
-void passing_test_3(struct S1 *s) {
+void passing_test_3(ptr<struct S1> s) {
 #else
 void passing_test_3(struct S1 s) {
 #endif
@@ -358,7 +358,7 @@ void passing_test_4(struct S2 s) {
 void passing_test_5(void) {
   struct S3 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
 #ifdef ARROW_OPERATOR
-  struct S3 *sp = &s;
+  ptr<struct S3> sp = &s;
   TEST_OP(*(sp->arr), 5);
   printf("Result: %d\n", *(sp->arr));
 #else
@@ -451,7 +451,7 @@ void failing_test_5(int i) {
   assert(i < 0 || i >= 10);
   struct S3 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
 #ifdef ARROW_OPERATOR
-  struct S3 *sp = &s;
+  ptr<struct S3> sp = &s;
   TEST_OP(*(sp->arr + i), 5);
   printf("Unreachable: %d\n", *(sp->arr + i));
 #else
