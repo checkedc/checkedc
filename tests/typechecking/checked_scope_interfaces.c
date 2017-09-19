@@ -5,12 +5,27 @@
 // RUN: %clang_cc1 -fcheckedc-extension -Wno-unused-value -Wno-pointer-bool-conversion -verify -verify-ignore-unexpected=note %s
 //
 
+// General outline:
+// - Test the different kinds of declarations that can have
+//   bounds-safe interfaces.  For each declaration, test types
+//   that have different typechecking behavior.
+//  * Parameter declarations (checked pointer types and array types)
+//  * Global variable declarations (checked pointers and array types)
+//  * Function declarations.
+// - Test simple expressions that use these declarations.
+// - Test more complex expressions that rely on the type having
+//    been altered.
+//  - 
+//   
+//  * Struct declarations
+
+// Parameters with simple types.
 _Checked int f1(int *s : itype(_Ptr<int>)) {
   int t1 = *s;        // Allowed in checked scope.
-  int t2 = *(s + 5);  // expected-error {{arithmetic on _Ptr type}}
-  int t3 = s[5];      // expected-error {{subscript of '_Ptr<int>'}}
-  *(s+ 5) = 0;        // expected-error {{arithmetic on _Ptr type}}
-  s[5] = 0;           // expected-error {{subscript of '_Ptr<int>'}}
+  int t2 = *(s + 4);  // expected-error {{arithmetic on _Ptr type}}
+  int t3 = s[4];      // expected-error {{subscript of '_Ptr<int>'}}
+  *(s+ 4) = 0;        // expected-error {{arithmetic on _Ptr type}}
+  s[4] = 0;           // expected-error {{subscript of '_Ptr<int>'}}
 
   _Array_ptr<int> t4 : count(1) = s;
   s = t4;
@@ -22,7 +37,150 @@ _Checked int f1(int *s : itype(_Ptr<int>)) {
   return 0;
 }
 
-_Checked int f2(int **s : itype(_Ptr<_Ptr<int>>)) {
+
+_Checked int f2(int *s : count(len), int len) {
+  // Allowed in checked scope.
+  int t1 = *s;
+  int t2 = *(s + 4);
+  int t3 = s[4];
+  *(s + 4) = 0;
+  s[4] = 0;
+
+  return 0;
+}
+
+_Checked int f3(int *s : itype(_Array_ptr<int>), int len) {
+  _Array_ptr<int> t1 = s + 5; // allowed
+  int t2 = *s;                // expected-error {{expression has no bounds}}
+  int t3 = s[4];              // expected-error {{expression has no bounds}}
+  *(s + 4) = 0;               // expected-error {{expression has no bounds}}
+  s[4] = 0;                   // expected-error {{expression has no bounds}}
+
+  return 0;
+}
+
+_Checked int f4(int *s : itype(int _Checked[4])) {
+  _Array_ptr<int> t1 = s + 4;
+  int t2 = *s;
+  int t3 = s[4];
+  *(s + 4) = 0;
+  s[4] = 0;
+
+  return 0;
+}
+
+_Checked int f5(int *s : itype(int _Checked[])) {
+  _Array_ptr<int> t1 = s + 4;
+  int t2 = *s;                // expected-error {{expression has no bounds}}
+  int t3 = s[4];              // expected-error {{expression has no bounds}}
+  *(s + 4) = 0;               // expected-error {{expression has no bounds}}
+  s[4] = 0;                   // expected-error {{expression has no bounds}}
+
+  return 0;
+}
+
+//
+// Globals with simple types
+//
+int *g1 : itype(_Ptr<int>);
+int len;
+int *g2 : count(len);
+int *g3 : itype(_Array_ptr<int>);
+int g4[5] : itype(int _Checked[5]);
+extern int g5[] : itype(int _Checked[]);
+
+_Checked void test_globals(void) {
+  // _Ptr<int>
+  int t1 = *g1;        // Allowed in checked scope.
+  int t2 = *(g1 + 4);  // expected-error {{arithmetic on _Ptr type}}
+  int t3 = g1[4];      // expected-error {{subscript of '_Ptr<int>'}}
+  *(g1 + 4) = 0;       // expected-error {{arithmetic on _Ptr type}}
+  g1[4] = 0;           // expected-error {{subscript of '_Ptr<int>'}}
+
+  _Array_ptr<int> t4 : count(1) = g1;
+  g1 = t4;
+
+  _Array_ptr<float> t5 : count(1) = g1; // expected-error {{incompatible type}}
+  _Array_ptr<float> t6 = 0;
+  g1 = t6;                              // expected-error {{incompatible type}}
+
+  // _Array_ptr<int> with bounds.
+  int t11 = *g2;
+  int t12 = *(g2 + 4);  
+  int t13 = g2[4];
+  *(g2 + 4) = 0;
+  g2[4] = 0;
+
+  // _Array_ptr<int> without bounds
+  _Array_ptr<int> t21 = g3 + 4; // allowed
+  int t22 = *g3;                // expected-error {{expression has no bounds}}
+  int t23 = g3[4];              // expected-error {{expression has no bounds}}
+  *(g3 + 4) = 0;                // expected-error {{expression has no bounds}}
+  g3[4] = 0;                    // expected-error {{expression has no bounds}}
+
+  // int _Checked[5]
+  _Array_ptr<int> t31 = g4 + 4;
+  int t32 = *g4;
+  int t33 = g4[4];
+  *(g4 + 4) = 0;
+  g4[4] = 0;
+
+  // int _Checked[]
+  _Array_ptr<int> t41 = g5+ 4;
+  int t42 = *g5;                // expected-error {{expression has no bounds}}
+  int t43 = g5[4];              // expected-error {{expression has no bounds}}
+  *(g5 + 4) = 0;               // expected-error {{expression has no bounds}}
+  g5[4] = 0;                   // expected-error {{expression has no bounds}}
+}
+
+//
+// Function declarations with simple types
+//
+void f10(int *p : itype(_Ptr<int>));
+void f11(int *p : count(4));
+void f12(int *p : itype(_Array_ptr<int>));
+void f13(int *p : itype(int _Checked[]));
+void f14(int *p : itype(int _Checked[4]));
+
+extern int empty_global_arr[] : itype(int _Checked[]);
+
+_Checked int test_call_parameters(void) {
+  _Ptr<int> param1 = 0;
+  _Array_ptr<int> param2 : count(4) = 0;
+  _Array_ptr<int> param3;
+  int arr1 _Checked[4];
+  f10(param1);
+  f10(param2);
+  f10(param3);           // expected-error {{expression has no bounds}}
+  f10(arr1);
+  f10(empty_global_arr); // expected-error {{expression has no bounds}}
+
+  f11(param1);           // TODO: this should fail with checking of bounds declarations.
+  f11(param2);
+  f11(param3);           // expected-error {{expression has no bounds}}
+  f11(arr1);
+  f11(empty_global_arr); // expected-error {{expression has no bounds}}
+
+  f12(param1);
+  f12(param2);
+  f12(param3);
+  f12(arr1);
+  f12(empty_global_arr);
+
+  f13(param1);
+  f13(param2);
+  f13(param3);
+  f13(arr1);
+  f13(empty_global_arr);
+
+  f14(param1);           //. TODO: this should fail with checking of bounds declarations.
+  f14(param2);
+  f14(param3);           // expected-error {{expression has no bounds}}
+  f14(arr1);             
+  f14(empty_global_arr); // expected-error {{expression has no bounds}}
+}
+
+_Checked int f20(int **s : itype(_Ptr<_Ptr<int>>)) {
   _Ptr<int> t1 = *s;  // Allowed in checked scope.
   int t2 = **s;       // Allowed in checked scope
   int t3 = *(s + 5);  // expected-error {{arithmetic on _Ptr type}}
@@ -38,37 +196,6 @@ _Checked int f2(int **s : itype(_Ptr<_Ptr<int>>)) {
   _Array_ptr<float> t6 : count(1) = *s; // expected-error {{incompatible type}}
   _Array_ptr<float> t7 = 0;
   *s = t7;                              // expected-error {{incompatible type}}
-  return 0;
-}
-
-_Checked int f3(int *s : count(len), int len) {
-  // Allowed in checked scope.
-  int t1 = *s;
-  int t2 = *(s + 5);  
-  int t3 = s[5];
-  *(s + 5) = 0;
-  s[5] = 0;
-
-  return 0;
-}
-
-_Checked int f4(int *s : itype(_Array_ptr<int>), int len) {
-  _Array_ptr<int> t = s + 5;  // allowed
-  int t1 = *s;                // expected-error {{expression has no bounds}}
-  int t3 = s[5];              // expected-error {{expression has no bounds}}
-  *(s + 5) = 0;               // expected-error {{expression has no bounds}}
-  s[5] = 0;                   // expected-error {{expression has no bounds}}
-
-  return 0;
-}
-
-_Checked int f5(int *s : itype(int _Checked[5])) {
-  _Array_ptr<int> t = s + 5;  // allowed
-  int t1 = *s;
-  int t3 = s[5];
-  *(s + 5) = 0;
-  s[5] = 0;
-
   return 0;
 }
 
