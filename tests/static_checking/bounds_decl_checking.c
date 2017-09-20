@@ -246,6 +246,9 @@ extern void test_bsi_f2(int *p : itype(ptr<int>));
 extern void test_bsi_f3(int *p : itype(array_ptr<int>));
 extern void test_bsi_f4(int *p : count(1));
 extern void test_bsi_f5(int *p : count(len), int len);
+extern void test_bsi_f6(int((*compar)(const int *, const int *)) :
+  itype(_Ptr<int(_Ptr<const int>, _Ptr<const int>)>));
+extern int test_cmp(_Ptr<const int> a, _Ptr<const int> b);
 
 extern void check_call_bsi(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
                            array_ptr<int> arg4 : count(1),
@@ -279,6 +282,9 @@ extern void check_call_bsi(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_bsi_f3(arg5);
   test_bsi_f4(arg5);
   test_bsi_f5(arg5, 1);
+  _Checked {
+    test_bsi_f6(test_cmp);
+  }
 
   int count = arglen - 1;
   test_bsi_f5(arg5, ++count);  // expected-error {{increment expression not allowed}}
