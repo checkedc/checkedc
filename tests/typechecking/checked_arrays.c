@@ -748,7 +748,7 @@ extern void check_call_void(void) {
   f2(u, 0);           // expected-error {{incompatible type}}
 
   // f3(int p checked[10], int)
-  f3(s, 0);
+  f3(s, 0);           // expected-error {{argument has no bounds}}
   f3(t, 0);           // expected-error {{incompatible type}}
   f3(u, 0);           // expected-error {{incompatible type}}
 }
