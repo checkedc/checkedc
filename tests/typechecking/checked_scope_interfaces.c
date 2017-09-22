@@ -198,30 +198,30 @@ _Checked int test_call_parameters(void) {
 //
 // Function declarations with bounds-safe interfaces on return values.
 //
-_Checked int* func6(int a _Checked[][5], int b _Checked[][5]) : itype(_Ptr<int>) {
+_Checked int* f20(int a _Checked[][5], int b _Checked[][5]) : itype(_Ptr<int>) {
   return 0;
 }
 
-_Checked int* func14(int *a : itype(_Ptr<int>), int *b : itype(_Array_ptr<int>)) : itype(_Array_ptr<int>) _Checked {
+_Checked int* f21(int *a : itype(_Ptr<int>), int *b : itype(_Array_ptr<int>)) : itype(_Array_ptr<int>) _Checked {
   int e _Checked[5][5];
   _Unchecked {
-    int *upa = func6(e, e);
+    int *upa = f20(e, e);
   }
-  int *upa = func6(e, e);     // expected-error {{local variable in a checked scope must have a checked type}}
-  _Ptr<int> pb = func6(e, e);
+  int *upa = f20(e, e);     // expected-error {{local variable in a checked scope must have a checked type}}
+  _Ptr<int> pb = f20(e, e);
   return pb;
 }
 
 // No-prototype functionswith a bounds-safe interface on the return type
 // not allowed.
 
-_Checked int* func17() : itype(_Array_ptr<int>);  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+_Checked int* f22() : itype(_Array_ptr<int>);  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 
 //
 // Illegal interface types for parameters in a checked scope.
 //
 
-_Checked int* func15(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) _Checked {// expected-error 3 {{type must be a checked type}}
+_Checked int* f23(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) _Checked {// expected-error 3 {{type must be a checked type}}
 }
 
 //-----------------------------------------------------------------------
@@ -231,7 +231,7 @@ _Checked int* func15(int a[] : itype(int *), char b[] : itype(char *)) : itype(i
 
 // Return a _Ptr from a checked scope for a function with a
 // a bounds-safe interface return type of _Ptr.
-int *f100(void) : itype(_Ptr<int>) {
+int *f30(void) : itype(_Ptr<int>) {
   _Checked{
     _Ptr<int> p = 0;
   return p;
@@ -241,7 +241,7 @@ int *f100(void) : itype(_Ptr<int>) {
 
 // Return an _Array_ptr from a checked scope for a function with a
 // a bounds-safe interface return type of _Array_ptr.
-int *f101(int len) : count(len) {
+int *f31(int len) : count(len) {
   _Checked{
     _Array_ptr<int> p = 0;
   return p;
@@ -252,7 +252,7 @@ int *f101(int len) : count(len) {
 // Return an _Ptr from a checked scope for a function with a
 // a bounds-safe interface return type of _Ptr, where the
 // returned value has a bounds-safe interface type.
-int *f102(int * p : itype(_Ptr<int>)) : itype(_Ptr<int >) {
+int *f32(int * p : itype(_Ptr<int>)) : itype(_Ptr<int >) {
   _Checked{
     return p;
   }
@@ -263,7 +263,7 @@ int *f102(int * p : itype(_Ptr<int>)) : itype(_Ptr<int >) {
 // type missing a bounds-safe interface.
 //
 
-int *f103(void) {
+int *f33(void) {
   _Checked{
     _Ptr<int> p = 0;
   return p;  // expected-error {{returning '_Ptr<int>' from a function with incompatible result type 'int *'}}
@@ -271,7 +271,7 @@ int *f103(void) {
   return 0;
 }
 
-int *f104(int len) {
+int *f34(int len) {
   _Checked{
     _Array_ptr<int> p = 0;
   return p; // expected-error {{returning '_Array_ptr<int>' from a function with incompatible result type 'int *'}}
@@ -279,16 +279,16 @@ int *f104(int len) {
   return 0;
 }
 
-int *f105(int *p : itype(_Ptr<int>)) {
+int *f35(int *p : itype(_Ptr<int>)) {
   _Checked{
     return p; // expected-error {{returning '_Ptr<int>' from a function with incompatible result type 'int *'}}
   }
 }
 
 // Omit returning a value when one is expected.
-int *f106(void) : itype(_Ptr<int>) {
+int *f36(void) : itype(_Ptr<int>) {
   _Checked{
-    return; // expected-error {{non-void function 'f106' should return a value}}
+    return; // expected-error {{non-void function 'f36' should return a value}}
   }
   return 0;
 }
@@ -298,12 +298,12 @@ int *f106(void) : itype(_Ptr<int>) {
 
 int ga = 5;
 
-_Checked int * func43(void) : itype(_Array_ptr<int>) _Unchecked {
+_Checked int * func37(void) : itype(_Array_ptr<int>) _Unchecked {
    int *upa = &ga;
    return upa;
 }
 
-_Checked int * func48(void) : itype(_Ptr<int>) _Unchecked {
+_Checked int * func38(void) : itype(_Ptr<int>) _Unchecked {
   int *upa = &ga;
   _Checked{
     _Unchecked {
@@ -319,7 +319,7 @@ _Checked int * func48(void) : itype(_Ptr<int>) _Unchecked {
 
 // Bounds-safe interfaces that are checked pointers to checked pointers.
 
-_Checked int f30(int **s : itype(_Ptr<_Ptr<int>>)) {
+_Checked int f50(int **s : itype(_Ptr<_Ptr<int>>)) {
   _Ptr<int> t1 = *s;  // Allowed in checked scope.
   int t2 = **s;       // Allowed in checked scope
   int t3 = *(s + 5);  // expected-error {{arithmetic on _Ptr type}}
