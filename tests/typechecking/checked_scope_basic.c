@@ -1,4 +1,4 @@
-// Feature tests of typechecking of uses of Checked C checked scope/function
+// Feature tests of typechecking of uses of checked scopes.
 //
 // The following lines are for the LLVM test harness:
 //
@@ -63,6 +63,22 @@ array_ptr<int> func13(int *x, int *y) checked {
   int pd checked[5];
 
   return 0;
+}
+
+void func14(int checked[5][5], int b checked[5][5]);
+
+// Declaring checked/unchecked multi-dimensional arrays in a checked scope and attempting to pass them
+// as parameter.
+void func15(void) {
+  int e _Checked[5][5];
+  int f[5][5];
+  _Checked {
+    int g[5][5];                 // expected-error {{local variable in a checked scope must have a checked type}}
+    func14(e, e);
+    func14(f, f); // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    func14(g, g);
+  }
+  return;
 }
 
 checked int func16() {               // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
