@@ -482,7 +482,7 @@ struct S0 {
   float ***data6 : itype(ptr<ptr<ptr<float>>>);
   float data7[4] : itype(float checked[4]);
   float data8[] : itype(float checked[]);   // expected-error {{field has incomplete type}}
-  float data9[];  // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
+  float data9[];  // expected-error {{{field has incomplete type}}
   float data10[4];// expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   float *data11;  // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   float **data12; // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}

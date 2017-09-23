@@ -720,7 +720,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st2->e) + *(st2->e);
   sum += *(st2->d.a) + *(st3->d.a); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
   sum += *(st2->d.b) + *(st3->d.b); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
-  sum += *(st2->d.e) + *(st3->d.e);
+  sum += *(st2->d.e) + *(st3->d.e); // expected-error 2 {{expression has no bounds}}
   return sum;
 }
 

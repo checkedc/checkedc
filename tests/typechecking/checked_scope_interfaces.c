@@ -316,6 +316,27 @@ checked int * func38(void) : itype(ptr<int>) _Unchecked {
   }
 }
 
+#pragma BOUNDS_CHECKED ON
+struct S {
+  int *f1 : itype(ptr<int>);
+  int *f2 : count(5);
+  int *f3 : count(len);
+  int len;
+  int *f4 : itype(array_ptr<int>);
+  int arr[5] : itype(int checked[5]);
+  void ((*fp1)(int *param : itype(ptr<int>))) :
+    itype(ptr<void(int *param : itype(ptr<int>))>);
+};
+#pragma BOUNDS_CHECKED OFF
+
+checked int test_struct(struct S *p : itype(ptr<struct S>)) {
+  int t1 = *(p->f1 + 4);
+  int t2 = *(p->f2 + 4);
+  int t3 = *(p->f3 + 4);
+  int t4 = *(p->f4 + 4);
+  int t5 = *(p->arr + 4);
+  return 0;
+}
 
 //
 // Test for complex constructed types (pointer to pointers,
