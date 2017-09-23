@@ -701,7 +701,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st0->b) + *(st1->b);
   sum += *(st0->pc) + *(st1->pc);
   sum += *(st0->pd) + *(st1->pd);
-  sum += *(st0->e) + *(st1->e);
+  sum += *(st0->e) + *(st1->e);   // expected-error {{expression has no bounds}}
 
   struct s2 sta;
   ptr<struct s2> pstb = 0;

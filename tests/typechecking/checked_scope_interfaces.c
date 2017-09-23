@@ -330,10 +330,10 @@ struct S {
 #pragma BOUNDS_CHECKED OFF
 
 checked int test_struct(struct S *p : itype(ptr<struct S>)) {
-  int t1 = *(p->f1 + 4);
+  int t1 = *(p->f1 + 4);   // expected-error {{arithmetic on _Ptr type}}
   int t2 = *(p->f2 + 4);
   int t3 = *(p->f3 + 4);
-  int t4 = *(p->f4 + 4);
+  int t4 = *(p->f4 + 4);   // expected-error {{expression has no bounds}}
   int t5 = *(p->arr + 4);
   return 0;
 }
