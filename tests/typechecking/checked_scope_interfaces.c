@@ -317,7 +317,7 @@ checked int * func38(void) : itype(ptr<int>) _Unchecked {
 }
 
 #pragma BOUNDS_CHECKED ON
-struct S {
+struct S1 {
   int *f1 : itype(ptr<int>);
   int *f2 : count(5);
   int *f3 : count(len);
@@ -329,14 +329,30 @@ struct S {
 };
 #pragma BOUNDS_CHECKED OFF
 
-checked int test_struct(struct S *p : itype(ptr<struct S>)) {
+// Use in checked scope
+checked int test_struct1(struct S1 *p : itype(ptr<struct S1>)) {
   int t1 = *(p->f1 + 4);   // expected-error {{arithmetic on _Ptr type}}
   int t2 = *(p->f2 + 4);
   int t3 = *(p->f3 + 4);
   int t4 = *(p->f4 + 4);   // expected-error {{expression has no bounds}}
   int t5 = *(p->arr + 4);
+  (*(p->fp1))(p->f1);
+  (*(p->fp1))(0x5000);     // expected-error {{passing 'int' to parameter of incompatible type '_Ptr<int>'}}
   return 0;
 }
+
+// Use in unchecked scope
+int test_struct2(struct S1 *p : itype(ptr<struct S1>)) {
+  int t1 = *(p->f1 + 4);
+  int t2 = *(p->f2 + 4);
+  int t3 = *(p->f3 + 4);
+  int t4 = *(p->f4 + 4);
+  int t5 = *(p->arr + 4);
+  (*(p->fp1))(p->f1);
+  (*(p->fp1))(0x5000);    // expected-warning {{incompatible integer to pointer conversion passing 'int' to parameter of type 'int *'}}
+  return 0;
+}
+
 
 //
 // Test for complex constructed types (pointer to pointers,
@@ -379,6 +395,7 @@ typedef ptr<int(int *a : count(n), int n)> callback_fn1;
 checked void test_function_pointer_parameter(callback_fn1 fn) {
   int arr checked[10];
   (*fn)(arr, 10);
+  (*fn)(arr, 10);
 }
 
 // Make sure that bounds-safe interfaces on returns are used when
@@ -388,6 +405,94 @@ typedef ptr<int *(void) : itype(ptr<int>)> callback_fn2;
 
 checked void test_function_pointer_return(callback_fn2 fn) {
   ptr<int> p = (*fn)();
+}
+
+// Test call through a function pointer with a bounds-safe interface,
+// where the return type is a pointer to a pointer.
+struct S2 {
+  int *f1 : itype(ptr<int>);
+  int *f2 : count(5);
+  int *f3 : count(len);
+  int len;
+  int *f4 : itype(array_ptr<int>);
+  int arr[5] : itype(int checked[5]);
+  // pointer to function that returns a ptr<ptr<int>>
+  int **((*fp1)(int *param : itype(ptr<int>))) :
+    itype(ptr<ptr<ptr<int>> (int *param : itype(ptr<int>))>);
+
+  // pointer to function that returns an array_ptr<ptr<int>>
+  int **((*fp2)(int *param : itype(ptr<int>),int len)) :
+    itype(ptr<array_ptr<ptr<int>>(int *param : itype(ptr<int>), int len) : count(len)>);
+};
+
+checked int test_struct3(struct S2 *p : itype(ptr<struct S2>)) {
+  (*(p->fp1))(p->f1) + 5;    // expected-error {{arithmetic on _Ptr type}}
+  *((*(p->fp1))(p->f1)) + 5; // expected-error {{arithmetic on _Ptr type}}
+  (*(p->fp2))(p->f1, 5) + 4;
+  // Subscript the result returned by the indirect function call by 4.  This
+  // should return a _Ptr<int>.  Then dereference the _Ptr<int>
+  int i = *(*(p->fp2))(p->f1, 5)[4];
+  // Subscript the result returned by the indirect function call by 4.  This
+  // should return a _Ptr<int>.  Then try to do pointter arithmetic on the resulting
+  // pointer.
+  int j = *((*(p->fp2))(p->f1, 5)[4] + 5);   // expected-error {{arithmetic on _Ptr type}}
+}
+
+// Unchecked version - there should be no error messages.
+unchecked int test_struct4(struct S2 *p : itype(ptr<struct S2>)) {
+  (*(p->fp1))(p->f1) + 5;
+  *((*(p->fp1))(p->f1)) + 5;
+  (*(p->fp2))(p->f1, 5) + 4;
+  // Subscript the result returned by the indirect function call by 4.  This
+  // should return an int *.  Then dereference the resulting Ptr.
+  int i = *(*(p->fp2))(p->f1, 5)[4];
+  // Subscript the result returned by the indirect function call by 4.  This
+  // should return a _Ptr<int>.  Then do pionter arithmetic on the int *
+  int j = *((*(p->fp2))(p->f1, 5)[4] + 5);
+}
+
+// Test a single-dimensional array of function pointers with bounds-safe interfaces.
+// A function pointer using just unchecked pointer types
+typedef int *(*base_fnptr)(int *, int **j);
+// An unchecked function pointer with bounds-safe interfaces on the parameters and
+// and return type.
+typedef int *(*base_with_interfaces)(int * : itype(ptr<int>),
+                                     int **j : itype(ptr<ptr<int>>)) : itype(ptr<int>);
+// A checked function pointer with bounds-safe interfaces on the parameters and
+// return type.   This can be used in a checked scope because the function pointer 
+// itself is checked.
+typedef ptr<int *(int *i : itype(ptr<int>), int **j : itype(ptr<ptr<int>>)) : itype(ptr<int>)> fnptr_interface;
+
+// Declare an unchecked array of function pointers and put a bounds-safe interface on it.
+base_fnptr table1[10] : itype(fnptr_interface checked[10]);
+base_with_interfaces table2[10] : itype(fnptr_interface checked[10]);
+
+// In a checked scope, table1 and table2 are retyped as having checked types
+// based on their bounds-safe interfaces. That means that the result of an
+// indirect function call through table1 or table2 has typr Ptr.
+checked void test1_array_of_function_pointers(ptr<int> arg1, ptr<ptr<int>> arg2, int num) {
+  ptr<int> result1 = (*(table1[num]))(arg1, arg2);
+  (*(table1[num]))(arg1, arg2) + 5;  // expected-error {{arithmetic on _Ptr type}}
+  (*(table2[num]))(arg1, arg2);
+  (*(table2[num]))(arg1, arg2) + 5;  // expected-error {{arithmetic on _Ptr type}}
+  ptr<int> result2 = (*(table2[num]))(arg1, arg2);
+}
+
+// In an unchecked scope, table1 and table2 are not retyped based on their
+// bounds-safe interfaces.  This means that:
+// - the indirect function call through table1 can't be passed checked type.  There is
+// no bounds-safe interface for the function type returned by table1[num].
+// - the indirect function calls return unchecked pointers, so adding to the return
+//   values is OK.
+// - the unchecked pointer returned in the indirect cal through table2 does have
+//   bounds, so it can be assigned a checked pointer type.
+unchecked void test2_array_of_function_pointers(ptr<int> arg1, ptr<ptr<int>> arg2, int num) {
+  (*(table1[num]))(arg1, arg2); // expected-error {{passing '_Ptr<int>' to parameter of incompatible type 'int *'}}
+  ptr<int> result1 = (*(table1[num]))(0, 0) + 5; // expected-error {{expression has no bounds}}
+  (*(table1[num]))(0, 0) + 5;
+  (*(table2[num]))(arg1, arg2);
+  (*(table2[num]))(arg1, arg2) + 5;
+  ptr<int> result = (*(table2[num]))(arg1, arg2);
 }
 
 // Test some bounds-safe interfaces for real-world library functions.
