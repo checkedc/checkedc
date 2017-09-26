@@ -1,4 +1,4 @@
-// Feature tests of typechecking of uses of Checked C checked scope/function
+// Feature tests of typechecking of uses of checked scopes.
 //
 // The following lines are for the LLVM test harness:
 //
@@ -11,178 +11,78 @@
 // - check if function declaration (return/param) is checked.
 // - check if function body (compound statement) is checked.
 // - check if function with no prototype is checked.
-// If declaration has an unchecked type error in a checked scope,
-// it produces error message for declaration.
-// Otherwise, it produces an error message for each use of declaration.
+// - check that if a declaration is declared in a check scope with an unchecked type,
+//    an error message is produced for the declaration.  
+// - check that if a declaration is declared in an unchecked scope with an unchecked type
+//   and it is used in a checked, scope, there is an error message at uses of the declared
+//   entity.
 
-checked int func0(int len, int *p, ptr<int> q, array_ptr<int> r, int *s : itype(ptr<int>)) { // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-  int result = *p + *q + *s;
-  return result;
+checked int func4(int p[]) {  // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
+  return 0;
 }
 
-checked int* func1(int len, int *p, int *q, int *r : itype(array_ptr<int>)) { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}} \
-                                                                              // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
-  int result = *p + *q + *r;
-  int *presult = &result;   // expected-error {{local variable in a checked scope must have a checked type}}
-  return presult;
+checked int func5(ptr<int> p, int *q) { // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
+  return 0;
 }
 
-checked ptr<int> func2() {  // expected-error {{function with no prototype cannot have a return type that is a checked type}} \
-                            // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+checked int* func6(int a[][5], int b[][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
 }
 
-checked int* func3() : itype(array_ptr<int>) {  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+checked int* func7(void) : itype(ptr<int>) checked {
+ return 0;
 }
 
-checked int* func4(int len, int *p, int *q, array_ptr<int> r) : itype(ptr<int>) { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
+checked int* func8(int len) {       // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
+  return 0;
 }
 
-checked int func5(int p[]) {  // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-  int a = 5;
-  int *upa = &a;  // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pb = &a;
-  array_ptr<int> pc = &a;
-  int *upd = p;   // expected-error {{local variable in a checked scope must have a checked type}}
-  return *p;
-}
-
-checked int func6(ptr<int> p, int *q) { // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-  int a = 5;
-  int *upa = &a;  // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pb = p;
-  return *pb;
-}
-
-checked int func7(ptr<int> p, int *q : itype(ptr<int>)) {
-  int a = 5;
-  int *upa = &a;  // expected-error {{local variable in a checked scope must have a checked type}}
-  int *upb = q;   // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pc = p;
+checked int func9(ptr<int> p) {
   int e[5][5];    // expected-error {{local variable in a checked scope must have a checked type}}
-  return *pc;
-}
-
-checked int* func8(ptr<int> p, int *q : itype(ptr<int>)) { // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
-  int a = 5;
-  ptr<int> pa = &a;
-  ptr<int> pb = p;
-  int *upc = q; // expected-error {{local variable in a checked scope must have a checked type}}
-  return upc;
-}
-
-checked int* func9(ptr<int> p, int *q : itype(ptr<int>)) : itype(ptr<int>) {
-  int a = 5;
-  ptr<int> pa = &a;
-  ptr<int> pb = p;
-  int *upc = q; // expected-error {{local variable in a checked scope must have a checked type}}
-  return upc;
+  return 0;
 }
 
 // Test for checked function specifier & checked block.
-int* func10(array_ptr<int> x, int len) checked {
+int* func11(array_ptr<int> x, int len) checked {
   int *upa;   // expected-error {{local variable in a checked scope must have a checked type}}
   return upa;
 }
 
-array_ptr<int> func11(array_ptr<int> x, int len) : bounds(x,x+len) checked {
-  int *upa;     // expected-error {{local variable in a checked scope must have a checked type}}
-  return upa;
+array_ptr<int> func12(array_ptr<int> x, int len) : bounds(x,x+len) checked {
+  return 0;
 }
 
-array_ptr<int> func12(int *x, int *y) checked {
-  int *upa = x; // expected-error {{local variable in a checked scope must have a checked type}} \
-                // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
-  int *upb = y; // expected-error {{local variable in a checked scope must have a checked type}} \
-                // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
-  return upb;
-}
+array_ptr<int> func13(int *x, int *y) checked {
+  int *upa = 0; // expected-error {{local variable in a checked scope must have a checked type}}
+  int *upb;     // expected-error {{local variable in a checked scope must have a checked type}}
+  int a[5];     // expected-error {{local variable in a checked scope must have a checked type}}
+  *y = 0;       // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
+  int z = *y;   // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
 
-checked ptr<int> func13(void) checked {
-  int *upa; // expected-error {{local variable in a checked scope must have a checked type}}
   ptr<int> pb = 0;
-  array_ptr<int> pc;
-  return pb;
-}
-
-checked array_ptr<char> func14(void) checked {
-  int *upa; // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pb = 0 ;
   array_ptr<char> pc;
-  return pc;
+  int pd checked[5];
+
+  return 0;
 }
 
-checked int* func15(void) checked { // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
-  int a[5]; // expected-error {{local variable in a checked scope must have a checked type}}
-  int *upa; // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pb = 0;
-  array_ptr<int> pc;
-  return upa;
+void func14(int checked[5][5], int b checked[5][5]);
+
+// Declaring checked/unchecked multi-dimensional arrays in a checked scope and attempting to pass them
+// as parameter.
+void func15(void) {
+  int e _Checked[5][5];
+  int f[5][5];
+  _Checked {
+    int g[5][5];                 // expected-error {{local variable in a checked scope must have a checked type}}
+    func14(e, e);
+    func14(f, f); // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    func14(g, g);
+  }
+  return;
 }
 
-checked int* func16(int a checked[][5], int b checked[][5]) : itype(ptr<int>) checked {
-}
-
-checked int* func17(int a [][5], int b [][5]) : itype(ptr<int>) checked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-}
-
-checked int* func18(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) checked {
-  int e checked[5][5];
-  int f[5][5];                // expected-error {{local variable in a checked scope must have a checked type}}
-  int *upa = func16(e, e);    // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pb = func16(e, e);
-  ptr<int> pc = 0;
-  pc = func17(f, f);
-  int *upd = func10(upa, 10); // expected-error {{local variable in a checked scope must have a checked type}} \
-                              // expected-error {{return used in a checked scope must have a checked type or a bounds-safe interface}}
-  return upa;
-}
-
-checked int* func19(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) checked {// expected-error 3 {{type must be a checked type}}
-}
-
-#pragma BOUNDS_CHECKED ON
-
-// Test for bounds-safe interface
-// - check variable declaration with bounds-safe interface
-// - check function declaration(return & parameter) with bounds-safe interface
-int *garr : count(10);
-int *gptr : bounds(garr, garr + 5);
-int gval : bounds(garr, garr+10);
-
-#define size_t int
-void *checked_aligned_alloc(size_t alignment, size_t size) : byte_count(size);
-void *checked_calloc(size_t nmemb, size_t size) : byte_count(nmemb * size);
-void checked_free(void *pointer : itype(ptr<void>));
-void *checked_malloc(size_t size) : byte_count(size);
-void *checked_realloc(void *pointer  : itype(ptr<void>), size_t size) : byte_count(size);
-
-void *bsearch(const void *key : byte_count(size),
-              const void *base : byte_count(nmemb * size),
-              size_t nmemb, size_t size,
-              int ((*compar)(const void *, const void *)) :
-                itype(ptr<int(ptr<const void>, ptr<const void>)>)) :
-                byte_count(size);
-
-void qsort(void *base : byte_count(nmemb * size),
-           size_t nmemb, size_t size,
-           int ((*compar)(const void *, const void *)) :
-             itype(ptr<int (ptr<const void>, ptr<const void>)>));
-
-int mblen(const char *s : count(n), size_t n);
-
-void test_bounds_safe_interface(void) {
-  array_ptr<int> arr0 : count(4) = checked_calloc(4, sizeof(size_t));
-
-  for (int i = 0; i < 4; i++)
-    unchecked {
-      checked_malloc(arr0[i]);
-    }
-  ptr<int> arr1 = checked_malloc(10);
-#pragma BOUNDS_CHECKED OFF
-  void *unchecked_ptr;
-#pragma BOUNDS_CHECKED ON
-  array_ptr<int> arr2 = checked_realloc(arr1, 20);
-  array_ptr<int> arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{local variable used in a checked scope must have a checked type}}
+checked int func16() {               // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+  return 0;
 }
 
 // Test that functions declared with old-style K&R parameter lists cannot
@@ -197,6 +97,7 @@ void test_bounds_safe_interface(void) {
 // to uncaught errors at runtime.  We only allow such definitions
 // in checked scopes when they are preceded by prototype declarations.
 
+#pragma BOUNDS_CHECKED ON
 // First test definitions without preceding prototypes.
 int KNR_func1(a, b, c) // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
   int a, b, c;
@@ -268,7 +169,6 @@ void KNR_test(void) {
   KNR_func6(py,px); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
 #pragma BOUNDS_CHECKED OFF
-
 
 // Test for checked block.
 // - check if compound statments are checked.
@@ -357,8 +257,6 @@ int func25(void) {
 int func26(ptr<int> p, int *q) {
   int a = 5;
   int *upa;
-  array_ptr<int> pc;
-  upa = pc;           // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
   checked {
     upa = &a;         // expected-error {{local variable used in a checked scope must have a checked type}}
   }
@@ -378,8 +276,6 @@ void func28(void) {
   int *upa;
   array_ptr<int> pb;
   ptr<int> pc = 0;
-  upa = pb; // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-  upa = pc; // expected-error {{assigning to 'int *' from incompatible type '_Ptr<int>'}}
 }
 
 int func29(void) {
@@ -465,7 +361,7 @@ checked int func42(ptr<int> p, int q[], int r[5]) unchecked {  // expected-error
   return 0;
 }
 
-checked int * func43(void) : itype(array_ptr<int>) unchecked {
+int * func43(void) unchecked {
   int a = 5;
   {
     {
@@ -511,7 +407,7 @@ checked int * func44(void) unchecked {  // expected-error {{return in a checked 
   }
 }
 
-checked int func45(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
+checked int func45(int *p, int *q) unchecked { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
   int sum = 0;
   int a = 5;
   int *upa = &a;
@@ -529,7 +425,6 @@ int func46(ptr<int> p, int *q) unchecked {
   int a = 5;
   int *upa;
   array_ptr<int> pc;
-  upa = pc;   // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
   checked {
     upa = &a; // expected-error {{local variable used in a checked scope must have a checked type}}
     pc = &a;
@@ -552,22 +447,7 @@ checked array_ptr<int> func47(void) {
   ptr<int> pc = 0;
   upa = pb;
   upa = pc;
-  upb = pb;   // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-  upb = pc;   // expected-error {{assigning to 'int *' from incompatible type '_Ptr<int>'}}
   return upb; // array_ptr<int> = int *, OK
-  }
-}
-
-checked int * func48(void) : itype(ptr<int>) unchecked {
-  int *upa;
-  array_ptr<int> pb;
-  ptr<int> pc = 0;
-  checked {
-    unchecked {
-  upa = pb; // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-  upa = pc; // expected-error {{assigning to 'int *' from incompatible type '_Ptr<int>'}}
-    return upa;
-    }
   }
 }
 
@@ -622,17 +502,16 @@ unchecked int * func51(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : 
   checked {
     *p = 1; // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
     *q = 2;
-    *r = 3; // expected-error {{expression has no bounds}}
-  *s = 4;
-  unchecked {
-    ptr<int> pa = &a;
-    int b checked[5][5];
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < 5; j++) {
-        b[i][j] = *p + *q + *r + *s;  // expected-error {{expression has no bounds}}
+    *s = 4;
+    unchecked {
+      ptr<int> pa = &a;
+      int b checked[5][5];
+      for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+          b[i][j] = *p + *q +  *s;
+        }
       }
     }
-  }
   }
   return 0;
 }
@@ -655,7 +534,7 @@ unchecked int func52(ptr<int> p, int q[], int r[5]) unchecked {
   return 0;
 }
 
-unchecked int * func53(void) : itype(array_ptr<int>) unchecked {
+unchecked int * func53(void) unchecked {
   int a = 5;
   {
     {
@@ -701,7 +580,7 @@ unchecked int * func54(void) unchecked {
   }
 }
 
-unchecked int func55(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) unchecked {
+unchecked int func55(int *p, int *q) unchecked {
   int sum = 0;
   int a = 5;
   int *upa = &a;
@@ -719,7 +598,6 @@ unchecked int func56(ptr<int> p, int *q) unchecked {
   int a = 5;
   int *upa;
   array_ptr<int> pc;
-  upa = pc;   // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
   checked {
     upa = &a; // expected-error {{local variable used in a checked scope must have a checked type}}
     pc = &a;
@@ -737,25 +615,19 @@ unchecked int func56(ptr<int> p, int *q) unchecked {
 unchecked array_ptr<int> func57(void) {
   int *upa;
   unchecked {
-  int *upb;
+  int *upb = 0;
   array_ptr<int> pb;
   ptr<int> pc = 0;
-  upa = pb;   // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-  upa = pc;   // expected-error {{assigning to 'int *' from incompatible type '_Ptr<int>'}}
-  upb = pb;   // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-  upb = pc;   // expected-error {{assigning to 'int *' from incompatible type '_Ptr<int>'}}
   return upb; // array_ptr<int> = int *, OK
   }
 }
 
-unchecked int * func58(void) : itype(ptr<int>) unchecked {
+unchecked int * func58(void) unchecked {
   int *upa;
   array_ptr<int> pb;
   ptr<int> pc = 0;
   checked {
     unchecked {
-  upa = pb; // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-  upa = pc; // expected-error {{assigning to 'int *' from incompatible type '_Ptr<int>'}}
     return upa;
     }
   }
@@ -829,7 +701,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st0->b) + *(st1->b);
   sum += *(st0->pc) + *(st1->pc);
   sum += *(st0->pd) + *(st1->pd);
-  sum += *(st0->e) + *(st1->e);
+  sum += *(st0->e) + *(st1->e);   // expected-error {{expression has no bounds}}
 
   struct s2 sta;
   ptr<struct s2> pstb = 0;
@@ -848,7 +720,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st2->e) + *(st2->e);
   sum += *(st2->d.a) + *(st3->d.a); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
   sum += *(st2->d.b) + *(st3->d.b); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
-  sum += *(st2->d.e) + *(st3->d.e);
+  sum += *(st2->d.e) + *(st3->d.e); // expected-error 2 {{expression has no bounds}}
   return sum;
 }
 
@@ -1061,75 +933,25 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   t = p;  // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}} \
           // expected-error {{local variable used in a checked scope must have a checked type}}
   t = r;  // expected-error {{local variable used in a checked scope must have a checked type}}
-  u = r;  // expected-error {{array type 'int checked[10]' is not assignable}}
   global_arr = p; // expected-error {{variable used in a checked scope must have a checked type}} \
                   // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
   global_arr = r; // expected-error {{variable used in a checked scope must have a checked type}}
-  global_checked_arr = r; // expected-error {{array type 'int checked[10]' is not assignable}}
   }
-}
-
-// Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
-extern void check_dimensions1(void) checked {
-  int t1 checked[10][5]checked[5];     // multiple checked modifiers are allowed
-  int t2 checked[10][5][5]checked[5];
-
-  // checked mixing of checked/unchecked array dimensions
-  int t3[10]checked[10];                // expected-error {{unchecked array of checked array not allowed}}
-  typedef int dim_unchecked[10];
-  dim_unchecked t4 checked[10];         // expected-error {{checked array of unchecked array not allowed ('dim_unchecked' is an unchecked array)}}
-
-  typedef int dim_checked checked[10];
-  dim_checked t5[10];                   // expected-error {{unchecked array of checked array not allowed ('dim_checked' is a checked array)}}
-
-  // checked parenthesized declarators
-  int (t6 checked[10])[10];             // checked propagates to enclosing array declarators
-  int(t7 checked[10])[5][5]checked[5];  // multiple checked modifiers are allowed
-  int (t8[10])checked[10];              // expected-error {{unchecked array of checked array not allowed}}
-  int ((t9[10]))checked[10];            // expected-error {{unchecked array of checked array not allowed}}
-  dim_unchecked (t10 checked[10])[10];  // expected-error {{checked array of unchecked array not allowed ('dim_unchecked' is an unchecked array)}}
-  dim_checked (t11[10])[10];            // expected-error {{unchecked array of checked array not allowed ('dim_checked' is a checked array)}}
-
-  // make sure checked-ness propagated
-  // NOTE : checked scope error fails to precede
-  int *t12 = t6[0];                    // expected-error {{local variable in a checked scope must have a checked type}}
-  array_ptr<int> t13 = t6[0];
 }
 
 // Test conditional expressions where arms have different
 // kinds of checked and unchecked arrays.
 extern void check_condexpr(int val) {
-  int p [5];
-  int r checked[5];
+  float r checked[5];
   float s[5];
   float u checked[5];
   int *t1;
   array_ptr<int> t2, t3, t4;
 
   checked {
-  t1 = val ? p : p; // expected-error 3 {{local variable used in a checked scope must have a checked type}} T[5] and T[5] OK
-  t2 = val ? p : r; // expected-error {{local variable used in a checked scope must have a checked type}} T[5] and T checked[5] OK
-  t3 = val ? r : p; // expected-error {{local variable used in a checked scope must have a checked type}} T checked[5] and T[5] OK
-  t4 = val ? r : r; // T checked[5] and T checked[5] OK.
-
   // omit assignment because type of expression is not valid when there is an error.
   val ? s : r;    // expected-error {{local variable used in a checked scope must have a checked type}}
   val ? r : s;    // expected-error {{local variable used in a checked scope must have a checked type}}
-  val ? r : u;    // expected-error {{pointer type mismatch}}
-  val ? u : r;    // expected-error {{pointer type mismatch}}
-
-  // Some C compilers have allowed implicit integer to pointer conversions.
-  // These are errors for the new safe pointer types.
-  val ? r : val;   // expected-error {{incompatible operand types}}
-  val ? val : r;   // expected-error {{incompatible operand types}}
-  val ? u : val;   // expected-error {{incompatible operand types}}
-  val ? val : u;   // expected-error {{incompatible operand types}}
-
-  // Implicit conversion of 0 to a safe pointer type is OK.
-  array_ptr<int> t5 = val ? r : 0;
-  array_ptr<int> t6 = val ? 0 : r;
-  array_ptr<float> t7 = val ? u : 0;
-  array_ptr<float> t8 = val ? 0 : u;
   }
 }
 
@@ -1216,73 +1038,51 @@ extern void check_call(void) {
   // checked scope error precedes function call type error/warning
   // f1(int *p, int y)
   f1(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f1(y, 0);               // expected-error {{parameter of incompatible type 'int *'}}
   f1(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f1(y2d, 0);             // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int *'}}
 
   // f2(int p[10], int y)
   f2(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f2(y, 0);               // expected-error {{parameter of incompatible type 'int *'}}
   f2(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f2(y2d, 0);             // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int *'}}
 
   // f3(int p checked[10], int y)
   f3(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
   f3(y, 0);
   f3(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f3(y2d, 0);             // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type '_Array_ptr<int>'}}
 
   // f4(int **p, int y);
   f4(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f4(y, 0);               // expected-error {{passing 'int checked[10]' to parameter of incompatible type 'int **'}}
   f4(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f4(y2d, 0);             // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int **'}}
 
   // f5(int (*p)[10], int y);
   f5(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f5(y, 0);               // expected-error {{passing 'int checked[10]' to parameter of incompatible type 'int (*)[10]'}}
   f5(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f5(y2d, 0);             // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type 'int (*)[10]'}}
 
    // f6(ptr<int[10]>, int y);
   f6(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f6(y, 0);               // expected-error {{passing 'int checked[10]' to parameter of incompatible type '_Ptr<int [10]>'}}
   f6(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f6(y2d, 0);             // expected-error {{passing 'int checked[10][10]' to parameter of incompatible type '_Ptr<int [10]>'}}
 
    // f7(array_ptr<int[10]>, int y);
   f7(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f7(y, 0);               // expected-error {{parameter of incompatible type}}
   f7(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f7(y2d, 0);             // expected-error {{parameter of incompatible type}}
 
   // f8(int (*p) checked[10], int y);
   f8(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f8(y, 0);               // expected-error {{parameter of incompatible type}}
   f8(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f8(y2d, 0);             // expected-error {{parameter of incompatible type}}
 
   // f9(ptr<int checked[10]> p, int y);
   f8(x, 0);               // expected-error {{local variable used in a checked scope must have a checked type}}
-  f8(y, 0);               // expected-error {{parameter of incompatible type}}
   f8(x2d, 0);             // expected-error {{local variable used in a checked scope must have a checked type}}
-  f8(y2d, 0);             // expected-error {{parameter of incompatible type}}
 
   // f10(array_ptr<int checked[10]> p, int y);
   f10(x, 0);              // expected-error {{local variable used in a checked scope must have a checked type}}
-  f10(y, 0);              // expected-error {{parameter of incompatible type}}
   f10(x2d, 0);            // expected-error {{local variable used in a checked scope must have a checked type}}
-  f10(y2d, 0);            // OK
 
   // f11(int p[10][10], int y);
   f11(x, 0);              // expected-error {{local variable used in a checked scope must have a checked type}}
-  f11(y, 0);              // expected-error {{parameter of incompatible type}}
   f11(x2d, 0);            // expected-error {{local variable used in a checked scope must have a checked type}}
-  f11(y2d, 0);            // expected-error {{parameter of incompatible type}}
 
   // f12(int p checked[10][10], int y);
   f12(x, 0);              // expected-error {{local variable used in a checked scope must have a checked type}}
-  f12(y, 0);              // expected-error {{parameter of incompatible type}}
   f12(x2d, 0);            // expected-error {{local variable used in a checked scope must have a checked type}}
   f12(y2d, 0);            // OK
 
@@ -1294,27 +1094,10 @@ extern void check_call(void) {
 
   // spot check calls where an array is the second argument
   g1(0, x);   // expected-error {{local variable used in a checked scope must have a checked type}}
-  g1(0, y);   // expected-error {{parameter of incompatible type}}
   g2(0, x);   // expected-error {{local variable used in a checked scope must have a checked type}}
-  g2(0, y);   // expected-error {{parameter of incompatible type}}
   g3(0, x);   // expected-error {{local variable used in a checked scope must have a checked type}}
   g3(0, y);
   }
-}
-
-//
-// Test typechecking of function returns
-//
-//
-// try to return an array type. This is not allowed by the C standard.
-//
-
-extern unchecked_arr_type h1(void) {  // expected-error {{function cannot return array type}}
-  return 0;
-}
-
-extern checked_arr_type h2(void) {    // expected-error {{function cannot return array type}}
-  return 0;
 }
 
 int global[10];
@@ -1334,7 +1117,7 @@ checked array_ptr<int> h5(void) {
 }
 
 checked int *h6(void) {   // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
-  return checked_global;  // expected-error {{incompatible result type}}
+  return 0;
 }
 
 checked ptr<int> h7(void) {
@@ -1358,7 +1141,7 @@ checked array_ptr<int> h11(int arr checked[10]) {
 }
 
 checked int *h12(int arr checked[10]) {   // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
-  return arr;  // expected-error {{incompatible result type}}
+  return 0;
 }
 
 checked ptr<int> h13(int arr checked[10]) {
@@ -1370,11 +1153,7 @@ checked array_ptr<int> h14(int arr checked[10]) {
 }
 
 checked int *h15(int arr checked[]) {   // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
-  return arr;  // expected-error {{incompatible result type}}
-}
-
-checked ptr<int> h17(int arr checked[]) {
-  return arr;  // ptr<T> = array_ptr<T> OK, expected-error {{expression has no bounds}}
+  return 0;
 }
 
 checked array_ptr<int> h18(int arr checked[]) {
@@ -1398,21 +1177,21 @@ checked array_ptr<int[10]> h21(int arr[10][10]) { // expected-error {{must have 
 
 // h22 is a function that returns a pointer to a 10-element array of integers.
 checked int (*h22(int arr checked[10][10]))[10] { // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}}
-  return arr;  // expected-error {{incompatible result type}}
+  return 0;
 }
 
 checked ptr<int[10]> h23(int arr checked[10][10]) { // expected-error {{must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interfaces}}
-  return arr;  // expected-error {{incompatible result type}}
+  return 0;
 }
 
 checked array_ptr<int[10]> h24(int arr checked[10][10]) { // expected-error {{must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interfaces}}
-  return arr;  // expected-error {{incompatible result type}}
+  return 0;
 }
 
 // h25 is a function that returns a pointer to 10-element array of integers.
 checked int (*h25(int arr checked[10][10])) checked[10]{  // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}} \
                                                           // return int checked[10]
-  return arr;  // expected-error {{incompatible result type}}
+  return 0;
 }
 
 checked ptr<int checked[10]> h26(int arr checked[10][10]) {
@@ -1429,45 +1208,34 @@ void check_pointer_arithmetic(void) {
   int p[5];
   int r checked[5];
 
-  int *p_tmp;
-  array_ptr<int> r_tmp;
+  int *p_tmp = 0;
+  array_ptr<int> r_tmp = 0;
 
   checked {
-  p_tmp = p + 5;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = 5 + p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = p_tmp - 2;// expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = 2 - p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = p++;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = p--;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = ++p;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = --p;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = (p += 1); // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = (p -= 1); // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = p + 5;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = 5 + p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = p_tmp - 2;// expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = 2 - p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = p++;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = p--;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = ++p;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = --p;      // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = (p += 1); // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = (p -= 1); // expected-error 2 {{local variable used in a checked scope must have a checked type}}
 
-  // 0 interpreted as an integer, not null
-  p_tmp = p + 0;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = 0 + p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = p - 0;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  p_tmp = 0 - p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    // 0 interpreted as an integer, not null
+    p_tmp = p + 0;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = 0 + p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = p - 0;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
+    p_tmp = 0 - p;    // expected-error 2 {{local variable used in a checked scope must have a checked type}}
 
-  r_tmp = r + 5;
-  r_tmp = 5 + r;
-  r_tmp = r_tmp - 2;
-  r_tmp = 2 - r;      // expected-error {{invalid operands}}
-  r_tmp = r++;        // expected-error {{cannot increment value}}
-  r_tmp = r--;        // expected-error {{cannot decrement value}}
-  r_tmp = ++r;        // expected-error {{cannot increment value}}
-  r_tmp = --r;        // expected-error {{cannot decrement value}}
-  r_tmp = (r += 1);   // expected-error {{invalid operands}}
-  r_tmp = (r -= 1);   // expected-error {{invalid operands}}
-  // 0 interpreted as an integer, not null
-  r_tmp = r + 0;
-  r_tmp = 0 + r;
-  r_tmp = r - 0;
-  r_tmp = 0 - r;      // expected-error {{invalid operands to binary expression}}
-
-  // adding two pointers is not allowed
-  r + r; // expected-error {{invalid operands}}
+    r_tmp = r + 5;
+    r_tmp = 5 + r;
+    r_tmp = r_tmp - 2;
+    // 0 interpreted as an integer, not null
+    r_tmp = r + 0;
+    r_tmp = 0 + r;
+    r_tmp = r - 0;
   }
 }
 
@@ -1502,11 +1270,6 @@ void check_pointer_difference(int flag) {
   count = checked_a_int - p_int;// expected-error {{local variable used in a checked scope must have a checked type}}
   count = a_int - r_int;        // expected-error {{local variable used in a checked scope must have a checked type}}
   count = checked_a_int - r_int;
-
-  // spot check mismatched types
-  count = a_float - p_int;          // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  count = p_int - checked_a_float;  // expected-error {{local variable used in a checked scope must have a checked type}}
-  count = checked_a_float - r_int;  // expected-error {{not pointers to compatible types}}
   }
 }
 
@@ -1549,26 +1312,6 @@ void check_pointer_compare(void) {
   result = q_int < checked_val_int;
   result = r_int <= checked_val_int;
 
-  // invalid relational comparisons
-
-  // spot check comparisons between pointers and unchecked arrays;
-  result = val_int < p_float;   // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  result = val_float <= q_int;  // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = val_int >= r_float;  // expected-error {{local variable used in a checked scope must have a checked type}}
-
-  result = p_int > val_float;   // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  result = q_float < val_int;   // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = r_int <= val_float;  // expected-error {{local variable used in a checked scope must have a checked type}}
-
-  // spot check comparisons between pointers and checked arrays;
-  result = checked_val_int < p_float; // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = checked_val_float <= q_int;// expected-warning {{comparison of distinct pointer types}}
-  result = checked_val_int >= r_float;// expected-warning {{comparison of distinct pointer types}}
-
-  result = p_int > checked_val_float; // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = q_float < checked_val_int; // expected-warning {{comparison of distinct pointer types}}
-  result = r_int <= checked_val_float;// expected-warning {{comparison of distinct pointer types}}
-
   // equality/inequality comparisons between pointers and unchecked arrays;
   result = val_int == p_int;  // expected-error 2 {{local variable used in a checked scope must have a checked type}}
   result = val_int != q_int;  // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -1587,25 +1330,10 @@ void check_pointer_compare(void) {
   result = q_int == checked_val_int;
   result = r_int != checked_val_int;
 
-  // invalid equality/inequality comparisons
-
-  // spot check equality comparisons between pointers and unchecked arrays;
-  result = val_int == p_float;  // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  result = val_float != q_int;  // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = val_int == r_float;  // expected-error {{local variable used in a checked scope must have a checked type}}
-
-  result = p_int != val_float;  // expected-error 2 {{local variable used in a checked scope must have a checked type}}
-  result = q_float == val_int;  // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = r_int != val_float;  // expected-error {{local variable used in a checked scope must have a checked type}}
-
   // spot check equality comparisons between pointers and checked arrays;
   result = checked_val_int == p_float;  // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = checked_val_float != q_int;  // expected-warning {{comparison of distinct pointer types}}
-  result = checked_val_int != r_float;  // expected-warning {{comparison of distinct pointer types}}
 
   result = p_int == checked_val_float;  // expected-error {{local variable used in a checked scope must have a checked type}}
-  result = q_float != checked_val_int;  // expected-warning {{comparison of distinct pointer types}}
-  result = r_int == checked_val_float;  // expected-warning {{comparison of distinct pointer types}}
 
   }
 }
@@ -1644,8 +1372,6 @@ checked void check_cast_operator(void) {
 
   // casts involving array types
   array_ptr<int> pax = (array_ptr<int>) &x;
-  pax = (int checked[]) &x;   // expected-error {{cast to incomplete type}}
-  pax = (int checked[1]) &x;  // expected-error {{arithmetic or pointer type is required}}
   pax = &x;
 
   // casts involving pointers to array types
@@ -1661,37 +1387,14 @@ checked void check_cast_operator(void) {
   // ptr to array, ptr to unchecked array
   parr = (ptr<int checked[5]>) &arr;
   parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr);
-  parr = (ptr<int checked[3]>) &arr;  // expected-error {{incompatible type}}
   parr = (ptr<int [5]>) &arr;   // expected-error {{invalid casting to unchecked type}}
   parr = (ptr<int *>) &arr;     // expected-error {{invalid casting to unchecked type}}
-  parr = (ptr<ptr<int>>) &arr;  // expected-error {{incompatible type}}
 
   // array_ptr to array, array_ptr to unchecked array
   array_ptr<int checked[5]> aparr = 0;
   aparr = (array_ptr<int checked[5]>) &arr;
   aparr = (array_ptr<int checked[5]>) ((array_ptr<int checked[]>) &arr);
-  aparr = (array_ptr<int checked[3]>) &arr; // expected-error {{incompatible type}}
   aparr = (array_ptr<int [5]>) &arr;  // expected-error {{invalid casting to unchecked type}}
-
-  // constructed type compatibility check, base type SHOULD be equal
-  ptr<int> pa = 0;
-  ptr<ptr<int>> ppa = 0;
-  ptr<array_ptr<int>> papa = 0;
-
-  ppa = (ptr<ptr<int>>) &pa;
-  ppa = (ptr<array_ptr<int>>) &pa;      // expected-error {{incompatible type}} \
-                                        // ptr<ptr<T>> = ptr<array_ptr<T>>, not OK
-  ppa = (array_ptr<ptr<int>>) &pa;      // ptr<ptr<T>> = array_ptr<ptr<T>>, OK
-  ppa = (array_ptr<array_ptr<int>>) &pa;// expected-error {{incompatible type}} \
-                                        // ptr<ptr<T>> = array_ptr<array_ptr<T>>, not OK
-
-  papa = (ptr<ptr<int>>) &pa;           // expected-error {{incompatible type}} \
-                                        // ptr<array_ptr<T>> = ptr<ptr<T>>, not OK
-  papa = (ptr<array_ptr<int>>) &pa;
-  papa = (array_ptr<ptr<int>>) &pa;     // expected-error {{incompatible type}} \
-                                        // ptr<array_ptr<T>> = array_ptr<ptr<T>>, not OK
-  papa = (array_ptr<array_ptr<int>>) &pa;
-
 
   // ptr to variadic/unchecked func pointer
   ptr<int(int,int)> vpa = 0;
@@ -1754,9 +1457,9 @@ checked void check_cast_operator(void) {
 }
 
 // Test for constructed type
-// In checked block, checked pointer to unchecked pointer is not checked type
-// To check if a declaration is valid in checked block,
-// it SHOULD check checked pointer type recursively.
+// In checked block, constructed types (pointers, arrays, and function types) cannot contain
+// unchecked type. To check if a declaration is valid in checked block,
+// we SHOULD check checked pointer type recursively.
 checked void check_checked_constructed_type(void) {
   ptr<int*> a = 0;                                  // expected-error {{must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interfaces}}
   array_ptr<ptr<char*>> b : count(5) = 0;           // expected-error {{must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interfaces}}
@@ -1884,9 +1587,6 @@ extern void test_function_pointer(void) checked {
   ptr<int(int*)> fn4 = &id_intp;   // expected-error {{must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interfaces}}
   ptr<int(int*)> fn5 = id_intp;  // expected-error {{must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interfaces}}
 
-  ptr<ptr<int>(ptr<int>)> fn6 = &id_intp;  // expected-error {{incompatible type}}
-  ptr<ptr<int>(ptr<int>)> fn7 = id_intp; // expected-error {{incompatible type}}
-
   ptr<ptr<int>(ptr<int>)> fn8 = &id_checked_intp;
   ptr<ptr<int>(ptr<int>)> fn9 = id_checked_intp;
 
@@ -1894,92 +1594,4 @@ extern void test_function_pointer(void) checked {
   // address-of (&) operator produces array_ptr<T> except for function type
   ptr<int> pa = &val0;
   array_ptr<int> apa = &val0;
-}
-
-// Make sure that bounds-safe interfaces on parameters are used when
-// checking function pointers in checked blocks.
-
-typedef ptr<int(int *a : count(n), int n)> callback_fn1;
-
-checked void test_function_pointer_parameter(callback_fn1 fn) {
-  int arr checked[10];
-  (*fn)(arr, 10);
-}
-
-// Make sure that bounds-safe interfaces on returns are used when
-// checking function pointers in checked blocks.
-
-typedef ptr<int *(void) : itype(ptr<int>)> callback_fn2;
-
-checked void test_function_pointer_return(callback_fn2 fn) {
-  ptr<int> p = (*fn)();
-}
-
-//-----------------------------------------------------------------------
-// Test return statements in checked blocks where there is a bounds-safe
-// interface on the return type.
-//-----------------------------------------------------------------------
-
-// Return a _Ptr from a checked scope for a function with a
-// a bounds-safe interface return type of _Ptr.
-int *f100(void) : itype(_Ptr<int>) {
-  _Checked{
-    _Ptr<int> p = 0;
-    return p;
-  }
-  return 0;
-}
-
-// Return an _Array_ptr from a checked scope for a function with a
-// a bounds-safe interface return type of _Array_ptr.
-int *f101(int len) : count(len) {
-  _Checked{
-    _Array_ptr<int> p = 0;
-    return p;
-  }
-  return 0;
-}
-
-// Return an _Ptr from a checked scope for a function with a
-// a bounds-safe interface return type of _Ptr, where the
-// returned value has a bounds-safe interface type.
-int *f102(int * p : itype(_Ptr<int>)) : itype(_Ptr<int >) {
-  _Checked{
-    return p;
-  }
-}
-
-//
-// Return a checked value from a checked scope, with the return
-// type missing a bounds-safe interface.
-//
-
-int *f103(void) {
-  _Checked{
-    _Ptr<int> p = 0;
-    return p;  // expected-error {{returning '_Ptr<int>' from a function with incompatible result type 'int *'}}
-  }
-  return 0;
-}
-
-int *f104(int len) {
-  _Checked{
-    _Array_ptr<int> p = 0;
-    return p; // expected-error {{returning '_Array_ptr<int>' from a function with incompatible result type 'int *'}}
-  }
-  return 0;
-}
-
-int *f105(int *p : itype(_Ptr<int>)) {
-  _Checked{
-    return p;  // TODO: Github issue #339.  This should be an error.
-  }
-}
-
-// Omit returning a value when one is expected.
-int *f106(void) : itype(_Ptr<int>) {
-  _Checked{
-    return; // expected-error {{non-void function 'f106' should return a value}}
-  }
-  return 0;
 }

@@ -99,7 +99,7 @@ void passing_test_1(int i);
 void passing_test_2(int i);
 void passing_test_3(void);
 #ifdef ARROW_OPERATOR
-void passing_test_4(struct S2 *s, int i);
+void passing_test_4(ptr<struct S2> s, int i);
 #else
 void passing_test_4(struct S2 s, int i);
 #endif
@@ -107,7 +107,7 @@ void passing_test_4(struct S2 s, int i);
 void failing_test_1(int i);
 void failing_test_2(int i);
 #ifdef ARROW_OPERATOR
-void failing_test_3(struct S2 *s, int i);
+void failing_test_3(ptr<struct S2> s, int i);
 #else
 void failing_test_3(struct S2 s, int i);
 #endif
@@ -267,7 +267,7 @@ void passing_test_2(int i) {
   assert(0 <= i && i < 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10};
 #ifdef ARROW_OPERATOR
-  struct S2 *sp = &s;
+  ptr<struct S2> sp = &s;
   TEST_OP(sp->arr[i], 1);
   printf("Result: %d\n", sp->arr[i]);
 #else
@@ -281,7 +281,7 @@ void passing_test_2(int i) {
 void passing_test_3(void) {
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
 #ifdef ARROW_OPERATOR
-  struct S2 *sp = &s;
+  ptr<struct S2> sp = &s;
   TEST_OP(*(sp->arr), 2);
   printf("Result: %d\n", *(sp->arr));
 #else
@@ -295,7 +295,7 @@ void passing_test_3(void) {
 // as an argument.
 
 #ifdef ARROW_OPERATOR
-void passing_test_4(struct S2 *s, int i) {
+void passing_test_4(ptr<struct S2> s, int i) {
 #else
 void passing_test_4(struct S2 s, int i) {
 #endif
@@ -334,7 +334,7 @@ void failing_test_2(int i) {
   assert(i < 0 || i >= 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
 #ifdef ARROW_OPERATOR
-  struct S2 *sp = &s;
+  ptr<struct S2> sp = &s;
   TEST_OP(sp->arr[i], 1);
   printf("Unreachable: %d\n", sp->arr[i]);
 #else
@@ -346,7 +346,7 @@ void failing_test_2(int i) {
 }
 
 #ifdef ARROW_OPERATOR
-void failing_test_3(struct S2 *s, int i) {
+void failing_test_3(ptr<struct S2> s, int i) {
 #else
 void failing_test_3(struct S2 s, int i) {
 #endif
