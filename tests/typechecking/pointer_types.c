@@ -29,6 +29,15 @@ extern void check_indirection_array_ptr(array_ptr<int> p : count(1),
 	y = *const_p;
 }
 
+extern void check_indirection_nt_array_ptr(nt_array_ptr<int> p : count(1),
+                                           nt_array_ptr<const int> const_p : count(1),
+                                           int y) {
+  *p = y;
+  y = *p;
+  *const_p = y; // expected-error {{read-only variable is not assignable}}
+  y = *const_p;
+}
+
 extern void check_subscript_unsafe_ptr(int *p, int y) {
     p[0] = y;
     y = p[0]; 
@@ -58,6 +67,19 @@ extern void check_subscript_array_ptr(array_ptr<int> p : count(1),
    y = p_const[0];  // OK
    0[p_const] = y;  // expected-error {{read-only variable is not assignable}}
    y = 0[p_const];  // OK
+}
+
+extern void check_subscript_nt_array_ptr(nt_array_ptr<int> p : count(2),
+                                         nt_array_ptr<const int> p_const : count(2),
+                                         int y) {
+  p[0] = y;  // OK
+  y = p[0];  // OK
+  0[p] = y;  // OK
+  y = 0[p];  // OK
+  p_const[0] = y;  // expected-error {{read-only variable is not assignable}}
+  y = p_const[0];  // OK
+  0[p_const] = y;  // expected-error {{read-only variable is not assignable}}
+  y = 0[p_const];  // OK
 }
 
 // Test assignments between different kinds of pointers, excluding

@@ -543,7 +543,7 @@ void invalid_local_var_bounds_decl(void)
   enum E1 t53 : count(5) = EnumVal1; // expected-error {{expected 't53' to have a pointer or array type}}
   ptr<int> t54 : count(1) = 0;       // expected-error {{bounds declaration not allowed because 't54' has a _Ptr type}}
   array_ptr<void> t55 : count(1) = 0; // expected-error {{expected 't55' to have a non-void pointer type}}
-  array_ptr<void (void)> t56 : count(1);  // expected-error {{bounds declaration not allowed because 't56' has a function pointer type}}
+  array_ptr<void (void)> t56 : count(1);  // expected-error {{declared as _Array_ptr to function of type 'void (void)'; use _Ptr to function instead}}
 
   int *t57 : count(1) = 0;          // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
   int t58[5] : count(5);            // expected-error {{bounds declaration not allowed for local variable with unchecked array type}}
@@ -554,7 +554,7 @@ void invalid_local_var_bounds_decl(void)
   struct S1 t62 : byte_count(8) = { 0 };      // expected-error {{expected 't62' to have a pointer, array, or integer type}}
   union U1 t63 : byte_count(8) = { 0 };       // expected-error {{expected 't63' to have a pointer, array, or integer type}}
   ptr<int> t64 : byte_count(sizeof(int)) = 0; // expected-error {{bounds declaration not allowed because 't64' has a _Ptr type}}
-  array_ptr<void (void)> t65 : byte_count(1); // expected-error {{bounds declaration not allowed because 't65' has a function pointer type}}
+  array_ptr<void (void)> t65 : byte_count(1); // expected-error {{declared as _Array_ptr to function of type 'void (void)'; use _Ptr to function instead}}
 
   int *t67 : byte_count(sizeof(int)) = 0;     // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
   int t68[5] : byte_count(5 * sizeof(int));   // expected-error {{bounds declaration not allowed for local variable with unchecked array type}}
@@ -565,7 +565,7 @@ void invalid_local_var_bounds_decl(void)
   struct S1 t72 : bounds(arr, arr + 1) = { 0 }; // expected-error {{expected 't72' to have a pointer, array, or integer type}}
   union U1 t73 : bounds(arr, arr + 1) = { 0 };  // expected-error {{expected 't73' to have a pointer, array, or integer type}}
   ptr<int> t74 : bounds(arr, arr + 1) = 0;      // expected-error {{bounds declaration not allowed because 't74' has a _Ptr type}}
-  array_ptr<void (void)> t75 : bounds(arr, arr + 1);  // expected-error {{bounds declaration not allowed because 't75' has a function pointer type}}
+  array_ptr<void (void)> t75 : bounds(arr, arr + 1);  // expected-error {{declared as _Array_ptr to function of type 'void (void)'; use _Ptr to function instead}}
 
   int *t78 : bounds(arr, arr + 1) = 0;          // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
   int t79[5] : bounds(arr, arr + 1);            // expected-error {{bounds declaration not allowed for local variable with unchecked array type}}
