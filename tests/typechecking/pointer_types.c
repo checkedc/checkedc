@@ -1152,8 +1152,11 @@ void check_pointer_arithmetic(void)
    ptr<void> q_void = &val[0];
    array_ptr<int> r = val;
    array_ptr<void> r_void = val;
+   nt_array_ptr<int> s = 0;
+   // nt_array_ptr<void> is not allowed, so we don't have to test it.
    int *p_tmp;
    array_ptr<int> r_tmp;
+   nt_array_ptr<int> s_tmp;;
 
    p_tmp = p + 5;
    p_tmp = 5 + p;
@@ -1206,6 +1209,22 @@ void check_pointer_arithmetic(void)
    r_tmp = r - 0;
    r_tmp = 0 - r; // expected-error {{invalid operands to binary expression}}
 
+   s_tmp = s + 5;
+   s_tmp = 5 + s;
+   s_tmp = s_tmp - 2;
+   s_tmp = 2 - s_tmp; // expected-error {{invalid operands to binary expression}}
+   s_tmp = s++;
+   s_tmp = s--;
+   s_tmp = ++s;
+   s_tmp = --s;
+   s_tmp = (s += 1);
+   s_tmp = (s -= 1);
+   // 0 interpreted as an integer, not null
+   s_tmp = s + 0;
+   s_tmp = 0 + s;
+   s_tmp = s - 0;
+   s_tmp = 0 - s; // expected-error {{invalid operands to binary expression}}
+
    // GCC allows arithmetic on void pointers, not allowed for safe pointer types
 
    r_void + 5;  // expected-error {{arithmetic on a pointer to void}}
@@ -1220,6 +1239,7 @@ void check_pointer_arithmetic(void)
    // adding two pointers is not allowed
    q + q; // expected-error {{invalid operands}}
    r + r; // expected-error {{invalid operands}}
+   s + s; // expected-error {{invalid operands}}
 }
 
 void check_pointer_difference(void)
@@ -1240,6 +1260,10 @@ void check_pointer_difference(void)
     array_ptr<int> r_int = val_int;
     array_ptr<void> r_void = val_int;
 
+    // nt_array_ptr<float> and nt_array_ptr<void> are not allowed.
+    nt_array_ptr<int> s_int = 0;
+    nt_array_ptr<char> s_char = 0;
+
     // check pointer difference using different kinds of pointers to float
     count = p_float - p_float; // float * - float * OK
     count = p_float - q_float; // float * - ptr<float> OK
@@ -1251,30 +1275,40 @@ void check_pointer_difference(void)
 
     count = r_float - p_float; // array_ptr<float> - float * OK.
     count = r_float - q_float; // array_ptr<float> - ptr<float> OK.
-    count = r_float - r_float; // array_ptr<float> - array_ptr<float> OK.
 
    // check pointer difference using different kinds of pointers to int
     count = p_int - p_int; // int * - int * OK
     count = p_int - q_int; // int * - ptr<int> OK
     count = p_int - r_int; // int * - array_ptr<int> OK
+    count = p_int - s_int; // int * - nt_array_ptr<int> OK 
 
     count = q_int - p_int; // ptr<int> - int * OK
     count = q_int - q_int; // ptr<int> - ptr<int> OK
     count = q_int - r_int; // ptr<int> - array_ptr<int> OK.
+    count = q_int - s_int; // ptr<int> - nt_array_ptr<int> OK
 
     count = r_int - p_int; // array_ptr<int> - int * OK.
     count = r_int - q_int; // array_ptr<int> - ptr<int> OK.
     count = r_int - r_int; // array_ptr<int> - array_ptr<int> OK.
+    count = r_int - s_int; // array_ptr<int> - nt_array_ptr<int> OK.
+
+    count = s_int - p_int; // nt_array_ptr<int> - int * OK.
+    count = s_int - q_int; // nt_array_ptr<int> - ptr<int> OK.
+    count = s_int - r_int; // nt_array_ptr<int> - array_ptr<int> OK.
+    count = s_int - s_int; // nt_array_ptr<int> - nt_array_ptr<int> OK.
 
     // invalid pointer differences
     // differences involving safe pointers to different referent types
-    // pointers to int and pointers to float
+
+    // pointers to int and pointers to float (using pointer to char for nt_array_char)
     count = p_int - p_float; // expected-error {{not pointers to compatible types}}
                              // int * - float * not OK
     count = p_int - q_float; // expected-error {{not pointers to compatible types}}
                              // int * - ptr<float> not OK
     count = p_int - r_float; // expected-error {{not pointers to compatible types}}
                              // int * - array_ptr<float> not OK
+    count = p_int - s_char;  // expected-error {{not pointers to compatible types}}
+                             // int * - nt_array_ptr<char> not OK
 
     count = q_int - p_float; // expected-error {{not pointers to compatible types}}
                              // ptr<int> - float * not OK
@@ -1282,6 +1316,8 @@ void check_pointer_difference(void)
                              // ptr<int> - ptr<float> not OK
     count = q_int - r_float; // expected-error {{not pointers to compatible types}}
                              // ptr<int> - array_ptr<float> not OK.
+    count = q_int - s_char;  // expected-error {{not pointers to compatible types}}
+                             // ptr<int> - nt_array_ptr<char> not OK.
 
     count = r_int - p_float; // expected-error {{not pointers to compatible types}}
                              // array_ptr<int> - float * not OK.
@@ -1289,6 +1325,19 @@ void check_pointer_difference(void)
                              // array_ptr<int> - ptr<float> not OK.
     count = r_int - r_float; // expected-error {{not pointers to compatible types}}
                              // array_ptr<int> - array_ptr<float> not OK.
+    count = r_int - s_char; // expected-error {{not pointers to compatible types}}
+                            // array_ptr<int> - nt_array_ptr<char> not OK.
+   
+    // pointers to int and nt_array_ptr<char>
+
+    count = s_int - p_float; // expected-error {{not pointers to compatible types}}
+                             // nt_array_ptr<int> - float * not OK.
+    count = s_int - q_float; // expected-error {{not pointers to compatible types}}
+                             // nt_array_ptr<int> - ptr<float> not OK.
+    count = s_int - r_float; // expected-error {{not pointers to compatible types}}
+                             // nt_array_ptr<int> - array_ptr<float> not OK.
+    count = s_int - s_char; // expected-error {{not pointers to compatible types}}
+                             // nt_array_ptr<int> - nt_array_ptr<char> not OK.
 
     // pointers to float and pointers to int
     count = p_float - p_int; // expected-error {{not pointers to compatible types}}
@@ -1343,23 +1392,35 @@ void check_pointer_difference(void)
 							 // array_ptr<int> - ptr<void> not OK
 	r_int - r_void;          // expected-error {{not pointers to compatible types}}
 							 // array_ptr<int> - array_ptr<void> not OK.   
+    s_int - p_void;          // expected-error {{not pointers to compatible types}}
+                             // nt_array_ptr<int> - void * not OK.
+    s_int - q_void;          // expected-error {{not pointers to compatible types}}
+                             // nt_array_ptr<int> - ptr<void> not OK
+    s_int - r_void;          // expected-error {{not pointers to compatible types}}
+                             // nt_array_ptr<int> - array_ptr<void> not OK.
 
 	p_void - q_int;          // expected-error {{not pointers to compatible types}}
 							 // ptr<void> - int * not OK
 	p_void - r_int;          // expected-error {{not pointers to compatible types}}
 							 // ptr<void> - array_ptr<int> not OK
+    p_void - s_int;          // expected-error {{not pointers to compatible types}}
+                             // ptr<void> - nt_array_ptr<int> not OK
 	q_void - p_int;          // expected-error {{not pointers to compatible types}}
 							 // ptr<void> - int * not OK
 	q_void - q_int;          // expected-error {{not pointers to compatible types}}
 							 // ptr<void> - ptr<int> not OK
 	q_void - r_int;          // expected-error {{not pointers to compatible types}}
 							 // ptr<void> - array_ptr<int> not OK.
+    q_void - s_int;          // expected-error {{not pointers to compatible types}}
+                             // ptr<void> - nt_array_ptr<int> not OK.
 	r_void - p_int;          // expected-error {{not pointers to compatible types}}
 							 // array_ptr<void> - int * not OK
 	r_void - q_int;          // expected-error {{not pointers to compatible types}}
 							 // array_ptr<void> - ptr<int> not OK
 	r_void - r_int;          // expected-error {{not pointers to compatible types}}
 							 // array_ptr<void> - array_ptr<int> not OK.
+    r_void - s_int;          // expected-error {{not pointers to compatible types}}
+                             // array_ptr<void> - nt_array_ptr<int> not OK.
 }
 
 void check_pointer_relational_compare(void)
@@ -1387,6 +1448,8 @@ void check_pointer_relational_compare(void)
     array_ptr<int> r2_int = val_int;
     array_ptr<void> r_void = val_int;
     array_ptr<void> r2_void = val_int;
+    array_ptr<int> s_int = 0;
+    array_ptr<int> s2_int = s_int;
 
     // relational comparisons using different kinds of pointers to float
     result = p_float < p2_float; // float * < float * OK
@@ -1405,14 +1468,22 @@ void check_pointer_relational_compare(void)
     result = p_int >= p2_int; // int * >= int * OK
     result = p_int < q_int;   // int * < ptr<int> OK
     result = p_int <= r_int;  // int * <= array_ptr<int> OK
+    result = p_int <= s_int;  // int * <= nt_array_ptr<int> OK
 
     result = q_int > p_int;   // ptr<int> > int * OK
     result = q_int >= q2_int; // ptr<int> >= ptr<int> OK
     result = q_int < r_int;   // ptr<int> < array_ptr<int> OK.
+    result = q_int < s_int;   // ptr<int> < nt_array_ptr<int> OK.
 
     result = r_int <= p_int;  // array_ptr<int> <= int * OK.
     result = r_int > q_int;   // array_ptr<int> > ptr<int> OK.
     result = r_int >= r2_int; // array_ptr<int> >= array_ptr<int> OK.
+    result = r_int >= s_int;  // array_ptr<int> >= nt_array_ptr<int> OK.
+
+    result = s_int <= p_int;  // nt_array_ptr<int> <= int * OK.
+    result = s_int > q_int;   // nt_array_ptr<int> > ptr<int> OK.
+    result = s_int >= r_int;  // nt_array_ptr<int> >= array_ptr<int> OK.
+    result = s_int >= s2_int; // nt_array_ptr<int> >= nt_array_ptr<int> OK.
 
     // relational comparisons involving safe pointers to void
     result = p_void < q_void;  // void  * < ptr<void> OK
@@ -1448,6 +1519,13 @@ void check_pointer_relational_compare(void)
     result = r_int < r_float;  // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<int> < array_ptr<float> not OK.
 
+    result = s_int > p_float;  // expected-warning {{comparison of distinct pointer types}}
+                               // nt_array_ptr<int> > float * not OK.
+    result = s_int >= q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // nt_array_ptr<int> >= ptr<float> not OK.
+    result = s_int < r_float;  // expected-warning {{comparison of distinct pointer types}}
+                               // nt_array_ptr<int> < array_ptr<float> not OK.
+
     // pointers to float and pointers to int
     result = p_float <= p_int; // expected-warning {{comparison of distinct pointer types}}
                                // float * <= int * not OK
@@ -1455,6 +1533,8 @@ void check_pointer_relational_compare(void)
                                // float * > ptr<int> not OK
     result = p_float >= r_int; // expected-warning {{comparison of distinct pointer types}}
                                // float * >= array_ptr<int> not OK
+    result = p_float >= s_int; // expected-warning {{comparison of distinct pointer types}}
+                               // float * >= nt_array_ptr<int> not OK
 
     result = q_float < p_int;  // expected-warning {{comparison of distinct pointer types}}
                                // ptr<float> < int * not OK
@@ -1462,6 +1542,8 @@ void check_pointer_relational_compare(void)
                                // ptr<float> <= ptr<int> not OK
     result = q_float > r_int;  // expected-warning {{comparison of distinct pointer types}}
                                // ptr<float> > array_ptr<int> not OK.
+    result = q_float > s_int;  // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> > nt_array_ptr<int> not OK.
 
     result = r_float >= p_int; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<float> >= int * not OK.
@@ -1469,6 +1551,8 @@ void check_pointer_relational_compare(void)
                                // array_ptr<float> < ptr<int> not OK.
     result = r_float <= r_int; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<float> <= array_ptr<int> not OK.
+    result = r_float <= s_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> <= nt_array_ptr<int> not OK.
 
     // pointers to void compared to pointers to int
     result = p_void < p_int;  // expected-warning {{comparison of distinct pointer types}}
@@ -1477,17 +1561,23 @@ void check_pointer_relational_compare(void)
                               // void  * <= ptr<int> not OK
     result = p_void > r_int;  // expected-warning {{comparison of distinct pointer types}}
                               // void * > array_ptr<int> not OK
+    result = p_void > s_int;  // expected-warning {{comparison of distinct pointer types}}
+                              // void * > nt_array_ptr<int> not OK
     result = q_void >= p_int; // expected-warning {{comparison of distinct pointer types}}
                               // ptr<void> >= int * not OK
     result = q_void < q_int;  // expected-warning {{comparison of distinct pointer types}}
                               // ptr<void> < ptr<int> not OK
     result = q_void <= r_int; // expected-warning {{comparison of distinct pointer types}}
                               // ptr<void> <= array_ptr<int> not OK.
+    result = q_void <= s_int; // expected-warning {{comparison of distinct pointer types}}
+                              // ptr<void> <= nt_array_ptr<int> not OK.
     result = r_void > p_int;  // expected-warning {{comparison of distinct pointer types}}
                               // array_ptr<void> > int * not OK.
     result = r_void >= q_int; // expected-warning {{comparison of distinct pointer types}}
                               // array_ptr<void> >= ptr<int> not OK.
     result = r_void < r_int;  // expected-warning {{comparison of distinct pointer types}}
+                              // array_ptr<void> < array_ptr<int> not OK.
+    result = r_void < s_int;  // expected-warning {{comparison of distinct pointer types}}
                               // array_ptr<void> < array_ptr<int> not OK.
 
     // pointers to int compared to pointers to void
@@ -1509,6 +1599,12 @@ void check_pointer_relational_compare(void)
                               // array_ptr<int> >= ptr<void> not OK.
     result = r_int < r_void;  // expected-warning {{comparison of distinct pointer types}}
                               // array_ptr<int> < array_ptr<void> not OK.
+    result = s_int > p_void;  // expected-warning {{comparison of distinct pointer types}}
+                              // nt_array_ptr<int> > void * not OK.
+    result = s_int >= q_void; // expected-warning {{comparison of distinct pointer types}}
+                              // nt_array_ptr<int> >= ptr<void> not OK.
+    result = s_int < r_void;  // expected-warning {{comparison of distinct pointer types}}
+                              // mt+array_ptr<int> < array_ptr<void> not OK.
 
     // Relational comparisons involving 0
     // The C11 specification technically doesn't allow this to typecheck for unsafe pointers.  
@@ -1524,6 +1620,8 @@ void check_pointer_relational_compare(void)
     result = r_int > 0;  // array_ptr<int> > 0 OK.
     result = 0 > r_int;  // 0 < array_ptr<int> OK.
     result = 0 < r_void; // 0 < array_ptr<void> OK.
+    result = s_int > 0;  // array_ptr<int> > 0 OK.
+    result = 0 > s_int;  // 0 < array_ptr<int> OK.
 }
 
 void check_pointer_equality_compare(void)
@@ -1552,6 +1650,10 @@ void check_pointer_equality_compare(void)
     array_ptr<void> r_void = val_int;
     array_ptr<void> r2_void = val_int;
 
+    nt_array_ptr<int> s_int = 0;
+    nt_array_ptr<int> s2_int = 0;
+    nt_array_ptr<char> s_char = 0;
+
     // equality/inequality comparisons using different kinds of pointers to float
     result = p_float == p2_float; // float * == float * OK
     result = p_float != q_float;  // float * != ptr<float> OK
@@ -1569,14 +1671,22 @@ void check_pointer_equality_compare(void)
     result = p_int != p2_int; // int * != int * OK
     result = p_int == q_int;  // int * == ptr<int> OK
     result = p_int != r_int;  // int * != array_ptr<int> OK
+    result = p_int != s_int;  // int * != nt_array_ptr<int> OK
 
     result = q_int == p_int;   // ptr<int> == int * OK
     result = q_int != q2_int; // ptr<int> != ptr<int> OK
     result = q_int == r_int;   // ptr<int> == array_ptr<int> OK.
+    result = q_int == s_int;   // ptr<int> == nt_array_ptr<int> OK.
 
     result = r_int != p_int;  // array_ptr<int> != int * OK.
-    result = r_int == q_int;   // array_ptr<int> == ptr<int> OK.
+    result = r_int == q_int;  // array_ptr<int> == ptr<int> OK.
     result = r_int == r2_int; // array_ptr<int> == array_ptr<int> OK.
+    result = r_int == s_int;  // array_ptr<int> == nt_array_ptr<int> OK.
+
+    result = s_int != p_int;  // nt_array_ptr<int> != int * OK.
+    result = s_int == q_int;  // nt_array_ptr<int> == ptr<int> OK.
+    result = s_int == r_int;  // nt_array_ptr<int> == array_ptr<int> OK.
+    result = s_int == s2_int; // nt_array_ptr<int> == nt_array_ptr<int> OK.
 
     // equality/inequality comparisons involving safe pointers to void
 
@@ -1593,12 +1703,15 @@ void check_pointer_equality_compare(void)
     result = p_void != p_int; // void  * != int * OK
     result = p_void == q_int; // void  * == ptr<int> OK
     result = p_void == r_int; // void * == array_ptr<int> OK
+    result = p_void == s_int; // void * == nt_array_ptr<int> OK
     result = q_void != p_int; // ptr<void> != int * OK
     result = q_void == q_int; // ptr<void> == ptr<int> OK
     result = q_void != r_int; // ptr<void> != array_ptr<int>  OK.
+    result = q_void != s_int; // ptr<void> != nt_array_ptr<int>  OK.
     result = r_void == p_int; // array_ptr<void> == int * OK.
     result = r_void != q_int; // array_ptr<void> != ptr<int> OK.
     result = r_void == r_int; // array_ptr<void> == array_ptr<int> OK.
+    result = r_void == s_int; // array_ptr<void> == nt_array_ptr<int> OK.
 
     // pointers to int compared to pointers to void
     result = p_int != p_void; // int  * != void * OK
@@ -1610,6 +1723,9 @@ void check_pointer_equality_compare(void)
     result = r_int != p_void; // array_ptr<int> != void * OK.
     result = r_int == q_void; // array_ptr<int> == ptr<void> OK.
     result = r_int != r_void; // array_ptr<int> != array_ptr<void> OK.
+    result = s_int != p_void; // array_ptr<int> != void * OK.
+    result = s_int == q_void; // array_ptr<int> == ptr<void> OK.
+    result = s_int != r_void; // array_ptr<int> != array_ptr<void> OK.
 
     // equality/inequality comparisons using different kinds of pointers to float and 0
     result = p_float == 0; // float * == 0 OK
@@ -1641,6 +1757,8 @@ void check_pointer_equality_compare(void)
     result = r_void == 0; // array_ptr<void> == 0 OK.
     result = r_int != 0;  // array_ptr<int> != 0 OK.
 
+    result = s_int != 0;  // nt_array_ptr<int> != 0 OK.
+
     result = 0 != p_int;  // 0 != int * OK
     result = 0 == p_void; // 0 == void * OK
 
@@ -1650,16 +1768,22 @@ void check_pointer_equality_compare(void)
     result = 0 != r_void; // 0 != array_ptr<void>
     result = 0 == r_int;  // 0  == array_ptr<int>.
 
+    result = 0 == s_int;  // 0  == array_ptr<int>.
+
     // invalid equality/inquality comparisons
 
     // comparisons involving safe pointers to different referent types
-    // pointers to int and pointers to float
+
+    // pointers to int and pointers to float (for nt_array_ptr, use char instead
+    // of float).
     result = p_int != p_float; // expected-warning {{comparison of distinct pointer types}}
                                // int * != float * not OK
     result = p_int == q_float; // expected-warning {{comparison of distinct pointer types}}
                                // int * == ptr<float> not OK
     result = p_int != r_float; // expected-warning {{comparison of distinct pointer types}}
                                // int * != array_ptr<float> not OK
+    result = p_int != s_char;  // expected-warning {{comparison of distinct pointer types}}
+                               // int * != nt_array_ptr<char> not OK
 
     result = q_int == p_float; // expected-warning {{comparison of distinct pointer types}}
                                // ptr<int> == float * not OK
@@ -1667,6 +1791,8 @@ void check_pointer_equality_compare(void)
                                // ptr<int> != ptr<float> not OK
     result = q_int == r_float; // expected-warning {{comparison of distinct pointer types}}
                                // ptr<int> <= array_ptr<float> not OK.
+    result = q_int == s_char;  // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<int> <= nt_array_ptr<char> not OK.
 
     result = r_int != p_float; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<int> != float * not OK.
@@ -1674,14 +1800,27 @@ void check_pointer_equality_compare(void)
                                // array_ptr<int> == ptr<float> not OK.
     result = r_int != r_float; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<int> != array_ptr<float> not OK.
+    result = r_int != s_char;  // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<int> != nt_array_ptrchar> not OK.
 
-                               // pointers to float and pointers to int
+    result = s_int != p_float; // expected-warning {{comparison of distinct pointer types}}
+                               // nt_array_ptr<int> != float * not OK.
+    result = s_int == q_float; // expected-warning {{comparison of distinct pointer types}}
+                               // nt_array_ptr<int> == ptr<float> not OK.
+    result = s_int != r_float; // expected-warning {{comparison of distinct pointer types}}
+                               // nt_array_ptr<int> != array_ptr<float> not OK.
+    result = s_int != s_char;  // expected-warning {{comparison of distinct pointer types}}
+                               // nt_array_ptr<int> != nt_array_ptrchar> not OK.
+
+   // pointers to float and pointers to int
     result = p_float == p_int; // expected-warning {{comparison of distinct pointer types}}
                                // float * == int * not OK
     result = p_float != q_int; // expected-warning {{comparison of distinct pointer types}}
                                // float * != ptr<int> not OK
     result = p_float == r_int; // expected-warning {{comparison of distinct pointer types}}
                                // float * == array_ptr<int> not OK
+    result = p_float == s_int; // expected-warning {{comparison of distinct pointer types}}
+                               // float * == nt_array_ptr<int> not OK
 
     result = q_float != p_int; // expected-warning {{comparison of distinct pointer types}}
                                // ptr<float> != int * not OK
@@ -1689,12 +1828,25 @@ void check_pointer_equality_compare(void)
                                // ptr<float> == ptr<int> not OK
     result = q_float != r_int; // expected-warning {{comparison of distinct pointer types}}
                                // ptr<float> != array_ptr<int> not OK.
+    result = q_float != s_int; // expected-warning {{comparison of distinct pointer types}}
+                               // ptr<float> != array_ptr<int> not OK.
 
     result = r_float == p_int; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<float> == int * not OK.
     result = r_float != q_int; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<float> != ptr<int> not OK.
     result = r_float == r_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> == array_ptr<int> not OK.
+    result = r_float == s_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> == mt+array_ptr<int> not OK.
+
+    result = s_char == p_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> == int * not OK.
+    result = s_char != q_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> != ptr<int> not OK.
+    result = s_char == r_int; // expected-warning {{comparison of distinct pointer types}}
+                               // array_ptr<float> == array_ptr<int> not OK.
+    result = s_char == s_int; // expected-warning {{comparison of distinct pointer types}}
                                // array_ptr<float> == array_ptr<int> not OK.
 }
 
@@ -1706,6 +1858,7 @@ void check_logical_operators(void)
     ptr<void> q_void = &val[0];
     array_ptr<int> r = 0;
     array_ptr<void> r_void = val;
+    nt_array_ptr<int> s = 0;
     _Bool b;
 
     b = !p;
@@ -1713,17 +1866,20 @@ void check_logical_operators(void)
     b = !q_void;
     b = !r;
     b = !r_void;
+    b = !s;
 
     b = p || b;
     b = q || b;
     b = q_void || b;
     b = r || b;
     b = r_void || b;
+    b = s || b;
     b = b || p;
     b = b || q;
     b = b || q_void;
     b = b || r;
     b = b || r_void;
+    b = b || s;
 
     b = p || q;
     b = q || p;
@@ -1733,19 +1889,24 @@ void check_logical_operators(void)
     b = r || p;
     b = r || q;
     b = r_void || q_void;
+    b = s || p;
+    b = s || q;
     b = p || r;
     b = p || r_void;
+    b = p || s;
 
     b = p && b;
     b = q && b;
     b = q_void && b;
     b = r && b;
     b = r_void && b;
+    b = s && b;
     b = b && p;
     b = b && q;
     b = b && q_void;
     b = b && r;
     b = b && r_void;
+    b = b && s;
 
     b = p && q;
     b = q && p;
@@ -1754,9 +1915,11 @@ void check_logical_operators(void)
     b = r_void && p;
     b = r && p;
     b = r && q;
+    b = s && q;
     b = r_void && q_void;
     b = p && r;
     b = p && r_void;
+    b = p && s;
 }
 
 // spot check operators that aren't supposed to be used with pointer types:
@@ -1767,6 +1930,7 @@ void check_illegal_operators(void)
     int *p = val;
     ptr<int> q = &val[0];
     array_ptr<int> r = val;
+    nt_array_ptr<int> s = 0;
 
     p * 5;  // expected-error {{invalid operands to binary expression}}
     5 * p;  // expected-error {{invalid operands to binary expression}}
@@ -1780,6 +1944,10 @@ void check_illegal_operators(void)
     5 * r;  // expected-error {{invalid operands to binary expression}}
     r *= 5; // expected-error {{invalid operands to binary expression}}
 
+    s * 5;  // expected-error {{invalid operands to binary expression}}
+    5 * s;  // expected-error {{invalid operands to binary expression}}
+    s *= 5; // expected-error {{invalid operands to binary expression}}
+
     p * p;  // expected-error {{invalid operands to binary expression}}
     p *= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1788,6 +1956,9 @@ void check_illegal_operators(void)
 
     r * r;  // expected-error {{invalid operands to binary expression}}
     r *= r; // expected-error {{invalid operands to binary expression}}
+
+    s * s;  // expected-error {{invalid operands to binary expression}}
+    s *= s; // expected-error {{invalid operands to binary expression}}
 
     //
     // Test /
@@ -1805,6 +1976,10 @@ void check_illegal_operators(void)
     5 / r;  // expected-error {{invalid operands to binary expression}}
     r /= 5; // expected-error {{invalid operands to binary expression}}
 
+    s / 5;  // expected-error {{invalid operands to binary expression}}
+    5 / s;  // expected-error {{invalid operands to binary expression}}
+    s /= 5; // expected-error {{invalid operands to binary expression}}
+
     p / p;  // expected-error {{invalid operands to binary expression}}
     p /= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1813,6 +1988,9 @@ void check_illegal_operators(void)
 
     r / r;  // expected-error {{invalid operands to binary expression}}
     r /= r; // expected-error {{invalid operands to binary expression}}
+
+    s / s;  // expected-error {{invalid operands to binary expression}}
+    s /= s; // expected-error {{invalid operands to binary expression}}
 
     //
     // Test %
@@ -1830,6 +2008,10 @@ void check_illegal_operators(void)
     5 % r;  // expected-error {{invalid operands to binary expression}}
     r %= 5; // expected-error {{invalid operands to binary expression}}
 
+    s % 5;  // expected-error {{invalid operands to binary expression}}
+    5 % s;  // expected-error {{invalid operands to binary expression}}
+    s %= 5; // expected-error {{invalid operands to binary expression}}
+
     p % p;  // expected-error {{invalid operands to binary expression}}
     p %= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1838,6 +2020,9 @@ void check_illegal_operators(void)
 
     r % r;  // expected-error {{invalid operands to binary expression}}
     r %= r; // expected-error {{invalid operands to binary expression}}
+
+    s % s;  // expected-error {{invalid operands to binary expression}}
+    s %= s; // expected-error {{invalid operands to binary expression}}
 
     //
     // Test <<
@@ -1855,6 +2040,10 @@ void check_illegal_operators(void)
     5 << r;  // expected-error {{invalid operands to binary expression}}
     r <<= 5; // expected-error {{invalid operands to binary expression}}
 
+    s << 5;  // expected-error {{invalid operands to binary expression}}
+    5 << s;  // expected-error {{invalid operands to binary expression}}
+    s <<= 5; // expected-error {{invalid operands to binary expression}}
+
     p << p;  // expected-error {{invalid operands to binary expression}}
     p <<= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1863,6 +2052,9 @@ void check_illegal_operators(void)
 
     r << r;  // expected-error {{invalid operands to binary expression}}
     r <<= r; // expected-error {{invalid operands to binary expression}}
+
+    s << s;  // expected-error {{invalid operands to binary expression}}
+    s <<= s; // expected-error {{invalid operands to binary expression}}
 
     //
     // Test >>
@@ -1879,6 +2071,10 @@ void check_illegal_operators(void)
     5 >> r;  // expected-error {{invalid operands to binary expression}}
     r >>= 5; // expected-error {{invalid operands to binary expression}}
 
+    s >> 5;  // expected-error {{invalid operands to binary expression}}
+    5 >> s;  // expected-error {{invalid operands to binary expression}}
+    s >>= 5; // expected-error {{invalid operands to binary expression}}
+
     p >> p;  // expected-error {{invalid operands to binary expression}}
     p >>= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1887,6 +2083,9 @@ void check_illegal_operators(void)
 
     r >> r;  // expected-error {{invalid operands to binary expression}}
     r >>= r; // expected-error {{invalid operands to binary expression}}
+
+    s >> s;  // expected-error {{invalid operands to binary expression}}
+    s >>= s; // expected-error {{invalid operands to binary expression}}
 
     //
     // Test |
@@ -1904,6 +2103,10 @@ void check_illegal_operators(void)
     5 | r;  // expected-error {{invalid operands to binary expression}}
     r |= 5; // expected-error {{invalid operands to binary expression}}
 
+    s | 5;  // expected-error {{invalid operands to binary expression}}
+    5 | s;  // expected-error {{invalid operands to binary expression}}
+    s |= 5; // expected-error {{invalid operands to binary expression}}
+
     p | p;  // expected-error {{invalid operands to binary expression}}
     p |= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1912,6 +2115,9 @@ void check_illegal_operators(void)
 
     r | r;  // expected-error {{invalid operands to binary expression}}
     r |= r; // expected-error {{invalid operands to binary expression}}
+
+    s | s;  // expected-error {{invalid operands to binary expression}}
+    s |= s; // expected-error {{invalid operands to binary expression}}
 
     //
     // Test &
@@ -1929,6 +2135,10 @@ void check_illegal_operators(void)
     5 & r;  // expected-error {{invalid operands to binary expression}}
     r &= 5; // expected-error {{invalid operands to binary expression}}
 
+    s & 5;  // expected-error {{invalid operands to binary expression}}
+    5 & s;  // expected-error {{invalid operands to binary expression}}
+    s &= 5; // expected-error {{invalid operands to binary expression}}
+
     p & p;  // expected-error {{invalid operands to binary expression}}
     p &= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1937,6 +2147,9 @@ void check_illegal_operators(void)
 
     r & r;  // expected-error {{invalid operands to binary expression}}
     r &= r; // expected-error {{invalid operands to binary expression}}
+
+    s & s;  // expected-error {{invalid operands to binary expression}}
+    s &= s; // expected-error {{invalid operands to binary expression}}
 
     //
     // Test ^
@@ -1954,6 +2167,10 @@ void check_illegal_operators(void)
     5 ^ r;  // expected-error {{invalid operands to binary expression}}
     r ^= 5; // expected-error {{invalid operands to binary expression}}
 
+    s ^ 5;  // expected-error {{invalid operands to binary expression}}
+    5 ^ s;  // expected-error {{invalid operands to binary expression}}
+    s ^= 5; // expected-error {{invalid operands to binary expression}}
+
     p ^ p;  // expected-error {{invalid operands to binary expression}}
     p ^= p; // expected-error {{invalid operands to binary expression}}
 
@@ -1963,12 +2180,16 @@ void check_illegal_operators(void)
     r ^ r;  // expected-error {{invalid operands to binary expression}}
     r ^= r; // expected-error {{invalid operands to binary expression}}
 
+    s ^ s;  // expected-error {{invalid operands to binary expression}}
+    s ^= s; // expected-error {{invalid operands to binary expression}}
+
     //
     // Test ~
     //
     ~p;  // expected-error {{invalid argument type}}
     ~q;  // expected-error {{invalid argument type}}
     ~r;  // expected-error {{invalid argument type}}
+    ~s;  // expected-error {{invalid argument type}}
 
     //
     // Test unary -
@@ -1976,6 +2197,7 @@ void check_illegal_operators(void)
     -p;  // expected-error {{invalid argument type}}
     -q;  // expected-error {{invalid argument type}}
     -r;  // expected-error {{invalid argument type}}
+    -s;  // expected-error {{invalid argument type}}
 
     //
     // Test unary +
@@ -1983,4 +2205,5 @@ void check_illegal_operators(void)
     +p;  // expected-error {{invalid argument type}}
     +q;  // expected-error {{invalid argument type}}
     +r;  // expected-error {{invalid argument type}}
+    +s;  // expected-error {{invalid argument type}}
 }
