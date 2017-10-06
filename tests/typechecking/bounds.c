@@ -902,11 +902,13 @@ int *fn3(int len) : count(len) { return 0; }
 
 // byte_count
 extern array_ptr<int> fn4(void) : byte_count(5 * sizeof(int));
+extern nt_array_ptr<int> fn4a(void) : byte_count(5 * sizeof(int));
 extern array_ptr<void> fn5(void) : byte_count(5 * sizeof(int));
 extern int *fn6(void) : byte_count(5 * sizeof(int));
 
 // bounds
 array_ptr<int> fn10(void) : bounds(s1, s1 + 5) { return 0; }
+nt_array_ptr<int> fn10a(void) : bounds(s1, s1 + 5) { return 0; }
 array_ptr<void> fn11(void) : bounds(s1, s1 + 5) { return 0; }
 int *fn12(void) : bounds(s1, s1 + 5) { return 0; }
 
@@ -987,7 +989,7 @@ int fn106(float p1 : byte_count(5 * sizeof(int))); // expected-error {{expected 
 int fn107(array_ptr<void> p1 : byte_count(5 * sizeof(int)));
 
 void fn108(array_ptr<int> p1 : bounds(p1, p1 + 5));
-void fn108a(array_ptr<int> p1 : bounds(p1, p1 + 5));
+void fn108a(nt_array_ptr<int> p1 : bounds(p1, p1 + 5));
 void fn109(array_ptr<int> p1, int p2 : bounds(p1, p1 + 5));
 void fn110(array_ptr<int> p1, float p2 : bounds(p1, p1 + 5)); // expected-error {{expected 'p2' to have a pointer, array, or integer type}}
 void fn111(array_ptr<void> p1 : bounds((char *)p1, (char *)p1 + (5 * sizeof(int))));
@@ -1018,6 +1020,7 @@ void fn206(int (*fnptr)(float p1 : byte_count(5 * sizeof(int)))); // expected-er
 void fn207(int (*fnptr)(array_ptr<void> p1 : byte_count(5 * sizeof(int))));
 
 void fn208(void (*fnptr)(array_ptr<int> p1 : bounds(p1, p1 + 5)));
+void fn208a(void(*fnptr)(nt_array_ptr<int> p1 : bounds(p1, p1 + 5)));
 void fn209(void (*fnptr)(array_ptr<int> p1, int p2 : bounds(p1, p1 + 5)));
 void fn210(void (*fnptr)(array_ptr<int> p1, float p2 : bounds(p1, p1 + 5))); // expected-error {{expected 'p2' to have a pointer, array, or integer type}}
 void fn211(void (*fnptr)(array_ptr<void> p1 : bounds((char *) p1, (char *) p1 + (5 * sizeof(int)))));
@@ -1066,6 +1069,7 @@ void fn263(array_ptr<void> (*fnptr)(void) : count(5)); // expected-error {{count
 void function_pointers() {
   // Assignments to function pointers with return bounds on array_ptr types
   array_ptr<int>(*t1)(void) : count(5) = fn1;
+  nt_array_ptr<int>(*t1a)(void) : count(0) = fn1a;
   // Assignment to function pointers with bounds-safe interfaces on
   // unchecked pointer return types.  Unchecked pointers are compatible with
   // unchecked pointers with bounds-safe interfaces.  This extends recursively
@@ -1085,6 +1089,7 @@ void function_pointers() {
   ptr<int *(void) : byte_count(5*sizeof(int))> t12 = fn6;
 
   array_ptr<int>(*t13)(void) : bounds(s1, s1 + 5) = fn10;
+  nt_array_ptr<int>(*t13a)(void) : bounds(s1, s1 + 5) = fn10a;
   int *(*t14)(void) = fn12;
   int *(*t15)(void) : bounds(s1, s1 + 5) = fn12;
   int *(*t16)(void) : bounds(s1, s1 + 6) = fn12;    // expected-warning {{incompatible pointer types}}
@@ -1112,6 +1117,8 @@ void function_pointers() {
   fn206(fn106);
   fn207(fn107);
   fn208(fn108);
+  fn208(fn108a); // expected-error {{parameter of incompatible type}}
+  fn208a(fn108a);
   fn209(fn109);
   fn210(fn110);
   fn211(fn111);
