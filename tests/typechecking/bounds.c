@@ -82,6 +82,20 @@ extern void count_exprs(void) {
   // This will eventually fail static checking of bounds declarations, at which
   // point we'll need to add an expected error message.
   array_ptr<int> t30 : byte_count(-8) = 0;
+
+  // Spot check nt_array_ptr.  This should be treated the same as
+  // array_ptr.
+
+  nt_array_ptr<char> t50 : count(c1) = 0;
+  nt_array_ptr<char> t51 : count(c2) = 0;
+  nt_array_ptr<char> t52 : count(c3) = 0;
+  nt_array_ptr<char> t53 : count(10) = 0;
+
+  nt_array_ptr<char> t54 : byte_count(c7) = 0;
+  nt_array_ptr<char> t55 : byte_count(c8) = 0;
+  nt_array_ptr<char> t56 : byte_count(c9) = 0;
+  nt_array_ptr<char> t57 : byte_count(A) = 0;
+
 }
 
 // Test expressions involving enum names and member bit fields that can be
@@ -100,6 +114,7 @@ extern void count_exprs_with_integral_operands(void) {
   array_ptr<int> t1 : count(c1) = 0;
   array_ptr<int> t2 : count(c2) = 0;
   array_ptr<int> t3 : count(s.f) = 0;
+  nt_array_ptr<int> t4 : count(c2) = 0;
 }
 
 float globalFloat = 8;
@@ -161,16 +176,23 @@ extern void invalid_count_exprs(void) {
 #ifndef __STDC_NO_COMPLEX__
   array_ptr<int> t27 : byte_count(c8) = 0;   // expected-error {{invalid argument type}}
 #endif
+
+  // spot check nt_array_ptr
+  nt_array_ptr<int> t40 : count(c7) = 0;   // expected-error {{invalid argument type}}
 }
 
 extern void bounds_exprs(void) {
-   int i[2];
+  int i[3] = { 0, 1, 0 };
    // check combinations of different kinds of pointers to the same
    // object type.
 
    array_ptr<int> array_ptr_lb = i, array_ptr_ub = i + 1;
    ptr<int> ptr_lb = i, ptr_ub = i + 1;
    int *unchecked_ptr_lb = i, *unchecked_ptr_ub = i + 1;
+   // unsafe cast
+   nt_array_ptr<int> nt_array_ptr_lb = (nt_array_ptr<int>) i, 
+                     nt_array_ptr_ub = (nt_array_ptr<int>) i + 1;
+
    array_ptr<int> t1 : bounds(array_ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t2 : bounds(ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t3 : bounds(array_ptr_lb, ptr_ub) = i;
@@ -181,11 +203,17 @@ extern void bounds_exprs(void) {
    array_ptr<int> t8 : bounds(ptr_lb, unchecked_ptr_ub) = i;
    array_ptr<int> t9 : bounds(unchecked_ptr_lb, unchecked_ptr_ub) = i;
 
+   // spot check mixed uses of nt_array_ptr and other pointer types.
+   array_ptr<int> t9a : bounds(nt_array_ptr_lb, ptr_ub) = i;
+   array_ptr<int> t9b : bounds(array_ptr_lb, nt_array_ptr_ub) = i;
+   array_ptr<int> t9c : bounds(ptr_lb, array_ptr_ub) = i;
+
    // use an array-typed value as the lower bound.  This value
    // should be converted implicitly to be a pointer type.
 
    array_ptr<int> t10 : bounds(i, i + 1) = i;
    array_ptr<int> t11 : bounds(i, array_ptr_ub) = i;
+   array_ptr<int> t11a : bounds(i, nt_array_ptr_ub) = i;
    array_ptr<int> t13 : bounds(i, ptr_ub) = i;
 
    array_ptr<void> void_array_ptr_lb = i, void_array_ptr_ub = i + 1;
@@ -222,6 +250,10 @@ extern void bounds_exprs(void) {
    array_ptr<int> t55 : bounds(void_ptr_lb, unchecked_ptr_ub) = i;
    array_ptr<int> t56 : bounds(ptr_lb, void_unchecked_ptr_ub) = i;
 
+   // spot check mixed uses of pointers to void and null-terminated pointers
+   array_ptr<int> t60 : bounds(void_array_ptr_lb, nt_array_ptr_ub) = i;
+   array_ptr<int> t61 : bounds(nt_array_ptr_lb, void_ptr_ub) = i;
+
    // spot check cases where the value being declared has a different pointer type
    // than the bounds.
    array_ptr<char> t71 : bounds(array_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
@@ -230,20 +262,25 @@ extern void bounds_exprs(void) {
    array_ptr<char> t75 : bounds(void_array_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
    array_ptr<char> t76 : bounds(void_unchecked_ptr_lb, array_ptr_ub) = (array_ptr<char>) i;
    array_ptr<char> t77 : bounds(array_ptr_lb, void_unchecked_ptr_ub) = (array_ptr<char>) i;
+   array_ptr<char> t77a : bounds(nt_array_ptr_lb, void_unchecked_ptr_ub) = (array_ptr<char>) i;
 
    // use an array-typed value as the lower bound.  This should be converted
    // implicitly to be a pointer type.
    array_ptr<char> t78 : bounds(i, array_ptr_ub) = (array_ptr<char>) i;
    array_ptr<char> t79 : bounds(i, ptr_ub) = (array_ptr<char>) i;
+   array_ptr<char> t80 : bounds(i, nt_array_ptr_ub) = (array_ptr<char>) i;
 
    // spot check that typechecking looks through typedefs
    typedef array_ptr<int> int_array_ptr;
    typedef ptr<int> int_ptr;
    typedef int *int_unchecked_ptr;
+   typedef nt_array_ptr<int> int_nt_array_ptr;
 
    int_array_ptr typedef_array_ptr_lb = i, typedef_array_ptr_ub = i + 1;
    int_ptr typedef_ptr_lb = i, typedef_ptr_ub = i + 1;
    int_unchecked_ptr typedef_unchecked_ptr_lb = i, typedef_unchecked_ptr_ub = i + 1;
+   int_nt_array_ptr typedef_nt_array_ptr_lb = (int_nt_array_ptr)i,
+                    typedef_nt_array_ptr_ub = (int_nt_array_ptr)(i + 1);
 
    array_ptr<int> t91 : bounds(typedef_array_ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t92 : bounds(ptr_lb, typedef_array_ptr_ub) = i;
@@ -254,6 +291,8 @@ extern void bounds_exprs(void) {
    array_ptr<int> t97 : bounds(unchecked_ptr_lb, typedef_ptr_ub) = i;
    array_ptr<int> t98 : bounds(ptr_lb, typedef_unchecked_ptr_ub) = i;
    array_ptr<int> t99 : bounds(typedef_unchecked_ptr_lb, unchecked_ptr_ub) = i;
+   array_ptr<int> t100 : bounds(typedef_nt_array_ptr_lb, unchecked_ptr_ub) = i;
+   array_ptr<int> t101 : bounds(typedef_array_ptr_lb, typedef_nt_array_ptr_ub) = i;
 
    // check that type qualifiers are discarded when comparing pointer types
    // in bounds expressions
@@ -265,6 +304,8 @@ extern void bounds_exprs(void) {
    array_ptr<const int> array_ptr_const_ub = i + 1;
    const array_ptr<int> const_array_ptr_ub = i + 1;
    const array_ptr<const int> const_array_ptr_const_ub = i + 1;
+   const nt_array_ptr<int> const_nt_array_ptr_lb = (const nt_array_ptr<int>) i;
+   const nt_array_ptr<int> const_nt_array_ptr_ub = (const nt_array_ptr<int>) i + 1;
 
    // permutations of ptr and const
    ptr<int const> ptr_const_lb = i;
@@ -302,6 +343,10 @@ extern void bounds_exprs(void) {
    array_ptr<int> t135 : bounds(unchecked_ptr_lb, ptr_ub) = i;
    array_ptr<int> t136 : bounds(ptr_lb, unchecked_ptr_ub) = i;
    array_ptr<int> t137 : bounds(unchecked_ptr_lb, unchecked_ptr_ub) = i;
+
+   // spot check const nt_array_ptr
+   array_ptr<int> t140 : bounds(nt_array_ptr_lb, const_nt_array_ptr_ub) = i;
+   array_ptr<int> t141 : bounds(const_nt_array_ptr_lb, nt_array_ptr_ub) = i;
  }
 
  extern void invalid_bounds_exprs(void) {
@@ -376,6 +421,9 @@ extern void bounds_exprs(void) {
    array_ptr<char> t33 : bounds(char_array_ptr_lb, int_ptr_ub) = (array_ptr<char>) i;     // expected-error {{pointer type mismatch}}
    array_ptr<char> t34 : bounds(char_ptr_lb, int_ptr_ub) = (array_ptr<char>) i;           // expected-error {{pointer type mismatch}}
    array_ptr<char> t35 : bounds(char_unchecked_ptr_lb, int_ptr_ub) = (array_ptr<char>) i; // expected-error {{pointer type mismatch}}
+
+   // spot check nt_array_ptr with invalid bounds expression
+   nt_array_ptr<char> t40 : bounds(int_array_ptr_lb, char_array_ptr_ub) = 0;     // expected-error {{pointer type mismatch}}
 }
 
 //
@@ -386,7 +434,7 @@ extern void bounds_exprs(void) {
 //  declaration, scope for variables (global or local), the kind of the bounds
 // expression, and the type for the variable).
 //
-// The test sfollow a specific pattern: there is a set of tests for global
+// The tests follow a specific pattern: there is a set of tests for global
 // variables that covers most of the different requirements.   The tests
 // for the other cases (local variables, parameter variables, member 
 // declarations, and return bounds declarations) are specialized clones
@@ -411,6 +459,7 @@ array_ptr<int> g1 : count(5) = 0;
 int *g2 : count(5) = 0;
 int g3 checked[5] : count(5);
 int g3a[5] : count(5);
+int g3b nt_checked[5]: count(4);
 
 // byte_count
 array_ptr<int> g4 : byte_count(5 * sizeof(int)) = 0;
@@ -418,6 +467,7 @@ array_ptr<void> g5 : byte_count(5 * sizeof(int)) = 0;
 int *g6 : byte_count(5 * sizeof(int)) = 0;
 int g7 checked[5] : byte_count(5 * sizeof(int));
 unsigned int g8 checked[5] : byte_count(5 * sizeof(int));
+unsigned int g8a nt_checked[5] : byte_count(4 * sizeof(int));
 unsigned int g9[5] : byte_count(5 * sizeof(int));
 
 // bounds
@@ -428,6 +478,7 @@ array_ptr<void> g11 : bounds(g3, g3 + 5);
 int *g12 : bounds(g12, g12 + 5) = 0;
 int g13 checked[5] : bounds(g13, g13 + 5);
 unsigned int g14 checked[5] : bounds(g14, g14 + 5);
+unsigned int g14a nt_checked[5] : bounds(g14a, g14a + 5);
 int g15[5] : bounds(g15, g15 + 5);
 unsigned int g16[5] : bounds(g16, g16 + 5);
 
@@ -487,12 +538,14 @@ void local_var_bounds_decl(void)
   // count
   array_ptr<int> t1 : count(5) = 0;
   int t3 checked[5] : count(5);
+  int t3a nt_checked[5] : count(4);
 
   // byte_count
   array_ptr<int> t4 : byte_count(5 * sizeof(int)) = 0;
   array_ptr<void> t5 : byte_count(5 * sizeof(int)) = 0;
   int t7 checked[5] : byte_count(5 * sizeof(int));
   unsigned int t8 checked[5] : byte_count(5 * sizeof(int));
+  unsigned int t8a nt_checked[5] : byte_count(4 * sizeof(int));
 
   // bounds
   array_ptr<int> t10 : bounds(t10, t10 + 5) = 0;
@@ -501,6 +554,7 @@ void local_var_bounds_decl(void)
   array_ptr<void> t11 : bounds(t3, t3 + 5) = t3;
   int t13 checked[5] : bounds(t13, t13 + 5);
   unsigned int t14 checked[5] : bounds(t14, t14 + 5);
+  unsigned int t14a nt_checked[5] : bounds(t14, t14 + 4);
 }
 
 void int_local_var_bounds_decl(void) {
@@ -578,9 +632,12 @@ void invalid_local_var_bounds_decl(void)
 void param_var_bounds_decl(
   // count
   array_ptr<int> t1 : count(5),
+  nt_array_ptr<int> t1a : count(5),
   int *t2 : count(5),
   int t3 checked[5] : count(5),
   int t3a[5] : count(5),
+  int t3b nt_checked[5] : count(4),
+  int t3c nt_checked[] : count(0),
 
   // byte_count
   array_ptr<int> t4 : byte_count(5 * sizeof(int)),
@@ -608,9 +665,12 @@ extern int garr[10];
 extern void anonymous_param_var_bounds_decl(
   // count
   array_ptr<int> : count(5),
+  nt_array_ptr<int> : count(5),
   int * : count(5),
   int checked[5] : count(5),
-  int [5] : count(5),
+  int[5] : count(5),
+  int nt_checked[6] : count(5),
+  int nt_checked[] : count(0),
 
   // byte_count
   array_ptr<int> : byte_count(5 * sizeof(int)),
@@ -732,9 +792,11 @@ extern void anonymous_invalid_param_var_bounds_decl(
 // count
 struct S3 {
   array_ptr<int> f1 : count(5);
+  nt_array_ptr<int> f1a : count(5);
   int *f2 : count(5);
   int f3 checked[5] : count(5);
   int f3a[5] : count(5);
+  int f3b nt_checked[5] : count(4);
 };
 
 // byte_count
@@ -743,6 +805,7 @@ struct S4 {
   array_ptr<void> f5 : byte_count(5 * sizeof(int));
   int *f6 : byte_count(5 * sizeof(int));
   int f7 checked[5] : byte_count(5 * sizeof(int));
+  int f7a nt_checked[5] : byte_count(4 * sizeof(int));
   unsigned int f8 checked[5] : byte_count(5 * sizeof(int));
   unsigned int f9[5] : byte_count(5 * sizeof(int));
 };
@@ -756,6 +819,7 @@ struct S6 {
   int *f12 : bounds(f12, f12 + 5);
   int f13 checked[5] : bounds(f13, f13 + 5);
   unsigned int f14 checked[5] : bounds(f14, f14 + 5);
+  unsigned int f14a nt_checked[5] : bounds(f14a, f14a + 5);
   int f15[5] : bounds(f15, f15 + 5);
   unsigned int f16[5] : bounds(f16, f16 + 5);
 };
@@ -832,6 +896,7 @@ struct s8 {
 
 // count
 array_ptr<int> fn1(void) : count(5) { return 0; }
+nt_array_ptr<int> fn1a(void) : count(0) { return 0; }
 int *fn2(void) : count(5) { return 0; }
 int *fn3(int len) : count(len) { return 0; }
 
