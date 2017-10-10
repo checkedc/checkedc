@@ -284,7 +284,7 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
 // the source and/or destination pointers are pointers to void.
 extern void check_assign_void(int val, int *p, ptr<int> q,
                               array_ptr<int> r : count(1),
-                              void *s, ptr<void> t, 
+                              void *s, ptr<void> t,
                               array_ptr<void> u : byte_count(sizeof(int)),
                               nt_array_ptr<int> v : count(1)) {
 
@@ -518,12 +518,13 @@ extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
 // pointer types and one or both of the types of the arms is a
 // pointer to void.
 extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
-                                void *s, ptr<void> t, array_ptr<void> u,
-                                nt_array_ptr<int> v) {
+                                void *s : byte_count(sizeof(int)), ptr<void> t,
+                                array_ptr<void> u, nt_array_ptr<int> v) {
 
     // valid combinations of void pointers for the arms of the expressions.
     void *t1 = val ? s : s;           // void * and void * OK
     ptr<void> t2 = val ? s : t;       // void * and ptr<void>  OK
+    ptr<void> t2a = val ? t : s;      // ptr<void> and void * OK
     ptr<void> t3 = val ? t : t;       // ptr<void> and ptr<void> OK
     ptr<void> t4 = val ? t : (void *) &val;  // ptr<void> and void * OK
     array_ptr<void> t5 = val ? u : s; // array_ptr<void> and void * OK
