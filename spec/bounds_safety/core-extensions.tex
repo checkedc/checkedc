@@ -140,6 +140,15 @@ unchecked pointer types.  For example, a variable that is a pointer to a
 \keyword{const} value can be assigned a pointer to a non-const value.  
 The reverse is not allowed.
 
+Array pointers (\arrayptr) of function types are not allowed. Functions have
+no size associated with them, so bounds checking pointers to them does not
+make sense.  Programmers should use \ptr\ instead:
+\begin{verbatim}
+typedef array_ptr<int (int x, int y)> callback_fn; // illegal
+typedef ptr<int (int x, int y)> callback_ptr;      // legal
+typedef array_ptr<callback_ptr> callback_arr;      // legal
+\end{verbatim}
+
 \section{New kinds of array types}
 
 A new checked array type is added to C. Just as there are checked pointer
