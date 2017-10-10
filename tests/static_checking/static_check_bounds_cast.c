@@ -37,7 +37,7 @@ struct S1 {
 
 extern void f2() {
   array_ptr<int> a : count(2) = 0;
-  struct S1 *p - 0;
+  struct S1 *p = 0;
   a = _Dynamic_bounds_cast<array_ptr<int>>(p, 2); // expected-error {{expression has no bounds}}
 }
 
