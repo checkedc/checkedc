@@ -1382,7 +1382,7 @@ void check_pointer_difference(int flag) {
 
   int a_int[5];
   int checked_a_int checked[5];
-  int nt_checked_a_int checked[5];
+  int nt_checked_a_int nt_checked[5];
 
   float a_float[5];
   float checked_a_float checked[5];
@@ -1875,5 +1875,5 @@ extern void check_vla(int i) {
   int x[i];
   int y checked[i];     // expected-error {{checked variable-length array not allowed}}
   int z checked[10][i]; // expected-error {{checked variable-length array not allowed}}
-  int z nt_checked[i];  // expected-error {{checked variable-length array not allowed}}
+  int a nt_checked[i];  // expected-error {{checked variable-length array not allowed}}
 }
