@@ -11,7 +11,7 @@ extern void f1() {
   ptr<int> c = 0;
   int b[10];
 
-  int *p;
+  int *p = 0;
   array_ptr<int> checkedc_p : bounds(checkedc_p, checkedc_p + 1) = 0;
   c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
   c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
@@ -37,14 +37,14 @@ struct S1 {
 
 extern void f2() {
   array_ptr<int> a : count(2) = 0;
-  struct S1 *p;
+  struct S1 *p = 0;
   a = _Dynamic_bounds_cast<array_ptr<int>>(p, 2); // expected-error {{expression has no bounds}}
 }
 
 extern void f3() {
-  int *p;
+  int *p = 0;
   ptr<int> q = 0;
-  array_ptr<int> r;
+  array_ptr<int> r = 0;
   array_ptr<int> s : bounds(r, r + 5) = 0;
   p = _Assume_bounds_cast<int *>(r);
   p = _Dynamic_bounds_cast<int *>(r); // expected-error {{expression has no bounds}}  
@@ -101,8 +101,8 @@ extern int *f7(int arr checked[]) {
 
 extern void f18(int i) {
   int c;
-  int *p;
-  char *cp;
+  int *p = 0;
+  char *cp = 0;
   ptr<int> q = 0;
   ptr<char> cq = 0;
   array_ptr<int> r : count(5) = 0;
