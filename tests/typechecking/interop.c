@@ -170,7 +170,6 @@ void g2_md(array_ptr<int checked[10]> ap : count(len), int len) {
   f2_incomplete_md_arr(ap, len);
   f3_incomplete_md_arr(ap, len);
   f4_incomplete_md_arr(ap, len);
-
 }
 
 void g2_incomplete_md_array_param(int ap checked[][10] : count(len), int len) {
@@ -229,22 +228,27 @@ void g4(array_ptr<float> ap : count(len), int len) {
 
 void g5(ptr<int> p) {
   f1_void(p);
+  f3_void(p, 1);
+  f4_void(p, sizeof(int));
 }
 
 void g6(array_ptr<int> ap : count(len), int len) {
+  if (len >= 1)
+    f1_void(ap);
   f3_void(ap, len);
-  f4_void(ap, len);
+  f4_void(ap, len * sizeof(int));
 }
 
 void g7(ptr<void> p) {
   f1(p); // expected-error {{incompatible type}}
   f1_void(p);
+  f4_void(p, 1);
 }
 
 void g8(array_ptr<void> ap : byte_count(len), int len) {
-  f2(ap, len / 4);  // expected-error {{incompatible type}}
-  f3(ap, len / 4);  // expected-error {{incompatible type}}
-  f4(ap, len / 4);  // expected-error {{incompatible type}}
+  f2(ap, len / 4);
+  f3(ap, len / 4);
+  f4(ap, len / 4);
   f3_void(ap, len);
   f4_void(ap, len);
 }
@@ -301,27 +305,25 @@ void g14(array_ptr<const int> ap : count(len), int len) {
 
 //
 //
-// There are no bounds-safe interface implicit conversions when a value with a
+// There is a bounds-safe interface implicit conversion when a value with a
 // checked pointer type is returned from a function that has an unchecked
-// return pointer type with an interop bounds declaration.  An explicit cast
-// must be used in this case.
-//
+// return pointer type with an interop bounds declaration.
 //
 
 int *g15(ptr<int> p) : itype(ptr<int>) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 int *g16(array_ptr<int> p : count(10)) : count(10) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 int *g17(array_ptr<int> p : count(10)) : byte_count(10 * sizeof(int)) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 void *g18(array_ptr<int> p : count(10)) : byte_count(10 * sizeof(int)) {
-  return p;  // expected-error {{incompatible result type}}
+  return p;
 }
 
 //
@@ -386,8 +388,8 @@ void g26(ptr<void> p) {
 }
 
 void g27(array_ptr<void> ap : byte_count(10 * sizeof(int))) {
-  v3 = ap;  // expected-error {{incompatible type}}
-  v4 = ap;  // expected-error {{incompatible type}}
+  v3 = ap;
+  v4 = ap;
   v3_void = ap;
   v4_void = ap;
 }
@@ -477,9 +479,9 @@ void g41(ptr<struct S1> p, ptr<float> p1, array_ptr<float> p2 : count(10)) {
 // of checked void pointers to void to non-void * members with bounds declarations.
 void g42(ptr<struct S1> p, ptr<void> p1, array_ptr<void> p2 : byte_count(10 * sizeof(int))) {
   p->pint = p1;  // expected-error {{incompatible type}}
-  p->arr1 = p2;  // expected-error {{incompatible type}}
-  p->arr2 = p2;  // expected-error {{incompatible type}}
-  p->arr3 = p2;  // expected-error {{incompatible type}}
+  p->arr1 = p2;
+  p->arr2 = p2;
+  p->arr3 = p2;
 }
 
 // Check assignments to void * members with bounds declarations
@@ -554,4 +556,54 @@ void g49(ptr<union U1> p, array_ptr<float> p1 : count(10)) {
   p->arr1 = p1;  // expected-error {{incompatible type}}
   p->arr2 = p1;  // expected-error {{incompatible type}}
   p->arr3 = p1;  // expected-error {{incompatible type}}
+}
+
+//
+// Test function pointers
+//
+
+//
+// Function pointers with parameters with bounds-safe interfaces.
+//
+
+// Bounds-safe interface type is an array_ptr.
+typedef int(*callback_fn1) (int *a : count(n), int n);
+
+void g60(callback_fn1 fn, array_ptr<int> arr : count(k), int k) {
+  (*fn)(arr, k);
+}
+
+void g61(callback_fn1 fn, array_ptr<float> arr : count(k), int k) {
+  (*fn)(arr, k); // expected-error {{incompatible type}}
+}
+
+// Bounds-safe interface type is 1-D checked array.
+typedef int(*callback_fn2) (int *a : itype(int checked[10]));
+void g70(callback_fn2 fn, int arr checked[10]) {
+  (*fn)(arr);
+}
+
+void g71(callback_fn2 fn, int arr checked[11]) {
+  (*fn)(arr);
+}
+
+void g72(callback_fn2 fn) {
+  int arr checked[10];
+  (*fn)(arr);
+}
+
+
+// Bounds-safe interface type is 2-D checked array.
+typedef int(*callback_fn3) (int(*a)[10] : itype(int checked[10][10]));
+void g80(callback_fn3 fn, int arr checked[10][10]) {
+  (*fn)(arr);
+}
+
+void g81(callback_fn3 fn, int arr checked[10][11]) {
+  (*fn)(arr);  // expected-error {{incompatible type}}
+}
+
+void g82(callback_fn3 fn) {
+  int arr checked[10][10];
+  (*fn)(arr);
 }
