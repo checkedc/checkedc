@@ -20,7 +20,7 @@
 
 #include <assert.h>
 #include <signal.h>
-#include <stdio.h>
+#include <stdio_checked.h>
 #include <string.h>
 #include <stdlib_checked.h>
 #include <stdchecked.h>
