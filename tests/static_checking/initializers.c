@@ -109,25 +109,36 @@ void f5(void) checked {
   int t21 nt_checked[] = { 0, 1, 2, 0 };
   char t22 checked[3]nt_checked[3] = { { 0, 1, 0 },{ 1, 1, 0 },{ 3, 1, 0 } };
   char t23 checked[3]nt_checked[4] = { "abc", "def", "fgh" };
+  char t24 checked[3]nt_checked[4] = { ("abc"), "def", ("fgh") };
 
   //
-  // Checked pointers with initialized array literals
+  // Checked pointers with initialized array literals.
   //
 
   nt_array_ptr<int> t30 : count(4) = (int[]) { 0, [2] = 2, 3, 5, 0 };
+
   nt_array_ptr<int> t31 = (int _Checked[]) { 0, [2] = 2, 3, 5, 0 };
   nt_array_ptr<char> t32 : count(5) = "abcde";
+
   array_ptr<char> t33 : count(5) = "abcde";
   array_ptr<char> t34 = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
   array_ptr<char> t35 : count(5) = (char _Checked[5]) { 'a', 'b', 'c', 'd', 'e' };
 
   //
-  // Checked arrays of checked pointers
+  // Make sure parentheses are ignored.
   //
-  nt_array_ptr<char> t36 checked[3][2] = { [1] = "ab", "cd", "ef", "jk" };
-  nt_array_ptr<char> t37 nt_checked[] = { "the", "brown", "fox", "jumped",
+  nt_array_ptr<int> t36 : count(4) = ((int[]) { 0, [2] = 2, 3, 5, 0 });
+  nt_array_ptr<char> t37 : count(5) = ("abcde");
+
+  //
+  // Checked arrays of checked pointers.
+  //
+  nt_array_ptr<char> t38 checked[3][2] = { [1] = "ab", "cd", "ef", "jk" };
+  nt_array_ptr<char> t39 nt_checked[] = { "the", "brown", "fox", "jumped",
     "over", "the", "fence", 0 };
 
+  char c = ((char *[2]) { "abc", "def" })[0][0];  // expected-error {{type in a checked\
+ scope must use only checked types or parameter/return types with bounds-safe interfaces}}
   nt_array_ptr<ptr<void(int)>> callback_table = (ptr<void(int)>[]) { callback1, callback2, 0 };
 
 }
