@@ -46,11 +46,11 @@ char g23 checked[3]nt_checked[4] = { "abc", "def", "fgh" };
 //
 
 nt_array_ptr<int> g30 : count(4) = (int[]) { 0, [2] = 2, 3, 5, 0 };
-nt_array_ptr<int> g31 : count(0)  = (int _Checked[]) { 0, [2] = 2, 3, 5, 0};
+nt_array_ptr<int> g31 : count(0)  = (int checked[]) { 0, [2] = 2, 3, 5, 0};
 nt_array_ptr<char> g32 : count(5) = "abcde";
 array_ptr<char> g33 : count(5) = "abcde";
 array_ptr<char> g34 : count(5) = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
-array_ptr<char> g35 : count(5) = (char _Checked[5]) { 'a', 'b', 'c', 'd', 'e' };
+array_ptr<char> g35 : count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' };
 
 //
 // Checked arrays of checked pointers
@@ -117,12 +117,12 @@ void f5(void) checked {
 
   nt_array_ptr<int> t30 : count(4) = (int[]) { 0, [2] = 2, 3, 5, 0 };
 
-  nt_array_ptr<int> t31 = (int _Checked[]) { 0, [2] = 2, 3, 5, 0 };
+  nt_array_ptr<int> t31 = (int checked[]) { 0, [2] = 2, 3, 5, 0 };
   nt_array_ptr<char> t32 : count(5) = "abcde";
 
   array_ptr<char> t33 : count(5) = "abcde";
   array_ptr<char> t34 = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
-  array_ptr<char> t35 : count(5) = (char _Checked[5]) { 'a', 'b', 'c', 'd', 'e' };
+  array_ptr<char> t35 : count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' };
 
   //
   // Make sure parentheses are ignored.
