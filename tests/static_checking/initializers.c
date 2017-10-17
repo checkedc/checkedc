@@ -88,7 +88,7 @@ void f4(void) checked {
   nt_array_ptr<char> t37 = g37[1];
 
 
-  f3("abc");   // expected-error {{passing 'char checked[4]' to parameter of incompatible type 'char *'}}
+  f3("abc");   // expected-error {{passing 'char nt_checked[4]' to parameter of incompatible type 'char *'}}
   unchecked{
     f3("abc");
   }
