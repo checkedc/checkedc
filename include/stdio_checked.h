@@ -125,8 +125,7 @@ int fputs(const char * restrict s,
           FILE * restrict stream : itype(restrict _Ptr<FILE>));
 int getc(FILE *stream : itype(_Ptr<FILE>));
 int putc(int c, FILE *stream : itype(_Ptr<FILE>));
-// TODO: strings
-// int puts(const char *str);
+int puts(const char *str : itype(_Nt_array_ptr<const char>));
 int ungetc(int c, FILE *stream : itype(_Ptr<FILE>));
 
 size_t fread(void * restrict pointer : byte_count(size * nmemb),
