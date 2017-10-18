@@ -439,7 +439,7 @@ When a member path \var{mp} of a variable \var{x} is used and
 \item
   If the use is within the extent of a bounds declaration
   \var{x}\texttt{.}\var{mp} \texttt{:} \var{bounds-exp} and
-  \var{bounds-exp} is not \boundsnone, \var{bounds-exp} is
+  \var{bounds-exp} is not \boundsunknown, \var{bounds-exp} is
   the bounds.
 \item
   Otherwise, if the state of the member bounds for
@@ -447,7 +447,7 @@ When a member path \var{mp} of a variable \var{x} is used and
   \var{x}\texttt{.}\var{mp} is used.
 \item
   Otherwise, the bounds of \var{x}\texttt{.}\var{mp} is
-  \boundsnone.
+  \boundsunknown.
 \end{itemize}
 
 \subsection{Suspends declarations and bounds for variables.}
@@ -636,11 +636,11 @@ beginning at the variable is determined.  The set is mapped to a set of pairs as
 \item For the first element, the structure variable is removed from the beginning of the
 path to create a member path.
 \item For the second element, the extent dataflow analysis is consulted for the \arrayptr\ member path.
-   If the bounds expression is not \boundsnone, it is used.   If it is \boundsnone, the result
+   If the bounds expression is not \boundsunknown, it is used.   If it is \boundsunknown, the result
    of the dataflow analysis for the member bounds state is examined. If the member bounds
    state is valid, the member bounds is used.  It is transformed to use variable member
    bounds by prefixing the member paths that occur in it with the structure variable.
-   Otherwise, \boundsnone\ is used.
+   Otherwise, \boundsunknown\ is used.
 \end{itemize}
 
 \subsection{Inferring bounds for expressions without assignments}
@@ -665,7 +665,7 @@ a member name and \boundsinfer{\var{e}}{\var{s}},
 \item Otherwise,
 \begin{itemize}
 \item If $\var{s} = \texttt{\{(\var{m}, \var{b})\}}$, then \boundsinfer{\texttt{\var{e}.\var{m}}}{b}
-\item Otherwise, \boundsinfer{\texttt{\var{e}.\var{m}}}{\boundsnone}
+\item Otherwise, \boundsinfer{\texttt{\var{e}.\var{m}}}{\boundsunknown}
 \end{itemize}
 \end{itemize}
 \item Function calls: {\em To be filled in}

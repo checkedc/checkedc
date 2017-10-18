@@ -27,7 +27,7 @@ the form:
 \var{bounds}\var{-exp:} \\
 \> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
 \> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
-\> \boundsnone \\
+\> \boundsunknown \\
 \> \boundsany
 \end{tabbing}
 
@@ -38,7 +38,7 @@ Sections~\ref{section:pointer-cast-results} and \ref{section:pointers-to-void}.
 A bounds expression describes the memory that can be accessed using the
 value of \var{x}, provided that x is not null. Bounds expressions
 include counts, pairs that specify an upper bound and lower bound,
-\boundsnone, and \boundsany:
+\boundsunknown, and \boundsany:
 
 \begin{itemize}
 \item
@@ -53,9 +53,10 @@ include counts, pairs that specify an upper bound and lower bound,
   Only memory that is at or above the location specified by \var{e1}
   and below \var{e2} can be accessed through \var{x}.
 \item
-  \boundsdecl{\var{x}}{\boundsnone} declares that \var{x} has no bounds.
-  It is an error at compile-time to attempt to access memory using a
-  variable of type \arrayptr\ with no bounds.
+  \boundsdecl{\var{x}}{\boundsunknown} declares that \var{x} has bounds that
+   are unknown at compile-time.
+  It is a compile-time error to attempt to access memory using a
+  variable of type \arrayptr\ with unknown bounds.
 \item
   \boundsdecl{\var{x}}{\boundsany} is a special form that readers can
   ignore for now. It is used for null pointers (0 cast to a pointer
@@ -539,7 +540,7 @@ statements:\\
 \end{tabbing}
 
 The names used in bounds expressions (\texttt{any},
-\texttt{bounds}, \texttt{count}, and \texttt{none}) are identifiers.
+\texttt{bounds}, \texttt{count}, and \texttt{unknown}) are identifiers.
 They are not keywords.  They can still be used for variable names,
 avoiding backward-compatibility problems.    The grammar for
 bounds expressions is:
@@ -556,7 +557,7 @@ expressions:
 \item If the first grammar clause was parsed,
 \begin{itemize}
 \item If \var{identifier} is \texttt{bounds}, the \var{non-modifying-exp}
-must be the identifier \texttt{any} or the identifier \texttt{none}.
+must be the identifier \texttt{any} or the identifier \texttt{unknown}.
 \item Otherwise \var{identifier} must be \texttt{count}.
 \end{itemize}
 \item If the second grammar clause was parsed, \var{identifier} must be
@@ -1510,7 +1511,7 @@ then
    \end{compactenum}
    then the bounds declaration applies to the component   
 \item 
-   Otherwise, the bounds declaration \boundsdecl{\var{v}}{\boundsnone}
+   Otherwise, the bounds declaration \boundsdecl{\var{v}}{\boundsunknown}
    applies to the component.
 \end{compactenum}
   
@@ -1660,14 +1661,14 @@ value to each variable at each program point in the function.
 Figure~\ref{fig:extent-dataflow-lattice} shows the lattice of values.  
 It includes singleton values consisting of the bounds
 expressions in the flow-sensitive bounds declaration for variables in
-the function, \boundsnone\ (indicating absence of bounds
+the function, \boundsunknown\ (indicating absence of bounds
 information), and \texttt{Top} (indicating contradiction or error):
 
 \begin{figure}
 \begin{center}
 \begin{tikzpicture}[sibling distance=1in]
 \node[rectangle, minimum size=8pt]{\texttt{Top}}
-  child foreach \name in {\boundsnone, \var{bounds-exp\textsubscript{1}},
+  child foreach \name in {\boundsunknown, \var{bounds-exp\textsubscript{1}},
                           \var{bounds-exp\textsubscript{2}}, \ldots}
      {node{\name} edge from parent[<-, thick]};
 \end{tikzpicture}
@@ -1683,14 +1684,14 @@ are met.
 A new lattice value is generated for the \arrayptr\ variable. If the
 assignment declares bounds for the \arrayptr\ variable, the new
 lattice value is the bounds expression in the bounds declaration.
-Otherwise, it is the value \boundsnone.
+Otherwise, it is the value \boundsunknown.
 
 A declaration of a variable is handled similarly to an assignment,
 except that there will not be any lattice value to kill. Lexical hiding
 of variables involved in bounds declarations is not permitted. If the
 declaration declares bounds for the \arrayptr\ variable, the
 new lattice value is the bounds expression in the bounds declaration.
-Otherwise, it is the value \boundsnone.
+Otherwise, it is the value \boundsunknown.
 
 A variable going out of scope kills any existing lattice values in which
 that variable occurs.

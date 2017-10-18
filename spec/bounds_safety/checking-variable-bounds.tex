@@ -153,7 +153,7 @@ and \var{x} has a known number of elements \var{n}, then
 \item Otherwise, the bounds are the result of the analysis in 
   Section~\ref{section:extent-definition} for this occurrence of \var{x}.
 \end{itemize}
-\item  Otherwise \var{x} has \boundsnone.
+\item  Otherwise \var{x} has \boundsunknown.
 \end{itemize}
 
 \subsection{Address-of expressions}
@@ -198,7 +198,7 @@ Suppose there is a function call expression of the form
   \item
     Any arguments that correspond to formal parameters occurring in
     \var{exp1} must be valid non-modifying expressions. If they are
-    not, \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\boundsnone}.
+    not, \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\boundsunknown}.
   \item
     Otherwise, substitute \texttt{\var{e1} \ldots{} \var{en}} for the formal
     parameters of \var{f} occurring in \var{exp1}. Also substitute the
@@ -208,7 +208,7 @@ Suppose there is a function call expression of the form
   \end{itemize}
 \item
   If \var{f} does not have a bounds declaration for its return value,
-  then \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\boundsnone}.
+  then \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\boundsunknown}.
 \end{enumerate}
 
 The special variable \texttt{return\_value} may appear \var{exp1}. It
@@ -527,7 +527,7 @@ bounds for \var{e},
   \texttt{((\var{S}) \exprcurrentvalue)} is substituted for
   all occurrences of \exprcurrentvalue.
 \item
-  Otherwise, the bounds of \var{e} are  altered to \boundsnone.
+  Otherwise, the bounds of \var{e} are  altered to \boundsunknown.
 \end{itemize}
   
 \subsection{Conditional expressions}
@@ -614,7 +614,7 @@ The updated context will be determined in three steps. First, if
   If \boundsinfer{\var{e}}{\var{exp}}, then the context is updated with
   \boundsdecl{\var{x}}{\var{exp}}.
 \item
-  Otherwise, the context is updated with \boundsdecl{\var{x}}{\boundsnone}
+  Otherwise, the context is updated with \boundsdecl{\var{x}}{\boundsunknown}
    to indicate that \var{x} has no valid bounds.
 \end{enumerate}
 
@@ -864,7 +864,7 @@ expression holds if:
 
 \begin{itemize}
 \item
-  The expected bounds expression is \boundsnone, or
+  The expected bounds expression is \boundsunknown, or
 \item
   The updated bounds expression is \boundsany, or
 \item
@@ -1342,7 +1342,7 @@ each variable \var{v} in the list,
     \item
       If \var{v} is an automatic variable then \var{v} will have an
       indeterminate value. The context is updated to map v to
-      \boundsnone.
+      \boundsunknown.
     \end{itemize}
   \item
     If \var{v} has an initializer, the initializer must have the form
@@ -1420,7 +1420,7 @@ f(int size) \{\\
 \mbox{~~~~}if (size > DEFAULT\_SIZE) \{\\
 \mbox{~~~~~~~~}bundle \{\\
 \mbox{~~~~~~~~~~~~}plen = size;\\
-\mbox{~~~~~~~~~~~~}\sethlcolor{lightblue}\hl{*parr = 314;} // error:~parr has bounds of none.\\
+\mbox{~~~~~~~~~~~~}\sethlcolor{lightblue}\hl{*parr = 314;} // error:~parr has unknown bounds.\\
 \mbox{~~~~~~~~~~~~}parr = malloc(sizeof(int) * size);\\
 \mbox{~~~~~~~~}\}\\
 \mbox{~~~~}\}\\

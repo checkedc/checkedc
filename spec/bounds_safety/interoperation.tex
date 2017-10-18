@@ -134,7 +134,7 @@ it separately so that there is a simple rule for casts to void pointers.}
 \item \ptrT: the bounds of \var{e} are computed using the rules
 in Section~\ref{section:checking-nested-assignment-expressions}.
 \begin{itemize}
-\item If the bounds are \boundsnone, checking fails with a compile-time
+\item If the bounds are \boundsunknown, checking fails with a compile-time
 error.
 \item Otherwise, if the bounds are \boundsany, checking 
 succeeds.
@@ -194,7 +194,7 @@ have it. It takes 1 to 3 arguments, depending on the kind of conversion being do
 
 Here is the checking that is done. The bounds of \var{e1} are computed
 using the rules in Section~\ref{section:checking-nested-assignment-expressions}.
-If the bounds of \var{e1} are \boundsnone, it is a compile-time error. 
+If the bounds of \var{e1} are \boundsunknown, it is a compile-time error. 
 If the bounds of \var{e1} are \boundsany, no runtime checks are needed.
 Otherwise the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible to that form).
 The following runtime checks are done:
@@ -384,7 +384,7 @@ from integers to checked pointers are typically not useful in Checked C because
 the checking of bounds declarations fails or the resulting pointer cannot
 be used to access memory.   The rules for checking bounds declarations only
 allow the target type to be \arrayptr\ type and the bounds of the expression to be
-\boundsnone.
+\boundsunknown.
 
 \subsection{Examples}
 
@@ -917,8 +917,8 @@ rules for inferring bounds to integral expressions:
 
   \begin{itemize}
   \item
-    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsnone, and 
-    \boundsdecl{\var{e2}}{\boundsnone}, and it can be proved that \texttt{\var{e1} != 0}, then
+    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsunknown, and 
+    \boundsdecl{\var{e2}}{\boundsunknown}, and it can be proved that \texttt{\var{e1} != 0}, then
     \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
     If the special variable \exprcurrentvalue\ occurs in \var{b}:
@@ -928,12 +928,11 @@ rules for inferring bounds to integral expressions:
       \texttt{\exprcurrentvalue\ \var{inverse-op} \var{e2}}
       is substituted for \exprcurrentvalue.
     \item
-      Otherwise the bounds of the expression are altered to be \boundsnone.
-      bounds(none).
+      Otherwise the bounds of the expression are altered to be \boundsunknown.
     \end{itemize}
   \item
-    Similar rules apply for the reverse situation where \boundsdecl{\var{e1}}{\boundsnone}
-    and \boundsdecl{\var{e2}}{\var{b}}, where \var{b} is not \boundsnone.
+    Similar rules apply for the reverse situation where \boundsdecl{\var{e1}}{\boundsunknown}
+    and \boundsdecl{\var{e2}}{\var{b}}, where \var{b} is not \boundsunknown.
   \end{itemize}
 \item
   Given \texttt{\var{e1} \var{op} \var{e2}} where \var{op} is a shift operator, \var{e1} is the integral value
@@ -941,11 +940,11 @@ rules for inferring bounds to integral expressions:
 
   \begin{itemize}
   \item
-    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsnone, and \var{e2} has
-    \boundsnone, and it can be proved that \texttt{\var{e1} != 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
+    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsunknown, and \var{e2} has
+    \boundsunknown, and it can be proved that \texttt{\var{e1} != 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
     If the special variable \exprcurrentvalue\ occurs in \var{b}.
-    bounds of the expression are altered to be \boundsnone. Shift
+    bounds of the expression are altered to be \boundsunknown. Shift
     expressions are not invertible because they lose information.
   \end{itemize}
 \end{itemize}
