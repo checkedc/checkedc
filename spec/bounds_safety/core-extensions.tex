@@ -284,7 +284,7 @@ to represent pointers to these kinds of arrays.  We divide
 these arrays into two parts: a prefix with bounds and
 a sequence of additional elements that ends
 with a null terminator.  The initial elements of the 
-sequence can be read, providing that preceding elements
+sequence can be read, provided that preceding elements
 are not the null terminator.  The bounds can be 
 {\em widened} based on the number of elements read.
 
@@ -293,7 +293,8 @@ are declared, they are used to check that accesses to memory are in range
 at runtime.
 
 If no bounds are declared, the bounds are inferred.  At variable declarations,
-the declared bounds are for arrays with 0 elements.  At variable uses, 
+the declared bounds are for arrays with a prefix of 0 elements.
+At variable uses, 
 the bounds are determined using a program analysis that widens
 bounds based on control-flow.
 The bounds are then used to check memory accesses.
@@ -353,21 +354,20 @@ instead of the \keyword{checked} keyword:
 \begin{verbatim}
 int arr nt_checked[10];
 \end{verbatim}
-\verb+nt_checked+ declares an array that is followed by a null
-terminator.  The null terminator is {\em not} included in the
-the dimension size.
+\verb+nt_checked+ declares an array whose
+last element is a null terminator.  The size of the
+array includes the null terminator element.
 Here is an example of a declaration of a checked null-terminated
 array type for a string constant:
 \begin{verbatim}
-char s nt_checked[5] = "hello";
+char s nt_checked[6] = "hello";
 \end{verbatim}
 
-An \keyword{nt\_checked} array with a dimension \var{d} converts
-to an \ntarrayptr\ with \var{d} elements.   This means that programs
-can still read the element containing the null terminator.  However,
-attempting to overwrite it is a runtime error.  The \verb+sizeof+
-operator applied to a null-terminated array includes the null
-terminator in the size computation.
+An \keyword{nt\_checked} array with size \var{d} converts
+to an \ntarrayptr\ with a count of \var{d - 1} elements.
+This is the number of elements in the prefix array.   This means that
+programs can still read an array element containing a null terminator.
+However, attempting to overwrite a null terminator is a runtime error.
 
 \subsection{\ntarrayptr\ usually follows the rules for \arrayptr}
 Because \ntarrayptr\ extends \arrayptr, the discussion and rules for
