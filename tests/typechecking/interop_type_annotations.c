@@ -334,7 +334,7 @@ void f252(float a[10] : itype(double checked[10])) { // expected-error {{mismatc
 }
 
 // Array types
-void f253(int a[10][10] : itype(int checked[10][11])) { // expected-error {{mismatch between interface type '_Array_ptr<int checked[11]>' and declared type 'int (*)[10]'}}
+void f253(int a[10][10] : itype(int checked[10][11])) { // expected-error {{mismatch between interface type '_Array_ptr<int _Checked[11]>' and declared type 'int (*)[10]'}}
 }
 
 void f254(int(*a)[10] : itype(ptr<int checked[]>)) {  // expected-error {{mismatch between interface type}}
@@ -821,7 +821,7 @@ float **g251 : itype(ptr<ptr<int>>);  // expected-error {{mismatch between inter
 float g252[10] : itype(double checked[10]); // expected-error {{mismatch between interface type}}
 
 // Array types
-int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int checked[10][11]' and declared type 'int [10][10]'}}
+int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int _Checked[10][11]' and declared type 'int [10][10]'}}
 int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{mismatch between interface type}}
 int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{mismatch between interface type}}
 
@@ -1063,7 +1063,7 @@ struct S9 {
   float g252[10] : itype(double checked[10]); // expected-error {{mismatch between interface type}}
 
   // Array types
-  int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int checked[10][11]' and declared type 'int [10][10]'}}
+  int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int _Checked[10][11]' and declared type 'int [10][10]'}}
   int (*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{mismatch between interface type}}
   int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{mismatch between interface type}}
 
@@ -1219,7 +1219,7 @@ union U9 {
   float g252[10] : itype(double checked[10]); // expected-error {{mismatch between interface type}}
 
   // Array types
-  int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int checked[10][11]' and declared type 'int [10][10]'}}
+  int g253[10][10] : itype(int checked[10][11]); // expected-error {{mismatch between interface type 'int _Checked[10][11]' and declared type 'int [10][10]'}}
   int(*g254)[10] : itype(ptr<int checked[]>);   // expected-error {{mismatch between interface type}}
   int(*g255)[] : itype(ptr<int checked[10]>);    // expected-error {{mismatch between interface type}}
 
