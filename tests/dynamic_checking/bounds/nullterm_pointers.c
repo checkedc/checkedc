@@ -147,7 +147,7 @@ void test3(void) {
     *s = 'd';
   }
   // CHECK-NOT: expected bounds failure on write
-  puts("Expected bounds failure on write");
+  puts("expected bounds failure on write");
   return;
 }
 
