@@ -11,8 +11,8 @@
 extern void f1() {
   array_ptr<int> v1;
   array_ptr<int> v2 = 0;
-  array_ptr<int> v3 : bounds(none);
-  array_ptr<int> v4 : bounds(none) = 0;
+  array_ptr<int> v3 : bounds(unknown);
+  array_ptr<int> v4 : bounds(unknown) = 0;
   array_ptr<int> v5 : count(5) = 0;
   array_ptr<int> v6 : count(5);                       // expected-error {{automatic variable 'v6' with bounds must have initializer}}
   array_ptr<int> v7 : byte_count(5 * sizeof(int)) = 0;

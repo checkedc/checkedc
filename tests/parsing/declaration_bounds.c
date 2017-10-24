@@ -15,7 +15,7 @@ extern array_ptr<int> c : count(cLen);
 extern array_ptr<int> d : byte_count(20);
 extern array_ptr<int> e : byte_count(5 * sizeof(int));
 extern array_ptr<int> f : byte_count(cLen * sizeof(int));
-extern array_ptr<int> g : bounds(none);
+extern array_ptr<int> g : bounds(unknown);
 extern array_ptr<int> h : bounds(f - 2, f + 3);
 extern array_ptr<int> i : count(5), j : bounds(i - 2, i + 3),
                       k : bounds(j + 2, j + 5);
@@ -26,7 +26,7 @@ static _Thread_local array_ptr<int> m : count(5);
 
 array_ptr<int> b : count(3 + 2) = 0;
 array_ptr<int> d : byte_count(20) = 0;
-array_ptr<int> g : bounds(none) = 0;
+array_ptr<int> g : bounds(unknown) = 0;
 
 // Declare a bounds for a checked array.  This is legal, but
 // unnecessary.
@@ -43,8 +43,8 @@ extern void f1(array_ptr<int> arr : count(5)) {
   array_ptr<int> t : byte_count(5 * sizeof(int)) = arr;
   array_ptr<int> u : byte_count(len * sizeof(int)) = arr;
   array_ptr<int> v : bounds(v, v + 5) = arr;
-  array_ptr<int> w : bounds(none) = arr;
-  array_ptr<int> x : bounds(none);
+  array_ptr<int> w : bounds(unknown) = arr;
+  array_ptr<int> x : bounds(unknown);
   array_ptr<int> midarr : bounds(midarr - 1, midarr - 1 + 2) = arr + 2;
 
   static array_ptr<int> cache1 : count(5);
@@ -58,7 +58,7 @@ extern void f2(array_ptr<int> arr : count(5)) {
   array_ptr<int> r : count(len) = arr, s : byte_count(20) = arr;
   array_ptr<int> t : byte_count(5 * sizeof(int)) = arr,
                  u : bounds(u, u + 5) = arr,
-                 v : bounds(none) = arr;
+                 v : bounds(unknown) = arr;
 }
 
 // Parenthesized subexpressions
@@ -80,11 +80,11 @@ extern void f3(array_ptr<int> arr : count(5)) {
 extern void f4(array_ptr<int> arr : count(len), int len) {
   int count = len;
   array_ptr<int> p : count(count) = arr;
-  int none = 0;
-  // none is a contextual a keyword if it follows 'bounds' '('
-  array_ptr<int> q : bounds(none) = arr;
-  array_ptr<int> r : bounds(none + arr, arr + len) = arr; // expected-error {{expected ')'}} expected-note {{to match this '('}}
-  array_ptr<int> s : bounds(arr + none, arr + len) = arr;
+  int unknown = 0;
+  // unknown is a contextual a keyword if it follows 'bounds' '('
+  array_ptr<int> q : bounds(unknown) = arr;
+  array_ptr<int> r : bounds(unknown + arr, arr + len) = arr; // expected-error {{expected ')'}} expected-note {{to match this '('}}
+  array_ptr<int> s : bounds(arr + unknown, arr + len) = arr;
   array_ptr<int> t : bounds(t, t + count) = arr;
   int bounds = len;
   array_ptr<int> u : bounds(u, u + bounds) = arr;
