@@ -102,7 +102,7 @@ void check_nullterm_restrictions(void) {
 // void pointers and pointers with constant/volatile attributes.
 extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
                          float *s, ptr<float> t, array_ptr<float> u,
-                         nt_array_ptr<int> v, nt_array_ptr<short> x) {
+                         nt_array_ptr<int> v : count(1), nt_array_ptr<short> x) {
     int *t1 = p;              // T *  = T * OK
     ptr<int> t2 = &val;       // ptr<T> = T * OK when T * has known bounds
     ptr<int> t3 = q;          // ptr<T> = ptr<T> OK
@@ -120,8 +120,7 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
                               // T * = nt_array_ptr<T> not OK
     ptr<int> t8 = r;          // expected-error {{expression has no bounds}}
                               // ptr<T> = array_ptr<T> OK
-    ptr<int> t8a = v;         // expected-error {{expression has no bounds}}
-                              // ptr<T> = nt_array_ptr<T> OK.
+    ptr<int> t8a = v;         // ptr<T> = nt_array_ptr<T> OK.
     array_ptr<int> t9 = q;    // array_ptr<T> = ptr<T> OK
     array_ptr<int> t10a = v;  // array_ptr<T> = nt_array_ptr<T> OK.
     nt_array_ptr<int> t10b = q; // expected-error {{incompatible type}}
