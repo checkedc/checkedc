@@ -1314,7 +1314,7 @@ void check_pointer_arithmetic(void) {
 
   int *p_tmp;
   array_ptr<int> r_tmp;
-  nt_array_ptr<int> s_tmp;
+  nt_array_ptr<int> s_tmp = 0;
 
   p_tmp = p + 5;
   p_tmp = 5 + p;

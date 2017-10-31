@@ -385,7 +385,7 @@ extern void check_assign_cv(void) {
     array_ptr<volatile int> r_volatile = 0;
     nt_array_ptr<int> s = 0;
     nt_array_ptr<const int> s_const = 0;
-    nt_array_ptr<volatile int> s_volatile;
+    nt_array_ptr<volatile int> s_volatile = 0;
 
     p_const = p;    // unsafe pointer to const assigned unsafe pointer to non-const OK.
     q_const = q;    // ptr to const assigned ptr to non-const OK.
@@ -1156,7 +1156,7 @@ void check_pointer_arithmetic(void)
    // nt_array_ptr<void> is not allowed, so we don't have to test it.
    int *p_tmp;
    array_ptr<int> r_tmp;
-   nt_array_ptr<int> s_tmp;;
+   nt_array_ptr<int> s_tmp = 0;
 
    p_tmp = p + 5;
    p_tmp = 5 + p;
