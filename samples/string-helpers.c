@@ -1,0 +1,215 @@
+// This file contains examples that illustrate the use of strings in
+// Checked C.  Strings are null-terminated arrays of characters in C.
+// The examples are adapted from "The C Programming Language", Second Edition,
+// by Brian Kernighan and Dennis Ritchie.
+//
+// To compile the file using clang, on Unix/Mac use
+//  clang -o string-helpers -fcheckedc-extension string-helper.c
+// On Windows use:
+//  clang -o string-helpers.exe -fcheckedc-extension string-helper.c
+// 
+// Then run the program with 6 string arguments, the 3rd of which should
+// be an integer  For example:
+//   string-helpers hello meet -125 fed brown red
+//  
+// Overview of using null-terminated arrays in Checked C:
+//
+//   In Checked C, pointers to null-terminated data are represented using the
+//   nt_array_ptr type.  Arrays of null-terminated data are represented
+//   using the nt_checked type.
+//
+//   These types follow slightly different rules than
+//   array_ptr and checked arrays do:
+//   - Given an nt_array_ptr, the element exactly at the
+//     upper bound of the nt_array_ptr can be read but not
+//     written.
+//   - Given an nt_checked array, it has count of
+//      of elements that excludes the null terminator (is one
+//      less than the declared size).
+//   - nt_array_ptr have a default bounds of count(0). This
+//     means that you can can dereference an nt_array_ptr without
+//     bounds (NOTE: the compiler is currently not yet inserting
+//     the default bounds.  You'll need to add them explicitly.
+//
+//   Some simple examples:
+//
+//   The following is valid for an nt_array_ptr.  It
+//   would fail at run-time for an array_ptr.
+//
+//   char fetch(nt_array_ptr<char> p : count(0)) {
+//     return *p;
+//   }
+//
+//   The following code is valid for nt_array_ptr.
+//   It would fail at runtime for an array_ptr.
+//
+//   int f(nt_array_ptr<char> p : count(n), int n) {
+//     if (p[n]) {  // read eleement at upper bound.
+//       ...
+// 
+//   The following code fails at runtime for both
+//   nt_array_ptr and array_ptr:
+//
+//   int set(nt_array_ptr<char> p : count(n), int n, int v) {
+//     p[n] = v;  // runtime error! attempt to write element at upper bound.
+//     ...
+// 
+//   The following example illustrates how bounds differ from
+//   the count:
+//
+//   nt_array_ptr<char> : count(5) = "hello";
+//
+//   The string "hello" contains 6 characters, the last of which is 
+//   a null terminator.  The valid bounds is count(5).
+//
+//
+// About the example functions.
+//
+// There three important aspects to using
+// null-terminated character pointers. in Checked C:
+// 1. Nt_array_ptrs with no bounds declared have a default bounds of count(0).
+// 2. If you are using array subscripting to access the nt_array_ptr,
+//    you'll need to widen the bounds as you determine the last character
+//    is not a null terminator.  This is typically done by 
+//    declaring bounds involving a separate counter:
+//        array_ptr<char> p : count(0);
+//        int i = 0;
+//        array_ptr<char> tmp : count(i) = p;
+// 3. While you can read the element at the upper bound, you have
+//    to be careful to not try to write to it.  If you have code that
+//    modifies a string at the upper bound, for now you must widen
+//    the bounds manually by introducing a tempoary variable.
+//
+//    The following code will break:
+//      int i = 0;
+//      nt_array_ptr<char> arr : count(i) = ...
+//      for ( ; arr[i] !=0; i++) {
+//         arr[i] = ... // error, overwriting character at upper bound. i++
+//                      // has not changed yet!
+//
+//    The recommended approach is to introduce a temporary variable with
+//    widened bounds.
+//      int i = 0;
+//      nt_array_ptr<char> arr : count(i) = ..
+//      for ( ; arr[i] !=0; i++) {
+//         nt_array_ptr<char> : count(i+1) tmp = p;
+//         tmp[i] = ...
+//      
+//  The function my_strlen show points 1 and 2.  It is less
+//  frequent for string functions to modify strings.  The function squeeze,
+//  which does do that, shows point 3.
+//
+// (We plan to help programmers with point 3 by introducing a compiler analysis that
+//  automatically widens bounds for null-terminated arrays base on local
+//  information, but that is not done yet).
+
+#include <ctype.h>
+#include <stdchecked.h>
+#include <stdio_checked.h>
+
+// Return length of p (adapted from p. 39, K&R 2nd Edition).
+checked int my_strlen(nt_array_ptr<char> p : count(0)) {
+  int i = 0;
+  // Create a temporary whose count of elements
+  // can change.
+  nt_array_ptr<char> s : count(i) = p;
+  // s[i] != 0 implies that the count can increase
+  // by 1.
+  while (s[i] != '\0')
+    ++i;
+  return i;
+}
+
+// Delete all c from p (adapted from p. 47, K&R 2nd Edition)
+checked void squeeze(nt_array_ptr<char> p : count(0), char c) {
+  int i = 0, j = 0;
+  // Create a temporary whose count of elements can
+  // change.
+  nt_array_ptr<char> s : count(i) = p;
+  for ( ; s[i] != '\0'; i++) {
+    // We need to widen the bounds of s so that we
+    // can assign to s[j] when j == i.
+    // (In the long run, this will be taken care of by the
+    // flow-sensitive bounds widening).
+    nt_array_ptr<char> tmp : count(i + 1) = s;
+    if (tmp[i] != c)
+      tmp[j++] = tmp[i];
+  }
+  // Tricky case: if i == j, s[j] = `\0' would
+  // attempt to write to the character at the upper
+  // bound.  This would be a runtime error.  Only
+  // write a `\0` if we removed a character.
+  if (j < i)
+    s[j] = '\0';
+}
+
+// Convert p to integer (adapted from p. 61, K&R 2nd Edition).
+checked int my_atoi(char p nt_checked[] : count(0)) {
+  int i = 0;
+  int n = 0;
+  // Bounds of s grow as we establish that s[i] != 0
+  nt_array_ptr<char> s : count(i) = p;
+  for (i = 0; isspace(s[i]) && s[i] != 0; i++)  // skip white space
+    ;
+  int sign = (s[i] == '-') ? -1 : 1;
+  if (s[i] == '+' || s[i] == '-') // skip sign
+    i++;
+
+  for (; s[i] >= '0' && s[i] <= '9'; ++i)
+    n = 10 * n + (s[i] - '0');
+
+  return sign * n;
+}
+
+// Reverse a string in place (p. 62, K&R 2nd Edition)
+checked void reverse(nt_array_ptr<char> p : count(0)) {
+  int len = 0;
+  // Calculate the length of the string.
+  nt_array_ptr<char> s : count(len) = p;
+  for (; s[len]; len++);
+
+  // Now that we know the length, use pointer
+  // just like we would use an array_ptr
+  for (int i = 0, j = len - 1; i < j; i++, j--) {
+    int c = s[i];
+    s[i] = s[j];
+    s[j] = c;
+  }
+}
+
+// Return < 0 if s < t, 0 if s == t, > 0 if s > t.
+// Adapted from p.106, K&R 2nd Edition.
+checked int my_strcmp(nt_array_ptr<char> s : count(0),
+                      nt_array_ptr<char> t : count(0)) {
+  // Reading *s and *t is allowed for count(0)
+  for (; *s == *t; s++, t++) // Incrementing s, t allowed because *s, *t != `\0`
+    if (*s == '\0')
+      return 0;
+  return *s - *t;
+}
+
+int main(int argc, nt_array_ptr<char> argv checked[] : count(argc)) {
+  if (argc < 7) {
+    printf("Usage: %s arg1 arg2 <integer> ... arg6", argv[0]);
+    return 0;
+  }
+  // Temporary scaffolding pending Checked C compiler change to
+  // set default bounds for nt_array_ptr<char> to count(0);
+  nt_array_ptr<char> arg1 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[1], 0);
+  nt_array_ptr<char> arg2 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[2], 0);
+  nt_array_ptr<char> arg3 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[3], 0);
+  nt_array_ptr<char> arg4 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[4], 0);
+  nt_array_ptr<char> arg5 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[5], 0);
+  nt_array_ptr<char> arg6 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[6], 0);
+  printf("strlen(\"%s\") = %d\n", arg1, my_strlen(arg1));
+  printf("squeeze(\"%s\",'e') = ", arg2);
+  squeeze(arg2, 'e');
+  printf("\"%s\"\n", arg2);
+  printf("atoi(\"%s\") = %d\n", arg3, my_atoi(arg3));
+  printf("reverse(\"%s\") = ", arg4);
+  reverse(arg4);
+  printf("\"%s\"\n", arg4);
+  printf("strcmp(\"%s\", \"%s\") = %d\n", arg5, arg6, my_strcmp(arg5, arg6));
+  return 0;
+}
+
