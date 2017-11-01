@@ -188,7 +188,7 @@ checked int my_strcmp(nt_array_ptr<char> s : count(0),
   return *s - *t;
 }
 
-int main(int argc, nt_array_ptr<char> argv[] : count(argc)) {
+int main(int argc, nt_array_ptr<char> argv checked[] : count(argc)) {
   if (argc < 7) {
     printf("Usage: %s arg1 arg2 <integer> ... arg6", argv[0]);
     return 0;
