@@ -14,6 +14,19 @@
 
 #pragma BOUNDS_CHECKED ON
 
+// GCC has macros that it uses as part of its string implementation to optimize cases
+// where one or both strings are compile-time constants.  I'm not sure
+// why they put this logic into a macro instead of the compiler because the
+// compiler can recognize these cases in more contexts than a macro, but they
+// did.
+//
+// For now, turn off the optimization to avoid two problems:
+//  1. Macro names for string functions are defined at this point, and the macro gets
+//     expanded in the redeclarations.
+//  2. The macros would break in a checked context anyway because they contain
+//      casts involving unchecked pointers.
+#define __NO_STRING_INLINES
+
 // TODO: Apple System Headers Support
 #if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
 void *memcpy(void * restrict dest : byte_count(n),
@@ -62,14 +75,7 @@ int strcmp(const char *src1 : itype(_Nt_array_ptr<const char>),
 int strcoll(const char *src1 : itype(_Nt_array_ptr<const char>),
             const char *src2 : itype(_Nt_array_ptr<const  char>));
 
-// Linux header files declare strncmp and also define a macro for it.
-// Undef the macro so that we can redeclare strncmp.
-//
-// Section 7.1.4 of the C11 standard allows the use of #undef to prevent
-// macros from interfering  with explicit declarations of library functions.
-// It is legal to #undef a macro that isn't defined, so we don't need to
-// conditionalize this.
-#undef strncmp
+
 int strncmp(const char *src : count(n), const char *s2 : count(n), size_t n);
 
 size_t strxfrm(char * restrict dest : count(n),
