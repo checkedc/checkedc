@@ -8,9 +8,6 @@
 //                                                                     //
 // These are based on the types as declared within clang               //
 // and https://gcc.gnu.org/onlinedocs/gcc/Object-Size-Checking.html    //
-//                                                                     //
-// TODO: revise string types after support for pointers to             //
-// null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 
 #include "_builtin_common.h"
@@ -26,7 +23,8 @@ int __snprintf_chk(char * __restrict s : count(n),
                           size_t n,
                           int flag,
                           size_t obj_size,
-                          const char * __restrict format,
+                          const char * __restrict format :
+                            itype(restrict _Nt_array_ptr<const char>),
                           ...);
 
 _Unchecked
@@ -34,7 +32,9 @@ int __builtin___snprintf_chk(char * restrict s : count(n),
                              size_t n,
                              int flag,
                              size_t obj_size,
-                             const char * restrict format,
+                             const char * restrict format :
+                               itype(restrict _Nt_array_ptr<const char>)
+                             ,
                              ...);
 #endif
 
@@ -45,7 +45,8 @@ int __vsnprintf_chk(char * __restrict s : count(n),
                            size_t n,
                            int flag,
                            size_t obj_size,
-                           const char * __restrict format,
+                           const char * __restrict format :
+                             itype(restrict _Nt_array_ptr<const char>),
                            va_list);
 
 _Unchecked
@@ -53,7 +54,8 @@ int __builtin___vsnprintf_chk(char * restrict s : count(n),
                               size_t n,
                               int flag,
                               size_t obj_size,
-                              const char * restrict format,
+                              const char * restrict format :
+                                itype(restrict _Nt_array_ptr<const char>),
                               va_list arg);
 #endif
 

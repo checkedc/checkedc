@@ -8,9 +8,6 @@
 //                                                                     //
 // These are based on the types as declared within clang               //
 // and https://gcc.gnu.org/onlinedocs/gcc/Object-Size-Checking.html    //
-//                                                                     //
-// TODO: revise string types after support for pointers to             //
-// null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 
 #include "_builtin_common.h"
@@ -42,10 +39,13 @@ void *__builtin___memset_chk(void * s : byte_count(n),
 #endif
 
 #if __has_builtin(__builtin___strncat_chk) || defined(__GNUC__)
-char *__builtin___strncat_chk(char * restrict dest : count(n),
+// TODO: we have no way to express the bounds requirement on dest,
+// which needs to be count(strlen(dest) + n).
+_Unchecked
+char *__builtin___strncat_chk(char * restrict dest,
                               const char * restrict src : count(n),
                               size_t n,
-                              size_t obj_size) : bounds(dest, (_Array_ptr<char>)dest + n);
+                              size_t obj_size);
 #endif
 
 #if __has_builtin(__builtin___strncpy_chk) || defined(__GNUC__)

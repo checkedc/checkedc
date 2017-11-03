@@ -8,9 +8,6 @@
 //                                                                     //
 // These are based on the types as declared within clang               //
 // and https://gcc.gnu.org/onlinedocs/gcc/Object-Size-Checking.html    //
-//                                                                     //
-// TODO: revise string types after support for pointers to             //
-// null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef __has_builtin

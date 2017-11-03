@@ -4,48 +4,53 @@
 //                                                                     //
 // These are listed in the same order that they occur in the C11       //
 // specification.                                                      //
-//                                                                     //
-// TODO: revise string types after support for pointers to             //
-// null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 #include <stdlib.h>
 
 #pragma BOUNDS_CHECKED ON
 
-// TODO: strings
-// double atof(const char *s);
-// int atoi(const char *s);
-// long int atol(const char *s);
-// long long int atoll(const char *s);
+double atof(const char *s : itype(_Nt_array_ptr<const char>));
+int atoi(const char *s : itype(_Nt_array_ptr<const char>));
+long int atol(const char *s : itype(_Nt_array_ptr<const char>));
+long long int atoll(const char *s : itype(_Nt_array_ptr<const char>));
 
-_Unchecked
-double strtod(const char * restrict nptr,
-              char ** restrict endptr : itype(restrict _Ptr<char *>));
-_Unchecked
-float strtof(const char * restrict nptr,
-             char ** restrict endptr : itype(restrict _Ptr<char *>));
-_Unchecked
-long double strtold(const char * restrict nptr,
-                    char ** restrict endptr : itype(restrict _Ptr<char *>));
+double strtod(const char * restrict nptr :
+                itype(restrict _Nt_array_ptr<const char>),
+              char ** restrict endptr :
+                itype(restrict _Ptr<_Nt_array_ptr<char>>);
 
-_Unchecked
-long int strtol(const char * restrict nptr,
-                char ** restrict endptr : itype(restrict _Ptr<char *>),
+float strtof(const char * restrict nptr :
+               itype(restrict _Nt_array_ptr<const char>),
+             char ** restrict endptr :
+                itype(restrict _Ptr<_Nt_array_ptr<char>>));
+
+long double strtold(const char * restrict nptr :
+                      itype(restrict _Nt_array_ptr<const char>),
+                    char ** restrict endptr :
+                       itype(restrict _Ptr<_Nt_array_ptr<char>>));
+
+long int strtol(const char * restrict nptr :
+                  itype(restrict _Nt_array_ptr<const char>),
+                char ** restrict endptr :
+                  itype(restrict _Ptr<_Nt_array_ptr<char>>),
                 int base);
-_Unchecked
-long long int strtoll(const char * restrict nptr,
-                      char ** restrict endptr : itype(restrict _Ptr<char *>),
+
+long long int strtoll(const char * restrict nptr :
+                        itype(restrict _Nt_array_ptr<const char>),
+                      char ** restrict endptr :
+                        itype(restrict _Ptr<_Nt_array_ptr<char>>),
                       int base);
-_Unchecked
-unsigned long int strtoul(const char * restrict nptr,
+
+unsigned long int strtoul(const char * restrict nptr :
+                            itype(restrict _Nt_array_ptr<const char>),
                           char ** restrict endptr :
-                            itype(restrict _Ptr<char *>),
+                            itype(restrict _Ptr<_Nt_array_ptr<char>>),
                           int base);
 
-_Unchecked
-unsigned long long int strtoull(const char * restrict nptr,
+unsigned long long int strtoull(const char * restrict nptr :
+                                  itype(restrict _Nt_array_ptr<const char>),
                                 char ** restrict endptr:
-                                   itype(restrict _Ptr<char *>),
+                                   itype(restrict _Ptr<_Nt_array_ptr<char>>),
                                 int base);
 
 // TODO: express alignment constraints once where clauses have been added.
@@ -55,14 +60,12 @@ void free(void *pointer : byte_count(1));
 void *malloc(size_t size) : byte_count(size);
 void *realloc(void *pointer : byte_count(1), size_t size) : byte_count(size);
 
-// TODO: strings
-// char *getenv(const char *n);
+char *getenv(const char *n : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
 
 int atexit(void ((*func)(void)) : itype(_Ptr<void (void)>));
 int atquick_exit(void ((*func)(void)) : itype(_Ptr<void (void)>));
 
-// TODO: strings
-// int system(const char *s);
+int system(const char *s : itype(_Nt_array_ptr<char>));
 
 // TODO: compar needs to have an itype that has bounds
 // on parameters based on size.  Currently we are requiring that
@@ -94,14 +97,14 @@ int mbtowc(wchar_t * restrict output : itype(restrict _Ptr<wchar_t>),
 // 
 // int wctomb(char *s : count(MB_CUR_MAX), wchar_t wc);
 
-_Unchecked
 size_t mbstowcs(wchar_t * restrict pwcs : count(n),
-                const char * restrict s,
+                const char * restrict s :
+                  itype(restrict _Nt_array_ptr<const char>),
                 size_t n);
 
-_Unchecked
 size_t wcstombs(char * restrict output : count(n),
-                const wchar_t * restrict pwcs,
+                const wchar_t * restrict pwcs :
+                  itype(restrict _Nt_array_ptr<const wchar_t>),
                 size_t n);
 
 #pragma BOUNDS_CHECKED OFF
