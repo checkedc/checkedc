@@ -111,6 +111,14 @@ void f42(array_ptr<int> p : count(len), int len);  // expected-error {{function 
 void f43(array_ptr<int> p : count(len), int len);
 void f43(array_ptr<int> p, int len);               // expected-error {{function redeclaration dropped bounds for parameter}}
 
+void f44(array_ptr<int> p);
+void f44(array_ptr<int> p : bounds(unknown));
+
+// Pointers with a null-terminated pointer type have a default bounds of count(0)
+void f45(nt_array_ptr<int> p);
+void f45(nt_array_ptr<int> p : count(0));
+void f45(nt_array_ptr<int> p : count(1));   // expected-error {{conflicting parameter bounds}}
+
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds-safe interfaces for returns  //
 // must have matching interfaces.                                            //
