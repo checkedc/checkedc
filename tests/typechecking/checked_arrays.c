@@ -1225,7 +1225,8 @@ ptr<int> h17(int arr checked[]) {
 }
 
 ptr<int> h17a(int arr nt_checked[]) {
-  return arr;  // expected-error {{expression has no bounds}}, ptr<T> = nt_array_ptr<T> OK
+  // TODO: bounds declaration checking should fail because count(0) isn't large enough.
+  return arr;  // ptr<T> = nt_array_ptr<T> OK
 }
 
 array_ptr<int> h18(int arr checked[]) {
