@@ -29,7 +29,7 @@ struct tm *localtime(const time_t *timer : itype(_Ptr<const time_t>)) :
 
 size_t strftime(char * restrict output : count(maxsize),
                 size_t maxsize,
-                const char * restrict format : itype(_Nt_array_ptr<const char>),
+                const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
                 const struct tm * restrict timeptr :
                    itype(restrict _Ptr<const struct tm>));
 

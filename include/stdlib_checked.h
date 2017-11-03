@@ -17,7 +17,7 @@ long long int atoll(const char *s : itype(_Nt_array_ptr<const char>));
 double strtod(const char * restrict nptr :
                 itype(restrict _Nt_array_ptr<const char>),
               char ** restrict endptr :
-                itype(restrict _Ptr<_Nt_array_ptr<char>>);
+                itype(restrict _Ptr<_Nt_array_ptr<char>>));
 
 float strtof(const char * restrict nptr :
                itype(restrict _Nt_array_ptr<const char>),
@@ -65,7 +65,7 @@ char *getenv(const char *n : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array
 int atexit(void ((*func)(void)) : itype(_Ptr<void (void)>));
 int atquick_exit(void ((*func)(void)) : itype(_Ptr<void (void)>));
 
-int system(const char *s : itype(_Nt_array_ptr<char>));
+int system(const char *s : itype(_Nt_array_ptr<const char>));
 
 // TODO: compar needs to have an itype that has bounds
 // on parameters based on size.  Currently we are requiring that

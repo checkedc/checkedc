@@ -103,7 +103,7 @@ int vsnprintf(char * restrict s : count(n), size_t n,
 _Unchecked
 int vsprintf(char * restrict s,
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
-/            va_list arg);
+             va_list arg);
 _Unchecked
 int vsscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),

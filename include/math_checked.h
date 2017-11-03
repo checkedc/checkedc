@@ -25,6 +25,6 @@ long double remquol(long double x, long double y, int *quo : itype(_Ptr<int>));
 
 double nan(const char *t : itype(_Nt_array_ptr<const char>));
 float nanf(const char *t : itype(_Nt_array_ptr<const char>));
-long double nanf(const char *t : itype(_Nt_array_ptr<const char>));
+long double nanl(const char *t : itype(_Nt_array_ptr<const char>));
 
 #pragma BOUNDS_CHECKED OFF

@@ -27,6 +27,7 @@ void *memmove(void * restrict dest : byte_count(n),
 
 // Dest is left unchecked intentionally. There is no bound on dest, so this
 // is always an unchecked function
+_Unchecked
 char *strcpy(char * restrict s1,
               const char * restrict s2 : itype(restrict _Nt_array_ptr<const char>));
 
@@ -56,10 +57,10 @@ char *strncat(char * restrict dest,
 int memcmp(const void *src1 : byte_count(n), const void *src2 : byte_count(n),
            size_t n);
 
-int strcmp(const char *src1 : itype(_Nt_array_ptr<char>),
-           const char *src2 : itype(_Nt_array_ptr<char>));
-int strcoll(const char *src1 : itype(_Nt_array_ptr<char>),
-            const char *src2 : itype(_Nt_array_ptr<char>));
+int strcmp(const char *src1 : itype(_Nt_array_ptr<const char>),
+           const char *src2 : itype(_Nt_array_ptr<const char>));
+int strcoll(const char *src1 : itype(_Nt_array_ptr<const char>),
+            const char *src2 : itype(_Nt_array_ptr<const  char>));
 
 // Linux header files declare strncmp and also define a macro for it.
 // Undef the macro so that we can redeclare strncmp.
@@ -89,15 +90,15 @@ char *strpbrk(const char *s1 : itype(_Nt_array_ptr<const char>),
               const char *s2 : itype(_Nt_array_ptr<const char>)) :
   itype(_Nt_array_ptr<char>);
 char *strrchr(const char *s : itype(_Nt_array_ptr<const char>), int c) :
-  itype(_Nt_array_ptr<char>)
+  itype(_Nt_array_ptr<char>);
 size_t strspn(const char *s1 : itype(_Nt_array_ptr<const char>),
               const char *s2 : itype(_Nt_array_ptr<const char>));
 char *strstr(const char *s1 : itype(_Nt_array_ptr<const char>),
              const char *s2 : itype(_Nt_array_ptr<const char>)) :
   itype(_Nt_array_ptr<char>);
 char *strtok(char * restrict s1 : itype(restrict _Nt_array_ptr<char>),
-             const char * restrict s2 : itype(restrict _Nt_array_ptr<char>)) :
-  itype(_Nt_array_ptr<char>)
+             const char * restrict s2 : itype(restrict _Nt_array_ptr<const char>)) :
+  itype(_Nt_array_ptr<char>);
 
 // TODO: Apple System Headers Support
 #if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
