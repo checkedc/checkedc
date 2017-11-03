@@ -61,12 +61,11 @@ int printf(const char * restrict format : itype(restrict _Nt_array_ptr<const cha
 _Unchecked
 int scanf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 
-// OMITTED INTENTIONALLY:
-// sprintf cannot be made checked.  It is missing the bounds
-// for the output buffer.
-// int sprintf(char * restrict s,
-//            const char * restrict format, ...);
-//
+// The output buffer parameter s is an unchecked pointer because no bounds are provided.
+_Unchecked
+int sprintf(char * restrict s,
+            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+
 _Unchecked
 int sscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
@@ -99,12 +98,12 @@ int vsnprintf(char * restrict s : count(n), size_t n,
               const char * restrict format,
               va_list arg);
 #endif
-// OMITTED INTENTIONALLY:
-// vsprintf cannot be made checked. it is missing the bounds
-// for the output buffer.
-// int vsprintf(char * restrict s,
-//             const char * restrict format,
-//             va_list arg);
+
+// The output buffer parameter has an unchecked pointer type becuse it is missing bounds.
+_Unchecked
+int vsprintf(char * restrict s,
+             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
+/            va_list arg);
 _Unchecked
 int vsscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
