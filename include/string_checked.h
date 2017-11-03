@@ -24,14 +24,11 @@ void *memmove(void * restrict dest : byte_count(n),
               const void * restrict src : byte_count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
-// TODO: strings
-// char *strcpy(char * restrict dest,
-//              const char * restrict src);
 
-// OMITTED INTENTIONALLY: this cannot be made checked.
-// There is no bound on s1.
-// char *strcpy(char * restrict s1,
-//              const char * restrict s2);
+// Dest is left unchecked intentionally. There is no bound on dest, so this
+// is always an unchecked function
+char *strcpy(char * restrict s1,
+              const char * restrict s2 : itype(restrict _Nt_array_ptr<const char>));
 
 // TODO: Apple System Headers Support
 #if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
@@ -40,24 +37,29 @@ char *strncpy(char * restrict dest : count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 
-// OMITTED INTENTIONALLY: this cannot be made checked.
-// There is no bound on dest.
-// char *strcat(char * restrict dest,
-//              const char * restrict src);
+// Dest is left unchecked intentionally. There is no bound on dest, so this
+// is always an unchecked function.
+_Unchecked
+char *strcat(char * restrict dest,
+             const char * restrict src : itype(restrict _Nt_array_ptr<const char>));
 
 // TODO: Apple System Headers Support
 #if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
-char *strncat(char * restrict dest : count(n),
+// TODO: we have no way to express the bounds requirement on dest,
+// which needs to be count(strlen(dest) + n).
+_Unchecked
+char *strncat(char * restrict dest,
               const char * restrict src : count(n),
-              size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
+              size_t n);
 #endif
 
 int memcmp(const void *src1 : byte_count(n), const void *src2 : byte_count(n),
            size_t n);
 
-// TODO: strings
-// int strcmp(const char *src1, const char *src2);
-// int strcoll(const char *src1, const char *src2);
+int strcmp(const char *src1 : itype(_Nt_array_ptr<char>),
+           const char *src2 : itype(_Nt_array_ptr<char>));
+int strcoll(const char *src1 : itype(_Nt_array_ptr<char>),
+            const char *src2 : itype(_Nt_array_ptr<char>));
 
 // Linux header files declare strncmp and also define a macro for it.
 // Undef the macro so that we can redeclare strncmp.
@@ -69,23 +71,33 @@ int memcmp(const void *src1 : byte_count(n), const void *src2 : byte_count(n),
 #undef strncmp
 int strncmp(const char *src : count(n), const char *s2 : count(n), size_t n);
 
-_Unchecked
 size_t strxfrm(char * restrict dest : count(n),
-               const char * restrict src,
+               const char * restrict src :
+                 itype(restrict _Nt_array_ptr<const char>),
                size_t n);
 
 void *memchr(const void *s : byte_count(n), int c, size_t n) :
   bounds(s, (_Array_ptr<char>) s + n);
 
-// TODO: strings
-// char *strchr(const char *s, int c);
-// size_t strcspn(const char *s1, const char *s2);
-// char *strpbrk(const char *s1, const char *s2);
-// char *strrchr(const char *s, int c);
-// size_t strspn(const char *s1, const char *s2);
-// char *strstr(const char *s1, const char *s2);
-// char *strtok(char * restrict s1,
-//              const char * restrict s2);
+char *strchr(const char *s : itype(_Nt_array_ptr<const char>), int c) :
+  itype(_Nt_array_ptr<char>);
+
+size_t strcspn(const char *s1 : itype(_Nt_array_ptr<const char>),
+               const char *s2 : itype(_Nt_array_ptr<const char>));
+
+char *strpbrk(const char *s1 : itype(_Nt_array_ptr<const char>),
+              const char *s2 : itype(_Nt_array_ptr<const char>)) :
+  itype(_Nt_array_ptr<char>);
+char *strrchr(const char *s : itype(_Nt_array_ptr<const char>), int c) :
+  itype(_Nt_array_ptr<char>)
+size_t strspn(const char *s1 : itype(_Nt_array_ptr<const char>),
+              const char *s2 : itype(_Nt_array_ptr<const char>));
+char *strstr(const char *s1 : itype(_Nt_array_ptr<const char>),
+             const char *s2 : itype(_Nt_array_ptr<const char>)) :
+  itype(_Nt_array_ptr<char>);
+char *strtok(char * restrict s1 : itype(restrict _Nt_array_ptr<char>),
+             const char * restrict s2 : itype(restrict _Nt_array_ptr<char>)) :
+  itype(_Nt_array_ptr<char>)
 
 // TODO: Apple System Headers Support
 #if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
@@ -93,9 +105,8 @@ void *memset(void *s : byte_count(n), int c, size_t n) :
   bounds(s, (_Array_ptr<char>) s + n);
 #endif
 
-// TODO: strings
-// char *strerror(int errnum);
-// size_t strlen(const char *s);
+char *strerror(int errnum) : itype(_Nt_array_ptr<char>);
+size_t strlen(const char *s : itype(_Nt_array_ptr<const char>));
 
 #include "_builtin_string_checked.h"
 
