@@ -10,22 +10,29 @@
 //                                                                     //
 // TODO: Better Support for _FORTIFY_SOURCE > 0                        //
 /////////////////////////////////////////////////////////////////////////
+
 #include <string.h>
 
 #pragma BOUNDS_CHECKED ON
 
 // GCC has macros that it uses as part of its string implementation to optimize cases
 // where one or both strings are compile-time constants.  I'm not sure
-// why they put this logic into a macro instead of the compiler because the
+// why they put this logic into macros instead of the compiler because the
 // compiler can recognize these cases in more contexts than a macro, but they
 // did.
 //
-// For now, turn off the optimization to avoid two problems:
-//  1. Macro names for string functions are defined at this point, and the macro gets
-//     expanded in the redeclarations.
-//  2. The macros would break in a checked context anyway because they contain
-//      casts involving unchecked pointers.
-#define __NO_STRING_INLINES
+// For now, undefine the various macros.  GCC has a #define for turning off
+// this feature, but that must be set before string.h is included and we don't
+// control when that happens (string.h may already have been included before
+// this file is ever included).
+#if defined(__GNUC__)
+#undef strchr
+#undef strcmp
+#undef strcspn
+#undef strncmp
+#undef strncmp
+#undef strspn
+#endif
 
 // TODO: Apple System Headers Support
 #if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
