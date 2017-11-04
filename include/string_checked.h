@@ -31,6 +31,7 @@
 #undef strcspn
 #undef strncmp
 #undef strncmp
+#undef strpbrk
 #undef strspn
 #endif
 
