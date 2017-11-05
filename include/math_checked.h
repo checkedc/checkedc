@@ -4,9 +4,6 @@
 //                                                                     //
 // These are listed in the same order that they occur in the C11       //
 // specification.                                                      //
-//                                                                     //
-// TODO: revise string types after support for pointers to             //
-// null-terminated arrays is added to C.                               //
 /////////////////////////////////////////////////////////////////////////
 
 #include <math.h>
@@ -26,9 +23,8 @@ double remquo(double x, double y, int *quo : itype(_Ptr<int>));
 float remquof(float x, float y, int *quo : itype(_Ptr<int>));
 long double remquol(long double x, long double y, int *quo : itype(_Ptr<int>));
 
-#pragma BOUNDS_CHECKED OFF
+double nan(const char *t : itype(_Nt_array_ptr<const char>));
+float nanf(const char *t : itype(_Nt_array_ptr<const char>));
+long double nanl(const char *t : itype(_Nt_array_ptr<const char>));
 
-// TODO: strings
-// double nan(const char *t);
-// float nanf(const char *t);
-// long double nanf(const char *t);
+#pragma BOUNDS_CHECKED OFF
