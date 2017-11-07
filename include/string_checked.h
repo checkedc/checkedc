@@ -35,8 +35,7 @@
 #undef strspn
 #endif
 
-// TODO: Apple System Headers Support
-#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
+#if _FORTIFY_SOURCE == 0
 void *memcpy(void * restrict dest : byte_count(n),
              const void * restrict src : byte_count(n),
              size_t n) : bounds(dest, (_Array_ptr<char>) dest + n);
@@ -44,20 +43,21 @@ void *memcpy(void * restrict dest : byte_count(n),
 void *memmove(void * restrict dest : byte_count(n),
               const void * restrict src : byte_count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
-#endif
+
+void *memset(void * dest : byte_count(n),
+             int c,
+             size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
 
 // Dest is left unchecked intentionally. There is no bound on dest, so this
 // is always an unchecked function
 _Unchecked
-char *strcpy(char * restrict s1,
-              const char * restrict s2 : itype(restrict _Nt_array_ptr<const char>));
+char *strcpy(char * restrict dest,
+              const char * restrict src : itype(restrict _Nt_array_ptr<const char>));
 
-// TODO: Apple System Headers Support
-#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
+
 char *strncpy(char * restrict dest : count(n),
               const char * restrict src : count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
-#endif
 
 // Dest is left unchecked intentionally. There is no bound on dest, so this
 // is always an unchecked function.
@@ -65,8 +65,6 @@ _Unchecked
 char *strcat(char * restrict dest,
              const char * restrict src : itype(restrict _Nt_array_ptr<const char>));
 
-// TODO: Apple System Headers Support
-#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
 // TODO: we have no way to express the bounds requirement on dest,
 // which needs to be count(strlen(dest) + n).
 _Unchecked
@@ -113,12 +111,6 @@ char *strstr(const char *s1 : itype(_Nt_array_ptr<const char>),
 char *strtok(char * restrict s1 : itype(restrict _Nt_array_ptr<char>),
              const char * restrict s2 : itype(restrict _Nt_array_ptr<const char>)) :
   itype(_Nt_array_ptr<char>);
-
-// TODO: Apple System Headers Support
-#if !( defined(__APPLE__) && _FORTIFY_SOURCE > 0)
-void *memset(void *s : byte_count(n), int c, size_t n) :
-  bounds(s, (_Array_ptr<char>) s + n);
-#endif
 
 char *strerror(int errnum) : itype(_Nt_array_ptr<char>);
 size_t strlen(const char *s : itype(_Nt_array_ptr<const char>));
