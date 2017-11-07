@@ -4,6 +4,9 @@
 // The following lines are for the LLVM test harness:
 //
 // RUN: %clang -fcheckedc-extension -fsyntax-only %s
+// RUN: %clang -fcheckedc-extension -fsyntax-only -D_FORTIFY_SOURCE=0 %s
+// RUN: %clang -fcheckedc-extension -fsyntax-only -D_FORTIFY_SOURCE=1 %s
+// RUN: %clang -fcheckedc-extension -fsyntax-only -D_FORTIFY_SOURCE=2 %s
 
 #include "../../include/fenv_checked.h"
 #include "../../include/inttypes_checked.h"

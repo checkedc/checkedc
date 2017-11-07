@@ -50,60 +50,74 @@ int setvbuf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 // * Any pointer arguments may not meet the requirements of the
 //  format string.
 //
+#if _FORTIFY_SOURCE == 0
 _Unchecked
 int fprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+#endif
+
 _Unchecked
 int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+
+#if _FORTIFY_SOURCE == 0
 _Unchecked
 int printf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+#endif
+
 _Unchecked
 int scanf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 
+#if _FORTIFY_SOURCE == 0
 // The output buffer parameter s is an unchecked pointer because no bounds are provided.
 _Unchecked
 int sprintf(char * restrict s,
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+#endif
 
 _Unchecked
 int sscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
-// TODO: Apple System Headers Support
-#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+
+#if _FORTIFY_SOURCE == 0
 _Unchecked
 int snprintf(char * restrict s : count(n), size_t n,
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
-#endif
 
 _Unchecked
 int vfprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
              va_list arg);
+#endif
+
 _Unchecked
 int vfscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
             va_list arg);
 
+#if _FORTIFY_SOURCE == 0
 _Unchecked
 int vprintf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
              va_list arg);
+#endif
+
 _Unchecked
 int vscanf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
             va_list arg);
-// TODO: Apple System Headers Support
-#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+
+#if _FORTIFY_SOURCE == 0
 _Unchecked
 int vsnprintf(char * restrict s : count(n), size_t n,
               const char * restrict format,
               va_list arg);
-#endif
 
 // The output buffer parameter has an unchecked pointer type becuse it is missing bounds.
 _Unchecked
 int vsprintf(char * restrict s,
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
              va_list arg);
+#endif
+
 _Unchecked
 int vsscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
