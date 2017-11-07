@@ -9,7 +9,7 @@
 
 #pragma BOUNDS_CHECKED ON
 
-#if _POSIX_VERSION==200112L
+#if _POSIX_VERSION >= 200112L
 
 extern char ** environ : itype(_Nt_array_ptr<_Nt_array_ptr<char>>);
 
