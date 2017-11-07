@@ -50,6 +50,7 @@ char *__builtin___strcat_chk(char * restrict dest,
 #endif
 
 #if __has_builtin(__builtin___strcpy_chk) || defined(__GNUC__)
+// Left Unchecked Intentionally. See comment in string_checked.h
 _Unchecked
 char *__builtin___strcpy_chk(char * restrict dest,
                              const char * restrict src :
