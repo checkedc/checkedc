@@ -36,9 +36,9 @@ extern void f3() {
 
 extern void f4() {
   array_ptr<int> a : count(2) = 0;
-  array_ptr<ptr<char>> b : count(2) = 0;
+  array_ptr<char> b : count(2) = 0;
 
-  b = _Assume_bounds_cast<array_ptr<ptr<char>>>(a, 2);
+  b = _Assume_bounds_cast<array_ptr<char>>(a, 2);
   a = _Assume_bounds_cast<array_ptr<int>>(b); // expected-error {{invalid bounds cast}}
 }
 

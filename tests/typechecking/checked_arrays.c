@@ -1107,8 +1107,8 @@ void check_call_cv(void) {
                         // param int[10], arg const int[10] not OK
   f3(r_const, val);     // expected-warning {{discards qualifiers}}
                         // param int checked[10], arg const int checked[10] not OK
-  f3(s_const, val);     // expected-warning {{discards qualifiers}} //expected-error {{argument does not meet declared bounds for 1st parameter}}
-                        // param int nt_checked[10], arg const int checked[10] not OK
+  f3(s_const, val);     // expected-warning {{discards qualifiers}}
+                        // param int nt_checked[11], arg const int checked[10] not OK
 }
 
 //
