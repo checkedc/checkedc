@@ -21,8 +21,8 @@ extern void f2() {
   char p[10];
   array_ptr<int> a : count(1) = 0;
   int b checked[10];
-  array_ptr<int> c : count(10) = (array_ptr<int>)a;
-  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, 5);
+  array_ptr<int> c : count(10) = (array_ptr<int>)a; // expected-error {{declared bounds for 'c' are invalid after initialization}}
+  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, 5); // expected-error {{declared bounds for 'd' are invalid after initialization}}
   a = _Assume_bounds_cast<array_ptr<int>>(p); // expected-error {{invalid bounds cast}}
 }
 

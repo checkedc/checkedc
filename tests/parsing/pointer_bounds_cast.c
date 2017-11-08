@@ -14,7 +14,7 @@ extern void f1() {
 extern void f2() {
   char p[10];
   array_ptr<int> a : count(1) = 0;
-  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, 5);
+  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, 5); // expected-error {{declared bounds for 'd' are invalid after initialization}}
   a = _Assume_bounds_cast<array_ptr<int>) (p, p, p+1); // expected-error {{expected '>'}}
 }
 
@@ -140,9 +140,9 @@ extern void f14(array_ptr<int> arr : count(5)) {
 
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, count(10));
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 10));
-  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3)); // expected-error {{declared bounds for x are invalid after assignment}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr)); // expected-error {{expected ','}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(3 + 2));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(3 + 2));// expected-error {{declared bounds for x are invalid after assignment}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(len));
 }
