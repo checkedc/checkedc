@@ -168,7 +168,7 @@ checked int test_call_parameters(void) {
   int arr1 checked[4];
   f10(param1);
   f10(param2);
-  f10(param3);           // expected-error {{expression has no bounds}}
+  f10(param3);           // expected-error {{argument does not meet declared bounds for 1st parameter}}
   f10(arr1);
   f10(empty_global_arr); // expected-error {{expression has no bounds}}
 
@@ -190,7 +190,7 @@ checked int test_call_parameters(void) {
   f13(arr1);
   f13(empty_global_arr);
 
-  f14(param1);           // TODO: this should fail with checking of bounds declarations.
+  f14(param1);           // expected-error {{argument does not meet declared bounds for 1st parameter}}
   f14(param2);
   f14(param3);           // expected-error {{argument has no bounds}}
   f14(arr1);             
