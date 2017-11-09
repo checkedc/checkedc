@@ -1488,7 +1488,7 @@ checked void check_cast_operator(void) {
 
   // ptr to array, ptr to unchecked array
   parr = (ptr<int checked[5]>) &arr;
-  parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr);
+  parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr); // expected-error {{cast source bounds are too narrow for '_Ptr<int _Checked[5]>'}}
   parr = (ptr<int [5]>) &arr;   // expected-error {{type in a checked scope must use only checked types or parameter/return types with bounds-safe interfaces}}
   parr = (ptr<int *>) &arr;     // expected-error {{type in a checked scope must use only checked types or parameter/return types with bounds-safe interfaces}}
 

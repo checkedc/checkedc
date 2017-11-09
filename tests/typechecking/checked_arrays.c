@@ -1225,8 +1225,9 @@ ptr<int> h17(int arr checked[]) {
 }
 
 ptr<int> h17a(int arr nt_checked[]) {
-  // TODO: bounds declaration checking should fail because count(0) isn't large enough.
-  return arr;  // ptr<T> = nt_array_ptr<T> OK
+  return arr;  // expected-error {{cast source bounds are too narrow for '_Ptr<int>'}}
+               // ptr<T> = nt_array_ptr<T> OK for typechecking, but bounds
+               // declaration checking fails.
 }
 
 array_ptr<int> h18(int arr checked[]) {
@@ -1632,11 +1633,12 @@ void check_cast_operator(void) {
 
   // ptr to array
   parr = (ptr<int checked[5]>) &arr;
-  parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr);
+  parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr); // expected-error {{cast source bounds are too narrow for '_Ptr<int _Checked[5]>'}}
+
   parr = (ptr<int checked[3]>) &arr; // expected-error {{incompatible type}}
 
   nt_parr = (ptr<int nt_checked[5]>) &arr;
-  nt_parr = (ptr<int nt_checked[5]>) ((ptr<int checked[]>) &arr);
+  nt_parr = (ptr<int nt_checked[5]>) ((ptr<int checked[]>) &arr); //expected-error {{cast source bounds are too narrow for '_Ptr<int _Nt_checked[5]>'}}
   nt_parr = (ptr<int nt_checked[3]>) &arr; // expected-error {{incompatible type}}
 
   // array_ptr to array
