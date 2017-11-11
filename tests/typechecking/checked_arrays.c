@@ -888,7 +888,7 @@ extern void check_call(void) {
   // f3(int p checked[10], int y)
   f3(x, 0);
   f3(y, 0);
-  f3(z, 0);              // TODO: this will produce a bounds error.
+  f3(z, 0);              // expected-error {{argument does not meet declared bounds for 1st parameter}}
   f3(x2d, 0);            // expected-error {{parameter of incompatible type}}
   f3(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type '_Array_ptr<int>'}}
   f3(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type '_Array_ptr<int>'}}
@@ -1023,7 +1023,7 @@ extern void check_call(void) {
   g2(0, z);  // expected-error {{parameter of incompatible type}}
   g3(0, x);
   g3(0, y);
-  g3(0, z);  // TODO: this should produce a bounds error.
+  g3(0, z);  // expected-error {{argument does not meet declared bounds for 2nd parameter}}
   g3a(0, x); // expected-error {{parameter of incompatible type}}
   g3a(0, y); // expected-error {{parameter of incompatible type}}
   g3a(0, z);
@@ -1087,8 +1087,8 @@ void check_call_cv(void) {
   const int p_const[10] = { 0, 1, 2, 3, 4,5, 6, 7, 8, 9};
   int r checked[10];
   const int r_const checked[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  int s nt_checked[10];
-  const int s_const nt_checked[10];
+  int s nt_checked[11];
+  const int s_const nt_checked[11];
 
   // Parameters that are pointers to constants being passed pointers to non-const & const values.
   f1_const(p, val);           // param const int[10], arg int[10] OK
@@ -1097,8 +1097,8 @@ void check_call_cv(void) {
   f2_const(p_const, val);     // param const int checked[10], arg const int[10] OK, provided int * has bounds
   f2_const(r, val);           // param const int checked[10], arg int checked[10] OK
   f2_const(r_const, val);     // param const int checked[10], arg const int checked[10]  OK
-  f2a_const(s, val);           // param const int nt_checked[10], arg int nt_checked[10] OK
-  f2a_const(s_const, val);     // param const int nt_checked[10], arg const int nt_checked[10]  OK
+  f2a_const(s, val);           // param const int nt_checked[11], arg int nt_checked[10] OK
+  f2a_const(s_const, val);     // param const int nt_checked[11], arg const int nt_checked[10]  OK
 
   // Parameters that are not pointers to constants being passed arrays of const
   f1(p_const, val);     // expected-warning {{discards qualifiers}}
@@ -1108,7 +1108,7 @@ void check_call_cv(void) {
   f3(r_const, val);     // expected-warning {{discards qualifiers}}
                         // param int checked[10], arg const int checked[10] not OK
   f3(s_const, val);     // expected-warning {{discards qualifiers}}
-                        // param int checked[10], arg const int checked[10] not OK
+                        // param int nt_checked[11], arg const int checked[10] not OK
 }
 
 //
@@ -1225,8 +1225,9 @@ ptr<int> h17(int arr checked[]) {
 }
 
 ptr<int> h17a(int arr nt_checked[]) {
-  // TODO: bounds declaration checking should fail because count(0) isn't large enough.
-  return arr;  // ptr<T> = nt_array_ptr<T> OK
+  return arr;  // expected-error {{cast source bounds are too narrow for '_Ptr<int>'}}
+               // ptr<T> = nt_array_ptr<T> OK for typechecking, but bounds
+               // declaration checking fails.
 }
 
 array_ptr<int> h18(int arr checked[]) {
@@ -1632,11 +1633,12 @@ void check_cast_operator(void) {
 
   // ptr to array
   parr = (ptr<int checked[5]>) &arr;
-  parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr);
+  parr = (ptr<int checked[5]>) ((ptr<int checked[]>) &arr); // expected-error {{cast source bounds are too narrow for '_Ptr<int _Checked[5]>'}}
+
   parr = (ptr<int checked[3]>) &arr; // expected-error {{incompatible type}}
 
   nt_parr = (ptr<int nt_checked[5]>) &arr;
-  nt_parr = (ptr<int nt_checked[5]>) ((ptr<int checked[]>) &arr);
+  nt_parr = (ptr<int nt_checked[5]>) ((ptr<int checked[]>) &arr); //expected-error {{cast source bounds are too narrow for '_Ptr<int _Nt_checked[5]>'}}
   nt_parr = (ptr<int nt_checked[3]>) &arr; // expected-error {{incompatible type}}
 
   // array_ptr to array

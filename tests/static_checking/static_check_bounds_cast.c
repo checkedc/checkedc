@@ -1,7 +1,7 @@
 // Feature tests of static checking of Pointer Bounds Cast
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note  -fcheckedc-extension %s
 
 #include <stdchecked.h>
 
@@ -133,8 +133,8 @@ extern void f18(int i) {
 
   q = _Dynamic_bounds_cast<ptr<int>>(r);
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(p, 1); // expected-error {{expression has no bounds}}
-  r = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1); // expected-error {{expression has no bounds}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(p, 1); // expected-error {{expression has no bounds}} expected-error {{declared bounds for r are invalid after assignment}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1); // expected-error {{expression has no bounds}} expected-error {{declared bounds for r are invalid after assignment}}
 
   r = _Dynamic_bounds_cast<array_ptr<int>>(i, 1); // expected-error {{expression has no bounds}}
   r = _Dynamic_bounds_cast<array_ptr<int>>(i, i, i + 1); // expected-error 2 {{expected expression with pointer}}
@@ -144,8 +144,8 @@ extern void f18(int i) {
   r = _Dynamic_bounds_cast<array_ptr<int>>(q, len);
   r = _Dynamic_bounds_cast<array_ptr<int>>(q, q, q + 1); // expected-error {{arithmetic on _Ptr type}}
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(r, 1);
-  r = _Dynamic_bounds_cast<array_ptr<int>>(r, r, r + 1);
+  r = _Dynamic_bounds_cast<array_ptr<int>>(r, 1);        // expected-error {{declared bounds for r are invalid after assignment}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(r, r, r + 1); // expected-error {{declared bounds for r are invalid after assignment}}
 
   p = _Dynamic_bounds_cast<char *>(p); // expected-warning{{incompatible pointer types assigning}} expected-error{{expression has no bounds}}
 
@@ -179,6 +179,6 @@ extern void f19(){
 
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, b); // expected-error {{invalid argument type}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, p, 1); // expected-error {{expected expression with}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1);
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1); // expected-error {{declared bounds for x are invalid after assignment}}
 }
 

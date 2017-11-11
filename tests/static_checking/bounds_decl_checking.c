@@ -229,7 +229,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   arg2 = &*arg2;
   arg2 = &*arg3;
   arg3 = &*arg1;          // expected-error {{expression has no bounds}}
-  arg3 = &*arg2;          // TODO: issue an error for incorrect bounds;
+  arg3 = &*arg2;          // expected-error {{declared bounds for arg3 are invalid after assignment}}
   arg3 = &*arg3;
 
   // variables
@@ -241,7 +241,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
 
   g11 = g12;
   g12 = g12;
-  g13 = g12;           // TODO: issue an error for incorrect bounds
+  g13 = g12;           // expected-error {{declared bounds for g13 are invalid after assignment}}
 
   g11 = g13;
   g12 = g13;
@@ -254,7 +254,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
 
   arg1 = g12;
   arg2 = g12;
-  arg3 = g12;           // TODO: issue an error for incorrect bounds
+  arg3 = g12;           // expected-error {{declared bounds for arg3 are invalid after assignment}}
 
   arg1 = g13;
   arg2 = g13;
@@ -268,7 +268,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
 
   g11 = arg2;
   g12 = arg2;
-  g13 = arg3;           // TODO: issue an error for incorrect bounds
+  g13 = arg3;
 
   g11 = arg3;
   g12 = arg3;
@@ -285,7 +285,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
 
   t1 = arg2;
   t2 = arg2;
-  t3 = arg2;            // TODO: issue an error for incorrect bounds.
+  t3 = arg2;            // expected-error {{declared bounds for t3 are invalid after assignment}}
 
   t1 = arg3;
   t2 = arg3;
@@ -359,7 +359,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   s.f2 = t3;
 
   s.f3 = t1;          // expected-error {{expression has no bounds}}
-  s.f3 = t2;          // TODO: issue an error for incorrect bounds.
+  s.f3 = t2;          // expected-error {{declared bounds for s.f3 are invalid after assignment}}
   s.f3 = t3;
 
   t1 = s.f1;
@@ -371,7 +371,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   t2 = s.f3;
 
   t3 = s.f1;          // expected-error {{expression has no bounds}}
-  t3 = s.f2;          // TODO: issue an error for incorrect bounds.
+  t3 = s.f2;          // expected-error {{declared bounds for t3 are invalid after assignment}}
   t3 = s.f3;
 
   nt_array_ptr<int> ntp = (int nt_checked[]) { 0, 1, 2, 3, 0 };
@@ -381,7 +381,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   *pntp = arg3;
   arg1 = *pntp;
   arg2 = *pntp;
-  arg3 = *pntp;        // TODO: issue an error for incorrect bounds.
+  arg3 = *pntp;        // expected-error {{declared bounds for arg3 are invalid after assignment}}
 }
 
 extern void test_f1(int *p);
@@ -446,8 +446,8 @@ extern void check_nullterm_call_args(
 
   test_nullterm_f1(arg2);
   test_nullterm_f2(arg2);
-  test_nullterm_f3(arg2);     // TODO: issue an error for incorrect bounds
-  test_nullterm_f4(arg2, 1);  // TODO: issue an error for incorrect bounds
+  test_nullterm_f3(arg2);     // expected-error {{argument does not meet declared bounds for 1st parameter}}
+  test_nullterm_f4(arg2, 1);  // expected-error {{argument does not meet declared bounds for 1st parameter}}
 
   test_nullterm_f1(arg3);
   test_nullterm_f2(arg3);
@@ -581,7 +581,7 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
     arg3 = *arg7;
     arg3 = *arg8;
 
-    arg4 = *arg7;               // TODO: issue an error for incorrect bounds.
+    arg4 = *arg7;               // expected-error {{declared bounds for arg4 are invalid after assignment}}
   }
 }
 
