@@ -29,7 +29,8 @@ checked int f1(int *s : itype(ptr<int>)) {
   *(s+ 4) = 0;        // expected-error {{arithmetic on _Ptr type}}
   s[4] = 0;           // expected-error {{subscript of '_Ptr<int>'}}
 
-  array_ptr<int> t4 : count(1) = s;
+  // TODO: bounds declaration checking needs to understand equality after assignment
+  array_ptr<int> t4 : count(1) = s;  // expected-warning {{cannot prove declared bounds for 't4' are valid after initialization}}
   s = t4;
 
   array_ptr<float> t5 : count(1) = s; // expected-error {{incompatible type}}
@@ -112,7 +113,8 @@ checked void test_globals(void) {
   *(g1 + 4) = 0;       // expected-error {{arithmetic on _Ptr type}}
   g1[4] = 0;           // expected-error {{subscript of '_Ptr<int>'}}
 
-  array_ptr<int> t4 : count(1) = g1;
+  // TODO: bounds declaration checking needs to understand equality after assignment
+  array_ptr<int> t4 : count(1) = g1;  // expected-warning {{cannot prove declared bounds for 't4' are valid after initialization}}
   g1 = t4;
 
   array_ptr<float> t5 : count(1) = g1; // expected-error {{incompatible type}}
@@ -372,7 +374,8 @@ checked int f50(int **s : itype(ptr<ptr<int>>)) {
   *s += 5;            // expected-error {{arithmetic on _Ptr type}}
   s = s + 5;          // expected-error {{arithmetic on _Ptr type}}
 
-  array_ptr<int> t5 : count(1) = *s;
+  // TODO: bounds declaration checking needs to understand equality after assignment
+  array_ptr<int> t5 : count(1) = *s; // expected-warning {{cannot prove declared bounds for 't5' are valid after initialization}}
   *s = t5;
 
   array_ptr<float> t6 : count(1) = *s; // expected-error {{incompatible type}}

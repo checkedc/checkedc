@@ -573,13 +573,14 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
     arg2 = *arg7;
     arg2 = *arg8;
 
-    arg1 = arg3;
-    *arg7 = arg3;
-    *arg8 = arg3;
+    // TODO: bounds declaration checking needs to understand equality after assignment
+    arg1 = arg3;                 // expected-warning {{cannot prove declared bounds for arg1 are valid after assignment}}
+    *arg7 = arg3;                // expected-warning {{cannot prove declared bounds for *arg7 are valid after assignment}}
+    *arg8 = arg3;                // expected-warning {{cannot prove declared bounds for *arg8 are valid after assignment}}
 
-    arg3 = arg1;
-    arg3 = *arg7;
-    arg3 = *arg8;
+    arg3 = arg1;                 // expected-warning {{cannot prove declared bounds for arg3 are valid after assignment}}
+    arg3 = *arg7;                // expected-warning {{cannot prove declared bounds for arg3 are valid after assignment}}
+    arg3 = *arg8;                // expected-warning {{cannot prove declared bounds for arg3 are valid after assignment}}
 
     arg4 = *arg7;               // expected-error {{declared bounds for arg4 are invalid after assignment}}
   }
