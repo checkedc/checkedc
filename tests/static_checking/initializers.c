@@ -77,15 +77,17 @@ void f4(void) checked {
   int t20 = g20[0];
   int t21 = g21[3];
   int t22 = g22[2][2];
-  nt_array_ptr<char> t23 = g23[0];
+  // TODO: bounds declaration checking needs to understand equality after assignment
+  nt_array_ptr<char> t23 = g23[0]; // expected-warning {{cannot prove declared bounds for 't23' are valid after initialization}}
   int t30 = g30[1];
   int t31 = *g31;
   char t32 = g32[5];
   char t33 = g33[4];
   char t34 = g34[4];
   char t35 = g35[1];
-  nt_array_ptr<char> t36 = g36[1][0];
-  nt_array_ptr<char> t37 = g37[1];
+  // TODO: bounds declaration checking needs to understand equality after assignment
+  nt_array_ptr<char> t36 = g36[1][0];  // expected-warning {{cannot prove declared bounds for 't36' are valid after initialization}}
+  nt_array_ptr<char> t37 = g37[1];     // expected-warning {{cannot prove declared bounds for 't37' are valid after initialization}}
 
 
   f3("abc");   // expected-error {{passing 'char _Nt_checked[4]' to parameter of incompatible type 'char *'}}

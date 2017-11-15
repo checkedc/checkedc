@@ -831,16 +831,18 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
 void test_addrof_checked_scope(void) checked {
   int a checked[10];
   array_ptr<int> b;
-  int i;
+  int i = 0;
 
   // In checked scope, address-of operator produces _Array_ptr<T>
   // VisitBinaryOperator - check if LHS has bounds and RHS has bounds
-  ptr<int> x = &a[i]; // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
+  ptr<int> x = &a[i]; // expected-warning {{cannot prove cast source bounds are wide enough for '_Ptr<int>'}} \
+                         ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
   ptr<int> y = &b[0]; // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>) \
                       // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
   ptr<int> z = &i;    // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
 
-  x = &a[i];  // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>)
+  x = &a[i];  // expected-warning {{cannot prove cast source bounds are wide enough for '_Ptr<int>'}} \
+              // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>)
   y = &b[1];  // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>) \
               // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
   z = &i;     // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
