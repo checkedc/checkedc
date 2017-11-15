@@ -35,36 +35,54 @@
 #undef strspn
 #endif
 
-#if _FORTIFY_SOURCE == 0
+#if _FORTIFY_SOURCE == 0 || !defined(memcpy)
+#undef memcpy
 void *memcpy(void * restrict dest : byte_count(n),
              const void * restrict src : byte_count(n),
              size_t n) : bounds(dest, (_Array_ptr<char>) dest + n);
+#endif
 
+#if _FORTIFY_SOURCE == 0 || !defined(memmove)
+#undef memmove
 void *memmove(void * restrict dest : byte_count(n),
               const void * restrict src : byte_count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
+#endif
 
+#if _FORTIFY_SOURCE == 0 || !defined(memset)
+#undef memset
 void *memset(void * dest : byte_count(n),
              int c,
              size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
+#endif
 
+#if _FORTIFY_SOURCE == 0 || !defined(strcpy)
+#undef strcpy
 // Dest is left unchecked intentionally. There is no bound on dest, so this
 // is always an unchecked function
 _Unchecked
 char *strcpy(char * restrict dest,
               const char * restrict src : itype(restrict _Nt_array_ptr<const char>));
+#endif
 
-
+#if _FORTIFY_SOURCE == 0 || !defined(strncpy)
+#undef strncpy
 char *strncpy(char * restrict dest : count(n),
               const char * restrict src : count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
+#endif
 
+#if _FORTIFY_SOURCE == 0 || !defined(strcat)
+#undef strcat
 // Dest is left unchecked intentionally. There is no bound on dest, so this
 // is always an unchecked function.
 _Unchecked
 char *strcat(char * restrict dest,
              const char * restrict src : itype(restrict _Nt_array_ptr<const char>));
+#endif
 
+#if _FORTIFY_SOURCE == 0 || !defined(strncat)
+#undef strncat
 // TODO: we have no way to express the bounds requirement on dest,
 // which needs to be count(strlen(dest) + n).
 _Unchecked

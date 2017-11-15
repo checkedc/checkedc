@@ -50,7 +50,10 @@ int setvbuf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 // * Any pointer arguments may not meet the requirements of the
 //  format string.
 //
-#if _FORTIFY_SOURCE == 0
+
+
+#if _FORTIFY_SOURCE == 0 || !defined(fprintf)
+#undef fprintf
 _Unchecked
 int fprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
@@ -60,7 +63,7 @@ _Unchecked
 int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 
-#if _FORTIFY_SOURCE == 0
+#if _FORTIFY_SOURCE == 0 || !defined(printf)
 _Unchecked
 int printf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 #endif
@@ -68,7 +71,8 @@ int printf(const char * restrict format : itype(restrict _Nt_array_ptr<const cha
 _Unchecked
 int scanf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 
-#if _FORTIFY_SOURCE == 0
+#if _FORTIFY_SOURCE == 0 || !defined(sprintf)
+#undef sprintf
 // The output buffer parameter s is an unchecked pointer because no bounds are provided.
 _Unchecked
 int sprintf(char * restrict s,
@@ -79,11 +83,15 @@ _Unchecked
 int sscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 
-#if _FORTIFY_SOURCE == 0
+#if _FORTIFY_SOURCE == 0 || !defined(snprintf)
+#undef snprintf
 _Unchecked
 int snprintf(char * restrict s : count(n), size_t n,
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+#endif
 
+#if _FORTIFY_SOURCE == 0 || !defined(vfprintf)
+#undef vfprintf
 _Unchecked
 int vfprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
@@ -95,7 +103,8 @@ int vfscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
             va_list arg);
 
-#if _FORTIFY_SOURCE == 0
+#if _FORTIFY_SOURCE == 0 || !defined(vprintf)
+#undef vprintf
 _Unchecked
 int vprintf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
              va_list arg);
@@ -105,12 +114,16 @@ _Unchecked
 int vscanf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
             va_list arg);
 
-#if _FORTIFY_SOURCE == 0
+#if _FORTIFY_SOURCE == 0 || !defined(vsnprintf)
+#undef vsnprintf
 _Unchecked
 int vsnprintf(char * restrict s : count(n), size_t n,
               const char * restrict format,
               va_list arg);
+#endif
 
+#if _FORTIFY_SOURCE == 0 || !defined(vsprintf)
+#undef vsprintf
 // The output buffer parameter has an unchecked pointer type becuse it is missing bounds.
 _Unchecked
 int vsprintf(char * restrict s,
