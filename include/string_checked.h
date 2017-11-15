@@ -35,6 +35,15 @@
 #undef strspn
 #endif
 
+// We wrap each definition in a complex conditional, there two boolean values:
+// - we are fortifying, or we're not (_FORTIFY_SOURCE==0 is not fortifying)
+// - there is or there isn't a macro hash-defining this symbol (defined(symbol))
+// Cases:
+// - Fortifying,     Macro Exists: this is expected, we don't need the definition
+// - Not Fortifying, Macro Exists: we need the definition, we need to undef macro
+// - Fortifying,     No Macro:     we need the definition
+// - Not Fortifying, No Macro:     we need the definition
+
 #if _FORTIFY_SOURCE == 0 || !defined(memcpy)
 #undef memcpy
 void *memcpy(void * restrict dest : byte_count(n),

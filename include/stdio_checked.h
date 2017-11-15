@@ -51,6 +51,14 @@ int setvbuf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 //  format string.
 //
 
+// We wrap each definition in a complex conditional, there two boolean values:
+// - we are fortifying, or we're not (_FORTIFY_SOURCE==0 is not fortifying)
+// - there is or there isn't a macro hash-defining this symbol (defined(symbol))
+// Cases:
+// - Fortifying,     Macro Exists: this is expected, we don't need the definition
+// - Not Fortifying, Macro Exists: we need the definition, we need to undef macro
+// - Fortifying,     No Macro:     we need the definition
+// - Not Fortifying, No Macro:     we need the definition
 
 #if _FORTIFY_SOURCE == 0 || !defined(fprintf)
 #undef fprintf
@@ -64,6 +72,7 @@ int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 
 #if _FORTIFY_SOURCE == 0 || !defined(printf)
+#undef printf
 _Unchecked
 int printf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 #endif
