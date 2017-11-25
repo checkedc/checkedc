@@ -6,11 +6,19 @@
 // RUN:  %t1 2 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 3 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 4 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 5 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-2
+// RUN:  %t1 6 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 7 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 8 | FileCheck %s --check-prefixes=CHECK
 //
-// RUN:  %t1 21 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-2
+// RUN:  %t1 21 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-3
 // RUN:  %t1 22 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 23 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 24 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 25 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-4
+// RUN:  %t1 26 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 27| FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 28 | FileCheck %s --check-prefixes=CHECK
 
 #include <assert.h>
 #include <signal.h>
@@ -33,12 +41,19 @@ int test1(void);
 int test2(void);
 void test3(void);
 void test4(void);
+void test5(void);
+void test6(void);
+void test7(void);
+void test8(void);
 
 int test21(struct CountedNullTermString *p);
 int test22(struct CountedString *p);
 int test23(struct CountedNullTermString *p);
 int test24(struct CountedString *p);
-
+int test25(struct CountedNullTermString *p);
+int test26(struct CountedString *p);
+int test27(struct CountedNullTermString *p);
+int test28(struct CountedString *p);
 
 // Handle an out-of-bounds reference by immediately exiting. This causes
 // some output to be missing.
@@ -73,8 +88,10 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     return EXIT_FAILURE;
   }
 
-  struct CountedNullTermString nullterm = { "abcde", 5 };
-  struct CountedString plain = { "abcde", 5 };
+  char data1 nt_checked[6] = "abcde";
+  char data2 checked[6] = "abcde";
+  struct CountedNullTermString nullterm = { data1, 5 };
+  struct CountedString plain = { data2, 5 };
 
   // CHECK: Beginning test
   puts("Beginning test");
@@ -92,6 +109,18 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     case 4:
       test4();
       break;
+    case 5:
+      test5();
+      break;
+    case 6:
+      test6();
+      break;
+    case 7:
+      test7();
+      break;
+    case 8:
+      test8();
+      break;
 
     case 21:
       test21(&nullterm);
@@ -104,6 +133,18 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
       break;
     case 24:
       test24(&plain);
+      break;
+    case 25:
+      test25(&nullterm);
+      break;
+    case 26:
+      test26(&plain);
+      break;
+    case 27:
+      test27(&nullterm);
+      break;
+    case 28:
+      test28(&plain);
       break;
 
     default:
@@ -141,21 +182,73 @@ int test2(void) {
   return i;
 }
 
+// Write a non-zero character at the upper bound of a string.  This
+// should cause a runtime fault.
 void test3(void) {
-  nt_array_ptr<char> s : count(0) = "hello";
+  char data nt_checked[6] = "hello";
+  nt_array_ptr<char> s : count(0) = data;
   while (*s) {
     *s = 'd';
+    s++;
   }
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return;
 }
 
+// Write a non-zero character exactly at the upper bound of an array_ptr.
 void test4(void) {
-  array_ptr<char> s : count(0) = "hello";
-  while (*s) {
-    *s = 'd';
-  }
+  char data checked[6] = "hello";
+  array_ptr<char> s : count(6) = data;
+  *(s + 6) = 'd';
+  // CHECK-NOT: expected bounds failure on write
+  puts("expected bounds failure on write");
+  return;
+}
+
+// Write a zero character at the upper bound of a string.  This should
+// not cause a runtime fault.
+void test5(void) {
+  char data nt_checked[6] = "hello";
+  nt_array_ptr<char> s : count(5) = data;
+  s[5] = 0;
+  // NO-BOUNDS-FAILURES-2: wrote nul at the upper bound of a string
+  puts("wrote nul at the upper bound of a string");
+  return;
+}
+
+// Write 0 at the upper bound of an array_ptr<char>.  Should cause
+// a runtime fault.
+void test6(void) {
+  char data checked[6] = "hello";
+  array_ptr<char> s : count(6) = data;
+  char result = 0;
+  s[6] = result;
+  // CHECK-NOT: expected bounds failure on write
+  puts("expected bounds failure on write");
+  return;
+}
+
+
+// Write 0 at memory location one past the upper bound of a string.
+// Expected to cause a runtime fault.
+void test7(void) {
+  char data nt_checked[6] = "hello";
+  array_ptr<char> s : count(5) = data;
+  char result = 0;
+  s[5 + 1] = result;
+  // CHECK-NOT: expected bounds failure on write
+  puts("expected bounds failure on write");
+  return;
+}
+
+// Write 0 at memory location one past the upper bound of an array_ptr<char>.
+// Expected to a cause a runtime fault.
+void test8(void) {
+  char data checked[6] = "hello";
+  array_ptr<char> s : count(6) = data;
+  char result = 0;
+  s[6 + 1] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return;
@@ -168,12 +261,12 @@ int test21(struct CountedNullTermString *p) {
     // CHECK-NOT: expected null terminator
     puts("expected null terminator");
   else
-    // NO-BOUNDS-FAILURES-2: found null terminator at nt_array_ptr upper bound  
+    // NO-BOUNDS-FAILURES-3: found null terminator at nt_array_ptr upper bound  
     puts("found null terminator at nt_array_ptr upper bound");
   return 0;
 }
 
-// Read exactly at the upper bound of a plain array_ptr.  Expected
+// Read exactly at the upper bound of an array_ptr.  Expected
 // to cause a runtime fault.
 int test22(struct CountedString *p) {
   char result = p->s[p->len];
@@ -182,6 +275,8 @@ int test22(struct CountedString *p) {
   return result;
 }
 
+// Write a non-zero value at exactly the upper bound of a string.  Should not
+// cause a runtime fault.
 int test23(struct CountedNullTermString *p) {
   char result = 'a';
   p->s[p->len] = result;
@@ -190,9 +285,51 @@ int test23(struct CountedNullTermString *p) {
   return result;
 }
 
+// Write a non-zero value at exactly the upper bound of an array_ptr<char>.
+// Expected to a cause a runtime fault.
 int test24(struct CountedString *p) {
   char result = 'a';
   p->s[p->len] = result;
+  // CHECK-NOT: expected bounds failure on write
+  puts("expected bounds failure on write");
+  return result;
+}
+
+// Write 0 at exactly the upper bound of a string.  Not expected to cause a runtime
+// fault.
+int test25(struct CountedNullTermString *p) {
+  char result = 0;
+  p->s[p->len] = result;
+  // NO-BOUNDS-FAILURES-4: wrote nul at the upper bound of a string  
+  puts("wrote nul at the upper bound of a string");
+  return result;
+}
+
+// Write 0 at exactly the upper bound of an array_ptr<char>.
+int test26(struct CountedString *p) {
+  char result = 0;
+  p->s[p->len] = result;
+  // CHECK-NOT: expected bounds failure on write
+  puts("expected bounds failure on write");
+  return result;
+}
+
+
+// Write 0 at memory location one past the upper bound of a string.  Expected
+// to a cause a runtime fault.
+int test27(struct CountedNullTermString *p) {
+  char result = 0;
+  p->s[p->len + 1] = result;
+  // CHECK-NOT: expected bounds failure on write
+  puts("expected bounds failure on write");
+  return result;
+}
+
+// Write 0 at memory location one past the upper bound of a character array.
+// Expected to a cause a runtime fault.
+int test28(struct CountedString *p) {
+  char result = 0;
+  p->s[p->len + 1] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return result;
