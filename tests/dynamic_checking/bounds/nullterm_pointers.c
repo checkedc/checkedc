@@ -10,12 +10,14 @@
 // RUN:  %t1 6 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 7 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 8 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 9 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-3
+// RUN:  %t1 10 | FileCheck %s --check-prefixes=CHECK
 //
-// RUN:  %t1 21 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-3
+// RUN:  %t1 21 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-4
 // RUN:  %t1 22 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 23 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 24 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 25 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-4
+// RUN:  %t1 25 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-5
 // RUN:  %t1 26 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 27| FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 28 | FileCheck %s --check-prefixes=CHECK
@@ -45,6 +47,8 @@ void test5(void);
 void test6(void);
 void test7(void);
 void test8(void);
+void test9(void);
+void test10(void);
 
 int test21(struct CountedNullTermString *p);
 int test22(struct CountedString *p);
@@ -120,6 +124,12 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
       break;
     case 8:
       test8();
+      break;
+    case 9:
+      test9();
+      break;
+    case 10:
+      test10();
       break;
 
     case 21:
@@ -254,6 +264,29 @@ void test8(void) {
   return;
 }
 
+// Write 0 exactly at upper bound of a range for a null-terminated pointer,
+// when the lower bound == the upper bound.  Expected to succeed.
+void test9(void) {
+  char data nt_checked[6] = "hello";
+  nt_array_ptr<char> s : bounds(data + 5, data + 5) = data;
+  s[5] = 0;
+  // NO-BOUNDS-FAILURES-3: expected write at range with lower == upper to succeed
+  puts("expected write at range with lower == upper to succeed");
+  return;
+}
+
+
+// Write 0 at the upper bound of a range for a null-terminated pointer,  where
+// the lower bound is above the upper bound.  Expected to cause a runtime fault.
+void test10(void) {
+  char data nt_checked[6] = "hello";
+  nt_array_ptr<char> s : bounds(data + 6, data + 5) = data;
+  s[6] = 0;
+  // CHECK-NOT: expected bounds failure on write
+  puts("expected bounds failure on write");
+  return;
+}
+
 // Read exactly at the upper bound of a null-terminated pointer.
 // Should not cause a runtime fault.
 int test21(struct CountedNullTermString *p) {
@@ -261,7 +294,7 @@ int test21(struct CountedNullTermString *p) {
     // CHECK-NOT: expected null terminator
     puts("expected null terminator");
   else
-    // NO-BOUNDS-FAILURES-3: found null terminator at nt_array_ptr upper bound  
+    // NO-BOUNDS-FAILURES-4: found null terminator at nt_array_ptr upper bound
     puts("found null terminator at nt_array_ptr upper bound");
   return 0;
 }
@@ -300,7 +333,7 @@ int test24(struct CountedString *p) {
 int test25(struct CountedNullTermString *p) {
   char result = 0;
   p->s[p->len] = result;
-  // NO-BOUNDS-FAILURES-4: wrote nul at the upper bound of a string  
+  // NO-BOUNDS-FAILURES-5: wrote nul at the upper bound of a string
   puts("wrote nul at the upper bound of a string");
   return result;
 }

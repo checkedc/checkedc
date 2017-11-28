@@ -669,12 +669,32 @@ memory below the upper bounds).  For memory reads,
 given \texttt{*\var{e1}} where {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}},
 the compiler computes \var{e1} to some temporary \var{t}.
 The compiler inserts a runtime check that  \texttt{\var{e2} <= \var{t} \&\&
-\var{t} <= \var{e3}}.   For memory writes, the compiler inserts the
-same check as for \arrayptr:
-\texttt{\var{e2} <= \var{t} \&\& \var{t} < \var{e3}}.
+\var{t} <= \var{e3}}.   For memory writes, assignment of 0 (the null value)
+using the assignment operator is allowed at exactly the upper bound.
+The upper bound is the beginning of the sequence and there must be enough
+space in the sequence for a null terminator.  Otherwise, the check
+is the same as for \arrayptr.   Here is a precise description:
+\begin{itemize}
+\item Given an assignment of the form \texttt{*\var{e1} = \var{e4}}, the
+value of \var{e4} is computed to some temporary \var{v}.  The
+check is \texttt{(\var{e2} <= \var{t} \&\& \var{t} < \var{e3}) ||
+(\var{e2} <= \var{t} \&\& \var{t} == \var{e3} \&\& \var{v} == 0)}.
+
+When checking for a write of 0 exactly at the upper bound, we need
+to include the first element of the sequence in the allowed memory range.
+The second lower bound comparison \texttt{\var{e2} <= \var{t}}
+prevents an assignment
+at the upper bound when this expanded range is empty.
+A compiler can avoid the duplicate comparison by using
+the check
+\texttt{\var{e2} <= \var{t} \&\& (\var{t} < \var{e3} ||
+(\var{t} == \var{e3} \&\& \var{v} == 0))}
+\item Given an assignment via a compound assignment operator, the check
+is \texttt{\var{e2} <= \var{t} \&\& \var{t} < \var{e3}}.
+\end{itemize}
+
 If the bounds for \var{e1} are inferred, the checks
 must be provably true at compile time.
-
 
 No bounds checks are inserted when the \texttt{\&} operator is applied to
 a dereference or subscript exression.
