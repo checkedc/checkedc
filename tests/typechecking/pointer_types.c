@@ -118,7 +118,7 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
                               // T * = array_ptr<T> not OK
     int *t7a = v;             // // expected-error {{incompatible type}}
                               // T * = nt_array_ptr<T> not OK
-    ptr<int> t8 = r;          // expected-error {{expression has no bounds}}
+    ptr<int> t8 = r;          // expected-error {{expression has unknown bounds}}
                               // ptr<T> = array_ptr<T> OK
     ptr<int> t8a = v;         // ptr<T> = nt_array_ptr<T> OK.
     array_ptr<int> t9 = q;    // array_ptr<T> = ptr<T> OK
@@ -393,9 +393,9 @@ extern void check_assign_cv(void) {
     q_const = &val; // ptr to const assigned unsafe pointer OK, provided unsafe pointer
                     // has known bounds.
     r_const = p_const; // array_ptr to const assigned unsafe pointer to const OK,
-                       // provided array_ptr has no bounds.
+                       // provided array_ptr has unknown bounds.
     r_const = &val; // array_ptr to const assigned unsafe pointer OK, provided array_ptr
-                    // has no bounds.
+                    // has unknown bounds.
     s_const = s;    //  nt_array_ptr to const assigned non-const OK.
 
     p = p_const;    // expected-warning {{discards qualifiers}}
@@ -415,9 +415,9 @@ extern void check_assign_cv(void) {
     q_volatile = &val; // ptr to volatile assigned unsafe pointer OK, provided unsafe pointer
                        // has known bounds.
     r_volatile = p_volatile; // array_ptr to volatile assigned unsafe pointer to volatile OK,
-                             // provided array_ptr has no bounds.
+                             // provided array_ptr has unknown bounds.
     r_volatile = &val; // array_ptr to volatile assigned unsafe pointer OK, provided array_ptr
-                       // has no bounds.
+                       // has unknown bounds.
     p = p_volatile;    // expected-warning {{discards qualifiers}}
     q = q_volatile;    // expected-warning {{discards qualifiers}}
                        // ptr assigned to ptr to volatile int
@@ -437,8 +437,8 @@ extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
    int *t1 = val ? p : p;            // T * and T * OK;
    ptr<int> t2 = val ? &val : q;     // T * and ptr<T> OK when T has known bounds
    ptr<int> t3 = val ? q : &val;     // ptr<T> and T * OK when T has known bounds
-   array_ptr<int> t4 = val ? p : r;  // T * and array_ptr<T> OK when array_ptr<T> has no bounds
-   array_ptr<int> t5 = val ? r : p;  // array_ptr<T> and T * OK when array_ptr<T> has no bounds
+   array_ptr<int> t4 = val ? p : r;  // T * and array_ptr<T> OK when array_ptr<T> has unknown bounds
+   array_ptr<int> t5 = val ? r : p;  // array_ptr<T> and T * OK when array_ptr<T> has unknown bounds
    ptr<int> t6 = val ? q : q;        // ptr<T> and ptr<T> OK
    array_ptr<int> t8 = val ? r : r;  // array_ptr<T> and array_ptr<T> OK
    array_ptr<int> t8a = val ? v : v; // nt_array_ptr<T> and nt_array_ptr<T> OK
@@ -535,8 +535,8 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     void *t9 = val ? p : s;            // int * and void * OK
     ptr<void> t14 = val ? t : &val;    // ptr<void> and int * OK when int * has bounds of at least 1 byte
     ptr<void> t15 = val ? &val : t;    // int * and ptr<void> OK when int * has bounds of at least 1 byte
-    array_ptr<void> t17 = val ? u : p; // array_ptr<void> and int * OK when array_ptr has no bounds
-    array_ptr<void> t18 = val ? p : u; // int * and array_ptr<void> OK when array_ptr has no bounds
+    array_ptr<void> t17 = val ? u : p; // array_ptr<void> and int * OK when array_ptr has unknown bounds
+    array_ptr<void> t18 = val ? p : u; // int * and array_ptr<void> OK when array_ptr has unknown bounds
     ptr<void> t19 = val ? t : q;       // ptr<void> and ptr<int> OK
     ptr<void> t20 = val ? q : t;       // ptr<int> and ptr<void> OK
     array_ptr<void> t21 = val ? u : r; // array_ptr<void> and array_ptr<int> OK
@@ -793,7 +793,7 @@ extern void f2(ptr<int> p, int y) {
 }
 
 extern void f3(array_ptr<int> p, int y) {
-    // can't dereference p because is has no bounds
+    // can't dereference p because is has unknown bounds
     // just use p in a compare.
      p != 0;
 }
@@ -837,7 +837,7 @@ extern void g2(int y, ptr<int> p) {
 }
 
 extern void g3(int y, array_ptr<int> p) {
-    // can't dereference p because is has no bounds
+    // can't dereference p because is has unknown bounds
     // just use p in a compare.
     p != 0;
 }
@@ -897,10 +897,10 @@ extern void check_call(void) {
     f2(r, 0);      // param ptr<int>, arg array_ptr<int> OK, provided that arg has known bounds.
     f2(v, 0);      // param ptr<int>, arg nt_array_ptr<int> OK, provided that arg has known bounds.
     f3(r, val);    // param array_ptr<int>, arg array_ptr<int> OK.
-    f3(p, 0);      // param array_ptr<int>, arg int * OK, provided that param has no bounds.
+    f3(p, 0);      // param array_ptr<int>, arg int * OK, provided that param has unknown bounds.
     f3(q, 0);      // param array_ptr<int>, arg ptr<int> OK
-    f3(&val, 0);   // param array_ptr<int>, arg int * OK, when param has no bounds and arg has known bounds
-    f3(v, 0);      // param array_ptr<int>, arg nt_array_ptr<int> OK, when param has no bounds and arg has known bounds
+    f3(&val, 0);   // param array_ptr<int>, arg int * OK, when param has unknown bounds and arg has known bounds
+    f3(v, 0);      // param array_ptr<int>, arg nt_array_ptr<int> OK, when param has unknown bounds and arg has known bounds
 
     f3a(p, val);   // expected-error {{incompatible type}}
                    // param nt_array_ptr<int>, arg int * not OK
@@ -933,8 +933,8 @@ extern void check_call(void) {
     g2(val, q);    // param ptr<int>, arg ptr<int> OK.
     g2(0, &val);   // param ptr<int>, arg int * OK, provided that arg has known bounds.
     g3(val, r);    // param array_ptr<int>, arg array_ptr<int> OK.
-    g3(0, p);      // param array_ptr<int>, arg int * OK, provided that param has no bounds.
-    g3(0, &val);   // param array_ptr<int>, arg int * OK, when param has no bounds and arg has known bounds
+    g3(0, p);      // param array_ptr<int>, arg int * OK, provided that param has unknown bounds.
+    g3(0, &val);   // param array_ptr<int>, arg int * OK, when param has unknown bounds and arg has known bounds
     g3a(0, p);     // expected-error {{incompatible type}}
                    // param array_ptr<int>, arg int * not OK.
     g3a(0, &val);  // expected-error {{incompatible type}}
@@ -977,7 +977,7 @@ extern void check_call(void) {
     //
     int *t1 = h1();
     ptr<int> t2 = h1();
-    array_ptr<int> t3 = h1();  // OK, provided that t3 has no bounds.
+    array_ptr<int> t3 = h1();  // OK, provided that t3 has unknown bounds.
     ptr<int> t4 = h2();
     array_ptr<int> t5 = h3();
     nt_array_ptr<int> t5a = h3a();
@@ -1030,8 +1030,8 @@ extern void check_call_void(void) {
     f2_void(q, val);    // param ptr<void>, arg ptr<int> OK.
     f2_void(&val, val); // param ptr<void>, arg int * OK, provided that arg has known bounds.
     f3_void(r, val);    // param array_ptr<void>, arg array_ptr<int> OK.
-    f3_void(p, val);    // param array_ptr<void>, arg int * OK, provided that param has no bounds.
-    f3_void(&val, val); // param array_ptr<void>, arg int * OK, when param has no bounds and arg has known bounds
+    f3_void(p, val);    // param array_ptr<void>, arg int * OK, provided that param has unknown bounds.
+    f3_void(&val, val); // param array_ptr<void>, arg int * OK, when param has unknown bounds and arg has known bounds
 
     // Expected to not typecheck
     f1_void(q, val);   // expected-error {{incompatible type}}

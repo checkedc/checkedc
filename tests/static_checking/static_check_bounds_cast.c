@@ -13,15 +13,15 @@ extern void f1() {
 
   int *p = 0;
   array_ptr<int> checkedc_p : bounds(checkedc_p, checkedc_p + 1) = 0;
-  c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
-  c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
+  c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
+  c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
   a = _Assume_bounds_cast<array_ptr<int>>(p, 4);
   checkedc_p = _Assume_bounds_cast<array_ptr<int>>(p, p, p + 1);
-  checkedc_p = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1); // expected-error {{expression has no bounds}}
+  checkedc_p = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1); // expected-error {{expression has unknown bounds}}
   a = _Assume_bounds_cast<array_ptr<int>>(p, 1);
   a = _Assume_bounds_cast<array_ptr<int>>(p, p, p + 1);
   array_ptr<int> d = _Assume_bounds_cast<array_ptr<int>>(p, 4); 
-  c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
+  c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
 }
 
 struct S1 {
@@ -38,7 +38,7 @@ struct S1 {
 extern void f2() {
   array_ptr<int> a : count(2) = 0;
   struct S1 *p = 0;
-  a = _Dynamic_bounds_cast<array_ptr<int>>(p, 2); // expected-error {{expression has no bounds}}
+  a = _Dynamic_bounds_cast<array_ptr<int>>(p, 2); // expected-error {{expression has unknown bounds}}
 }
 
 extern void f3() {
@@ -47,23 +47,23 @@ extern void f3() {
   array_ptr<int> r = 0;
   array_ptr<int> s : bounds(r, r + 5) = 0;
   p = _Assume_bounds_cast<int *>(r);
-  p = _Dynamic_bounds_cast<int *>(r); // expected-error {{expression has no bounds}}  
+  p = _Dynamic_bounds_cast<int *>(r); // expected-error {{expression has unknown bounds}}  
   q = _Assume_bounds_cast<ptr<int>>(p);
-  q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
-  q = _Dynamic_bounds_cast<ptr<int>>(r); // expected-error {{expression has no bounds}}
+  q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
+  q = _Dynamic_bounds_cast<ptr<int>>(r); // expected-error {{expression has unknown bounds}}
   q = _Dynamic_bounds_cast<ptr<int>>(r) + 3; // expected-error{{arithmetic on _Ptr type}}
 
   *(_Assume_bounds_cast<ptr<int>>(r) + 2) = 4; // expected-error{{arithmetic on _Ptr type}}
   // For the statement below, the compiler figures out that r + 2 is out of bounds r : count(1).
   // r : count(1) normals to bounds(r, r + 1), and r + 2 is out of that range.
-  *(_Dynamic_bounds_cast<array_ptr<int>>(r, 1) + 2) = 4; // expected-error {{expression has no bounds}} \
+  *(_Dynamic_bounds_cast<array_ptr<int>>(r, 1) + 2) = 4; // expected-error {{expression has unknown bounds}} \
                                                          // expected-warning {{out-of-bounds memory access}}
-  s = _Dynamic_bounds_cast<array_ptr<int>>(p, 5); // expected-error {{expression has no bounds}}
+  s = _Dynamic_bounds_cast<array_ptr<int>>(p, 5); // expected-error {{expression has unknown bounds}}
   s = _Assume_bounds_cast<array_ptr<int>>(r, 5); 
 }
 
 extern ptr<int> f4(int arr checked[]) {
-  return _Dynamic_bounds_cast<ptr<int>>(arr); // expected-error{{expression has no bounds}}
+  return _Dynamic_bounds_cast<ptr<int>>(arr); // expected-error{{expression has unknown bounds}}
 }
 
 checked int *f5(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s: count(2)) unchecked { // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}} \
@@ -79,7 +79,7 @@ checked int *f5(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s: count(2)
       int b checked[5][5];
       for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 5; j++) {
-          b[i][j] += *q + *(_Dynamic_bounds_cast<array_ptr<int>>(r, 1)); // expected-error {{expression has no bounds}}
+          b[i][j] += *q + *(_Dynamic_bounds_cast<array_ptr<int>>(r, 1)); // expected-error {{expression has unknown bounds}}
         }
       }
     }
@@ -99,7 +99,7 @@ extern void f6() {
 
 extern int *f7(int arr checked[]) {
   int k;
-  return _Dynamic_bounds_cast<int *>(k); // expected-error{{expression has no bounds}}
+  return _Dynamic_bounds_cast<int *>(k); // expected-error{{expression has unknown bounds}}
 }
 
 extern void f18(int i) {
@@ -111,11 +111,11 @@ extern void f18(int i) {
   array_ptr<int> r : count(5) = 0;
   array_ptr<char> cr = 0;
 
-  p = _Dynamic_bounds_cast<int *>(p); // expected-error{{expression has no bounds}}
-  p = _Dynamic_bounds_cast<char *>(p);   // expected-warning {{incompatible pointer type}} expected-error {{expression has no bounds}}
+  p = _Dynamic_bounds_cast<int *>(p); // expected-error{{expression has unknown bounds}}
+  p = _Dynamic_bounds_cast<char *>(p);   // expected-warning {{incompatible pointer type}} expected-error {{expression has unknown bounds}}
 
-  p = _Dynamic_bounds_cast<int *>(i); // expected-error {{expression has no bounds}}
-  p = _Dynamic_bounds_cast<char *>(i); // expected-error {{expression has no bounds}} expected-warning {{incompatible pointer}}
+  p = _Dynamic_bounds_cast<int *>(i); // expected-error {{expression has unknown bounds}}
+  p = _Dynamic_bounds_cast<char *>(i); // expected-error {{expression has unknown bounds}} expected-warning {{incompatible pointer}}
 
   p = _Dynamic_bounds_cast<int *>(q);
 
@@ -125,10 +125,10 @@ extern void f18(int i) {
   p = _Dynamic_bounds_cast<int *>(r, 1); // expected-error {{invalid bounds cast}}
   p = _Dynamic_bounds_cast<int *>(r, r, r + 1); // expected-error {{invalid bounds cast}}
 
-  q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
+  q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
   q = _Dynamic_bounds_cast<ptr<char>>(p); // expected-error {{assigning to '_Ptr<int>'}}
 
-  q = _Dynamic_bounds_cast<ptr<int>>(i); // expected-error {{expression has no bounds}}
+  q = _Dynamic_bounds_cast<ptr<int>>(i); // expected-error {{expression has unknown bounds}}
   q = _Dynamic_bounds_cast<ptr<char>>(i); // expected-error{{assigning to '_Ptr<int>'}}
 
   q = _Dynamic_bounds_cast<ptr<int>>(q);
@@ -136,10 +136,10 @@ extern void f18(int i) {
 
   q = _Dynamic_bounds_cast<ptr<int>>(r);
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(p, 1); // expected-error {{expression has no bounds}} expected-error {{declared bounds for r are invalid after assignment}}
-  r = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1); // expected-error {{expression has no bounds}} expected-error {{declared bounds for r are invalid after assignment}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(p, 1); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for r are invalid after assignment}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(p, p, p + 1); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for r are invalid after assignment}}
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(i, 1); // expected-error {{expression has no bounds}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(i, 1); // expected-error {{expression has unknown bounds}}
   r = _Dynamic_bounds_cast<array_ptr<int>>(i, i, i + 1); // expected-error 2 {{expected expression with pointer}}
 
   int len;
@@ -150,14 +150,14 @@ extern void f18(int i) {
   r = _Dynamic_bounds_cast<array_ptr<int>>(r, 1);        // expected-error {{declared bounds for r are invalid after assignment}}
   r = _Dynamic_bounds_cast<array_ptr<int>>(r, r, r + 1); // expected-error {{declared bounds for r are invalid after assignment}}
 
-  p = _Dynamic_bounds_cast<char *>(p); // expected-warning{{incompatible pointer types assigning}} expected-error{{expression has no bounds}}
+  p = _Dynamic_bounds_cast<char *>(p); // expected-warning{{incompatible pointer types assigning}} expected-error{{expression has unknown bounds}}
 
   p = _Assume_bounds_cast<int *>(q);
   p = _Assume_bounds_cast<int *>(cq);
   p = _Assume_bounds_cast<int *>(cr);
-  p = _Dynamic_bounds_cast<int *>(cr); // expected-error{{expression has no bounds}}  
-  cp = _Dynamic_bounds_cast<char *>(p); // expected-error{{expression has no bounds}}
-  q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has no bounds}}
+  p = _Dynamic_bounds_cast<int *>(cr); // expected-error{{expression has unknown bounds}}  
+  cp = _Dynamic_bounds_cast<char *>(p); // expected-error{{expression has unknown bounds}}
+  q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
   p = _Assume_bounds_cast<int *>(r);
 }
 

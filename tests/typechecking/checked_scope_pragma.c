@@ -203,14 +203,14 @@ ptr<int> checked_func_u1(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s 
   int a = 5;
   *p = 1;
   *q = 2;
-  *r = 3; // expected-error {{expression has no bounds}}
+  *r = 3; // expected-error {{expression has unknown bounds}}
   *s = 4;
   unchecked {
     ptr<int> pa = &a;
     int b checked[5][5];
     for (int i = 0; i < 5; i++) checked {
       for (int j = 0; j < 5; j++) unchecked {
-        b[i][j] += *q + *r; // expected-error {{expression has no bounds}}
+        b[i][j] += *q + *r; // expected-error {{expression has unknown bounds}}
       }
       b[i][4] += *p + *q + *r + *s;
     }
@@ -222,7 +222,7 @@ ptr<int> checked_func_u1_pragma(int *p, ptr<int> q, array_ptr<int> r, array_ptr<
   int a = 5;
   *p = 1;
   *q = 2;
-  *r = 3; // expected-error {{expression has no bounds}}
+  *r = 3; // expected-error {{expression has unknown bounds}}
   *s = 4;
 #pragma BOUNDS_CHECKED OFF
   ptr<int> pa = &a;
@@ -231,7 +231,7 @@ ptr<int> checked_func_u1_pragma(int *p, ptr<int> q, array_ptr<int> r, array_ptr<
 #pragma BOUNDS_CHECKED ON
     for (int j = 0; j < 5; j++) {
 #pragma BOUNDS_CHECKED OFF
-      b[i][j] += *q + *r; // expected-error {{expression has no bounds}}
+      b[i][j] += *q + *r; // expected-error {{expression has unknown bounds}}
     }
     b[i][4] += *p + *q + *r + *s;
   }
@@ -413,7 +413,7 @@ unchecked int * unchecked_func_cu(int *p, ptr<int> q, array_ptr<int> r, array_pt
   int a = 5;
   *p = 1; // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
   *q = 2;
-  *r = 3; // expected-error {{expression has no bounds}}
+  *r = 3; // expected-error {{expression has unknown bounds}}
   *s = 4;
 #pragma BOUNDS_CHECKED OFF
   ptr<int> pa = &a;
@@ -421,7 +421,7 @@ unchecked int * unchecked_func_cu(int *p, ptr<int> q, array_ptr<int> r, array_pt
   int c[5][5];
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
-      b[i][j] = *p + *q + *r + *s;  // expected-error {{expression has no bounds}}
+      b[i][j] = *p + *q + *r + *s;  // expected-error {{expression has unknown bounds}}
     }
   }
   return 0;
