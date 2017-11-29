@@ -18,21 +18,23 @@
 //   nt_array_ptr type.  Arrays of null-terminated data are represented
 //   using the nt_checked type.
 //
-//   An nt_array_ptr is like an arraY_ptr, except that it is followed by a
-//   a sequence of elements that is terminated by a null element.
+//   An nt_array_ptr is like an array_ptr, except that the array that it
+//   points to is followed by a sequence of elements that is null-terminated.
+//   The bounds on the nt_array_ptr delimit the array.  The sequence begins
+//   at the upper bound.
 //
-//   These types follow slightly different rules than array_ptr and checked
-//   arrays do:
+//   Because of this,  nt_array_ptr and nt_checked arrays follow slightly
+//   different rules than array_ptr and checked arrays do:
 //   - Given an nt_array_ptr, the element exactly at the upper bound of the
 //     nt_array_ptr can be read (it is the first element of the sequence).
 //     A 0 can be written there using an assignment (there must always be
 //     enough space in the sequence for at least the null terminator).  No
 //     other writes to that element are allowed.
-//   - Given an nt_checked array, it convert to an nt_array_ptr whose count
+//   - Given an nt_checked array, it converts to an nt_array_ptr whose count
 //     excludes the  null terminator (whose count is one less than the declared
 //     size).
 //   - nt_array_ptrs have a default bounds of count(0). This means that you
-//     can can dereference an nt_array_ptr that does not have a bounds
+//     can dereference an nt_array_ptr that does not have a bounds
 //     declaration.
 //
 //   Some simple examples:

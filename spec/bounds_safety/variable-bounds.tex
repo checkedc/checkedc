@@ -662,18 +662,26 @@ Accessing outside of the bounds for an
 individual inner dimension is a violation of the C Standard and logically incorrect,
 but it does not compromise memory safety or type safety.
 
-Bounds checks for \ntarrayptr\ values allow read access to memory exactly
-at the upper bound.  This is the beginning of the null-terminated
-sequence (bounds checks for \arrayptr\ values only allow access to
-memory below the upper bounds).  For memory reads,
+Bounds checks for \ntarrayptr\ values allow read access to memory
+at the upper bound.  An \ntarrayptr\ points to an array with declared bounds
+that is followed by a sequence of elements that is null-terminated.
+The element at the upper bound is the beginning of the null-terminated
+sequence.  Allowing a read at the upper bound lets a program check the
+first element of the sequence to see if is non-null
+(bounds checks for \arrayptr\ values only allow access to
+memory below the upper bound).  For memory reads,
 given \texttt{*\var{e1}} where {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}},
 the compiler computes \var{e1} to some temporary \var{t}.
 The compiler inserts a runtime check that  \texttt{\var{e2} <= \var{t} \&\&
-\var{t} <= \var{e3}}.   For memory writes, assignment of 0 (the null value)
-using the assignment operator is allowed at exactly the upper bound.
-The upper bound is the beginning of the sequence and there must be enough
-space in the sequence for a null terminator.  Otherwise, the check
-is the same as for \arrayptr.   Here is a precise description:
+\var{t} <= \var{e3}}.
+
+For memory writes, assignment of 0 (the null value)
+using the assignment operator is allowed at the upper bound.
+This is the first element of the null-terminated sequence
+and there must be enough space in the sequence for at least a null terminator.
+Otherwise, the check
+is the same as for \arrayptr.   Given an expression {\var{e1}} that
+has {\bounds{\var{e2}}{\var{e3}}}, here is a precise description:
 \begin{itemize}
 \item Given an assignment of the form \texttt{*\var{e1} = \var{e4}}, the
 value of \var{e4} is computed to some temporary \var{v}.  The
