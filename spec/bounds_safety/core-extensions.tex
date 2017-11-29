@@ -367,7 +367,8 @@ An \keyword{nt\_checked} array with size \var{d} converts
 to an \ntarrayptr\ with a count of \var{d - 1} elements.
 This is the number of elements in the prefix array.   This means that
 programs can still read an array element containing a null terminator.
-However, attempting to overwrite a null terminator is a runtime error.
+However, attempting to overwrite the null terminator with a non-null
+value is a runtime error.
 
 \subsection{\ntarrayptr\ usually follows the rules for \arrayptr}
 Because \ntarrayptr\ extends \arrayptr, the discussion and rules for

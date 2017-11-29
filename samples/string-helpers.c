@@ -6,7 +6,7 @@
 // To compile the file using clang, on Unix/Mac use
 //  clang -o string-helpers -fcheckedc-extension string-helper.c
 // On Windows use:
-//  clang -o string-helpers.exe -fcheckedc-extension string-helper.c
+//  clang -o string-helpers.exe -fcheckedc-extension string-helpers.c
 // 
 // Then run the program with 6 string arguments, the 3rd of which should
 // be an integer  For example:
@@ -18,41 +18,55 @@
 //   nt_array_ptr type.  Arrays of null-terminated data are represented
 //   using the nt_checked type.
 //
-//   These types follow slightly different rules than
-//   array_ptr and checked arrays do:
-//   - Given an nt_array_ptr, the element exactly at the
-//     upper bound of the nt_array_ptr can be read but not
-//     written.
-//   - Given an nt_checked array, it has count of
-//      of elements that excludes the null terminator (is one
-//      less than the declared size).
-//   - nt_array_ptr have a default bounds of count(0). This
-//     means that you can can dereference an nt_array_ptr without
-//     bounds (NOTE: the compiler is currently not yet inserting
-//     the default bounds.  You'll need to add them explicitly.
+//   An nt_array_ptr is like an array_ptr, except that the array that it
+//   points to is followed by a sequence of elements that is null-terminated.
+//   The bounds on the nt_array_ptr delimit the array.  The sequence begins
+//   at the upper bound.
+//
+//   Because of this,  nt_array_ptr and nt_checked arrays follow slightly
+//   different rules than array_ptr and checked arrays do:
+//   - Given an nt_array_ptr, the element exactly at the upper bound of the
+//     nt_array_ptr can be read (it is the first element of the sequence).
+//     A 0 can be written there using an assignment (there must always be
+//     enough space in the sequence for at least the null terminator).  No
+//     other writes to that element are allowed.
+//   - Given an nt_checked array, it converts to an nt_array_ptr whose count
+//     excludes the  null terminator (whose count is one less than the declared
+//     size).
+//   - nt_array_ptrs have a default bounds of count(0). This means that you
+//     can dereference an nt_array_ptr that does not have a bounds
+//     declaration.
 //
 //   Some simple examples:
 //
-//   The following is valid for an nt_array_ptr.  It
-//   would fail at run-time for an array_ptr.
+//   The following code is valid for an nt_array_ptr.  It would fail at runtime
+//   for an array_ptr.
 //
 //   char fetch(nt_array_ptr<char> p : count(0)) {
 //     return *p;
 //   }
 //
-//   The following code is valid for nt_array_ptr.
-//   It would fail at runtime for an array_ptr.
+//   The following code is valid for an nt_array_ptr.  It would fail at runtime
+//   for an array_ptr.
 //
 //   int f(nt_array_ptr<char> p : count(n), int n) {
-//     if (p[n]) {  // read eleement at upper bound.
+//     if (p[n]) {  // read element at upper bound.
 //       ...
 // 
-//   The following code fails at runtime for both
-//   nt_array_ptr and array_ptr:
+//    If v != 0, the following code fails at runtime for an nt_array_ptr.  It
+//    always fails for an array_ptr.
 //
-//   int set(nt_array_ptr<char> p : count(n), int n, int v) {
-//     p[n] = v;  // runtime error! attempt to write element at upper bound.
-//     ...
+//     int set(nt_array_ptr<char> p : count(n), int n, int v) {
+//       p[n] = v;  // fails unless v is zero.
+//       ...
+//     }
+//
+//    The following code is valid for an nt_array_ptr and would fail at runtime
+//    for an array_ptr:
+//
+//    int set_zero(nt_array_ptr<char> p : count(n), int n) {
+//      p[n] = 0;  // allowed for nt_array_ptr.  Runtime error for array_ptr!
+//    }
 // 
 //   The following example illustrates how bounds differ from
 //   the count:
@@ -65,8 +79,8 @@
 //
 // About the example functions.
 //
-// There three important aspects to using
-// null-terminated character pointers. in Checked C:
+// There three important aspects to using null-terminated character pointers
+// in Checked C:
 // 1. Nt_array_ptrs with no bounds declared have a default bounds of count(0).
 // 2. If you are using array subscripting to access the nt_array_ptr,
 //    you'll need to widen the bounds as you determine the last character
@@ -108,7 +122,8 @@
 #include <stdio_checked.h>
 
 // Return length of p (adapted from p. 39, K&R 2nd Edition).
-checked int my_strlen(nt_array_ptr<char> p : count(0)) {
+// p implicitly has count(0).
+checked int my_strlen(nt_array_ptr<char> p) {
   int i = 0;
   // Create a temporary whose count of elements
   // can change.
@@ -121,7 +136,8 @@ checked int my_strlen(nt_array_ptr<char> p : count(0)) {
 }
 
 // Delete all c from p (adapted from p. 47, K&R 2nd Edition)
-checked void squeeze(nt_array_ptr<char> p : count(0), char c) {
+// p implicltly has count(0).
+checked void squeeze(nt_array_ptr<char> p, char c) {
   int i = 0, j = 0;
   // Create a temporary whose count of elements can
   // change.
@@ -135,12 +151,10 @@ checked void squeeze(nt_array_ptr<char> p : count(0), char c) {
     if (tmp[i] != c)
       tmp[j++] = tmp[i];
   }
-  // Tricky case: if i == j, s[j] = `\0' would
-  // attempt to write to the character at the upper
-  // bound.  This would be a runtime error.  Only
-  // write a `\0` if we removed a character.
-  if (j < i)
-    s[j] = '\0';
+  // if i==j, this writes a 0 at the upper bound.  Writing a 0 at the upper bound
+  // is allowed for pointers to null-terminated arrays.  It is not allowed for
+  // regular arrays.
+  s[j] = 0;
 }
 
 // Convert p to integer (adapted from p. 61, K&R 2nd Edition).
@@ -161,15 +175,15 @@ checked int my_atoi(char p nt_checked[] : count(0)) {
   return sign * n;
 }
 
-// Reverse a string in place (p. 62, K&R 2nd Edition)
-checked void reverse(nt_array_ptr<char> p : count(0)) {
+// Reverse a string in place (p. 62, K&R 2nd Edition).
+// p implicitly has count(0).
+checked void reverse(nt_array_ptr<char> p) {
   int len = 0;
   // Calculate the length of the string.
   nt_array_ptr<char> s : count(len) = p;
   for (; s[len]; len++);
 
-  // Now that we know the length, use pointer
-  // just like we would use an array_ptr
+  // Now that we know the length, use s just like we would use an array_ptr.
   for (int i = 0, j = len - 1; i < j; i++, j--) {
     int c = s[i];
     s[i] = s[j];
@@ -179,8 +193,8 @@ checked void reverse(nt_array_ptr<char> p : count(0)) {
 
 // Return < 0 if s < t, 0 if s == t, > 0 if s > t.
 // Adapted from p.106, K&R 2nd Edition.
-checked int my_strcmp(nt_array_ptr<char> s : count(0),
-                      nt_array_ptr<char> t : count(0)) {
+// s and t implicitly have count(0).
+checked int my_strcmp(nt_array_ptr<char> s, nt_array_ptr<char> t) {
   // Reading *s and *t is allowed for count(0)
   for (; *s == *t; s++, t++) // Incrementing s, t allowed because *s, *t != `\0`
     if (*s == '\0')
@@ -212,4 +226,3 @@ int main(int argc, nt_array_ptr<char> argv checked[] : count(argc)) {
   printf("strcmp(\"%s\", \"%s\") = %d\n", arg5, arg6, my_strcmp(arg5, arg6));
   return 0;
 }
-
