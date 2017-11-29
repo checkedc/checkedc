@@ -136,7 +136,7 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   int *t6a = x;         // expected-error {{expression of incompatible type 'int _Nt_checked[10]'}}
     
   // Various forms of array_ptr<T> = T[]. Note that the rhs does not need to have known bounds
-  // because the lhs pointers have no bounds (and cannot be dereferenced).  
+  // because the lhs pointers have unknown bounds (and cannot be dereferenced).  
   //
   // Note if there need to be known bounds, the bounds of p and q are unknown
   // because C does not guarantee that array sizes match for parameter passing
@@ -1047,9 +1047,9 @@ extern void check_call_void(void) {
   // Expected to typecheck
   f1_void(p, val);    // param ptr<void>, arg int[10] OK.
   f3_void(r, val);    // param array_ptr<void>, arg int checked[10] OK.
-  f3_void(p, val);    // param array_ptr<void>, arg int[10] OK, provided that param has no bounds.
-  f3_void(r, val);    // param array_ptr<void>, arg int checked[10] OK, provided that param has no bounds.
-  f3_void(v, val);    // param array_ptr<void>, arg int nt+checked[10] OK, provided that param has no bounds.
+  f3_void(p, val);    // param array_ptr<void>, arg int[10] OK, provided that param has unknown bounds.
+  f3_void(r, val);    // param array_ptr<void>, arg int checked[10] OK, provided that param has unknown bounds.
+  f3_void(v, val);    // param array_ptr<void>, arg int nt+checked[10] OK, provided that param has unknown bounds.
 
   // Expected to not typecheck
   f1_void(r, val);    // expected-error {{incompatible type}}
@@ -1071,9 +1071,9 @@ extern void check_call_void(void) {
   f2(u, 0);           // expected-error {{incompatible type}}
 
   // f3(int p checked[10], int)
-  f3(s, 0);           // expected-error {{argument has no bounds}}
+  f3(s, 0);           // expected-error {{argument has unknown bounds}}
   f3(t, 0);           // expected-error {{incompatible type}}
-  f3(u, 0);           // expected-error {{argument has no bounds}}
+  f3(u, 0);           // expected-error {{argument has unknown bounds}}
 
   // f3a(int p nt_checked[10], int)
   f3a(s, 0);           // expected-error {{incompatible type}}
@@ -1221,7 +1221,7 @@ int *h15(int arr checked[]) {
 }
 
 ptr<int> h17(int arr checked[]) {
-  return arr;  // expected-error {{expression has no bounds}}, ptr<T> = array_ptr<T> OK
+  return arr;  // expected-error {{expression has unknown bounds}}, ptr<T> = array_ptr<T> OK
 }
 
 ptr<int> h17a(int arr nt_checked[]) {

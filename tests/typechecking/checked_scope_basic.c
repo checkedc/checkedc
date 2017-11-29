@@ -427,14 +427,14 @@ checked int * func41(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : co
   checked {
     *p = 1;
     *q = 2;
-    *r = 3; // expected-error {{expression has no bounds}}
+    *r = 3; // expected-error {{expression has unknown bounds}}
   *s = 4;
   unchecked {
     ptr<int> pa = &a;
     int b checked[5][5];
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
-        b[i][j] += *q + *r; // expected-error {{expression has no bounds}}
+        b[i][j] += *q + *r; // expected-error {{expression has unknown bounds}}
         b[i][j] += *p + *q + *r + *s;
       }
     }
@@ -801,7 +801,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st0->b) + *(st1->b);
   sum += *(st0->pc) + *(st1->pc);
   sum += *(st0->pd) + *(st1->pd);
-  sum += *(st0->e) + *(st1->e);   // expected-error {{expression has no bounds}}
+  sum += *(st0->e) + *(st1->e);   // expected-error {{expression has unknown bounds}}
 
   struct s2 sta;
   ptr<struct s2> pstb = 0;
@@ -820,7 +820,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st2->e) + *(st2->e);
   sum += *(st2->d.a) + *(st3->d.a); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
   sum += *(st2->d.b) + *(st3->d.b); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
-  sum += *(st2->d.e) + *(st3->d.e); // expected-error 2 {{expression has no bounds}}
+  sum += *(st2->d.e) + *(st3->d.e); // expected-error 2 {{expression has unknown bounds}}
   return sum;
 }
 
@@ -838,17 +838,17 @@ void test_addrof_checked_scope(void) checked {
   ptr<int> x = &a[i]; // expected-warning {{cannot prove cast source bounds are wide enough for '_Ptr<int>'}} \
                          ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
   ptr<int> y = &b[0]; // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>) \
-                      // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
+                      // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
   ptr<int> z = &i;    // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
 
   x = &a[i];  // expected-warning {{cannot prove cast source bounds are wide enough for '_Ptr<int>'}} \
               // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>)
   y = &b[1];  // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>) \
-              // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
+              // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
   z = &i;     // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
 
   x = b;      // BinaryOperator (ImplicitCastExpr _Ptr (_Array_ptr)) \
-              // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
+              // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
 
   array_ptr<int> ax = &a[i];
   array_ptr<int> ay = &b[2];
@@ -882,17 +882,17 @@ void test_addrof_unchecked_scope(void) unchecked {
   // checkSingleAssignmentConstraints(int * -> _Ptr<int> implicit casting)
   ptr<int> x = &a[i]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
   ptr<int> y = &b[0]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &) \
-                      // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
+                      // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
   ptr<int> z = &i;    // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
 
   // implicit cast for _Ptr<T> requires source bounds
   x = &a[i];  // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &))
   y = &b[0];  // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)) \
-              // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
+              // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
   z = &i;     // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &))
 
   x = b;      // BinaryOperator(ImplicitCastExpr()) \
-              // expected-error {{expression has no bounds, cast to ptr<T> expects source to have bounds}}
+              // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
 
   // checkSingleAssignmentConstraints(int * -> _Array_ptr<int> implicit casting)
   array_ptr<int> ax = &a[i];  // ImplicitCastExpr _Array_ptr<int>(UnaryOperator)
@@ -990,7 +990,7 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   t6 = u; // expected-error {{local variable used in a checked scope must have a checked type}}
 
   // Various forms of array_ptr<T> = T[]. Note that the rhs does not need to have known bounds
-  // because the lhs pointers have no bounds (and cannot be dereferenced).
+  // because the lhs pointers have unknown bounds (and cannot be dereferenced).
   //
   // Note if there need to be known bounds, the bounds of p and q are unknown
   // because C does not guarantee that array sizes match for parameter passing

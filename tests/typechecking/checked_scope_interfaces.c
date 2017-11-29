@@ -54,10 +54,10 @@ checked int f2(int *s : count(len), int len) {
 
 checked int f3(int *s : itype(array_ptr<int>), int len) {
   array_ptr<int> t1 = s + 5; // allowed
-  int t2 = *s;                // expected-error {{expression has no bounds}}
-  int t3 = s[4];              // expected-error {{expression has no bounds}}
-  *(s + 4) = 0;               // expected-error {{expression has no bounds}}
-  s[4] = 0;                   // expected-error {{expression has no bounds}}
+  int t2 = *s;                // expected-error {{expression has unknown bounds}}
+  int t3 = s[4];              // expected-error {{expression has unknown bounds}}
+  *(s + 4) = 0;               // expected-error {{expression has unknown bounds}}
+  s[4] = 0;                   // expected-error {{expression has unknown bounds}}
 
   return 0;
 }
@@ -74,10 +74,10 @@ checked int f4(int *s : itype(int checked[4])) {
 
 checked int f5(int *s : itype(int checked[])) {
   array_ptr<int> t1 = s + 4;
-  int t2 = *s;                // expected-error {{expression has no bounds}}
-  int t3 = s[4];              // expected-error {{expression has no bounds}}
-  *(s + 4) = 0;               // expected-error {{expression has no bounds}}
-  s[4] = 0;                   // expected-error {{expression has no bounds}}
+  int t2 = *s;                // expected-error {{expression has unknown bounds}}
+  int t3 = s[4];              // expected-error {{expression has unknown bounds}}
+  *(s + 4) = 0;               // expected-error {{expression has unknown bounds}}
+  s[4] = 0;                   // expected-error {{expression has unknown bounds}}
 
   return 0;
 }
@@ -130,10 +130,10 @@ checked void test_globals(void) {
 
   // array_ptr<int> without bounds
   array_ptr<int> t21 = g3 + 4; // allowed
-  int t22 = *g3;                // expected-error {{expression has no bounds}}
-  int t23 = g3[4];              // expected-error {{expression has no bounds}}
-  *(g3 + 4) = 0;                // expected-error {{expression has no bounds}}
-  g3[4] = 0;                    // expected-error {{expression has no bounds}}
+  int t22 = *g3;                // expected-error {{expression has unknown bounds}}
+  int t23 = g3[4];              // expected-error {{expression has unknown bounds}}
+  *(g3 + 4) = 0;                // expected-error {{expression has unknown bounds}}
+  g3[4] = 0;                    // expected-error {{expression has unknown bounds}}
 
   // int checked[5]
   array_ptr<int> t31 = g4 + 4;
@@ -144,10 +144,10 @@ checked void test_globals(void) {
 
   // int checked[]
   array_ptr<int> t41 = g5+ 4;
-  int t42 = *g5;                // expected-error {{expression has no bounds}}
-  int t43 = g5[4];              // expected-error {{expression has no bounds}}
-  *(g5 + 4) = 0;               // expected-error {{expression has no bounds}}
-  g5[4] = 0;                   // expected-error {{expression has no bounds}}
+  int t42 = *g5;                // expected-error {{expression has unknown bounds}}
+  int t43 = g5[4];              // expected-error {{expression has unknown bounds}}
+  *(g5 + 4) = 0;               // expected-error {{expression has unknown bounds}}
+  g5[4] = 0;                   // expected-error {{expression has unknown bounds}}
 }
 
 //
@@ -170,15 +170,15 @@ checked int test_call_parameters(void) {
   int arr1 checked[4];
   f10(param1);
   f10(param2);
-  f10(param3);           // expected-error {{expression has no bounds}}
+  f10(param3);           // expected-error {{expression has unknown bounds}}
   f10(arr1);
-  f10(empty_global_arr); // expected-error {{expression has no bounds}}
+  f10(empty_global_arr); // expected-error {{expression has unknown bounds}}
 
   f11(param1);           // expected-error {{argument does not meet declared bounds for 1st parameter}}
   f11(param2);
-  f11(param3);           // expected-error {{argument has no bounds}}
+  f11(param3);           // expected-error {{argument has unknown bounds}}
   f11(arr1);
-  f11(empty_global_arr); // expected-error {{argument has no bounds}}
+  f11(empty_global_arr); // expected-error {{argument has unknown bounds}}
 
   f12(param1);
   f12(param2);
@@ -194,9 +194,9 @@ checked int test_call_parameters(void) {
 
   f14(param1);           // expected-error {{argument does not meet declared bounds for 1st parameter}}
   f14(param2);
-  f14(param3);           // expected-error {{argument has no bounds}}
+  f14(param3);           // expected-error {{argument has unknown bounds}}
   f14(arr1);             
-  f14(empty_global_arr); // expected-error {{argument has no bounds}}
+  f14(empty_global_arr); // expected-error {{argument has unknown bounds}}
 
   f15(param1, param2);
 }
@@ -336,7 +336,7 @@ checked int test_struct1(struct S1 *p : itype(ptr<struct S1>)) {
   int t1 = *(p->f1 + 4);   // expected-error {{arithmetic on _Ptr type}}
   int t2 = *(p->f2 + 4);
   int t3 = *(p->f3 + 4);
-  int t4 = *(p->f4 + 4);   // expected-error {{expression has no bounds}}
+  int t4 = *(p->f4 + 4);   // expected-error {{expression has unknown bounds}}
   int t5 = *(p->arr + 4);
   (*(p->fp1))(p->f1);
   (*(p->fp1))(0x5000);     // expected-error {{passing 'int' to parameter of incompatible type '_Ptr<int>'}}
@@ -491,7 +491,7 @@ checked void test1_array_of_function_pointers(ptr<int> arg1, ptr<ptr<int>> arg2,
 //   bounds, so it can be assigned a checked pointer type.
 unchecked void test2_array_of_function_pointers(ptr<int> arg1, ptr<ptr<int>> arg2, int num) {
   (*(table1[num]))(arg1, arg2); // expected-error {{passing '_Ptr<int>' to parameter of incompatible type 'int *'}}
-  ptr<int> result1 = (*(table1[num]))(0, 0) + 5; // expected-error {{expression has no bounds}}
+  ptr<int> result1 = (*(table1[num]))(0, 0) + 5; // expected-error {{expression has unknown bounds}}
   (*(table1[num]))(0, 0) + 5;
   (*(table2[num]))(arg1, arg2);
   (*(table2[num]))(arg1, arg2) + 5;
