@@ -481,8 +481,8 @@ struct S0 {
   float **data5 : itype(array_ptr<ptr<float>>);
   float ***data6 : itype(ptr<ptr<ptr<float>>>);
   float data7[4] : itype(float checked[4]);
-  float data8[] : itype(float checked[]);   // expected-error {{field has incomplete type}}
-  float data9[];  // expected-error {{field has incomplete type}}
+  float data8[] : itype(float checked[]);   // expected-error {{flexible array member 'data8' with type 'float []' is not at the end of struct}}
+  float data9[];  // expected-error {{flexible array member 'data9' with type 'float []' is not at the end of struct}}
   float data10[4];// expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   float *data11;  // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   float **data12; // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
