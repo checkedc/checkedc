@@ -5,7 +5,7 @@
 // 2) Make sure type declaration syntax error is caught.
 // 3) _For_any scope should be confined within function declaration.
 //
-// RUN: %clang_cc1 -fcheckedc-extension -verify %s
+// RUN: %clang_cc1 -verify %s
 
 _For_any(R) _Ptr<R> foo(void);
 // Testing scope created by for any specifier is exited successfully.

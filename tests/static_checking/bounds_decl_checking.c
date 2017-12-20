@@ -1,7 +1,7 @@
 // Feature tests of static checking of bounds declarations.
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
 #include <stdchecked.h>
 

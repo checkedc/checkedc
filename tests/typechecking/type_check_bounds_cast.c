@@ -1,7 +1,7 @@
 // Feature tests of parsing new Checked C dynamic and assume bounds
 // cast. The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension -verify-ignore-unexpected=note %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
 #include <stdchecked.h>
 

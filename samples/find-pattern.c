@@ -4,10 +4,10 @@
 // It reads a series of lines and check whether a string occurs in a line.
 // If it does, it prints the line.
 //
-// To compile the file using clang, on Unix/Mac use
-//  clang -o find-pattern -fcheckedc-extension find-pattern.c
+// To compile the file using the Checked C version of clang, on Unix/Mac use
+//  clang -o find-pattern find-pattern.c
 // On Windows use:
-//  clang -o find-pattern.exe -fcheckedc-extension find-pattern.c
+//  clang -o find-pattern.exe find-pattern.c
 //
 // To run it, create a file with some lines of text in it that contain a
 // pattern you wish to match.  Then run:

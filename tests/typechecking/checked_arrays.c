@@ -1,7 +1,7 @@
 // Unit tests for typechecking new Checked C array types
 //
 // The following line is for the LLVM test harness:
-// RUN: %clang_cc1 -fcheckedc-extension -Wno-unused-value -Wno-pointer-bool-conversion -verify -verify-ignore-unexpected=note %s
+// RUN: %clang_cc1 -Wno-unused-value -Wno-pointer-bool-conversion -verify -verify-ignore-unexpected=note %s
 //
 
 #include <stdchecked.h>

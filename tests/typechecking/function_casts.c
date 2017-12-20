@@ -1,7 +1,7 @@
 // Unit tests for typechecking new Checked C function pointers
 //
 // The following line is for the LLVM test harness:
-// RUN: %clang_cc1 -fcheckedc-extension -verify -verify-ignore-unexpected=note %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 //
 
 #include <stdchecked.h>

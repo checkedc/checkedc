@@ -3,10 +3,10 @@
 // The examples are adapted from "The C Programming Language", Second Edition,
 // by Brian Kernighan and Dennis Ritchie.
 //
-// To compile the file using clang, on Unix/Mac use
-//  clang -o string-helpers -fcheckedc-extension string-helper.c
+// To compile the file using the Checked C version of clang, on Unix/Mac use
+//  clang -o string-helpers string-helper.c
 // On Windows use:
-//  clang -o string-helpers.exe -fcheckedc-extension string-helpers.c
+//  clang -o string-helpers.exe string-helpers.c
 // 
 // Then run the program with 6 string arguments, the 3rd of which should
 // be an integer  For example:

@@ -3,7 +3,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang -fcheckedc-extension -fsyntax-only -Werror %s
+// RUN: %clang -fsyntax-only -Werror %s
 
 #include <stdchecked.h>
 #include <stdlib_checked.h>

@@ -7,7 +7,7 @@
 // 2) An expression that may be ambiguous to generic function call is a
 //    comparison expression. ex) foo < bar; Make sure this isn't going to break
 //
-// RUN: %clang_cc1 -fcheckedc-extension -verify %s
+// RUN: %clang_cc1 -verify %s
 // expected-no-diagnostics
 
 _For_any(T) _Ptr<T> foo(_Ptr<T> a, _Ptr<T> b) {
