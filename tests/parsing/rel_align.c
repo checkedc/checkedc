@@ -2,7 +2,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify %s
 
 #include <stdchecked.h>
 
@@ -193,11 +193,11 @@ extern void f16(void) {
       : bounds(arr, arr + len) rel_align(char);
 }
 
-extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}} expected-error {{expected a type}}
+extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}}
 													    }
 extern array_ptr<int> f18(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(char) { // expected-error {{expected bounds expression}}
 }
-extern array_ptr<int> f19(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}} expected-error {{expression is not an integer constant expression}}
+extern array_ptr<int> f19(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}}
 }
 
 int f20(void) {
@@ -225,9 +225,9 @@ extern void f23(int *p : iitype(ptr<int>) rel_alive(1), int y) {// expected-erro
 extern array_ptr<int> f24(array_ptr<int> arr : bounds(arr, arr + 5) rel_align(1))// expected-error {{expected a type}}
   : bounds(arr, arr + 5) rel_align(1);// expected-error {{expected a type}}
 
-extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1){} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
+extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1){} // expected-error {{expected bounds expression or bounds-safe interface type}}
 
-extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
+extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}}
 
 extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds() rel_alive(1) { // expected-error {{expected bounds expression or bounds-safe interface type}}
 }

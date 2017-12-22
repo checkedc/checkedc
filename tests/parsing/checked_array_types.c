@@ -9,7 +9,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension  -Wno-unused-value %s
+// RUN: %clang_cc1 -verify  -Wno-unused-value %s
 // expected-no-diagnostics
 
 //

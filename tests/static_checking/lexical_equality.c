@@ -2,7 +2,7 @@
 // It is difficult to test this directly, so we test it indirectly
 // by redeclaring functions with different bounds expressions.
 //
-// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
 //--------------------------------------------------------------------------//
 // Check the cross product of different kinds of expressions.               //

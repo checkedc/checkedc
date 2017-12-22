@@ -2,7 +2,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang -fcheckedc-extension -Xclang -verify -o %t.exe %s
+// RUN: %clang -Xclang -verify -o %t.exe %s
 // RUN: %t.exe
 
 #include <stdbool.h>

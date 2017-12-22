@@ -1,7 +1,7 @@
 // Test runtime bounds checking in checked scopes of uses of pointers
 // and arrays with bounds-safe interfaces.
 //
-// RUN: %clang -fcheckedc-extension %s -o %t1 -Werror -Wno-unused-value -Wno-check-memory-accesses
+// RUN: %clang %s -o %t1 -Werror -Wno-unused-value -Wno-check-memory-accesses
 // RUN:  %t1 1 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-1
 // RUN:  %t1 2 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 3 | FileCheck %s --check-prefixes=CHECK

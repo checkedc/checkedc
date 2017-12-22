@@ -1,6 +1,6 @@
 // Test type checking of generic function calls.
 //
-// RUN: %clang_cc1 -fcheckedc-extension -verify -verify-ignore-unexpected=note %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
 //
 // Test mismatches between the number of type variables and type arguments.

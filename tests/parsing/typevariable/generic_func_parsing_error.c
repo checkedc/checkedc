@@ -1,7 +1,7 @@
 // Tests to make sure parsing errors for generic function calls are detected
 // properly.
 //
-// RUN: %clang_cc1 -fcheckedc-extension -verify %s
+// RUN: %clang_cc1 -verify %s
 
 _For_any(T) _Ptr<T> Foo(_Ptr<T> a, _Ptr<T> b) {
   return a;

@@ -3,7 +3,7 @@
 // override bounds based on the size of the 1st 
 // dimension of the array.
 //
-// RUN: %clang -fcheckedc-extension %s -o %t1 -Werror -Wno-unused-value
+// RUN: %clang %s -o %t1 -Werror -Wno-unused-value
 // RUN:  %t1 0 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES
 // RUN:  %t1 1 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 2 | FileCheck %s --check-prefixes=CHECK
