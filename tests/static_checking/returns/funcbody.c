@@ -12,12 +12,12 @@ void f1(void) checked {
   return 5; // expected-error {{void function 'f1' cannot return a value in a checked scope}}
 }
 
-void f2(void) {
+checked void f2(void) {
   ptr<int> p = 0;
   return p; // expected-error {{void function 'f2' cannot return a value in a checked scope}}
 }
 
-void f3(void) {
+void f3(void) checked {
   array_ptr<int> p = 0;
   return p; // expected-error {{void function 'f3' cannot return a value in a checked scope}}
 }
