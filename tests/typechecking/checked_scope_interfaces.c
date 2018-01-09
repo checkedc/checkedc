@@ -294,7 +294,7 @@ int *f35(int *p : itype(ptr<int>)) {
 // Omit returning a value when one is expected.
 int *f36(void) : itype(ptr<int>) {
   checked{
-    return; // expected-error {{non-void function 'f36' should return a value}}
+    return; // expected-error {{non-void function 'f36' must return a value when there are return bounds}}
   }
   return 0;
 }
