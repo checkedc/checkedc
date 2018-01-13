@@ -1,0 +1,35 @@
+% Table: A Description of our Benchmarks
+\centering
+\begin{tabular}{lrl}
+\toprule
+Name           & \multicolumn{1}{c}{LoC} & Description                                             \\
+\midrule
+bh             & 1,162 & Barnes \& Hut N-body force computation algorithm        \\
+bisort         & 262   & Sorts using two disjoint bitonic sequences              \\
+em3d           & 476   & Simulates electromagnetic waves in 3D                   \\
+health         & 338   & Simulates Colombian health-care system                  \\
+mst            & 325   & Computes minimum spanning tree using linked lists       \\
+perimeter      & 399   & Computes perimeter of a set of quad-tree encoded images \\
+power          & 452   & The Power System Optimization problem                   \\
+treadd         & 180   & Computes the sum of values in a tree                    \\
+tsp            & 415   & Estimates solution for the Traveling-salesman problem   \\
+\emph{voronoi} & 814   & Computes voronoi diagram of a set of points             \\
+\addlinespace
+anagram        & 346   & Generates anagrams from a list of words                 \\
+\emph{bc}      & 5,194 & An arbitrary precision calculator                       \\
+ft             & 893   & Computes minimum spanning tree using Fibonacci heaps    \\
+ks             & 549   & Schweikert-Kernighan graph partitioning                 \\
+yacr2          & 2,529 & VLSI channel router                                     \\
+\bottomrule
+\end{tabular}
+\caption{Compiler Benchmarks. Top group is the Olden suite, bottom
+group is the Ptrdist suite. LoC includes all comments and blank lines
+in benchmark source files. Descriptions are from
+\cite{Rogers1995Olden,Austin1994Ptrdist}. We were unable to convert
+\emph{voronoi} from the Olden suite and \emph{bc} from the Ptrdist suite using the current version of
+Checked C.}
+\label{tab:bmdesc}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../tr02"
+%%% End:

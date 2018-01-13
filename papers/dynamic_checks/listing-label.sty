@@ -1,0 +1,40 @@
+%% Source Code Notes
+\ProvidesPackage{listing-label}
+\RequirePackage{tikz}
+
+% Counter, numbered by section
+\newcounter{decoratedlabel}[section]
+% Use this in listing, to label something right there. You'll need a way to
+% escape into normal latex in listings, I use \lstset{escapechar=@} so
+% this command goes in @\lstlabel{...}@. You'll probably also want
+% \lstset{flexiblecolumns,keepspaces} because it looks nicer.
+\newcommand{\decorate}[1]{\refstepcounter{decoratedlabel}\label{#1}%
+\protect\decoratedlabelpicture{\thedecoratedlabel}}
+% Use this in listing (again once escaped to latex), to label
+% something in the left margin (must be at start of a line, takes up 0
+% horizontal space in the listing line)
+\newcommand{\decorateleft}[1]{\refstepcounter{decoratedlabel}\label{#1}%
+\makebox[0pt]{\decoratedlabelpicture{\thedecoratedlabel}\hspace{2em}}}
+% Use this in text to refer to \lstlabel. If you use `hyperref` they
+% get linked together!
+\newcommand{\decref}[1]{\decoratedlabelpicture{\ref{#1}}}
+% Use letters, because we might have a lot of them
+\renewcommand{\thedecoratedlabel}{\Alph{decoratedlabel}}
+% Put a circle around the letter, of course.
+\newcommand*\decoratedlabelpicture[1]{%
+\tikz[baseline=(char.base)]{
+\node[shape=circle,draw,inner sep=1pt,minimum size=1.05em] (char) {\scriptsize\sffamily#1};
+}}
+%
+% If you want the label numbers to be per-listing, then uncomment the
+% following code. They are currently per-section (see above)
+%
+% \AtBeginDocument{
+% \makeatletter
+% \@addtoreset{decoratedlabel}{lstlisting}
+% \makeatother
+% }
+
+\newcommand{\lstlabel}[1]{\decorate{#1}}
+\newcommand{\lstleftlabel}[1]{\decorateleft{#1}}
+\newcommand{\lstref}[1]{\decref{#1}}

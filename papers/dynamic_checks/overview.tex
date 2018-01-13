@@ -1,0 +1,268 @@
+\chapter{Overview of Checked C}
+\label{sec:checkedc}
+
+Checked C is an extension to C that adds static and dynamic checking
+to prevent and detect common programming errors such as buffer
+overruns, out-of-bounds memory accesses, and incorrect type casts.
+Given that it is an extension to C, it aims to preserve backwards
+compatibility with C11~\cite{ISO2011}.
+
+This report is concerned with how Checked C prevents buffer overruns
+and out-of-bounds memory accesses. In order to reason about these
+behaviours, Checked C adds new data types, a method to annotate
+variable declarations with a static description of their runtime
+bounds, checked regions, new casts, and a method for interoperation
+with and describing existing C code.
+
+It is this static bounds description, which we call a ``bounds
+expression'', that is used both during static analysis and during code
+generation for the dynamic checks, and that we consider to be the main
+idea underlying Checked C's approach.
+
+\section{New Data Types}
+
+Checked C adds new types to C:
+
+\begin{itemize}
+\item \PtrT, the checked pointer to singleton type,
+\item \ArrayptrT, the checked pointer to array type,
+\item \CheckedarrT{\mv{N}}, the checked array type,
+\end{itemize}
+
+Both the checked pointer to singleton and the checked pointer to
+array types are intended to replace most uses of C's \uncheckedptrT,
+which we call the unchecked pointer type. The checked array type is
+intended to replace most uses of C's \uncheckedarrT{\mv{N}}, which we
+call the unchecked array type.
+
+The checked pointer to singleton type, \PtrT, is intended to replace
+uses unchecked pointer types that are a
+pointer to a single value of type \mv{T}. For this reason, it is
+illegal to perform any pointer arithmetic on a value of type \PtrT,
+including array indexing. Checked pointers to singletons require no
+bounds checks, but may be null.
+
+The checked pointer to array type, \ArrayptrT, is intended to replace
+uses of the equivalent unchecked pointer type, where it is used as a
+pointer to an array of values of type \mv{T}. These pointers may be
+null, may not overflow on pointer arithmetic, and require bounds
+checks when they are used to access memory.
+
+The checked array type, \CheckedarrT{\mv{N}}, is intended to replace
+uses of the equivalent unchecked array type, \uncheckedarrT{\mv{N}}.
+In the same way that there is a duality between C's unchecked arrays
+and unchecked pointers, there is the same duality between Checked C's
+checked pointers to arrays and checked arrays.
+
+We place two restrictions on the checked array type,
+\CheckedarrT{\mv{N}}. First, they may not be variable length, so
+\mv{N} must be a compile-time constant. Second, if an outer
+dimension of a multidimensional array is checked, all dimensions
+inside that dimension are also checked.
+
+\section{Bounds Expressions}
+
+In order to denote the bounds on a declaration or parameter, a bounds
+expression is associated with a checked array or checked array
+pointer, such as the bounds annotation at~\lstref{main:count}
+in~\autoref{lst:checked-main}.
+
+\begin{code}[label=lst:checked-main,%
+caption={Declaration of \lstinline|main| in a Checked C program}]
+int main(int argc, array_ptr<char*> argv : count(argc) ~\lstlabel{main:count}~);
+\end{code}
+
+\autoref{lst:checked-main}, though very short, shows several features
+of Checked C. The first is that Checked C's new types work exactly how
+C's regular types already do. The next feature is that we can annotate
+function parameters of pointer type with a bounds expression that
+provides a static description of that parameter's runtime bounds. The
+bounds expression at~\lstref{main:count} is only for the outer
+\ArrayptrT, it does not apply to the inner unchecked pointer.
+
+The last feature is the bounds expression itself. There are three
+forms of bounds expressions in Checked C. The first, called a ``count
+expression'' is shown above --- here it denotes that the array has
+\lstinline|argc| elements. There is a more complicated bounds
+expression called a ``range expression'', which is written
+\bounds{\mv{lower}}{\mv{upper}} and denotes that the associated
+pointer is within the range $[\mv{lower}, \mv{upper})$. The last form
+of a bounds expression is written \boundsbytecount{\mv{n}} and means
+the array pointer points to the start of an array \mv{n} bytes long,
+regardless of the element size.
+
+In~\autoref{lst:checked-main}, we could not declare \lstinline|argv|
+to have type \Checkedarr{\expr{\kw{char}*}}{\mv{argc}}, as
+\lstinline|argv| checked arrays may not be variable-length. It is also
+not \uncheckedarr{\Checkedarr{\kw{char}}{\mv{argc}}}{}, both as this
+declares the outer array as variable-length, and as this requires the
+inner array to be checked, but we have no information as to its length
+as it is a null-terminated string.\endnote{In fact, in C, no function
+parameter has array type, as you cannot pass an array (checked or not)
+to a function. Arrays are passed by passing a pointer to their first
+element, so C functions that are declared to have array-typed
+parameters actually have the equivalent pointer-typed parameter.
+Checked C does the same with checked arrays and checked pointers to
+arrays respectively.}
+
+It is an error for a Checked C program to access memory via a null
+checked pointer, so these bounds only apply if the pointer is
+non-null.
+
+\section{Explicit Cast Operators}
+\label{sec:dynamiccastops}
+
+The logic of Checked C's bounds checks is reliant on C's expression
+semantics. Notably, this logic is undecidable, especially when it
+comes to deciding if one bounds expression implies another. We would
+prefer if compiling did not take infinitely long, so Checked C includes
+two operators that a programmer may use when the compiler requires,
+but cannot prove, that one bounds expression is a sub-range of
+another. These assert to the compiler that an expression has
+particular bounds, and are our ``bounds cast'' operators (in the same
+way a type cast operator asserts to the compiler that an expression
+has a particular type). \autoref{sec:static-checks} describes exactly
+when the compiler needs to prove these implications.
+
+The dynamic bounds cast operator,
+\dynamiccast{\mv{T}}{\mv{e}}{\mv{lb}}{\mv{ub}}, performs a cast to
+type \mv{T} and a dynamic check to make sure that either \mv{e} is
+\NULL, or that the required bounds, $\left[\mv{lb}, \mv{ub}\right)$,
+are a sub-range of the bounds of \mv{e}. This check is explicit so that
+the programmer can see where there is an overhead in their program.
+Effectively this asserts a fact that will later be verified at run time.
+
+The assume bounds cast operator,
+\assumecast{\mv{T}}{\mv{e}}{\mv{lb}}{\mv{ub}}, has the equivalent
+compile-time behaviour of the dynamic bounds cast operator, but
+performs no run-time check. This is used to assert to the compiler
+that \mv{e} really has bounds $[\mv{lb}, \mv{ub})$, without incurring
+run-time overhead. This asserts a fact that will never be verified,
+and is therefore a potential source of unsoundness.
+
+\section{Checked Regions}
+\label{sec:checked-regions}
+
+Checked C programs contain regions of unchecked and checked code. By
+default, all code is within an unchecked region. A programmer may
+annotate that a particular scope (i.e. a function or a block) is
+either a checked or unchecked region. A programmer may also use a
+pragma to say that any future scopes or declarations in the program
+file are part of a checked or unchecked region.
+
+Within a checked region, the programmer may not use expressions or
+make declarations with unchecked types. In unchecked regions, a
+programmer may use checked types and they will still be checked
+against their bounds. Checked regions may call unchecked functions, as
+long as the latter's pointer parameter and return types are checked or
+have an interoperation type. Execution will also continue from a
+checked region into an unchecked region if a checked region contains
+an unchecked block (and vice versa).
+
+\section{Interoperation Types}
+\label{sec:interoperation-types}
+
+Checked C includes a method to annotate regular C declarations with
+bounds or ``interoperation'' types. This is so that Checked C code can
+call unchecked functions and still make assumptions about how pointer
+parameters will be used, or returned pointers may be used. In checked
+regions, these declarations are treated as if they have their checked
+types and bounds.
+
+These interoperation types are primarily used for upgrading code
+gradually. Checked C provides a copy of the C11 standard library
+headers files with each declaration annotated with its Checked C
+interoperation type, in order to allow programmers to use the
+standard library from inside checked programs.
+
+\section{Soundness}
+\label{sec:soundness}
+
+The main aim of the Checked C compiler is to maintain a moderately
+complex soundness condition over checked regions of the program. A
+Checked C program must use either static checks, dynamic checks, or a
+mixture of both to enforce this soundness condition.
+
+\paragraph{Well-Formedness} We define a Checked C checked region and
+its memory to be well-formed if:
+\begin{compactitem}
+\item The values of all bounds expressions for in-lifetime
+variables or their transitively reachable data are defined and a
+sub-range of their (potentially overlapping) objects in memory; and,
+\item All in-lifetime non-null pointers of type \mv{T} with bounds
+must point to an object in memory of type \mv{T}.
+\end{compactitem}
+
+\paragraph{Soundness} A Checked C program is sound if, given a
+well-formed Checked C program and memory at the time when a checked
+region is entered:
+\begin{compactitem}
+\item during the evaluation of an expression in that checked region,
+any newly computed or declared bounds are also well-formed with
+respect to the region and program memory;\endnote{This requires that
+the Checked C code in that checked region does not perform any unsound
+casts, which is a hard property to formalize. Importantly we need to
+prevent casts between objects of two incompatible types, even if this
+is done by casting via a type that is compatible with both of these
+types, such as \protect\lstinline|void*|.} and
+\item accesses (reads or writes) to memory through a pointer in the
+checked region, ensure that the checked region and program memory
+remain well-formed.
+\end{compactitem}
+
+\paragraph{Corollary} A corollary to this soundness is the fact that
+if a checked region completes evaluation, then we know that any
+reached memory was accurately described by its bounds information, and
+no checked pointers tried to access out-of-bounds memory. This implies
+a statement akin to the blame theorem from gradual
+typing~\cite{wadler09}, that, as long as all bounds-declarations
+are well-formed, any errors can be blamed on unchecked code.
+
+\paragraph{Formalization} This condition is further explored and
+formalized in our paper draft~\cite{ruef2017draft}, where we provide a
+proof in the spirit of gradual typing, showing that (in a restricted
+core of the Checked C language) bounds errors in checked code can be
+entirely blamed on unchecked code.
+
+\paragraph{Undefined Behaviour} Checked C is very clear that
+operations which do not retain this well-formedness condition should
+raise an error, rather than causing ``undefined behaviour'', which is
+what C specifies in similar circumstances. This is a deliberate effort
+to ensure soundness of compiled programs and to reduce programmer
+confusion, at the cost of some run-time overhead.
+
+\section{Explicit Dynamic Checks}
+
+Checked C also provides an explicit dynamic check operator,
+\kwdynamiccheck. This works similarly to C's \lstinline|assert|,
+taking a condition that must be true and signalling a run-time error
+if that condition evaluates to false. The main difference between the
+dynamic check built-in and assert is that dynamic check is never
+removed unless the compiler can prove the check will always pass,
+whereas an assert will be removed if a particular preprocessor macro
+is defined.
+
+\section{Other Features}
+\label{sec:other-features}
+
+Both the Checked C specification and our prototype compiler are
+currently incomplete. As far as the specification is concerned, we do
+not have a complete design for null-terminated arrays, which means we
+have no way of reasoning about C strings.
+
+As far as the compiler is concerned, though we have a complete
+definition of how to deal with pointer alignment issues, our compiler
+has no support for these features at the moment. The specification
+also defines bundled blocks, which are for relaxing invariants inside
+a particular block (as long as the invariants are enforced again upon
+exiting that block). Bundled blocks are also currently unimplemented
+in our compiler.
+
+I consider all these issues --- null-terminated arrays, pointer
+alignment issues, and bundled blocks --- to be out-of-scope of this
+report.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:
