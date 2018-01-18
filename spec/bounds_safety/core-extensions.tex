@@ -600,7 +600,7 @@ of checking.
 C programs can declare string literals and compound literals.  Examples
 of string literals are expressions such as \keyword{"hello"} and \keyword{L"hello"}
 (in the latter case, the modifier `L' changes the type of the characters in the string).
-A compound literal is an expression that declares an array literal or object literal.
+A compound literal is an expression that declares an array literal or an object literal.
 It consists of a parenthesized type name followed by list of initializers in braces.
 A compound literal has static storage if its at the top level of a file and automatic
 storage if it occurs within a block.  Here are examples of compound literals:
@@ -625,8 +625,9 @@ in a checked scope or an unchecked scope:
 
 This creates an issue in unchecked scopes when a string literal is used where
 a null-terminated checked pointer type is expected.  It makes sense to allow
-this because string literals has known bounds.  However, a literal would have the type
-``unchecked array of \var{T}'' and convert to ``unchecked pointer to \var{T}''.
+this because string literals has known bounds.  However, a string
+literal would have the type ``unchecked array of \var{T}'', which
+would convert to ``unchecked pointer to \var{T}''.
 There is no conversion from the unchecked pointer type to
 ``unchecked null-terminated pointer to \var{T}''.
 To allow this, we alter the rule for implicit conversion of array types to pointer types:
@@ -641,20 +642,69 @@ an initializer.
 \item The string literal or compound literal may be possibly parenthesized.
 \item The type ``checked pointer to \var{T}'' must be a valid type.  Null-terminated array pointers
 to non-scalar and non-integer types are not allowed.
-\end{itemize}.
+\end{itemize}
 This rule is not strictly necessary for compound array literals.  The type name in the
 compound array literal could be modified, of course.  We allow this rule anyway to reduce
-the amount of code changes required to modify code to be checked code.
+the amount of code changes required to modify code to be checked.
 
-Note that some C compilers common together string literals that have the same characters
+Note that some C compilers use the same memory to represent different
+occurrenes of string literals that have the same characters
 sequence.  The meaning of modifying a string literal is implementation-dependent.
 For bounds safety, an implementation should either
 \begin{itemize}
-\item not common together string literals whose modified pointer types differ in whether they are null-terminated, or
+\item not do this for string literals whose modified pointer types differ in whether they are null-terminated, or
 \item make string literals read-only.
 \end{itemize}
 
 \subsection{Examples}
+\begin{verbatim}
+checked void f(void) {
+  // "hello" has type char nt_checked[6]. The type is altered during type checking
+  // to nt_array_ptr<char>.
+  nt_array_ptr<char> p = "hello";
+
+  // "goodbye" has type char nt_checked[8]. The type is altered during type checking
+  // checking to the pointer type array_ptr.
+  array_ptr<char> r = "goodbye";
+
+  // Use compound array literals instead.
+  p = (char nt_checked[6]) { 'h', 'e', 'l', 'l', 'o', '\0' };
+  r = (char checked[8] { 'g', 'o', 'o', 'd', 'b', 'y', 'e', '\0' };
+}
+
+checked char lookup(int i) {
+  // "abcdef" has type char nt_checked[7]. The type is altered during type checking
+  // to nt_array_ptr<char>. The subscript operation will be bounds checked.
+  return "abcdef"[i];
+}
+
+unchecked char unsafe_lookup(int i) {
+  // "abcdef" has type char[7]. The type is altered during type checking
+  // to char *. The subscript operation will not be bounds checked.
+  return "abcdef"[i];
+}
+
+// find pattern in str
+extern int find(nt_array_ptr<char> pattern, nt_array_ptr<char> str);
+
+int g(void) {
+  // "brown" has type char[6]. The type is altered during type checking
+  // to the type char *. It is then further altered to have the type
+  // nt_array_ptr<char>, matching the argument type for pattern.
+  // A similar alteration happens for the second argument string literal.
+
+  int r = find("brown", "the brown fox jumped over the fence");
+}
+
+// Declare a string with a count.
+struct string_with_count {
+  nt_array_ptr<char> buf;
+  int len;
+}
+
+ptr<struct string_with_count> S =
+   &((struct string_with_count) { "hello world", 11 });
+\end{verbatim}
 
 \section{Relative alignment of \arrayptr\ values}
 \label{section:relative-alignment}
