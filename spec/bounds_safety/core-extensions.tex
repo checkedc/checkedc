@@ -730,19 +730,42 @@ ptr<int> p = 0;
 int arr1 checked[5] = { 0, 1, 2, 3, 4 };
 int arr2 checked[3] = { 0, 1, 2 };
 
-struct Pair {
+// Initialize pointers to checked arrays
+array_ptr<int> ap1 = arr1;
+array_ptr<int> ap2 = (int checked[4]) { 0, 0, 0, 0 };
+
+// Initialize a multi-dimensional checked array
+float unit_transform checked[2][2] = { { 1.0f, 0.0f}, { 0.0f, 1.0f }};
+
+// A ragged 2-dimensional array, where the inner dimension size varies.
+struct inner_array {
+  int len;
+  array_ptr<double> elems; // bounds declaration missing because we
+                           // haven't described them yet.
+};
+
+typedef struct inner_array ragged_2d_arr[];
+
+ragged_2d_arr data = 
+  { { 3, (double checked[]) { 1.0, 0.0, 0.0 } },
+    { 1, (double checked[]) { 5.0 } },
+    { 0, 0 },
+    { 2, (double checked[]) { 6.0, 7.0 } } 
+  };
+
+struct BufferPair {
   int len1;
   array_ptr<int> buf1;
   int len2;
   array_ptr<int> buf2;
 };
 
-// Initialize all members of an instance of Pair.
-struct Pair p1 = { 5, arr1, 3, arr2 };
+// Initialize all members.
+struct BufferPair p1 = { 5, arr1, 3, arr2 };
 
-// Declare a partial initializer for an instance of Pair.
+// Declare a partial initializer.
 // len2 and buf2 are initialized to 0.
-struct Pair p2 =  { 0, arr1 };
+struct BufferPair p2 =  { 0, arr1 };
 
 // Strings and initialized arrays of characters.
 
@@ -757,10 +780,7 @@ nt_array_ptr<char> colors checked[] = { "red", "green", "blue", "purple" };
 // Null-terminated arrays of checked strings
 nt_array_ptr<char> more_colors nt_checked[] = { "white", "black", "grey", 0 };
 
-// Multi-dimensional checked arrays
-float unit_transform checked[2][2] = { { 1.0f, 0.0f}, { 0.0f, 1.0f }};
-
-// A null-terminated array of pointers to null-terminated arrays
+// A null-terminated array of ponters to null-terminated arrays
 // of strings.
 nt_array_ptr<nt_array_ptr<char>> sentences nt_checked[4] = 
   {  (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "first sentence", 0 },
@@ -770,19 +790,7 @@ nt_array_ptr<nt_array_ptr<char>> sentences nt_checked[4] =
    };
 \end{verbatim}
 
-% TODO - rethink this example, as it isn't legal C code.
-% // A ragged 2-dimensional array, where the inner dimension size varies.
-% struct counted_arr {
-%  int len;
-%  double elems checked[];  // bounds declaration missing because we
-%                           // haven't described them yet.
-%};
 
-% typedef ptr<counted_arr> ragged_arr[];
-% count_arr dim1 = { 3, { 5.0, 6.0, 7.0} };
-% count_arr dim2 = { 2, { 5.0, 6.0} };
-% count_arr dim3 = { 1, { 5.0 } };
-% ragged_arr data = { &dim1, &dim2, &dim3 };
 
 \section{Relative alignment of \arrayptr\ values}
 \label{section:relative-alignment}
