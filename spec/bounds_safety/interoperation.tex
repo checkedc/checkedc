@@ -785,9 +785,9 @@ They are done at:
     Member assignments: a similar conversion is done for member assignments.
 \item Return statements: if a function has an unchecked pointer return type and a
   return bounds-safe interface, and a return statement in the body of the function
-  has an expression with a checked pointer type, and the return statement expression is 
-  assignment compatible with the return type of the function, then the return expression 
-  will be converted implicitly to the unchecked pointer type.  
+  has an expression with a checked pointer type, and the return statement expression is
+  assignment compatible with the return type of the function, then the return expression
+  will be converted implicitly to the unchecked pointer type.
 \end{itemize}
 
 Implicit conversions at bounds-safe interfaces are allowed from checked pointer types to
@@ -831,12 +831,12 @@ inserted.
 \end{itemize}
 For the included variables, bounds are tracked through the statement or
 bundled block.
-\item The checking of function call arguments        
-      in function calls (Section~\ref{section:checking-function-call-arguments}) 
-      includes parameters with bounds-safe interfaces: 
+\item The checking of function call arguments
+      in function calls (Section~\ref{section:checking-function-call-arguments})
+      includes parameters with bounds-safe interfaces:
 \begin{itemize}
 \item In checked contexts.
-\item In unchecked contexts, when one or more argument expressions have been 
+\item In unchecked contexts, when one or more argument expressions have been
       converted implicitly to unchecked pointer types.
 \end{itemize}
 The parameters are included by adding their bounds-safe interfaces to the
@@ -845,7 +845,7 @@ declared bounds in the constructed \keyword{where} clauses.
 includes return statements where there is a return bounds-safe interface for the enclosing function:
 \begin{itemize}
 \item In checked contexts.
-\item In unchecked contexts, when the return statement expression has been converted 
+\item In unchecked contexts, when the return statement expression has been converted
       implicitly to an unchecked pointer type.
 \end{itemize}
 The return bounds-safe interface is used in place of the function return bounds.
