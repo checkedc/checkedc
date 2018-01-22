@@ -1,0 +1,339 @@
+\ProvidesPackage{checked_c}
+
+%
+% My Package for Checked C documents.
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Dependencies
+%
+\RequirePackage{etoolbox}
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage{microtype}
+
+\RequirePackage{hyperref}
+
+\RequirePackage{fancyhdr}
+\RequirePackage{paralist}
+
+\RequirePackage{listings}
+\RequirePackage{listing-label}
+
+\RequirePackage{color}
+\RequirePackage{xcolor}
+
+\RequirePackage{longtable}
+\RequirePackage{booktabs}
+\RequirePackage{caption}
+
+\RequirePackage{mathtools}
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+
+\RequirePackage{endnotes}
+\RequirePackage{hyperendnotes}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Package Options
+%
+
+% [draft] option switches off errors for \cn and \note{}
+\newtoggle{final}
+\toggletrue{final}
+
+\DeclareOption{draft}{\togglefalse{final}}
+
+\ProcessOptions
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Typography Setup
+%
+
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+
+\hypersetup{%
+unicode=true,
+pdfborder={0 0 0},
+bookmarksnumbered,
+hyperfigures,
+pdfcreator={},
+pdfproducer={},
+pdfnewwindow
+}
+\urlstyle{tt}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Page Layout
+%
+
+% Paragraphs
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt plus 2pt minus 1pt}
+
+
+
+% Headers
+\AtBeginDocument{%
+\pagestyle{fancy}
+\fancyhead[RO]{\textit{\leftmark}}
+\fancyhead[LO]{}
+}
+
+
+% TOC
+\setcounter{tocdepth}{1}
+
+
+% Figures
+\setlength{\captionmargin}{1em}
+\numberwithin{figure}{chapter}
+\AtBeginDocument{
+\numberwithin{lstlisting}{chapter}
+}
+
+% References
+\renewcommand*{\sectionautorefname}{Section}
+\renewcommand*{\chapterautorefname}{Chapter}
+
+% Quotations
+\def\signed #1{{\leavevmode\unskip\nobreak\hfil\penalty50\hskip2em
+  \hbox{}\nobreak\hfill --- #1%
+  \parfillskip=0pt \finalhyphendemerits=0 \endgraf}}
+
+% Bibliography
+\bibliographystyle{plain}
+\patchcmd{\thebibliography}{%
+\chapter*{\bibname}\@mkboth{\MakeUppercase\bibname}{\MakeUppercase\bibname}}{%
+\chapter{\bibname}}{}{}
+
+% Layout Magic
+\clubpenalty=10000
+
+% Endnotes
+\def\footnote{\endnote}
+\def\enotesize{\normalsize}
+\def\enoteheading{\chapter{End Notes}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helpers for TODOs
+%
+\iftoggle{final}{%
+\newcommand{\note}[1]{\PackageError{checked_c}{Note in Final Version of Document}{}}
+\newcommand{\cn}[0]{\PackageError{checked_c}{Citation Needed for Final Version of Document}{}}
+}{
+\newcommand{\note}[1]{\textit{\textcolor{orange}{Note: #1}}}
+\newcommand{\cn}[0]{\textsuperscript{[\textcolor{blue}{citation needed}]}}
+}
+
+
+%
+% Colours
+%
+
+\colorlet{c-green}{green!60!black}
+\colorlet{c-blue}{blue!80!black}
+\colorlet{c-teal}{green!50!blue}
+\colorlet{c-orange}{orange!90!black}
+\colorlet{c-black}{black}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% C Grammar (for math mode)
+%
+
+% Some symbols for C grammar
+\newcommand{\binop}[0]{\oplus}
+\newcommand{\unop}[0]{\otimes}
+\newcommand{\addrof}[0]{\mathord{\&}}
+\newcommand{\deref}[0]{\mathord{*}}
+\newcommand{\member}[0]{\mathord{.}}
+\newcommand{\arrow}[0]{\mathord{\rightarrow}}
+\newcommand{\assign}[0]{\mathop{=}}
+\newcommand{\compassign}[0]{\mathop{\mathrel{\binop}=}}
+\newcommand{\inc}[0]{\mathord{++}}
+\newcommand{\dec}[0]{\mathord{-{}-}}
+
+% Helpers for Propagation Rules (in math mode)
+\DeclareMathOperator{\cast}{cast}
+\DeclareMathOperator{\typeof}{type}
+\DeclareMathOperator{\arr}{array}
+\newcommand{\lbounds}[0]{\textsl{\color{c-green}lvalue-bounds}}
+\newcommand{\vbounds}[0]{\textsl{\color{c-green}value-bounds}}
+\newcommand{\ltbounds}[0]{\textsl{\color{c-green}lvalue-target-bounds}}
+\newcommand{\abounds}[0]{\textsl{\color{c-green}array-bounds}}
+\newcommand{\sbounds}[0]{\textsl{\color{c-green}single-bounds}}
+\newcommand{\mbounds}[0]{\textrm{\color{c-blue}bounds}}
+\newcommand{\srbounds}[0]{\textsl{\color{c-green}struct-rel-bounds}}
+\newcommand{\dbounds}[0]{\textsl{\color{c-green}declared-bounds}}
+\newcommand{\rbounds}[0]{\textsl{\color{c-green}declared-return-bounds}}
+\newcommand{\gis}[0]{\mathrel{\Coloneqq}}
+\newcommand{\gor}[0]{\mathrel{\mid}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Listings Extensions
+%
+
+% Corrections and Extensions to Listing's C Languages
+\lstloadlanguages{C}
+\lstdefinelanguage[ISO]{C}[]{C}%
+{morekeywords={restrict,inline,size_t,alignas,alignof,bool,complex,imaginary,noreturn,static_assert,thread_local}}
+\lstdefinelanguage[Checked]{C}[ISO]{C}%
+{morekeywords={[2]unchecked,_Unchecked,checked,_Checked,%
+array_ptr,_Array_ptr,ptr,_Ptr,%
+nt_array_ptr,_Nt_array_ptr,nt_checked,_Nt_checked,%
+count,byte_count,bounds,%
+dynamic_check,_Dynamic_check,%
+dynamic_bounds_cast,_Dynamic_bounds_cast,%
+assume_bounds_cast,_Assume_bounds_cast},
+}
+
+\makeatletter
+% Simple Language for LLVM IR
+\lstdefinelanguage{LLVM}{
+  sensitive=false,
+  alsoletter=.\%,
+  comment=[l]{;},
+  string=[b]{"},
+  keywordsprefix=@llvm,
+  keywords=[1]{ icmp, br, and, bitcast, call, unreachable },
+  keywords=[2]{ null, ne, eq, ule, ult, to },
+  keywords=[3]{ i1, i32, void, label, metadata},
+  }
+\makeatother
+
+% Styles
+\lstdefinestyle{display}{
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{c-teal},
+  keywordstyle={[2]\color{c-green}},
+  commentstyle=\color{c-orange},
+  identifierstyle=\color{c-blue},
+  stringstyle=\color{c-orange},
+  showstringspaces=false,
+  escapechar=~,
+  tabsize=2,
+  captionpos=b,
+  flexiblecolumns,
+  keepspaces,
+  xleftmargin=25pt,
+  xrightmargin=25pt,
+  breaklines=true,
+  breakatwhitespace=true,
+}
+
+% Defaults
+\lstset{%
+  language=[Checked]C,%
+  style=display,%
+}
+
+% Code Environments
+%TC:envir code [ignore] xall
+\lstnewenvironment{code}[1][]%
+{\begingroup\lstset{style=display}\lstset{#1}}%
+{\endgroup}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% C and Checked C expressions in prose/maths
+%
+
+\newcommand{\ensuremathtext}[1]{\ifmmode\text{#1}\else#1\fi}
+
+% Inline Styling
+\newcommand{\basestyle}{\ttfamily}
+\newcommand{\exprstyle}{\basestyle\color{c-black}}
+\newcommand{\mvstyle}{\basestyle\itshape}
+\newcommand{\kwstyle}{\basestyle\color{c-teal}}
+\newcommand{\tystyle}{\basestyle\color{c-green}}
+
+% Metavars, keywords, types
+\newcommand{\expr}[1]{\ensuremathtext{\begingroup\exprstyle#1\endgroup}}
+\newcommand{\mv}[1]{\ensuremathtext{\begingroup\mvstyle#1\endgroup}}
+\newcommand{\kw}[1]{\ensuremathtext{\begingroup\kwstyle#1\endgroup}}
+\newcommand{\ty}[1]{\ensuremathtext{\begingroup\tystyle#1\endgroup}}
+
+
+% Keywords
+\newcommand{\sizeof}[1]{\expr{\kw{sizeof}(#1)}}
+\newcommand{\NULL}{\kw{NULL}}
+\newcommand{\calloc}[2]{\expr{\kw{calloc}(#1, #2)}}
+
+\newcommand{\kwchecked}[0]{\ty{checked}}
+\newcommand{\kwunchecked}[0]{\ty{unchecked}}
+\newcommand{\kwdynamiccheck}[0]{\ty{dynamic\_check}}
+\newcommand{\kwbounds}[0]{\ty{bounds}}
+\newcommand{\kwbytecount}[0]{\ty{byte\_count}}
+\newcommand{\kwcount}[0]{\ty{count}}
+\newcommand{\kwboundschecked}[0]{\ty{BOUNDS\_CHECKED}}
+\newcommand{\kwassumecast}[0]{\ty{assume\_bounds\_cast}}
+\newcommand{\kwdynamiccast}[0]{\ty{dynamic\_bounds\_cast}}
+
+
+%
+% type macros
+%
+\newcommand{\void}{\kw{void}}
+
+% array_ptr type macros
+%
+\newcommand{\Arrayptr}[1]{\expr{\ty{array\_ptr}<#1>}}
+\newcommand{\ArrayptrT}{\Arrayptr{\mv{T}}}
+
+% ptr type macros
+%
+\newcommand{\Ptr}[1]{\expr{\ty{ptr}<#1>}}
+\newcommand{\PtrT}{\Ptr{\mv{T}}}
+
+% checked array macros
+%
+\newcommand{\Checkedarr}[2]{\expr{#1~\ty{checked}[#2]}}
+\newcommand{\CheckedarrT}[1]{\Checkedarr{\mv{T}}{#1}}
+
+% nt_array_ptr type macros
+%
+\newcommand{\Ntarrayptr}[1]{\expr{\ty{nt\_array\_ptr}<#1>}}
+\newcommand{\NtarrayptrT}{\Ntarrayptr{\mv{T}}}
+
+
+% nt_checked array macros
+%
+\newcommand{\Ntcheckedarr}[2]{\expr{#1~\ty{nt\_checked}[#2]}}
+\newcommand{\NtcheckedarrT}[1]{\Ntcheckedarr{\mv{T}}{#1}}
+
+
+% unchecked pointers
+%
+\newcommand{\uncheckedptr}[1]{\kw{#1*}}
+\newcommand{\uncheckedptrT}{\uncheckedptr{\mv{T}}}
+\newcommand{\uncheckedarr}[2]{\expr{#1[#2]}}
+\newcommand{\uncheckedarrT}[1]{\uncheckedarr{\mv{T}}{#1}}
+
+%
+% bounds expression macros
+%
+\newcommand{\bounds}[2]{\kw{bounds(\expr{#1}, \expr{#2})}}
+\newcommand{\boundscount}[1]{\kw{count(\expr{#1})}}
+\newcommand{\boundsbytecount}[1]{\kw{byte\_count(\expr{#1})}}
+\newcommand{\boundsany}{\kw{bounds(\expr{any})}}
+\newcommand{\boundsunknown}{\kw{bounds(\expr{unknown})}}
+
+%
+% bounds cast macros
+%
+\newcommand{\dynamiccast}[4]{\expr{\kwdynamiccast<#1>(#2, #3, #4)}}
+\newcommand{\assumecast}[4]{\expr{\kwassumecast<#1>(#2, #3, #4)}}
+
+%
+% bounds declaration macros
+%
+\newcommand{\boundsdecl}[2]{\expr{#1~:~#2}}
+%
+% computed bounds for expressions
+%
+\newcommand{\boundsinfer}[2]{\expr{#1}~$\vdash$~\expr{#2}}

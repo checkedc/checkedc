@@ -1,0 +1,83 @@
+\chapter{Related Work}
+\label{sec:related-work}
+
+Attempting to make C memory safe is a well-trodden
+path~\cite{Szekeres:2013:SEW:2497621.2498101}. Approaches fall into
+four categories: better type systems; runtime representations of
+bounds; static analysis annotations; and instrumentation. We avoid
+mentioning approaches that propose new languages or operating-system
+integration of protections.
+
+\paragraph{Better Type Systems} In this approach, the compiler adds
+new pointer types, perhaps including bounds information, with rules
+that are enforced at compile time either by the type-checker or by
+other static analyses. Any found errors prevent compilation from being
+successful.
+
+The largest influence on Checked C's approach is
+Deputy~\cite{Condit2007}, a dependent-type system for C. This project
+used dependent types for two reasons, the first is to represent array
+bounds, the second is to ensure access to unions is via the correct
+member. Unfortunately, to use Deputy, the programmer had to rewrite
+their C program all at once, which is uneconomical and raises the
+effort required to get any safety payoff. With our unchecked blocks
+and interoperation types, we do not require the whole program to be
+translated at once. The programmer also has little to no control over
+the bounds expressions, preventing dynamic check optimizations.
+
+CCured~\cite{Necula2005} takes a similar approach to ours, with new
+pointer types to represent various kinds of arrays. They couple this
+with an analysis of pointer usage which we have emulated in the
+conversion tool described in~\cite{ruef2017draft}.
+
+\paragraph{Run-time Representations of Bounds} In this approach, the
+compiler uses extra memory to represent run-time bounds. This then
+allows the compiler to insert checks which ensure pointers are within
+bounds. They may also have to generate code to update bounds
+information as other data within the program changes.
+
+For instance, the SoftBound~\cite{Nagarakatte2009} work has a shadow
+memory space where they store information about pointer bounds. In
+order to achieve low run-time overhead, this approach requires up to
+twice the memory of the original program, something that is not always
+available on all platforms. Other work in the same
+vein~\cite{Nagarakatte2015} uses hardware-based approaches that
+require Memory Management Unit support.
+
+CCured~\cite{Necula2005} also uses run-time representations for its
+pointers, changing the in-memory layout, which we wanted to avoid. In
+particular, pointer values are now represented by up to three
+pointers, one for the pointer itself, and one each for its upper and
+lower bounds. CCured also uses a garbage collector to implement sound
+management of pointers it cannot infer information about, something we
+have avoided the runtime overhead of.
+
+\paragraph{Static Analysis Annotations} In this approach, the
+programmer adds manual annotations to pointer declarations, similar to
+our bounds expressions. These are then checked by an external static
+analyser. The main difference is correct usage of these is enforced by
+separate static analysis, and is not built into the original compiler.
+
+The main solution in this space is SAL~\cite{MicrosoftSAL}, which can
+detect, but not prevent bugs. Its annotations not only denote bounds,
+but also whether a pointer may be read from or written to. SAL
+includes annotations for function behaviour, such as locking, which we
+do not include.
+
+\paragraph{Instrumentation} Lastly, we have some dynamic analysis
+systems that are not intended for production usage, but can detect
+incorrect usage of the C language. They are intended for usage in
+testing setups in conjunction with fuzzing systems that ensure the
+dynamic analysis can reach most program points.
+
+The two most prominent of these are ASan~\cite{Serebryany2012} and
+UBSan~\cite{UBSan}. These can detect and prevent addressing and
+undefined behaviour issues in C dynamically, including out-of-bounds
+accesses and invalid pointer arithmetic.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:

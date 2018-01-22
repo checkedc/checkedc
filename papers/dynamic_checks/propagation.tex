@@ -1,0 +1,336 @@
+\chapter{Bounds Propagation}
+\label{sec:propagation}
+
+We have covered bounds expressions on declarations
+in~\autoref{sec:checkedc}. The other side of this coin is that we have
+to perform propagation to calculate the bounds on pointers at access
+time. As pointer bounds expressions are currently flow-insensitive,
+this can be done with a set of context-free rules that I will sketch
+here, and show fully in~\autoref{app:propagation-rules}.
+
+Our bounds propagation algorithm works in two steps. The first step
+normalizes existing bounds expressions into their most general form,
+and then the main propagation rules work over these canonical forms to
+compute the bounds we should check any pointer access with.
+
+\section{Canonical Forms}
+\label{sec:canonical-forms}
+
+We have been careful to define our bounds expressions such that they
+can be normalized into a single form, as shown in
+\autoref{tab:canonical}. This normalization makes bounds propagation
+easier, rather than having to ensure propagation works on every kind
+of bounds expression. This should also allow us to add new kinds of
+bounds expressions without having to change the propagation algorithm.
+
+Checked array pointers with an explicit bounds expression are not the
+only kind of expressions we can compute bounds for. With this
+algorithm we may also need to compute the bounds of checked singleton
+pointers, and of the pointers derived from checked arrays (exactly
+when an array turns into a pointer we will cover shortly).
+
+\begin{table}[ht]
+\input{tables/canonical}
+\end{table}
+
+\section{C's Value Semantics}
+\label{sec:cs-value-semantics}
+
+Before we can accurately cover our propagation rules, we need to cover
+a discussion of how C's lvalues and values work\endnote{What the C11
+Specification calls ``values'' are more commonly called ``r-values''
+in other language descriptions.}.
+
+In C, there are two kinds of values. Lvalues describe the locations of
+objects in memory, and are used to both read from and write to memory.
+Integers, floats, and pointers are values.
+
+Every expression in C evaluates to either an lvalue or a value. We
+will call an expression that evaluates to an lvalue an \emph{lvalue
+expression}; and likewise an expression that evaluates to a value a
+\emph{value expression}. Usually expressions in C require their
+sub-expressions to be value expressions. Some expressions require
+certain of their sub-expressions to be lvalue expressions.
+\autoref{fig:lvalue-expressions} shows all lvalue expression types and
+all places they may be used in C --- all other expressions are value
+expressions and have only value sub-expressions.
+
+As our invariants are all about how programs access memory, and
+programs can only access memory using an lvalue expression, our bounds
+propagation rules are inextricably tied to the notion of lvalue
+expressions and value expressions.
+
+\begin{figure}[ht]
+\input{grammars/lvalue-expressions}
+\end{figure}
+
+The subtle nuance in lvalue expression evaluation is that lvalues may
+also appear in a value position in an expression. In this case, one of
+two things happens: if the lvalue has array type, the lvalue
+expression evaluates to a pointer to the start of that array. If the
+lvalue does not have array type, then the lvalue is read to find the
+underlying value stored at its location. These operations are
+respectively called an \emph{array conversion}, and an \emph{lvalue
+conversion}.
+
+Thus C differentiates implicitly between lvalues, which denote
+locations, and the objects in those locations. The result of
+performing this lvalue conversion is the value in the location denoted
+by that lvalue, which we refer to as an \emph{lvalue target}.
+
+\section{Propagation Rules}
+\label{sec:propagation-rules}
+
+Our bounds propagation rules, at a broad level, will work with these
+three different evaluation models, separately (but mutually
+recursively) propagating bounds for value expressions, \emph{value
+bounds}, for lvalue expressions, \emph{lvalue bounds}, and for the
+value result of an lvalue conversion, \emph{lvalue target bounds}. The
+full rules are shown in~\autoref{app:propagation-rules}.
+
+In general, the value bounds of an expression are the value bounds of
+the pointer sub-expression with bounds; the lvalue bounds of an
+expression correspond to the bounds on the storage location of that
+lvalue; and the lvalue target bounds of an expression correspond to
+the bounds declared for that lvalue.
+
+During propagation we add two more kinds of bounds annotation:
+$\mbounds(\text{any})$, which is equivalent to an infinite range, and
+represents the bounds on \NULL{}; and $\mbounds(\text{unknown})$,
+which is equivalent to an empty range, and represents that we cannot
+calculate a static description of the run-time bounds.
+
+\subsection{Lvalue Bounds}
+\label{sec:lvalue-prop-rules}
+
+The propagation rules for lvalue bounds of an lvalue expression are
+shown fully in~\autoref{fig:lval-bounds-prop}. The intuition behind
+the bounds these rules calculate is that they are the bounds on the
+memory used for the lvalue itself, for instance on the stack. The
+bounds declarations are not used in lvalue bounds propagation.
+
+\paragraph{Variables} A (non-array-typed) variable only
+needs enough space to store one value of the type it holds, so
+pointer-typed variables only uses enough space for one pointer. This
+is what $\sbounds(e_v)$ computes.
+
+In the case of array-typed variables, the lvalue itself is an array,
+so the amount of space used can be deduced from the array size and
+type, if the array is constant-sized. This is what $\abounds(e_v, N)$
+computes. If the array is not constant-sized, then we cannot deduce the
+bounds statically.
+
+\paragraph{Dereferencing and Indexing} In the case of pointer
+dereferencing or indexing, the location being accessed is the memory
+that the pointer references, which is exactly what the value bounds on
+that pointer describe. In the case of an indexing expression,
+$e_v[e_v]$, C makes no requirements on which sub-expression is the
+pointer, so we define the notion of the $base$ of an expression, which
+in this case refers to the pointer-typed sub-expression.
+
+\paragraph{Member Accesses} In the case of struct and pointer memory
+accesses, the lvalue bounds we propagate match the location of the
+struct member in memory, including if it is an array or not. A further
+description of this behaviour is included in~\autoref{sec:narrowing}.
+
+\subsection{Value Bounds}
+\label{sec:value-prop-rules}
+
+The propagation rules for value bounds of expressions are shown
+in~\autoref{fig:val-bounds-prop}. The intuition behind the bounds
+these rules calculate is that these bounds expressions effectively
+propagate the lvalue target bounds up from any lvalue conversions.
+
+\paragraph{Null Pointers} The null pointer, \NULL{}, always has
+$\mbounds(\text{any})$, as we allow any pointer with bounds also to be
+\NULL{}. We will check the pointer is non-null before dereferencing.
+
+\paragraph{Literals} All other literals have unknown bounds, as they
+are not pointer literals.
+
+\paragraph{Address-of Operator} The address-of operator converts an
+lvalue sub-expression into a pointer representing its memory location.
+Thus the bounds on this pointer must be the lvalue bounds of the
+lvalue.
+
+\paragraph{Assignment} In C, assignment and compound assignment are
+expressions, not statements, so can appear within other expressions.
+The resultant value is the same as the value that is assigned into the
+lvalue, so in the case of assignment the bounds are the bounds of the
+right hand side, and in the case of compound assignment the bounds are
+the lvalue target bounds of the left hand side. Increment and
+decrement are just special cases of compound assignment.
+
+\paragraph{Struct Member} In the case of struct member expressions, we
+narrow to the field of the struct as we do when the base expression is
+an lvalue expression. Our implementation does not yet cope with this,
+as we have no way of referring to the base value expression from which
+we want to calculate the bounds.
+
+\paragraph{Function Calls} For function declarations, we allow the
+programmer to specify parameter and return bounds in terms of other
+parameters. Therefore, to calculate the bounds on a value returned
+from a function call, we need to substitute any argument values into
+the bounds expression of the return value.
+
+\paragraph{Comma Expressions} As comma expressions evaluate to their
+final expression, we propagate the value bounds of the final
+expression.
+
+\paragraph{Array and Lvalue Conversions} In the case of
+non-array-typed lvalues, because we will be reading the lvalue in
+order for it to become a value, the bounds on this conversion
+expression refer to the bounds on the object the lvalue denotes, i.e.
+the lvalue target bounds of that lvalue expression. In the case of
+array-typed lvalues, evaluation will perform an array conversion,
+converting the array into a pointer to its first element, which
+corresponds to the lvalue bounds on that array.
+
+\paragraph{Binary Operators} Binary operator expressions returning a
+pointer type, such as performing pointer arithmetic, take the bounds
+of the base expression, i.e. the sub-expression that has pointer type.
+This ensures that for a pointer, $p$, $p + 3$ and $p - 2$ have the
+same bounds as $p$ does. The notion of ``base'' here is the same as
+with array indexing.
+
+\paragraph{Relational and Logical Operators} Relational operators
+return a boolean result, i.e. an integer 0 or 1 corresponding to the
+comparison result. These do not denote anywhere in memory, so do not
+have bounds. The same applies to the unary negation operator.
+
+\paragraph{Other Expressions} For other expressions, including
+arithmetic over integers (but not floats), we propagate bounds from
+sub-expressions to expressions. This allows us not to lose bounds
+information when performing bit-wise operations over pointer values
+(for pointer alignment, for example). The requirement we make is that
+if more than one sub-expression has bounds, we can only merge bounds
+if they are syntactically equal. We may later relax this to being
+syntactically equal modulo variable equality. In the case of float
+expressions, we do not believe performing pointer arithmetic with
+floating-point numbers makes any sense, so float expressions may not
+carry or propagate bounds information.
+
+\subsection{Lvalue Target Bounds}
+\label{sec:lvalue-target-prop-rules}
+
+The propagation rules for value bounds of expressions are shown
+in~\autoref{fig:lval-target-bounds-prop}. The intuition behind the
+bounds these rules calculate is that these bounds represent the extent
+in memory of the value returned when an lvalue conversion is
+performed.
+
+\paragraph{Checked Singleton Pointers} The bounds of a \PtrT, \mv{p},
+start at their value, and include exactly enough space for a single
+value of their own type, \mv{T}. They are
+$\left[\mv{p}, \mv{p} + \sizeof{\mv{T}} \right)$.
+
+\paragraph{Variables} The lvalue target bounds for a variable declared
+with bounds is exactly the bounds expression it was declared with.
+
+\paragraph{Member Accesses} Struct and pointer member accesses both
+use the declared bounds on the member to compute their bounds
+expressions. In the case of struct member accesses, they use the value
+in the same struct of any other members referenced in the bounds
+expression. In the case of pointer member accesses, any members
+referenced in the bounds expression are also computed using a pointer
+member access of the same pointer.
+
+For instance, given a struct, \mv{s}, with two members, \mv{m1} and
+\mv{m2}, where \mv{m2} has declared bounds of \boundscount{\mv{m1}},
+the lvalue target bounds of $\mv{s} \member \mv{m2}$ are
+$\left[\mv{s}\member\mv{m2}, \mv{s}\member\mv{m2} +
+\mv{s}\member\mv{m1} \right)$. If we had a pointer, \mv{p}, to the
+same type of struct, the lvalue target bounds of
+$\mv{p} \arrow \mv{m2}$ would be
+$\left[\mv{p}\arrow\mv{m2}, \mv{p}\arrow\mv{m2} + \mv{p}\arrow\mv{m1}
+\right)$. In the same way, any variables referenced in expressions on
+struct members are assumed to refer to other members of the same
+struct.
+
+\paragraph{Dereferencing and Indexing} We cannot propagate lvalue
+target bounds for a pointer that is stored at another pointer (unlike
+multidimensional arrays). This is because we have no way of expressing
+where the bounds of the inner pointer are stored or should be
+computed, unlike in a struct where there is potentially storage space.
+
+\section{Narrowing}
+\label{sec:narrowing}
+
+One important part of our approach is how we choose to ``narrow''
+bounds when accessing members of structs or elements of arrays. This
+means potentially inferring a sub-range of the aggregate object's
+bounds for accesses to inner parts of that object.
+
+It is this narrowing that ensures the second part of the
+well-formedness condition in~\autoref{sec:soundness}, that all
+in-lifetime non-null pointers of type \mv{T} with bounds must point to
+an object in memory of type \mv{T}.
+
+In the case of structs (and unions), we have to narrow to the bounds
+sub-range for a particular member, because different members have
+different types. This is what the functions like $\srbounds(e_v, m)$
+do, narrowing the bounds inferred to the bounds of the field $m$
+within $e_v$.
+
+In the case of arrays, our semantics allow us two implementations. The
+first is that we do narrow through each dimension of a
+multidimensional array, to ensure an access, \lstinline|a[i][j]|, to a
+5 by 5 array, is within the 5 elements starting at
+\lstinline|a[i][0]|. Our compiler actually chooses the other
+alternative, ensuring that any access to \lstinline|a[x][y]| is within
+the 25 elements starting at \lstinline|a[0][0]|. This maintains
+well-formedness as arrays all contain elements of the same type, and
+should allow the compiler to remove some bounds checks from tight
+inner loops.
+
+\section{Propagation Limitations}
+\label{sec:prop-limitations}
+
+We have several limitations with the current propagation algorithm,
+the most major of which relates to ``modifying expressions'', as
+defined in~\cite[Section 3.4]{CheckedCv06}, which pose a problem to
+the flow-insensitive algorithm. In particular, our algorithm does not
+introduce temporaries for expressions which are modifying, instead
+duplicating these expressions into the bounds expressions, and then
+computing based off the duplicates. This means if we generate directly
+from the bounds expressions, each modifying expression could be
+generated in code several times.
+
+For instance, say I have an array, $a$ of structs, each with a member
+$m1$ that has bounds defined to be \boundscount{\mv{m2}}, where $m2$
+is another member of the same struct. In this case, an access like
+\lstinline|a[i++].m1[0]| will have the bounds inferred of
+\bounds{a[i++].m1}{a[i++].m1 + a[i++].m2}. If we generate dynamic
+checks directly from bounds expressions, we have now incremented
+\lstinline|i| four times (once for the pointer itself, once for the
+lower bound, twice for the upper bound), which changes the meaning of
+the program.
+
+This also is a problem if the programmer calls a function that returns
+a struct, and directly (without assigning into a temporary) accesses a
+member of the returned struct. We have no way of referring to the
+place in memory of the returned struct.
+
+In both of these cases, the programmer can manually insert a temporary
+variable to avoid these limitations.
+
+We are planning to solve this issue with a set of dynamically-scoped
+keywords that will refer to the current expression value, the current
+struct base pointer, and the current return value, which we would then
+treat as temporaries during code generation. While it makes the code
+generation more complex, it means we can infer the bounds in more
+places.
+
+We also totally lack a way of handling ternary expressions during
+bounds propagation. Arguably we can generate new bounds expressions
+with ternary expressions in both the upper and the lower expressions,
+but this will make any static analysis much harder in the long term.
+We may introduce a new form of bounds expression to handle these cases
+explicitly.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:

@@ -1,0 +1,29 @@
+\begin{align*}
+  \text{LValue Expressions} \qquad
+  e_l \Coloneqq {} & x \tag*{Variables} \\
+  \mid {} & \deref e_v \tag*{Dereference} \\
+  \mid {} & e_v[e_v] \tag*{Index} \\
+  \mid {} & e_l \member m \tag*{Struct Member Access} \\
+  \mid {} & e_v \arrow m \tag*{Pointer Member Access} \\[1em]
+  \text{Value Expressions} \qquad
+  e_v \Coloneqq {} & \addrof e_l \tag*{Address-of} \\
+  \mid {} & e_l \assign e_v \tag*{Assignment} \\
+  \mid {} & e_l \compassign e_v & \tag*{Compound Assignment} \\
+  \mid {} & e_l \inc \mathrel{\mid} \inc e_l \tag*{Increment} \\
+  \mid {} & e_l \dec \mathrel{\mid} \dec e_l \tag*{Decrement} \\
+  \mid {} & e_v \member m \tag*{Struct Member Access} \\
+  \mid {} & \hdots \tag*{Other Value Expressions} \\
+  \mid {} & e_l \tag*{Lvalue \& Array Conversion}
+\end{align*}%
+\caption[Lvalue expressions and their usage in C]{Lvalue expressions
+and their usage in C. A more complete description of C's expression
+syntax, including a definition of $\binop$ (binary operators), is
+contained in~\autoref{app:c-syntax}. Note that a Struct Member Access
+can be an lvalue or a value depending on whether the sub-expression is
+an lvalue or a value (respectively).}
+\label{fig:lvalue-expressions}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../tr02"
+%%% End:

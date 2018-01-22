@@ -1,0 +1,186 @@
+\chapter{Preliminary Evaluation}
+\label{sec:evaluation}
+
+I converted two existing C benchmark suites as an initial evaluation
+of the consequences of porting code to Checked C (with assistance from
+David Tarditi and researchers at Samsung Research). We quantify both
+the changes required for the code to become checked, and the overhead
+imposed on compilation, running time, and executable size.
+
+\section{Benchmarks}
+
+\begin{table}[ht]
+\input{tables/bmdesc}
+\end{table}
+
+I chose the Olden \cite{Rogers1995Olden} and Ptrdist
+\cite{Austin1994Ptrdist} benchmark suites, described in
+Table~\ref{tab:bmdesc}, because they are specifically designed to test
+pointer-intensive applications, and they are the same benchmarks used
+to evaluate both Deputy~\cite{Feng2006} and CCured~\cite{Necula2005}.
+
+We evaluate Checked C using these benchmarks in two ways. First, we
+quantify the number and type of source code changes required to
+convert these benchmarks from C to Checked C. Second, we quantify the
+overhead of the run-time checks on benchmark run time, compile time,
+and executable size. The evaluation results are presented in
+Table~\ref{tab:bmresults}.
+
+\paragraph{Experimental Setup} These were produced using a 12-Core
+Intel Xeon X5650 2.66GHz, with 24GB of RAM, running Red Hat Enterprise
+Linux 6. All compilation and benchmarking was done without
+parallelism. We ran each benchmark 21 times with and without the
+Checked C changes using the test sizes from the LLVM versions of these
+benchmarks. We report the median; we observed little variance.
+
+\paragraph{Excluded Benchmarks} We were unable to convert the
+\emph{voronoi} benchmark from the Olden suite due to bounds
+propagation limitations detailed in~\autoref{sec:prop-limitations}. We
+were unable to convert the \emph{bc} from the Ptrdist suite due to
+lack of time. They are excluded from any conversion results.
+
+\begin{table}[ht]
+\input{tables/bmresults}
+\end{table}
+
+\section{Code Modifications}
+\label{sec:eval-code-changes}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{scripts/modifications}
+\caption{Code Modifications}
+\label{fig:cm-plot}
+\end{figure}
+
+On average, the changes modified \ResultLinesModifiedMean of benchmark
+lines of code. Most of these changes were in declarations,
+initializers, and type definitions rather than in the program logic.
+In the evaluation of Deputy~\cite{Condit2007}, the reported figure of
+lines changed ranges between 0.5\% and 11\% for the same benchmarks,
+showing they have a lower annotation burden than Checked C.
+
+We modified the benchmarks to use checked blocks and the top-level
+checked pragma. We placed code that could not be checked because it
+used unchecked pointers, or assignments where our static analysis
+could not currently verify that the assignment was valid, in unchecked
+blocks. On average, about \ResultLinesUncheckedMean of the code
+remained unchecked after conversion, with a minimum and maximum of
+\ResultLinesUncheckedMin and \ResultLinesUncheckedMax. The causes were
+almost entirely variable argument functions such as
+\lstinline|printf|.
+
+We manually inspected changes and divided them into \emph{easy}
+changes and \emph{hard} changes. Easy changes include:
+
+\begin{itemize}
+\item replacing included headers with their checked versions;
+\item converting a \uncheckedptrT{} to a \PtrT{};
+\item adding the \kwchecked{} keyword to an array declaration;
+\item introducing a \kwchecked{} or \kwunchecked{} region;
+\item adding an initializer; and
+\item replacing a call to \lstinline|malloc| with a call to
+\lstinline|calloc|.
+\end{itemize}
+
+Hard changes are all other changes, including changing a
+\uncheckedptrT{} to a \ArrayptrT{} and adding a bounds declaration,
+adding structs, struct members, and local variables to represent
+run-time bounds information, and code modernization.
+
+We distinguish between the two because we believe easy changes can be
+automated (as with our automated \PtrT{} conversion tool) or made
+unnecessary in the future by relaxing requirements such as the
+additions of initializers.
+
+In all of our benchmarks, we found the majority of changes were easy.
+In six of the benchmarks, the only hard changes were adding bounds
+annotations relating to the parameters of \lstinline|main|. In yacr2
+there are a lot of bounds declarations that are all exactly the same
+where global variables are passed as arguments, inflating the number
+of ``hard'' changes.
+
+\paragraph{Layout Changes} In three benchmarks---em3d, mst, and
+yacr2---we had to add intermediate structs so that we could represent
+the bounds on \ArrayptrT{}s nested inside arrays. In mst we also had
+to add a member to a struct to represent the bounds on an
+\ArrayptrT{}. In the first case, this is because we cannot represent
+the bounds on nested \ArrayptrT{}s, in the second case this is because
+we only allow bounds on members to reference other members in the same
+struct. In em3d and anagram we also added local temporary variables to
+represent bounds information.
+
+\section{Performance Results}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{scripts/overheads}
+\caption{Performance Overheads}
+\label{fig:oh-plot}
+\end{figure}
+
+An important concern about run-time checking for C is the effect on
+performance and compile time. The average run-time overhead introduced
+by added dynamic checks was \ResultRunTimeMean. In more than half of
+the benchmarks the overhead was less than 1\%. We believe this to be
+an acceptably low overhead that better static analysis may reduce even
+further.
+
+In all but two benchmarks---treadd and ft---the added overhead matches
+(meaning performance is within 2\% of) or betters that of Deputy. For
+yacr2 and em3d, Checked C does substantially better than Deputy, whose
+overheads are 98\% and 56\%, respectively. Checked C's overhead
+betters or matches that reported by CCured in every case but ft.
+
+On average, the compile-time overhead added by using Checked C is
+\ResultCompileTimeMean. The maximum overhead is \ResultCompileTimeMax,
+and the minimum is \ResultCompileTimeMin faster than compiling with C.
+We have spent no time at all optimising compile-time for Checked C. In
+particular, treeadd is a major outlier because the program is so
+short.
+
+We also evaluated code size overhead, by looking at the change in the
+size of \lstinline|.text| section of the executable. This excludes data
+that might be stripped, like debugging information. Across the
+benchmarks, there is an average \ResultExecutableSizeMean code size
+overhead from the introduction of dynamic checks. Ten of the programs
+have a code size increase of less than 10\%.
+
+\section{Evaluation}
+
+All considered, we offer equivalent or better performance than either
+CCured or Deputy provide, at the outlay of having to convert a larger
+amount of code. We believe this to be a good trade-off, partially
+because we feel most of these changes can be automated, and partially
+because we provide the programmer greater control over how they
+express their bounds in terms of other program data. The latter in
+particular allows the programmer to work with their optimizer to
+ensure run-time overhead, especially in tight loops, remains low.
+
+\subsection{Interaction with the LLVM Optimizer}
+
+Currently we have done no specific work within our compiler to elide
+or optimize our dynamic checks. Any checks that Clang/LLVM currently
+removes, it does so using its existing optimization passes.
+
+We expected the LLVM optimizer to be a lot worse at optimizing dynamic
+checks than it turned out to be. In only two of our benchmarks did we
+have to hand-optimize these programs to reduce the overhead of dynamic
+checking to approximately 0\%. This was accomplished by a mixture of
+being more specific with annotated bounds (including introducing
+temporary variables) and hoisting checks from inner loops using
+explicit dynamic checks.
+
+Expressions that caused most difficulty for removing dynamic checks
+was code involving (at least) two pointer dereferences, as this incurs
+an unavoidable non-null check on the inner pointer, even if the outer
+pointer can be proven to be non-null. This can cause overhead in loops
+iterating through, for example, linked lists or graphs. We are working
+on a proposal to add nullness (and non-null) annotations to pointers
+in Checked C, which would allow for these inner non-null checks to be
+elided in many cases.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:
