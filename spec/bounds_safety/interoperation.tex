@@ -316,7 +316,7 @@ checking of bounds declarations may still fail.  Implicit
 conversions are treated as though they are explicit C cast
 operations during the checking of bounds declarations.
 
-\subsection{From unchecked pointers to checked pointers}
+\subsection{From unchecked pointer to checked pointer type}
 An expression with an unchecked pointer type can be converted implicitly to an
 expression with a checked pointer type.   The destination referent type
 and source referent type must be {\em assignment compatible}: they must
@@ -348,7 +348,7 @@ types. For now, implicit conversions from \uncheckedptrvoid\ to checked pointer
 types are allowed. This may be revised later when a design
 for checking type-safety of casts is complete.
 
-\subsection{From checked pointers to unchecked pointers}
+\subsection{From checked pointer to unchecked pointer type}
 
 We must be very careful about implicit conversions from checked pointer
 types to unchecked pointer types.  These kinds of conversions could allow bounds checking to
@@ -356,18 +356,24 @@ be subverted accidentally in a quiet fashion. Implicit conversions from checked 
 unchecked pointer types are allowed only at bounds-safe interfaces
 (Section~\ref{section:function-bounds-safe-interfaces}).
 
-\subsection{From checked pointers to checked pointers}
+\subsection{Between checked pointer types}
 
-An expression with a checked pointer type can be converted implicitly to the same kind
-of checked pointer type with a \texttt{void} referent type.
-This can be done for the right-hand side of an assignment, a call argument, 
-and an arm of a conditional expression.  
-The type of the left-hand side of the assignment, the parameter, or the other
-arm of the conditional expression
-must be the checked \void\ pointer type that is the target of the implicit
-conversion. For example, implicit conversions from 
-\ptrinst{\var{T}} to \ptrvoid\ and from \arrayptrinst{\var{T}} to \arrayptrvoid\ are allowed 
-at assignments. 
+An expression with a type ``checked pointer to \var{T}'' can be converted implicitly
+to a different kind of ``checked pointer to \var{T}''.  The different kind
+must be \arrayptr\ or \ptr. The expression must occur as the right-hand
+side of an assignment or a call argument. The left-hand side of the
+assignment or the parameter type must have the different kind of checked pointer
+type.   Implicit conversions to \ntarrayptrT\ are not allowed because of the possibility
+of null terminators being overwritten via aliases to the location of the null terminators.
+
+An expression with a type ``checked pointer to \var{T}'' can be converted implicitly to
+a ``checked pointer to \texttt{void}''.  The expression
+must occur as the right-hand side of an assignment, a call argument,
+or an arm of a conditional expression.  The type of the left-hand side of the assignment,
+the parameter, or the other arm of the conditional expression
+must be the checked \void\ pointer type.   For example, implicit conversions from
+\ptrinst{\var{T}} to \ptrvoid\ and from \arrayptrinst{\var{T}} to \arrayptrvoid\ are
+allowed  at assignments.
 
 Implicit conversions from checked pointers to \void\ to checked pointers to \var{T} are not allowed.
 The philosophy behind this is the same one that is used in C++: places where type-safety
