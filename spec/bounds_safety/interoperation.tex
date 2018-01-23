@@ -317,6 +317,7 @@ conversions are treated as though they are explicit C cast
 operations during the checking of bounds declarations.
 
 \subsection{From unchecked pointers to checked pointers}
+\label{subsection:unchecked-to-checked}
 An expression with an unchecked pointer type can be converted implicitly to an
 expression with a checked pointer type.   The destination referent type
 and source referent type must be {\em assignment compatible}: they must
@@ -759,27 +760,34 @@ To handle this, implicit pointer conversions are inserted during type checking.
 Section~\ref{section:implicit-conversions} covered implicit conversions from unchecked pointer types to checked pointer types.
 
 Implicit conversions from checked pointer types to unchecked pointer types
-with assignment-compatible referent types are allowed exactly at the uses of functions,
-variables, or members with a  bounds-safe interface.  In this case, assignment
-compatibility is applied in a reverse fashion.  The source referent type must be
+with assignment-compatible referent types are allowed at the uses of functions,
+variables, or members with bounds-safe interfaces, and at return statements.  
+In this case, assignment compatibility is applied in a reverse fashion (assignment compatibility
+is defined in Section~\ref{subsection:unchecked-to-checked}).
+The source referent type must be
 assignment compatible with the destination referent type.  The conversions are
 done for rvalue expressions by inserting C cast operators to the desired unchecked types.
-They may be done at:
+They are done at:
 \begin{itemize}
 \item Function call arguments: If the function being called has a
-      bounds-safe interface for unchecked pointer type arguments, a parameter
-      type has an unchecked pointer type, the corresponding argument expression
+      bounds-safe interface for parameters with unchecked pointer types, a parameter
+      has an unchecked pointer type, the corresponding argument expression
       has a checked pointer type, and the argument referent type is assignment
       compatible with the parameter referent type, then the argument expression
       will be converted implicitly to the unchecked pointer type.
-\item Assignments to a variable with external scope: if the variable being
+\item Assignments to variables with external scope: if the variable being
      assigned to has an unchecked pointer type and a bounds-safe interface, the
      right-hand side expression has a checked pointer type, and the right-hand
      side expression referent type is assignment compatible with the referent
      type of the variable, then the right-hand side expression will be converted
      implicitly to the unchecked pointer type.
 \item
-   Member assignments: a similar conversion is done for member assignments.
+    Member assignments: a similar conversion is done for member assignments.
+\item Return statements: if a function has an unchecked pointer return type and a
+  return bounds-safe interface, and a return statement in the body of the function
+  has an expression with a checked pointer type, and the return statement expression is
+  assignment compatible with the return type of the function, then the return expression
+  will be converted implicitly to the unchecked pointer type.
 \end{itemize}
 
 Implicit conversions at bounds-safe interfaces are allowed from checked pointer types to
@@ -801,7 +809,7 @@ checking is done after any implicit pointer conversions have been
 inserted.
 \begin{itemize}
 \item Contexts are extended to include unchecked pointer variables with
-      bounds-safe interfaces
+      bounds-safe interfaces.
 \item Inference of bounds of expressions (Section~\ref{section:inferring-expression-bounds}) incorporates information from bounds-safe interfaces:
 \begin{itemize}
 \item Uses of variables (Section~\ref{section:checking-variables}): 
@@ -819,20 +827,28 @@ inserted.
 \item In unchecked contexts, all variables with bounds-safe interfaces
       that are modified by an assignment within the statement, declaration,
       or bundled block, where the right-hand side expression
-      is implicitly converted from a checked pointer type to an unchecked pointer type.
+      is converted implicitly from a checked pointer type to an unchecked pointer type.
 \end{itemize}
 For the included variables, bounds are tracked through the statement or
 bundled block.
-\item The checking of function call arguments in
-      Section~\ref{section:checking-function-call-arguments} 
-      in function calls includes parameters with bounds-safe interfaces: 
+\item The checking of function call arguments
+      in function calls (Section~\ref{section:checking-function-call-arguments})
+      includes parameters with bounds-safe interfaces:
 \begin{itemize}
 \item In checked contexts.
-\item In unchecked contexts, when one or more argument expressions have been 
+\item In unchecked contexts, when one or more argument expressions have been
       converted implicitly to unchecked pointer types.
 \end{itemize}
 The parameters are included by adding their bounds-safe interfaces to the
 declared bounds in the constructed \keyword{where} clauses.
+\item The checking of return statements (Section~\ref{section:checking-return-statements})
+includes return statements where there is a return bounds-safe interface for the enclosing function:
+\begin{itemize}
+\item In checked contexts.
+\item In unchecked contexts, when the return statement expression has been converted
+      implicitly to an unchecked pointer type.
+\end{itemize}
+The return bounds-safe interface is used in place of the function return bounds.
 \end{itemize}
 
 The checking for assignments and function calls has some interesting 
