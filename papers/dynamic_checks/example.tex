@@ -1,0 +1,387 @@
+\chapter{Example}
+\label{sec:example}
+
+\begin{figure}[th]
+\centering
+\begin{bytefield}[bitwidth=4em]{4}
+\begin{rightwordgroup}{Length Bytes}
+\bitbox{1}{Length} & \bitbox[tlb]{3}{Payload \ldots}
+\end{rightwordgroup}
+\end{bytefield}
+\caption{Echo Request Format}
+\label{fig:echoformat}
+\end{figure}
+
+We are going to walk through converting a C program into Checked C.
+The program is part of a server that receives a request, in the format
+shown in~\autoref{fig:echoformat}. It will then parse the message, and
+respond with a copy of the message, in the same format. The original C
+code will contain a vulnerability very similar to that in
+Heartbleed~\cite{Heartbleed2014}, which we will show that the Checked
+C version prevents.
+
+\section{Unchecked Program}
+
+\begin{code}[label=ex1:unchecked,float=t,caption={Unchecked Example}]
+typedef struct req_t {  // Request Struct
+~\lstleftlabel{ex1:len}~  size_t length;         // user-provided
+~\lstleftlabel{ex1:pllen}~  size_t payload_len;    // parser-provided
+~\lstleftlabel{ex1:pl}~  char  *payload;
+  // ...
+} req_t;
+
+typedef struct resp_t {  // Response Struct
+  size_t payload_len;
+  char  *payload;
+  // ...
+} resp_t;
+
+bool echo(req_t *req ~\lstlabel{ex1:req}~, resp_t *resp ~\lstlabel{ex1:resp}~) {  // Handler
+  char *resp_data   = malloc(req->length); ~\lstlabel{ex1:malloc}~
+
+  resp->payload_len = req->length; ~\lstlabel{ex1:bleed1}~
+  resp->payload     = resp_data;
+
+  // memcpy(resp->payload, req->payload, req->length); ~\lstlabel{ex1:memcpy}~
+  for (size_t i = 0; i < req->length ~\lstlabel{ex1:bleed2}~; i++) {
+    resp->payload[i] = req->payload[i] ~\lstlabel{ex1:overflow}~;
+  }
+  return true;
+}
+\end{code}
+
+The C function is shown in~\autoref{ex1:unchecked}. Our function,
+\lstinline|echo|, is modelled as a response handler, which is provided
+with a complete request struct~\lstref{ex1:req} containing data from
+the request parser, and an incomplete response
+struct~\lstref{ex1:resp} which the handler will construct the response
+data into.
+
+This example has two vulnerabilities:
+\begin{enumerate}
+\item The first is based on Heartbleed~\cite{Heartbleed2014}, a
+notorious OpenSSL vulnerability disclosed in April 2014.
+
+In the request, the user is providing a payload~\lstref{ex1:pl} to be
+echoed back to them, and its length~\lstref{ex1:len}. The correct
+behaviour of the handler is to copy the data from the payload buffer
+into a buffer in the response~\lstref{ex1:resp}.
+
+There is no requirement that the length provided in the request is
+correct, and if the programmer uses this user-provided length, as they
+have at~\lstref{ex1:malloc}, \lstref{ex1:bleed1},
+and~\lstref{ex1:bleed2}, then they may read beyond the bounds of the
+payload buffer at~\lstref{ex1:overflow}. If the programmer had used
+the length provided by their parser~\lstref{ex1:pllen}, then this
+buffer overflow could have been avoided.
+
+In the case of Heartbleed, this buffer overflow allowed attackers to
+view arbitrary segments of server memory.
+
+\item The second vulnerability is a common error made by C
+programmers, that of not checking function return values. If the call
+to \lstinline|malloc| at~\lstref{ex1:malloc} returns \NULL, then the
+allocation failed, and you may not use that pointer to access memory.
+
+\end{enumerate}
+
+We have inlined the call to \lstinline|memcpy| at~\lstref{ex1:memcpy}
+to show where a loop like this would dynamically fail. The behaviour
+is slightly different if we do not inline \lstinline|memcpy|, and will
+be described later in~\autoref{sec:check-funct-calls}.
+
+\section{Conversion to Checked C}
+
+In order to make this program safer, we will convert it into Checked
+C. This will protect us from both the vulnerabilities that it includes
+- the out-of-bounds array access, and accessing memory via the null
+pointer returned from \lstinline|malloc|.
+
+\begin{code}[label=ex2:checked,float=t,caption={Checked Example (Converted from \autoref{ex1:unchecked})}]
+typedef struct req_t {  // Request Struct
+  size_t length;         // user-provided
+  size_t payload_len;    // parser-provided
+~\lstleftlabel{ex2:reqdecl}~  array_ptr<char> payload : count(payload_len);
+  // ...
+} req_t;
+
+typedef struct resp_t {  // Response Struct
+  size_t payload_len;
+~\lstleftlabel{ex2:respdecl}~  array_ptr<char> payload : count(payload_len);
+  // ...
+} resp_t;
+
+bool echo(ptr<req_t> req ~\lstlabel{ex2:reqptr}~, ptr<resp_t> resp ~\lstlabel{ex2:respptr}~) {  // Handler
+~\lstleftlabel{ex2:bufdecl}~  array_ptr<char> resp_data : count(req->length) = malloc(req->length);
+
+  resp->payload_len = req->length;
+  resp->payload     = resp_data;
+
+  // memcpy(resp->payload, req->payload, req->length);
+  for (size_t i = 0; i < req->length; i++) {
+    resp->payload[i] = req->payload[i];
+  }
+  return true;
+}
+\end{code}
+
+This conversion will proceed in two steps:
+\begin{enumerate}
+\item First, we will convert any declarations from their existing
+unchecked C types to their corresponding Checked C types, which relies
+on analysing how these declarations are used.
+
+In~\autoref{ex2:checked}, we start by converting the types
+at~\lstref{ex2:reqdecl}, \lstref{ex2:respdecl},
+and~\lstref{ex2:bufdecl} from unchecked pointers into checked array
+pointers, as these are used as arrays. We also
+change~\lstref{ex2:reqptr} and~\lstref{ex2:respptr} to checked
+singleton pointers, as we know these pointers are not used as arrays,
+they are directly accessed.
+
+\item Second, we will annotate any
+array pointers with a description of their bounds in order to allow us
+to enforce these bounds at compile- or run-time.
+
+From the specification of the message format, we know that the payload
+is variable-length, the length field is not trustworthy, but we should
+relate the parser-provided length in the request (or the
+handler-provided length in the response) to the payload buffer. This
+is done with the bounds declarations at~\lstref{ex2:reqdecl}
+and~\lstref{ex2:respdecl}, which reference the other members of the
+struct. We also annotate the local variable used as a temporary for
+the result of malloc, at~\lstref{ex2:bufdecl}, with its intended size.
+\end{enumerate}
+
+\section{Compiler-inserted Dynamic Checks}
+
+In order to preserve the soundness condition proposed
+in~\autoref{sec:soundness}, the Checked C compiler must insert dynamic
+checks which ensure these invariants hold, if it cannot statically
+prove these invariants hold at compile-time. To show how this works,
+\autoref{ex3:checked-explicit} is the same code
+as~\autoref{ex2:checked}, but with all implicit dynamic checks
+explicitly shown with the \kwdynamiccheck{} operator, and without the
+compiler attempting to prove any of them.
+
+\begin{code}[label=ex3:checked-explicit,float=t,caption={Checked Example with Explicit Checks (Based on \autoref{ex2:checked})}]
+typedef struct req_t {  // Request Struct
+  size_t length;         // user-provided
+  size_t payload_len;    // parser-provided
+  array_ptr<char> payload : count(payload_len);
+  // ...
+} req_t;
+
+typedef struct resp_t {  // Response Struct
+  size_t payload_len;
+  array_ptr<char> payload : count(payload_len);
+  // ...
+} resp_t;
+
+bool echo(ptr<req_t> req, ptr<resp_t> resp) {  // Handler
+~\lstleftlabel{ex3:reqck}~  dynamic_check(req != NULL);
+  array_ptr<char> resp_data : count(req->length) = malloc(req->length);
+
+~\lstleftlabel{ex3:respck}~  dynamic_check(resp != NULL);
+  resp->payload_len = req->length;
+  dynamic_check(resp != NULL);
+  resp->payload     = resp_data;
+
+  for (size_t i = 0; dynamic_check(req != NULL), i < req->length; i++) {
+    dynamic_check(req != NULL);
+    dynamic_check(req->payload != NULL);
+~\lstleftlabel{ex3:reqpllb}~    dynamic_check(req->payload <= &(req->payload[i]));
+~\lstleftlabel{ex3:reqplub}~    dynamic_check(&(req->payload[i]) < (req->payload + req->payload_len));
+    dynamic_check(resp != NULL);
+~\lstleftlabel{ex3:respplck}~    dynamic_check(resp->payload != NULL);
+~\lstleftlabel{ex3:resppllb}~    dynamic_check(resp->payload <= &(resp->payload[i]));
+~\lstleftlabel{ex3:respplub}~    dynamic_check(&(resp->payload[i]) < (resp->payload + resp->payload_len));
+    resp->payload[i] = req->payload[i];
+  }
+  return true;
+}
+\end{code}
+
+Note first the checks at~\lstref{ex3:reqck} and~\lstref{ex3:respck}
+which ensure the checked singleton pointers are not \NULL. We also
+check the checked array pointer at~\lstref{ex3:respplck}, which
+ensures we do not access memory using the pointer returned from
+\lstinline|malloc| if it is \NULL.
+
+At~\lstref{ex3:reqpllb} and~\lstref{ex3:reqplub} we check the bounds
+of the access to the request payload against its bounds. Here the
+bounds are computed using information from the same struct that the
+pointer is a member of. We check the invariants both for the read of
+the request payload, and (at~\lstref{ex3:resppllb}
+and~\lstref{ex3:respplub}) for the write into the response payload.
+
+Returning to our bugs, \lstinline|malloc| returning \NULL{} will be
+caught by~\lstref{ex3:respplck}, and attempting to read the request
+payload out-of-bounds will be caught by~\lstref{ex3:reqplub}.
+
+However, to claim that the program in~\autoref{ex3:checked-explicit}
+is now bug-free would be incorrect, unless the programmer wishes for
+the program to crash on bad inputs.
+
+\section{Optimized Checks}
+
+Performing those checks in this inner loop is also not particularly
+practical, as these checks are slow. If a compiler can prove it is
+safe, they are free to move, optimize, or delete these dynamic checks
+if they can prove the program will remain sound.
+\autoref{ex4:checked-optimised} shows a version
+of~\autoref{ex3:checked-explicit} where some checks have been hoisted
+and some have been removed.
+
+
+\begin{code}[label=ex4:checked-optimised,float=t,caption={Optimised Checked Example with Explicit Checks (Based on \autoref{ex3:checked-explicit})}]
+typedef struct req_t {  // Request Struct
+  size_t length;         // user-provided
+  size_t payload_len;    // parser-provided
+  array_ptr<char> payload : count(payload_len);
+  // ...
+} req_t;
+
+typedef struct resp_t {  // Response Struct
+  size_t payload_len;
+  array_ptr<char> payload : count(payload_len);
+  // ...
+} resp_t;
+
+bool echo(ptr<req_t> req, ptr<resp_t> resp) {  // Handler
+  dynamic_check(req != NULL);
+  array_ptr<char> resp_data : count(req->length) = malloc(req->length);
+
+  dynamic_check(resp != NULL);
+  resp->payload_len = req->length;
+  resp->payload     = resp_data;
+
+~\lstleftlabel{ex4:reqplck}~  dynamic_check(req->payload != NULL);
+~\lstleftlabel{ex4:respplck}~  dynamic_check(resp->payload != NULL);
+  for (size_t i = 0; i < req->length; i++) {
+~\lstleftlabel{ex4:reqplub}~    dynamic_check(i < req->payload_len);
+    resp->payload[i] = req->payload[i];
+  }
+  return true;
+}
+\end{code}
+
+In this example, the compiler has deleted four non-null checks, it has
+hoisted two loop-invariant non-null checks out of the inner loop, and
+it has deleted 3 bounds checks that can be proven to be unneeded using
+information about the range of \lstinline|i| within the loop.
+
+The remaining check inside the loop has been simplified according to
+the semantics of C, and is exactly the check that fails if an attacker
+provides a length that is larger than their payload length. In the
+unchecked code, this is the condition that would cause a buffer
+overflow.
+
+We currently make no guarantees that we are able to perform any of
+these check elisions or optimizations, but it is our aim to be able to
+eventually.
+
+\section{Checked Function Calls}
+\label{sec:check-funct-calls}
+
+Had the programmer not written their own copy loop, and instead used
+\lstinline|memcpy|, their results would have overall been the same,
+but static analysis would have told them slightly sooner about their
+error.
+
+In Checked C we ship a copy of the C standard library declarations, annotated with interoperation types so that they may be used in Checked contexts. The declaration of \lstinline|memcpy| used in checked scopes is shown in~\autoref{ex5:memcpy}.
+
+\begin{code}[label=ex5:memcpy,float=ht,caption={Checked Type of \texttt{memcpy}}]
+void *memcpy(void * restrict dest : byte_count(n), 
+             const void * restrict src : byte_count(n), 
+             size_t n)
+             : bounds(dest, dest + n);
+\end{code}
+
+In this case, the compiler will not insert dynamic checks if the
+programmer calls \lstinline|memcpy|, as has been commented out
+in~\autoref{ex2:checked}, because none of the checked pointer
+arguments are being used to access memory at the call (the non-null
+checks of \lstinline|resp| and \lstinline|req| will remain as these
+are accessed to find the value of the pointers in the call
+expression).
+
+Instead the compiler must statically prove that the bounds calculated
+for the \lstinline|resp->payload| argument are at least as wide as the
+declared bounds of the \lstinline|dest| parameter, and also for
+\lstinline|req->payload| and \lstinline|src|. In this case, both
+argument values are of \lstinline|char*| type, so
+\lstinline|byte_count(x)| expressions are equivalent to
+\lstinline|count(x)| expressions.
+
+Using congruence, the compiler should be able to prove this property
+for \lstinline|dest|, but it will be unable to for \lstinline|src|, as
+it has no information to relate \lstinline|req->payload_len| and
+\lstinline|req->length|. This will cause a compile-time error.
+
+This example is exactly what the dynamic cast operators
+from~\autoref{sec:dynamiccastops} are for. Providing the argument
+\lstinline|dynamic_cast<array_ptr<char>>(req->payload, req->payload, req->payload + req->length)|
+for the \lstinline|dest| parameter, which tells the compiler that the
+first argument has bounds $[\texttt{req} \arrow \texttt{payload},$
+$\texttt{req} \arrow \texttt{payload} + \texttt{req} \arrow
+\texttt{length} )$, would satisfy the static check (preventing the
+compiler error), but this would also insert a dynamic check before the
+call to make sure that these bounds are larger than the original
+bounds of \lstinline|req->payload|. If a user submits a packet where
+the length field is larger than the payload length, then this check
+would fail before the call to \lstinline|memcpy|.
+
+\section{Corrected Checked C Program}
+
+Returning to the notion of making sure this program is not-only memory
+safe but also bug-free, \autoref{ex6:corrected} shows the corrected
+program, where we have: validated the relationship of
+\lstinline|req->length| and \lstinline|req->payload_len|
+at~\lstref{ex6:valid1}, validated the return value of
+\lstinline|malloc| at~\lstref{ex6:valid2}, and replaced all further
+used of \lstinline|req->length| with \lstinline|req->payload_len|
+at~\lstref{ex6:rep0}, \lstref{ex6:rep1}, \lstref{ex6:rep2},
+and~\lstref{ex6:rep3}.
+
+
+\begin{code}[label=ex6:corrected,float=t,caption={Corrected Checked Example (Based on \autoref{ex2:checked})}]
+typedef struct req_t {  // Request Struct
+  size_t length;         // user-provided
+  size_t payload_len;    // parser-provided
+  array_ptr<char> payload : count(payload_len);
+  // ...
+} req_t;
+
+typedef struct resp_t {  // Response Struct
+  size_t payload_len;
+  array_ptr<char> payload : count(payload_len);
+  // ...
+} resp_t;
+
+bool echo(ptr<req_t> req, ptr<resp_t> resp) {  // Handler
+~\lstleftlabel{ex6:valid1}~  if (req->payload_len < req->length)
+    return false;
+
+  array_ptr<char> resp_data : count(req->payload_len ~\lstlabel{ex6:rep0}~) = malloc(req->payload_len ~\lstlabel{ex6:rep1}~);
+~\lstleftlabel{ex6:valid2}~  if (resp_data == NULL)
+    return false;
+
+  resp->payload_len = req->payload_len; ~\lstlabel{ex6:rep2}~
+  resp->payload     = resp_data;
+
+  for (size_t i = 0; i < req->payload_len ~\lstlabel{ex6:rep3}~; i++) {
+    resp->payload[i] = req->payload[i];
+  }
+  return true;
+}
+\end{code}
+
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:

@@ -1,0 +1,132 @@
+\chapter{Introduction}
+\label{sec:introduction}
+
+The C programming language~\cite{Ritchie1988,ISO2011} grants
+programmers low-level control of their programs rivalled only by
+directly writing assembly by hand. This is both its greatest strength,
+and its greatest weakness~\cite{krebbers:n1637}. C grants control of
+memory safety (and many other kinds of safety) directly to the
+programmer, but unfortunately programmers are human and make mistakes,
+and these mistakes can be devastating.
+
+We classify memory safety mistakes into one of two categories.
+\emph{Temporal safety} errors happen when a programmer attempts to use
+an object outside of its defined storage duration. \emph{Spatial
+safety} errors happen when a programmer attempts to use a pointer to
+an object to access memory beyond the extents of that particular
+object. A \emph{buffer overrun} is a kind of spatial safety violation
+where a program reads memory surrounding an object in memory, usually
+because the programmer calculated its size incorrectly.
+
+During the period 2012--2016, buffer overruns were the source of 9.7\%
+to 18.4\% of CVEs reported in the NIST vulnerability
+database~\cite{nvdb}. During that time, buffer overruns were the
+leading single cause of CVEs.
+
+Programmers are still unwilling to give up this low-level control of
+their programs, despite protections that type-safe languages may
+provide~\cite{Kell2017}. Fortunately we can build on prior
+research~\cite{Jim2002,Feng2006} into language safety to devise a
+safer C which does not give up this low-level control, without the
+drawbacks of previous approaches.
+
+The Checked C project is a new effort towards achieving a safer C. It
+does this by extending the language with new types and constructs for
+expressing invariants about objects in memory, and then enforcing
+these invariants within compiled programs using both static and
+dynamic checks.
+
+Checked C currently only addresses spatial memory safety, and
+therefore only provides constructs for reasoning about the bounds of
+objects in memory. The language extension does not yet address any
+temporal memory safety guarantees. The Checked C specification is
+available online at
+\url{https://github.com/microsoft/checkedc/releases}.
+
+This report describes my work on developing and implementing the
+dynamic checks for spatial memory safety and the infrastructure they
+require.
+
+\section{Contributions}
+
+I joined the project at the time the Checked C Specification v0.6 was
+released, in January 2017. At that point, the Checked C compiler could
+parse and represent its new types, and bounds expressions, but it did
+minimal verification of these bounds, and could not generate dynamic
+checks as required by the specification.
+
+\begin{minipage}{\textwidth}
+The Checked C Specification v0.6~\cite{CheckedCv06} has the following
+to say about dynamic bounds checks:
+\begin{quotation}
+Given \expr{*\mv{e1}}, where \mv{e1} is an expression of type
+\Arrayptr{\mv{T}}, the compiler determines the bounds for \mv{e1}
+following the rules in Section~4.2. Special rules are followed in
+\kw{bundled} blocks to determine the bounds for \mv{e1}. The
+compiler inserts checks before the memory pointed to by \mv{e1} is
+read or written that \mv{e1} is non-null and that the value of \mv{e1}
+is in bounds.
+
+If \boundsinfer{\mv{e1}}{\bounds{\mv{e2}}{\mv{e3}}}, the compiler
+inserts a runtime check that \texttt{\mv{e2} <= \mv{e1} \&\& \mv{e1} <
+\mv{e3}}. If the runtime check fails, the program will be terminated
+by the runtime system or in, systems that support it, a runtime
+exception will be raised. If
+\boundsinfer{\mv{e1}}{\boundscount{\mv{e2}}}, this is expanded to
+\boundsinfer{\mv{e1}}{\bounds{\mv{e1}}{\mv{e1} + \mv{e2}}} before
+inserting checks. Of course a temporary variable would be used to hold
+the value of \mv{e1}.
+\signed{Extending C with bounds safety~\cite[Section 3.10]{CheckedCv06}}
+\end{quotation}
+
+While this describes the requirements of the dynamic bounds checks and
+the propagation algorithm that computes the bounds to check against,
+it is informal and vague.
+\end{minipage}
+
+My contributions to the Checked C project are:
+
+\begin{itemize}
+
+\item I was the first to clearly describe exactly where dynamic checks
+are required in terms of the C semantics (\autoref{sec:dynamic-checks}).
+
+\item I devised the flow-insensitive algorithm described
+in~\autoref{sec:propagation} which computes bounds required for checks
+using lvalues and values, which corresponds closely to the semantics
+of C expressions, values and lvalues.
+
+\item As part of devising this algorithm, I devised a coherent method
+for dealing with C structs and arrays, and their arbitrary
+composition, which keep checks sound and prevent some type errors,
+while also keeping run-time overhead low. This is called
+``narrowing'', and is described in~\autoref{sec:narrowing}.
+
+\item I extended the existing clang code generator to generate the code to
+compute the required bounds and perform the required checks in LLVM
+IR (\autoref{sec:dynamic-checks-impl}).
+
+\item I proposed and performed the first evaluation of the overhead of
+Checked C's dynamic bounds checks. The main result is that, for the
+pointer-intensive benchmarks we chose, the run-time overhead is on
+average \ResultRunTimeMean, and at most \ResultRunTimeMax, with an
+average executable size overhead of \ResultExecutableSizeMean and at
+most \ResultExecutableSizeMax. Further results are described
+in~\autoref{sec:evaluation}.
+
+% \item I developed the first method for converting real-world C code
+% into Checked C, as described in \autoref{app:conversion}.
+
+\end{itemize}
+
+This report also provides a quicker overview of Checked C than the
+specification (\autoref{sec:checkedc}), and a worked example
+(\autoref{sec:example}) to illustrate how the compiler works in broad
+brushstrokes.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:
