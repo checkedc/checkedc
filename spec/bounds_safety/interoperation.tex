@@ -114,6 +114,7 @@ the end of the array pointed to by the checked pointer are rejected at compile t
 A programmer may use an \assumeboundscast\ operation do this instead.
 
 \subsection{Description of cast operators}
+\label{subsection:cast-operator-description}
 
 This section describes each of the cast operators and the static
 and runtime checking that is done for each operator.   
@@ -125,10 +126,6 @@ to any existing C typing rules that apply to the cast.
 \begin{itemize}
 \item If \var{D} and \var{S} are compatible types or \var{D} and \var{S} are unchecked
 pointer types, checking succeeds.
-
-\item Otherwise, if \var{D} is \ptrvoid\ or \uncheckedptrvoid\ and \var{S} is a \ptr\ type,
-checking succceeds.\footnote{This rule is implied logically by other rules.   We present
-it separately so that there is a simple rule for casts to void pointers.}
 \item Otherwise, if \var{D} is not a function pointer type and \var{D} is
 \begin{itemize}
 \item \ptrT: the bounds of \var{e} are computed using the rules
@@ -172,6 +169,13 @@ operand.
 \item Otherwise, checking fails with a compile-time error.
 \end{itemize}
 \end{itemize}
+
+These rules allow casts that could cause type safety violations even in code
+that uses only checked pointer types.  They allow casts between pointers to unrelated types
+and to and from void pointer types.  We are working on an extension that will provide
+a type-safe replacement for casts between checked void pointers.  When this is complete, we
+will disallow these casts. We also plan to revisit casts between pointers to
+unrelated types.
 
 The \dynamicboundscast\ operator is not strictly needed.
 Programmers could write checks by hand.  However, programmers
@@ -299,42 +303,48 @@ void f(void) {
 }
 \end{verbatim}
 
-\section{Implicit conversions involving checked pointers}
+\section{Implicit conversions involving checked pointer types}
 \label{section:implicit-conversions}
 
 C allows implicit conversions at assignments, function call arguments,
-and conditional expressions.  The purpose of
-implicit conversions is to make programs shorter and easier to
+and conditional expressions. This makes programs shorter and easier to
 read.  Implicit conversions describe when an expression of type
-\var{S} is allowed where an expression of type \var{T} is expected.
-They allow additional programs to typecheck.
+\var{S} is allowed where an expression of type \var{T} is expected,
+allowing additional programs to typecheck.
 This section defines implicit conversions that are allowed for checked
 pointer types.
 
-An implicit conversion may allow typechecking to succeed, but
-checking of bounds declarations may still fail.  Implicit
-conversions are treated as though they are explicit C cast
-operations during the checking of bounds declarations.
+One kind of pointer type can be converted to another kind of pointer type provided
+that bounds safety is maintained.  Figure~\ref{fig:implicit-type-conversion} shows the
+kind conversions that are allowed.  Any kind can be converted to another
+kind that is reachable following arrows. For example, it makes sense to allow an unchecked
+pointer type to be converted to an \arrayptr\ or \ptr.
 
-\subsection{From unchecked pointer to checked pointer type}
-\label{subsection:unchecked-to-checked}
-An expression with an unchecked pointer type can be converted implicitly to an
-expression with a checked pointer type.   The destination referent type
-and source referent type must be {\em assignment compatible}: they must
-either be the same type or the only difference between the two types must be that
-the destination type is subject to more checking than the source type.
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[sibling distance=0.5in]
+\node (ptr) {\ptr};
+\node (arrayptr)   [above=of ptr]      {\arrayptr}    edge[<->, thick] (ptr);
+\node (ntarrayptr) [right=of arrayptr] {\ntarrayptr}  edge[->, thick] (arrayptr);
+\node (unchecked)  [above=of arrayptr] {\texttt{*}} edge[->, thick] (arrayptr);
+\end{tikzpicture}
+\end{center}
+\caption{Implicit conversions between different kinds of pointers}
+\label{fig:implicit-type-conversion}
+\end{figure}
 
-This can be done for the right-hand side of an assignment, a call argument,
-or an arm of a conditional expression.
-The type of the left-hand side of the assignment, the parameter, or the other 
-arm of the conditional expression must be the checked pointer type that is the
-target of the implicit conversion.
+Each pointer type has a referent type (the type to which the pointer refers).
+For example, \arrayptrT\ points to \var{T}.   For an implicit conversion, the
+source referent type and the destination referent type must be the same type or
+be {\em assignment compatible}.  Informally, the destination referent type must
+be at least as checked as the source referent typing.  Losing checking is not allowed.
 
 A destination referent type \var{D} is assignment compatible with a source referent
 type \var{S} if
 \begin{itemize}
 \item \var{D} and \var{S} are compatible types, or
 \item \var{D} is \void\ and \var{S} is not a function type, or
+\item \var{S} is \void\ and \var{D} is not a function type, or
 \item \var{D} is an array of \var{E} and \var{S} is an array of \var{T}
 and:
 \begin{itemize}
@@ -344,41 +354,74 @@ and:
 \item \var{E} is assignment compatible with \var{T}.
 \end{itemize}
 \end{itemize}
-C allows implicit conversions between \uncheckedptrvoid\ and other pointer
-types. For now, implicit conversions from \uncheckedptrvoid\ to checked pointer
-types are allowed. This may be revised later when a design
-for checking type-safety of casts is complete.
 
-\subsection{From checked pointer to unchecked pointer type}
+There are several important points about these conversions:
+\begin{itemize}
+\item  While an implicit conversion may allow typechecking to succeed,
+       checking of bounds declarations may still fail.  Implicit
+       conversions are treated as though they are explicit C cast
+       operations during the checking of bounds declarations.
+\item  Implicit conversions from checked pointer types to
+      unchecked pointer types are not allowed because that would cause a loss of bounds safety.
+      There is an important exception: they are allowed at bounds-safe interfaces
+      bounds-safe interfaces, where an lvalue is treated as having both an unchecked
+      and checked type (Section~\ref{section:function-bounds-safe-interfaces}).
+\item The rules for assignment compatibility allow conversions to and from checked void pointers,
+      provided that bounds safety is maintained.  These rules subsume the existing C rule for
+      void pointers.  As mentioned in Section~\ref{subsection:cast-operator-description}, we plan
+      to disallow conversions between checked void pointers eventually.
+\item We do not allow implicit conversions to \ntarrayptrT\ because of the possibility
+      of null terminators being overwritten via pointer aliases.  If we had a way of controlling
+      aliasing of pointers, we could allow those conversions.
+\end{itemize}
 
-We must be very careful about implicit conversions from checked pointer
-types to unchecked pointer types.  These kinds of conversions could allow bounds checking to
-be subverted accidentally in a quiet fashion. Implicit conversions from checked pointer types to
-unchecked pointer types are allowed only at bounds-safe interfaces
-(Section~\ref{section:function-bounds-safe-interfaces}).
+\subsection{Assignments and calls}
 
-\subsection{Between checked pointer types}
+An expression that occurs as the right-hand side of an assignment or as
+a call argument may be implicitly converted to another type, provided
+that the rules just discussed are met.
+The type of the left-hand side of the assignment or the corresponding
+parameter is the destination type for the conversion.
 
-An expression with a type ``checked pointer to \var{T}'' can be converted implicitly
-to a different kind of ``checked pointer to \var{T}''.  The different kind
-must be \arrayptr\ or \ptr. The expression must occur as the right-hand
-side of an assignment or a call argument. The left-hand side of the
-assignment or the parameter type must have the different kind of checked pointer
-type.   Implicit conversions to \ntarrayptrT\ are not allowed because of the possibility
-of null terminators being overwritten via aliases to the location of the null terminators.
+\subsection{Conditional expressions}
 
-An expression with a type ``checked pointer to \var{T}'' can be converted implicitly to
-a ``checked pointer to \texttt{void}''.  The expression
-must occur as the right-hand side of an assignment, a call argument,
-or an arm of a conditional expression.  The type of the left-hand side of the assignment,
-the parameter, or the other arm of the conditional expression
-must be the checked \void\ pointer type.   For example, implicit conversions from
-\ptrinst{\var{T}} to \ptrvoid\ and from \arrayptrinst{\var{T}} to \arrayptrvoid\ are
-allowed  at assignments.
+For a conditional expression with the form \var{e1} \texttt{?} \var{e2}
+\texttt{:} \var{e3}, the arms of the conditional expression may be implicitly
+converted so that their types  match.  The concept of source and destination types
+does not make sense here because the arms should be treated symmetrically.
+Instead, we compute the type that is the greatest lower bound of the type
+(if any).
 
-Implicit conversions from checked pointers to \void\ to checked pointers to \var{T} are not allowed.
-The philosophy behind this is the same one that is used in C++: places where type-safety
-can be compromised by a cast should be explicit in the code.
+First, the pointer kind is determined by taking the greatest lower bound of the
+pointer kinds of the two arms following Figure~\ref{fig:implicit-type-conversion},
+which is a lattice.  A kind at the destination of an arrow is below a kind
+at the source of an arrow.  The greatest lower bound is the highest such kind
+that is at or beneath the kinds of both arms.  For example, the greatest lower bound
+kind of \ptr\ and \uncheckedptr\ is \ptr. The greatest lower bound kind
+of \uncheckedptr\ and \ntarrayptr\ is \arrayptr.
+
+Second, the greatest lower bound of the pointer referent types for the arms is computed.
+If the pointer referent types are the same type, that type is the greatest lower bound.
+Otherwise, the greatest lower bound is the referent type that is at least as checked as the
+other referent type and is otherwise compatible.  Given referent types \var{S} and \var{R},
+we check assignment compatibility using each type as the destination.  We
+choose the referent type for which assignment compatibility is valid.
+If assignment compatibilty is not valid for either type, no greatest lower
+bound exists and the implicit conversion is not allowed.
+
+Void referent types are treated specially because both referent types will be valid
+destination types. The existing C rules state that if one arm has void pointer type, the other
+arm must be implicitly cast to void pointer type.  Implicit casts from void pointers to other
+pointer types are not allowed. To match this, we require that the source referent type in the
+assignment compatibility test not be the void type.
+
+Here are some examples of greatest lower bounds:
+\begin{itemize}
+\item  For arms with the types \arrayptrvoid\ and \uncheckedptrinst{\keyword{int}},
+it is \arrayptrvoid.
+\item In contrast, for arms with the types \arrayptrinst{\keyword{float}} and \arrayptrinst{\keyword{int}}, none exists:
+\keyword{float} is not assignment-compatible with \keyword{int}.
+\end{itemize}
 
 \subsection{Between checked pointers and integers}
 
