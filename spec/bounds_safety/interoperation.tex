@@ -363,8 +363,8 @@ There are several important points about these conversions:
        operations during the checking of bounds declarations.
 \item  Implicit conversions from checked pointer types to
       unchecked pointer types are not allowed because that would cause a loss of bounds safety.
-      There is an important exception: they are allowed at bounds-safe interfaces
-      bounds-safe interfaces, where an lvalue is treated as having both an unchecked
+      There is an important exception: they are allowed at bounds-safe interfaces,
+      where an lvalue is treated as having both an unchecked
       and checked type (Section~\ref{section:function-bounds-safe-interfaces}).
 \item The rules for assignment compatibility allow conversions to and from checked void pointers,
       provided that bounds safety is maintained.  These rules subsume the existing C rule for
@@ -389,16 +389,34 @@ For a conditional expression with the form \var{e1} \texttt{?} \var{e2}
 \texttt{:} \var{e3}, the arms of the conditional expression may be implicitly
 converted so that their types  match.  The concept of source and destination types
 does not make sense here because the arms should be treated symmetrically.
-Instead, we compute the type that is the greatest lower bound of the type
-(if any).
 
-First, the pointer kind is determined by taking the greatest lower bound of the
-pointer kinds of the two arms following Figure~\ref{fig:implicit-type-conversion},
-which is a lattice.  A kind at the destination of an arrow is below a kind
-at the source of an arrow.  The greatest lower bound is the highest such kind
-that is at or beneath the kinds of both arms.  For example, the greatest lower bound
+We take a different approach.  Given two arms with different pointer types, we try
+to choose a pointer type that meets the restrictions of both arms.  For example, if
+an arm has \ptr\ type, pointer arithmetic should not be possible on the result
+of the conditional expression.   We order pointer types by restrictiveness
+and choose the ``greatest lower bound'' of the pointer types of the arms (if one exists).
+% Informally, The ``greatest lower bound'' is as restrictive as the type of either arm,
+% but not more restrictive than necessary.
+
+First, the greatest lower bound of the pointer kinds is determined.
+Figure~\ref{fig:pointer-kind-ordering} shows an ordering  of pointer kinds by
+restrictiveness and allowed conversions.   A kind at the destination of an arrow is below a kind
+at the source of an arrow.  We choose the highest such kind that is at or beneath the
+kinds of both arms.   For example, the greatest lower bound
 kind of \ptr\ and \uncheckedptr\ is \ptr. The greatest lower bound kind
 of \uncheckedptr\ and \ntarrayptr\ is \arrayptr.
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[sibling distance=0.5in]
+\node (ptr) {\ptr};
+\node (arrayptr)   [above=of ptr]      {\arrayptr}    edge[->, thick] (ptr);
+\node (unchecked)  [above=of arrayptr] {\texttt{*}} edge[->, thick] (arrayptr);
+\node (ntarrayptr) [right=of unchecked] {\ntarrayptr}  edge[->, thick] (arrayptr);
+\end{tikzpicture}
+\end{center}
+\caption{Ordering of pointer kinds by restrictiveness of operations and allowed conversions.}
+\label{fig:pointer-kind-ordering}
+\end{figure}
 
 Second, the greatest lower bound of the pointer referent types for the arms is computed.
 If the pointer referent types are the same type, that type is the greatest lower bound.
@@ -409,14 +427,18 @@ choose the referent type for which assignment compatibility is valid.
 If assignment compatibilty is not valid for either type, no greatest lower
 bound exists and the implicit conversion is not allowed.
 
-Void referent types are treated specially because both referent types will be valid
-destination types. The existing C rules state that if one arm has void pointer type, the other
+Void referent types are treated specially. They are considered to be lower than
+corresponding non-void referent types because fewer operations allowed on
+void referent types. We require that the source referent
+type in the assignment compatibility test not be the void type.
+This matches the existing C rules for conditional expressions.  Those
+rules state that if one arm has void pointer type, the other
 arm must be implicitly cast to void pointer type.  Implicit casts from void pointers to other
-pointer types are not allowed. To match this, we require that the source referent type in the
-assignment compatibility test not be the void type.
+pointer types are not allowed for conditional expression arms.
 
 Here are some examples of greatest lower bounds:
 \begin{itemize}
+\item  For arms with the types \arrayptrint\ and \ptrint, it is \ptrint.
 \item  For arms with the types \arrayptrvoid\ and \uncheckedptrinst{\keyword{int}},
 it is \arrayptrvoid.
 \item In contrast, for arms with the types \arrayptrinst{\keyword{float}} and \arrayptrinst{\keyword{int}}, none exists:
