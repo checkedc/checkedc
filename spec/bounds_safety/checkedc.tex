@@ -10,7 +10,7 @@
 \usepackage{tikz} % drawing support
 \usepackage{soul} % provide highlighting support
 \usepackage{color}
-\usetikzlibrary{patterns}
+\usetikzlibrary{patterns, positioning}
 
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -100,6 +100,7 @@
 \newcommand{\ptrint}{\ptrinst{\texttt{int}}}
 \newcommand{\ptrvoid}{\ptrinst{\texttt{void}}}
 
+\newcommand{\uncheckedptr}{\texttt{*}}
 \newcommand{\uncheckedptrinst}[1]{\texttt{#1 *}}
 \newcommand{\uncheckedptrT}{\texttt{\var{T} *}}
 \newcommand{\uncheckedptrvoid}{\uncheckedptrinst{void}}

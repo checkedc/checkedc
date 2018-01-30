@@ -435,13 +435,21 @@ extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
                            nt_array_ptr<int> v) {
    float fval;
    int *t1 = val ? p : p;            // T * and T * OK;
-   ptr<int> t2 = val ? &val : q;     // T * and ptr<T> OK when T has known bounds
-   ptr<int> t3 = val ? q : &val;     // ptr<T> and T * OK when T has known bounds
-   array_ptr<int> t4 = val ? p : r;  // T * and array_ptr<T> OK when array_ptr<T> has unknown bounds
-   array_ptr<int> t5 = val ? r : p;  // array_ptr<T> and T * OK when array_ptr<T> has unknown bounds
-   ptr<int> t6 = val ? q : q;        // ptr<T> and ptr<T> OK
-   array_ptr<int> t8 = val ? r : r;  // array_ptr<T> and array_ptr<T> OK
-   array_ptr<int> t8a = val ? v : v; // nt_array_ptr<T> and nt_array_ptr<T> OK
+   int *t2 = val ? &val : q;         // expected-error {{initializing 'int *' with an expression of incompatible type '_Ptr<int>'}}
+                                     // T * and ptr<T> produce ptr<T>
+   int *t3 = val ? q : &val;         // expected-error {{initializing 'int *' with an expression of incompatible type '_Ptr<int>'}}
+                                     // T * and ptr<T> produce ptr<T>
+   ptr<int> t4 = val ? &val : q;     // T * and ptr<T> OK when T has known bounds
+   ptr<int> t5 = val ? q : &val;     // ptr<T> and T * OK when T has known bounds
+   int *t6 = val ? p : r;            // expected-error {{initializing 'int *' with an expression of incompatible type '_Array_ptr<int>'}}
+                                     // T * and array_ptr<T> produce array_ptr<T>
+   int *t7 = val ? r : p;            // expected-error {{initializing 'int *' with an expression of incompatible type '_Array_ptr<int>'}}
+                                     // array_ptr<T> and T * produce array_ptr<T>
+   array_ptr<int> t8 = val ? p : r;  // T * and array_ptr<T> OK when array_ptr<T> has unknown bounds
+   array_ptr<int> t9 = val ? r : p;  // array_ptr<T> and T * OK when array_ptr<T> has unknown bounds
+   ptr<int> t10 = val ? q : q;       // ptr<T> and ptr<T> OK
+   array_ptr<int> t11 = val ? r : r;  // array_ptr<T> and array_ptr<T> OK
+   array_ptr<int> t12 = val ? v : v; // nt_array_ptr<T> and nt_array_ptr<T> OK
 
    // omit assignment because type of expression is not valid when there is an error.
    val ? &fval : q; // expected-error {{pointer type mismatch}}
@@ -501,16 +509,16 @@ extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
                     // int and nt_array_ptr<T> not OK
 
   // Implicit conversion of 0 to a safe pointer type is OK.
-   ptr<int> t9 = val ? q : 0;
-   ptr<int> t10 = val ? 0 : q;
-   array_ptr<int> t11 = val ? r : 0;
-   array_ptr<int> t12 = val ? 0 : r;
-   nt_array_ptr<int> t12a = val ? v : 0;
-   nt_array_ptr<int> t12b = val ? 0 : v;
-   ptr<float> t13 = val ? t : 0;
-   ptr<float> t14 = val ? 0 : t;
-   array_ptr<float> t15 = val ? u : 0;
-   array_ptr<float> t16 = val ? 0 : u;
+   ptr<int> t30 = val ? q : 0;
+   ptr<int> t31 = val ? 0 : q;
+   array_ptr<int> t32 = val ? r : 0;
+   array_ptr<int> t33 = val ? 0 : r;
+   nt_array_ptr<int> t34 = val ? v : 0;
+   nt_array_ptr<int> t35 = val ? 0 : v;
+   ptr<float> t36 = val ? t : 0;
+   ptr<float> t37 = val ? 0 : t;
+   array_ptr<float> t38 = val ? u : 0;
+   array_ptr<float> t39 = val ? 0 : u;
 }
 
 // Test conditional expressions where arms have different kinds of
