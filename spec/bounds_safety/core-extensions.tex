@@ -463,34 +463,57 @@ variables from being modifiable.
 
 \section{Variable and member initialization}
 
-Variables that have checked pointer types or members or elements with checked pointer
-types must be initialized when they are declared.  For static variables, programmers
-do not need to do anything.   Static variables and their members or elements are
-zero-initialized at program start up, and zero is a valid value for a checked pointer.
+Variables that have checked pointer types and that may be used to access memory
+must be initialized when they are declared.   This includes variables that have \ptr\ or
+\ntarrayptr\ type and variables that have \arrayptr\ type and declared bounds.
+Variables with \arrayptr\ type that have no declared bounds do not have to be initialized
+because they cannot be used to access memory.   In addition, variables that have members
+or elements with checked pointer types and that may be used to access memory must be
+initialized when they are declared.
+
+Static variables and their members or elements are zero-initialized at program
+start-up time, if no initializer is declared.  Programmers do not need to do anything to
+initialize them.  Zero is a valid value for a checked pointer.
 Automatic variables are indeterminately initialized when they are created.
 Programmers must initialize these variables explicitly using C's initializer syntax
 when they are declared.
 
-Initializing a variable with  checked pointer type is simple: a programmer adds \verb+= 0+ or
-\verb+x = NULL+ to the variable declaration. Fortunately, C's initializer syntax 
+Initializing an automatic variable with a checked pointer type is simple: a programmer adds
+\verb+= 0+ or \verb+x = NULL+ to the variable declarator. C's initializer syntax 
 allows compact initializers for structure variables and array variables.
-A list of initialization values is specified using a brace-enclosed list of values.
-The initializer list can be partial list of initialization values that describes
+A list of initialization values is specified using a brace-enclosed list of expressions.
+The initializer list can be partial list that describes
 only some of the initialization value  The remaining data will be initialized to default values
-(which is 0 for pointers). It suffices to have an initializer for the first member
-of a structure or element of an array. The initializer list \verb+{ 0 }+ typically works:
+for types (0 for pointer types). It suffices to have an initializer for the first member
+of a structure or element of an array. The initializer list \verb+{ 0 }+ can be used.
+
+Here are examples of variable declarations with initializers:
 \begin{verbatim}
+ptr<int> p = 0;                   // initializer required.
+array_ptr<int> q : count(5) = 0;  // has bounds; initializer required.
+array_ptr<int> lower, upper;      // no bounds; initializer not required.
+lower = q;
+upper = q + 5;
+
+struct VariableBuffer {
+  array_ptr<int> buf : count(len);
+  int len;
+};
+
+struct Range {
+  array_ptr<int> lower;
+  array_ptr<int> upper;
+};
+
+struct VariableBuffer buf = { 0 };  // initializer for struct required.
+struct Range pair;                  // no bounds on members; initializer not required.
+ptr<int> data checked[10] = { 0 };  // initializer for array required.
+struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
 \end{verbatim}
 
-For heap-allocated data that contains a checked pointer, the data must be zero-initialized
-by the programmer.  We recommend that programmers use \verb+calloc+ instead of \verb+malloc+
-for allocating the data.
-
-We plan to relax this initialization requirement by adding a {\em definite initialization} analysis
-similar to those for C\# or Java for variables or members with checked pointer types.
-In programs for those languages, a variable may be declared without an initialization value, as
-long is it is definitely initialized before it may be used.  A dataflow analysis prescribed by the
-language definition is used to determine when a variable is definitely initialized.
+For heap-allocated data that contains checked pointers that may be used to access memory, the
+data must be zero-initialized by the programmer.  We recommend that programmers use
+\verb+calloc+ instead of \verb+malloc+ for heap-allocating data containing checked pointers.
 
 \section{Program scopes for checked pointer types}
 

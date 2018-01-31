@@ -144,3 +144,40 @@ void f5(void) checked {
   nt_array_ptr<ptr<void(int)>> callback_table = (ptr<void(int)>[]) { callback1, callback2, 0 };
 
 }
+
+void f6(void) {
+  ptr<int> p = 0;                   // initializer required.
+  array_ptr<int> q : count(5) = 0;  // has bounds; initializer required.
+  array_ptr<int> lower, upper;      // no bounds; initializer not required.
+  lower = q;
+  upper = q + 5;
+
+  struct VariableBuffer {
+    array_ptr<int> buf : count(len);
+    int len;
+  };
+
+  struct Range {
+    array_ptr<int> lower;
+    array_ptr<int> upper;
+  };
+
+  struct VariableBuffer buf = { 0 };  // initializer for struct required.
+  struct Range pair;                  // no bounds on members; initializer not required.
+  ptr<int> data checked[10] = { 0 };  // initializer for array required.
+  struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
+
+  struct VariableBuffer buf_missing_init;  // TODO: checkedc-clang issue #445.
+                                           // This should produce a compiler error.
+  ptr<int> data_missing_init checked[10];  // TODO: checkedc-clang issue #445.
+                                           // This should produce a compiler error.
+
+ // Check { 0 } initialization idiom where first member is a floating point number.
+  struct FloatWithVariableBuffer {
+    float weight;
+    array_ptr<int> buf : count(len);
+    int len;
+  };
+
+  struct FloatWithVariableBuffer w = { 0 };
+}
