@@ -4,9 +4,9 @@
 // To configure the list of platforms, change lit.local.cfg in this directory
 // to make the 'pointer-sized-long' feature available
 
-// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
-#include "../../../include/stdchecked.h"
+#include <stdchecked.h>
 
 _Static_assert(sizeof(void*) == sizeof(long),
   "Pointers and longs must be the same size");

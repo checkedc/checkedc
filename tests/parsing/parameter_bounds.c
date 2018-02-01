@@ -2,9 +2,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 extern void f1(array_ptr<int> arr : count(5)) {
 }
@@ -35,7 +35,7 @@ extern void f7a(array_ptr<int> midarr :
    bounds(midarr - start, midarr - start + 5), int start) {
 }
 
-extern void f8(array_ptr<int> arr : bounds(none)) {
+extern void f8(array_ptr<int> arr : bounds(unknown)) {
 }
 
 // 'count' is a contextual keyword.  It is only a keyword when it
@@ -46,12 +46,12 @@ extern void f9(int count, array_ptr<int> arr : count(count)) {
 extern void f9a(array_ptr<int> arr : count(count), int count) {
 }
 
-// 'none' is a contextual keyword.  It is only a keyword when it
+// 'unknown' is a contextual keyword.  It is only a keyword when it
 // immediately follows the ':' in a bounds declaration.
-extern void f10(int none, array_ptr<int> arr : count(none)) {
+extern void f10(int unknown, array_ptr<int> arr : count(unknown)) {
 }
 
-extern void f10a(array_ptr<int> arr : count(none), int none) {
+extern void f10a(array_ptr<int> arr : count(unknown), int unknown) {
 }
 
 // 'bounds' is a contextual keyword.  It is only a keyword when it

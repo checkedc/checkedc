@@ -10,13 +10,13 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify %s
 // expected-no-diagnostics
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 //
-// parameter have new pointer types
+// parameters have new pointer types
 //
 
 extern void f1(ptr<int> p, int y) {
@@ -46,6 +46,20 @@ extern void f6(array_ptr<int> p : count(1), int y) {
 extern void f7(array_ptr<int> p : count(1), int y) {
    *p = y;
    f6(p, y);
+}
+
+extern void f8(nt_array_ptr<int> p : count(1), int y) {
+  *p = y;
+}
+
+extern void f9(nt_array_ptr<int> p : count(1), int y) {
+  *p = y;
+  f8(p, y);
+}
+
+extern void f10(nt_array_ptr<nt_array_ptr<int>> p : count(1),
+                nt_array_ptr<int> y) {
+  *p = y;
 }
 
 //
@@ -78,6 +92,12 @@ extern void g6(int y, array_ptr<int> p : count(1)) {
    f7(p, y);
 }
 
+extern void g7(int y, nt_array_ptr<int> p : count(1)) {
+  *p = y;
+  f9(p, y);
+}
+
+
 //
 // returns a new pointer type
 //
@@ -107,6 +127,26 @@ extern ptr<ptr<ptr<int>>> h5(int y, ptr<ptr<ptr<int>>> p) {
    return p;
 }
 
+extern array_ptr<int> h6(int y, array_ptr<int> p) {
+  return p;
+}
+
+
+extern array_ptr<ptr<int>> h7(int y, array_ptr<ptr<int>> p : count(1)) {
+  **p = y;
+  return p;
+}
+
+extern nt_array_ptr<int> h8(int y, nt_array_ptr<int> p) {
+  return p;
+}
+
+
+extern nt_array_ptr<ptr<int>> h9(int y, nt_array_ptr<ptr<int>> p : count(1)) {
+  **p = y;
+  return p;
+}
+
 //
 // Local variables with pointer types
 //
@@ -117,6 +157,7 @@ extern void k1(int y)
    ptr<int> t1 = &v;
    array_ptr<int> t2 : count(1) = &v;
    array_ptr<ptr<int>> t3  : count(1) = &t1;
+   nt_array_ptr<int> t4 = 0;
    *t1 = 0;
    *t2 = 0;
    *t3 = 0;
@@ -151,6 +192,10 @@ extern int Multiply2(ptr<struct Vector> vec1p, ptr<struct Vector> vec2p) {
     return 0;
 }
 
+struct StringWrapper {
+  nt_array_ptr<char> str : count(0);
+};
+
 //
 // Declaring pointers to functions
 //
@@ -159,13 +204,13 @@ extern int Multiply2(ptr<struct Vector> vec1p, ptr<struct Vector> vec2p) {
 int (*unchecked_ptr_to_func)(int x, int y);
 // A ptr to a function that takes two integer parameters and returns an integer
 ptr<int (int x, int y)> ptrfunc;
-// An array_ptr to a function that takes two integer paramters and returns an integer
-// Note that because function types have no size, you can't declare bounds or do pointer arithmetic,
-// so this is pretty useless.
-array_ptr<int (int x, int y)> array_ptrfunc;
-// An array_ptr to an array of function pointers.  This, on the other hand, is pretty useful.
-// You can declare bounds for it, do pointer arithmetic, and access memory.
-array_ptr<ptr<int(int x, int  y)>> array_of_ptrfunc;
+// Not allowed: an array_ptr of a function type:
+// array_ptr<int (int x, int y)> array_ptrfunc;
+// Function types have no size, so bounds checking does not make sense.
+//
+// Allowed: An array_ptr to an array of function pointers.
+array_ptr<ptr<int(int x, int  y)>> array_ptr_of_ptrfunc;
+nt_array_ptr<ptr<int(int x, int  y)>> nullterm_array_ptr_of_ptrfunc;
 
 //
 // Declaring pointers to arrays and arrays of pointers
@@ -173,25 +218,50 @@ array_ptr<ptr<int(int x, int  y)>> array_of_ptrfunc;
 int (*unchecked_ptr_to_array)[5];
 ptr<int[5]> ptr_to_array;
 array_ptr<int[5]> array_ptr_to_array;
+// not allowed: null terminated array_ptr to array
+// nt_array_ptr<int[5]> nullterm_array_ptr_to_array;
 
 int(*unchecked_ptr_to_incomplete_array)[];
 ptr<int[]> ptr_to_incomplete_array;
 array_ptr<int[]> array_ptr_to_incomplete_array;
+// not allowed: null terminated array_ptr to incomplete array
+// nt_array_ptr<int[]> nullterm_array_ptr_to_incomplete_array;
 
 // Declaring arrays of pointers
 int *array_of_unchecked_ptrs[5];
 ptr<int> array_of_ptrs[5];
 array_ptr<int> array_of_array_ptrs[5];
+nt_array_ptr<int> array_of_nullterm_pointers[5];
+
+// Declaring null-terminated arrays of pointers
+int *nullterm_array_of_unchecked_ptrs nt_checked[5];
+ptr<int> nullterm_array_of_ptrs nt_checked[5];
+array_ptr<int> nullterm_array_of_array_ptrs nt_checked[5];
+nt_array_ptr<int> nullterm_array_of_nullterm_pointers nt_checked[5];
 
 // Declare an unchecked pointer to arrays of pointers
 int *(*uncheckedptr_to_array_of_unchecked_ptrs)[5];
 ptr<int>(*unchecked_ptr_to_array_of_ptrs)[5];
 array_ptr<int>(*unchecked_ptr_to_array_of_array_ptrs)[5];
+nt_array_ptr<int>(*unchecked_ptr_to_array_of_null_term_array_ptrs)[5];
+
+int *(*uncheckedptr_to_nullterm_array_of_unchecked_ptrs) nt_checked[5];
+ptr<int>(*unchecked_ptr_to_nullterm_array_of_ptrs) nt_checked[5];
+array_ptr<int>(*unchecked_ptr_to_null_termarray_of_array_ptrs) nt_checked[5];
+nt_array_ptr<int>(*unchecked_ptr_to_null_term_array_of_null_term_array_ptrs)nt_checked[5];
 
 // Declare ptr to arrays of pointers
 ptr<int *[5]> ptr_to_array_of_unchecked_ptrs;
 ptr<ptr<int>[5]> ptr_to_array_of_ptrs;
 ptr<array_ptr<int>[5]> ptr_to_array_of_array_ptrs;
+ptr<nt_array_ptr<int>[5]> ptr_to_array_of_nullterm_array_ptrs;
+
+// Declare ptr to nullterm arrays of pointers
+ptr<int *nt_checked[5]> ptr_to_nullterm_array_of_unchecked_ptrs;
+ptr<ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_ptrs;
+ptr<array_ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_array_ptrs;
+ptr<nt_array_ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_nullterm_array_ptrs;
+
 
 // Declare ptr to an array of function pointers
 ptr<int (*[5])(int x, int y)> ptr_to_array_of_unchecked_func_ptrs;
@@ -207,6 +277,8 @@ typedef ptr<int> t_ptr_int;
 typedef ptr<int (int x, int y)> t_ptr_func;
 typedef array_ptr<int> t_array_ptr_int;
 typedef array_ptr<ptr<int>> t_array_ptr_ptr_int;
+typedef nt_array_ptr<int> t_nullterm_array_ptr_int;
+typedef nt_array_ptr<ptr<int>> t_nullterm_array_ptr_ptr_int;
 
 //
 // Operators that take types
@@ -215,36 +287,44 @@ typedef array_ptr<ptr<int>> t_array_ptr_ptr_int;
 void parse_operators_with_types(void) {
     int s1 = sizeof(ptr<int>);
     int s2 = sizeof(array_ptr<int>);
-    int s3 = sizeof(ptr<int[5]>);
-    int s4 = sizeof(array_ptr<int[5]>);
-    int s5 = sizeof(ptr<int>[5]);
-    int s6 = sizeof(array_ptr<int>[5]);
+    int s3 = sizeof(nt_array_ptr<int>);
+    int s4 = sizeof(ptr<int[5]>);
+    int s5 = sizeof(array_ptr<int[5]>);
+    // not allowed: sizeof(nt_array_ptr<int[5]>);
+    int s6 = sizeof(ptr<int>[5]);
+    int s7 = sizeof(array_ptr<int>[5]);
+    int s8 = sizeof(nt_array_ptr<int>[5]);
     // C11 spec says sizeof function types is illegal, but clang accepts it.
-    int s7 = sizeof(int(int x, int y));
-    int s8 = sizeof(ptr<int>(int x, int y));
+    int s9 = sizeof(int(int x, int y));
+    int s10 = sizeof(ptr<int>(int x, int y));
     // These are OK
-    int s9 = sizeof(ptr<int(int x, int y)>);
-    int s10 = sizeof(int(*)(int x, int y));
+    int s11 = sizeof(ptr<int(int x, int y)>);
+    int s12 = sizeof(int(*)(int x, int y));
 
-    int s11 = _Alignof(ptr<int>);
-    int s12 = _Alignof(array_ptr<int>);
-    int s13 = _Alignof(ptr<int[5]>);
-    int s14 = _Alignof(array_ptr<int[5]>);
-    int s15 = _Alignof(ptr<int>[5]);
-    int s16 = _Alignof(array_ptr<int>[5]);
+    int s20 = _Alignof(ptr<int>);
+    int s21 = _Alignof(array_ptr<int>);
+    int s22 = _Alignof(nt_array_ptr<int>);
+    int s23 = _Alignof(ptr<int[5]>);
+    int s24 = _Alignof(array_ptr<int[5]>);
+    // not allowed: _Alignof(nt_array_ptr<int[5]>);
+    int s25 = _Alignof(ptr<int>[5]);
+    int s26 = _Alignof(array_ptr<int>[5]);
+    int s27 = _Alignof(nt_array_ptr<int>[5]);
     // C11 spec says _Alignof function types is illegal, but clang accepts it.
-    int s17 = _Alignof(int(int x, int y));
-    int s18 = _Alignof(ptr<int>(int x, int y));
+    int s28 = _Alignof(int(int x, int y));
+    int s29 = _Alignof(ptr<int>(int x, int y));
     // These are OK
-    int s19 = _Alignof(ptr<int(int x, int y)>);
-    int s20 = _Alignof(int(*)(int x, int y));
+    int s30 = _Alignof(ptr<int(int x, int y)>);
+    int s31 = _Alignof(int(*)(int x, int y));
 
     // Test parsing of some cast operations that should pass checking
-    // of bounds declaration
+    // of bounds declarations.
     int x = 0;
     int arr[5];
     ptr<int> px = (ptr<int>) &x;
     array_ptr<int> pax = (array_ptr<int>) &x;
+    int nt_arr nt_checked[5];
+    nt_array_ptr<int> nt_pax = (nt_array_ptr<int>) nt_arr;
     // ptr to array type
     ptr<int[5]> parr = 0;
     parr = &arr;

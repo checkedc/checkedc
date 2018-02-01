@@ -6,7 +6,7 @@
 
 // RUN: %clang_cc1 -std=c11 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
 
-#include "../../../include/stdchecked.h"
+#include <stdchecked.h>
 
 _Static_assert(sizeof(void*) == sizeof(long long),
   "Pointers and long longs must be the same size");

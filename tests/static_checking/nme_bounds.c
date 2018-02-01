@@ -2,9 +2,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -fcheckedc-extension -verify %s
+// RUN: %clang_cc1 -verify %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 int f0int(void);
 int* f0ptr(void);

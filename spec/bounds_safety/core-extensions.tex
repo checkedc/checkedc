@@ -22,7 +22,8 @@ capital letter are reserved for system use, as are identifiers that
 begin with two underscores \cite[Section 7.1.3]{ISO2011}. The following
 new keywords are introduced:
 \begin{lstlisting}
-_Array_ptr  _Checked  _Dynamic_check  _Ptr  _Where  _Unchecked
+_Array_ptr  _Checked  _Dynamic_check  _Nt_array_ptr  _Nt_checked  _Ptr
+_Where  _Unchecked
 \end{lstlisting}
 
 It is desirable to have all-lowercase versions of the
@@ -37,7 +38,8 @@ the implementations of standard header files need to be modified to
 not use identifiers that conflict with these keywords.
 The all-lowercase versions of the keywords are:
 \begin{lstlisting}
-array_ptr  checked  dynamic_check  ptr  where  unchecked
+array_ptr  checked  dynamic_check  nt_array_ptr  nt_checked  ptr
+where  unchecked
 \end{lstlisting}
 
 The pattern of using an identifier reserved for system use coupled with
@@ -50,7 +52,7 @@ lowercase versions of the keywords.  It is assumed
 that \keyword{checkedc.h} is included before examples.
 
 \section{New kinds of pointer types}
-Two new checked pointer types are added to C. Each pointer type can be
+Three new checked pointer types are added to C. Each pointer type can be
 used in place of `\texttt{*}':
 \begin{enumerate}
 \item
@@ -73,6 +75,9 @@ used in place of `\texttt{*}':
   bounds are checked at runtime if necessary. Pointer arithmetic can be
   done on these pointer types. The resulting pointers do not need to be
   in bounds.
+\item
+ \ntarrayptrT: this is a variant of \arrayptrT\ for null-terminated
+ arrays.  It is described in Section~\ref{section:nullterm-types}
 \end{enumerate}
 
 Unchecked C pointer types that use `\texttt{*}' and are unchecked in their
@@ -134,6 +139,15 @@ The checked pointer types follow the same rules that apply to modifiers for
 unchecked pointer types.  For example, a variable that is a pointer to a
 \keyword{const} value can be assigned a pointer to a non-const value.  
 The reverse is not allowed.
+
+Array pointers (\arrayptr) of function types are not allowed. Functions have
+no size associated with them, so bounds checking pointers to them does not
+make sense.  Programmers should use \ptr\ instead:
+\begin{verbatim}
+typedef array_ptr<int (int x, int y)> callback_fn; // illegal
+typedef ptr<int (int x, int y)> callback_ptr;      // legal
+typedef array_ptr<callback_ptr> callback_arr;      // legal
+\end{verbatim}
 
 \section{New kinds of array types}
 
@@ -259,6 +273,110 @@ typedef int t2[10];
 t2 x checked[10];  // error: mismatched checked properties
 \end{lstlisting}
 
+\section{New types for null-terminated arrays}
+\label{section:nullterm-types}
+
+C programmers are familiar with the concept of
+a null-terminated array.  This is a sequence of elements
+in memory that ends with a null terminator value.  We add a new type
+\ntarrayptrT\
+to represent pointers to these kinds of arrays.  We divide
+these arrays into two parts: a prefix with bounds and
+a sequence of additional elements that ends
+with a null terminator.  The initial elements of the 
+sequence can be read, provided that preceding elements
+are not the null terminator.  The bounds can be 
+{\em widened} based on the number of elements read.
+
+A programmer may declare bounds for an \ntarrayptr\ variable.  If bounds
+are declared, they are used to check that accesses to memory are in range
+at runtime.
+
+If no bounds are declared, the bounds are inferred.  At variable declarations,
+the declared bounds are for arrays with a prefix of 0 elements.
+At variable uses, 
+the bounds are determined using a program analysis that widens
+bounds based on control-flow.
+The bounds are then used to check memory accesses.
+A problem with using an analysis to determine bounds
+is that the bounds are not written down in the program. 
+This may lead to unexpected failures if the bounds are narrower
+than expected and it may make it difficult to understand
+failures.
+To avoid these problems, we require that memory accesses
+using inferred bounds be provably in-range at compile time.
+At a minimum, the proof system should support local
+reasoning about widened bounds involving pointer
+variables with constant offsets.
+This is enough to handle simple cases such as:
+\begin{verbatim}
+nt_array_ptr<char> p = ...
+if (*p == 'a')
+ if (*(p + 1) == 'b')
+   if (*(p + 2) == 'c')
+\end{verbatim}
+   
+The element type \var{T} of an \ntarrayptrT\ must be
+an integral or pointer type.   \ntarrayptrT\ extends \arrayptrT: the
+prefix with bounds is treated the same as if an \arrayptrT\ pointed 
+to it. An \ntarrayptrT\ value can be converted to an \arrayptrT\ value
+with the same bounds.
+
+Here is a declaration of a function that takes a null-terminated
+array of characters and counts its length:
+\begin{verbatim}
+int compute_length(nt_array_ptr<char> s);
+\end{verbatim}
+
+% We haven't introduced checked scopes yet - need to put this somehwere
+% else.
+%Conversion of \arrayptrT\ values to \ntarrayptrT\ values is
+%not allowed in checked code because it may be possible
+%to overwrite the null terminator value via the \arrayptrT\ value
+% or another \arrayptrT\ value.
+
+Modifiers can be applied to the reference type of
+an \ntarrayptr, in the same way that they can be applied to the
+referent type of an \arrayptr.
+The function \verb+compute_length+
+should not modify the contents of a string. Here
+is a version that uses \verb+const+ to declare that:
+\begin{verbatim}
+int compute_length(nt_array_ptr<const char> s);
+\end{verbatim}
+
+Just as there are new checked array types for \arrayptr s,
+there are new checked null-terminated array types for \ntarrayptr s.
+These are useful for declaring  checked types for string constants.
+Null-terminated array types are declared using the
+\keyword{nt\_checked} keyword before the array dimensions,
+instead of the \keyword{checked} keyword:
+\begin{verbatim}
+int arr nt_checked[10];
+\end{verbatim}
+\verb+nt_checked+ declares an array whose
+last element is a null terminator.  The size of the
+array includes the null terminator element.
+Here is an example of a declaration of a checked null-terminated
+array type for a string constant:
+\begin{verbatim}
+char s nt_checked[6] = "hello";
+\end{verbatim}
+
+An \keyword{nt\_checked} array with size \var{d} converts
+to an \ntarrayptr\ with a count of \var{d - 1} elements.
+This is the number of elements in the prefix array.   This means that
+programs can still read an array element containing a null terminator.
+However, attempting to overwrite the null terminator with a non-null
+value is a runtime error.
+
+\subsection{\ntarrayptr\ usually follows the rules for \arrayptr}
+Because \ntarrayptr\ extends \arrayptr, the discussion and rules for
+\arrayptr\ in the rest of the specification usually apply to \ntarrayptr\
+too.  Most mentions of \arrayptr\ can usually be read as
+``\arrayptr\ or \ntarrayptr.''.  We discuss \ntarrayptr\ only when
+there is a difference between it and \arrayptr.
+
 \section{Operations involving pointer types}
 
 The following operations involving pointer-typed values are allowed:
@@ -277,7 +395,7 @@ The following operations involving pointer-typed values are allowed:
   Assignment: two pointers of the same type can be assigned.
 \item
   Adding or subtracting a pointer type and an integer. This is allowed
-  for \var{T} \texttt{*} and \arrayptrT types.
+  for \var{T} \texttt{*} and \arrayptrT\ types.
 \item
   Pointers to objects of the same type can be compared for equality or
   inequality. The pointers do not have to be the same kind of pointer.
@@ -325,27 +443,13 @@ of type \var{T}, the following rules apply:
   \texttt{*}.
 \end{itemize}
 
-If the \texttt{\&} operator is applied to an lvalue expression that is a
-dereference of a pointer or an array that has bounds checking, the
-bounds check will be done when the address is taken. This guarantees
-that it is valid to dereference the pointer that results from the
-address-of operator. For example, in the following code, bounds checks
-will be done at \lstinline+&a[i]+ and \lstinline+&b[0]+.
-
-\begin{lstlisting}
-int a checked[10];
-array_ptr<int> b;
-int i;
-...
-ptr<int> y = &a[i];
-ptr<int> z = &b[0];
-\end{lstlisting}
-
 \subsection{Rules for conversion of checked array types to pointer types}
 
-If the type of an expression or a subexpression is ``checked array of
+If the type of an expression is ``checked array of
 \var{T}'', the type of the expression is altered to be
-\arrayptrT.
+\arrayptrT.  If the type of an expression is ``checked null-terminated
+array of \var{T}'', the type of the expression is altered to
+be \ntarrayptrT.
 
 Following existing C language rules, this alteration does not happen if
 the expression is an operand of an address-of operator, \texttt{++},
@@ -354,17 +458,423 @@ operator or the `\texttt{.}' operator. The prohibition against this
 conversion occurring for operands of the address-of operator gives the
 results of the operator a more precise type. For sizeof, it also results
 in a more precise answer. The prohibitions against it for \texttt{++}, and
-\texttt{--} operands and the left operand of an assignment operato keeps array
+\texttt{--} operands and the left operand of an assignment operator keeps array
 variables from being modifiable.
 
-\subsection{Variable and member initialization}
+\section{Variable and member initialization}
 
-Variables and members of variables with checked pointer types must be initialized
-before they are used.  For \arrayptr s, this is checked as part of checking
-the validity of bounds.  For \ptr s, this is checked
-using a separate analysis.   A use includes taking the address of a variable
-or member of a variable.  It is often unclear when the resulting pointer is used,
-so the variable must be initialized when its address is taken.
+Variables that have checked pointer types and that may be used to access memory
+must be initialized when they are declared.   This includes variables that have \ptr\ or
+\ntarrayptr\ type and variables that have \arrayptr\ type and declared bounds.
+Variables with \arrayptr\ type that have no declared bounds do not have to be initialized
+because they cannot be used to access memory.   In addition, variables that have members
+or elements with checked pointer types and that may be used to access memory must be
+initialized when they are declared.
+
+Static variables and their members or elements are zero-initialized at program
+start-up time, if no initializer is declared.  Programmers do not need to do anything to
+initialize them.  Zero is a valid value for a checked pointer.
+Automatic variables are indeterminately initialized when they are created.
+Programmers must initialize these variables explicitly using C's initializer syntax
+when they are declared.
+
+Initializing an automatic variable with a checked pointer type is simple: a programmer adds
+\verb+= 0+ or \verb+x = NULL+ to the variable declarator. C's initializer syntax 
+allows compact initializers for structure variables and array variables.
+A list of initialization values is specified using a brace-enclosed list of expressions.
+The initializer list can be partial list that describes
+only some of the initialization value  The remaining data will be initialized to default values
+for types (0 for pointer types). It suffices to have an initializer for the first member
+of a structure or element of an array. The initializer list \verb+{ 0 }+ can be used.
+
+Here are examples of variable declarations with initializers:
+\begin{verbatim}
+ptr<int> p = 0;                   // initializer required.
+array_ptr<int> q : count(5) = 0;  // has bounds; initializer required.
+array_ptr<int> lower, upper;      // no bounds; initializer not required.
+lower = q;
+upper = q + 5;
+
+struct VariableBuffer {
+  array_ptr<int> buf : count(len);
+  int len;
+};
+
+struct Range {
+  array_ptr<int> lower;
+  array_ptr<int> upper;
+};
+
+struct VariableBuffer buf = { 0 };  // initializer for struct required.
+struct Range pair;                  // no bounds on members; initializer not required.
+ptr<int> data checked[10] = { 0 };  // initializer for array required.
+struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
+\end{verbatim}
+
+For heap-allocated data that contains checked pointers that may be used to access memory, the
+data must be zero-initialized by the programmer.  We recommend that programmers use
+\verb+calloc+ instead of \verb+malloc+ for heap-allocating data containing checked pointers.
+
+\section{Program scopes for checked pointer types}
+
+To improve program reliability and to simplify understanding programs,
+it is desirable to limit code to using only checked pointers. To support
+this, we introduce checked program scopes. The \keyword{checked} keyword
+can be attached to blocks and function definitions. In checked program
+scopes, the declared types of variables are allowed to be or use
+checked pointer types or checked array types; unchecked pointer types
+and unchecked array types are not allowed.  Similarly, for functions,
+return types and parameter types are allowed to be or use checked pointer
+types or checked array types.  
+
+On the other hand,  declarations in checked scopes can use unchecked pointer
+types and unchecked array types, provided that the declarations provide a
+bounds-safe interface.   These are described in
+Section~\ref{section:function-bounds-safe-interfaces}.
+Variables and functions used in checked scopes are 
+allowed to have or use checked pointer types, checked array types, or
+unchecked pointer types and unchecked array types with bounds declarations.
+
+A new pragma directive \texttt{BOUNDS\_CHECKED} is introduced to control whether
+the top-level scope is a checked scope:
+\begin{alltt}
+#pragma BOUNDS_CHECKED \textit{on-off-switch}
+\end{alltt}
+
+Where \texttt{\textit{on-off-switch}} is one of \verb|ON OFF DEFAULT|
+
+By default, function definitions are not checked. A block inherits the
+checking properties of its parent. This preserves the meaning of
+existing C code.
+
+A checked block is introduced by placing  \keyword{checked} before a
+compound block:
+\begin{verbatim}
+checked 
+{
+    int a = 5;
+    ptr<int> pa = &a;
+
+    int b checked[5][5];
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            // all references are bounds checked
+            b[i][j] = -1;
+        }
+    }
+}
+\end{verbatim}
+
+It is rarer for a programmer to need to introduce an unchecked scope. It
+is needed usually to allow the use of unchecked pointers within a checked
+block. The \keyword{unchecked} keyword can be used in all the places where the
+checked keyword can be used. This example shows the use of an unchecked
+block:
+
+\begin{verbatim}
+checked 
+{
+    int a = 5;
+    unchecked 
+    {
+        int *upa = &a;	
+        int b[5][5];
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                // not bounds checked
+                b[i][j] = -1;
+            }
+        }     
+    }
+ ...
+}
+\end{verbatim}
+
+In a checked function definition, the body of the function is a 
+checked  block. A checked function definition is declared by placing the
+\keyword{checked} keyword before the definition. Here are examples of checked and
+unchecked function definitions:
+
+\begin{verbatim}
+// checked at the function level: no unchecked pointers can appear in argument
+// types, the return type, or the body of the function.
+checked int f(ptr<int> p) 
+{
+    int a = 5;
+    ptr<int> pa = &a;
+    ...
+}
+
+// unchecked at the function level: checked and unchecked pointer types can
+// occur in argument types, the return type, or the body of the function
+unchecked int f(int *p, ptr<int> r)
+{
+    int a = 5;
+    int *pa = &a;
+    ...
+}
+
+// f is unchecked by default
+int f(int *p, ptr<int> r)
+{
+    int a = 5;
+    int *pa = &a;
+    ...
+}
+\end{verbatim}
+
+When a function call occurs in a checked block, the function being
+called does not have to be declared as checked. The notion of whether a
+scope is checked or not checked is lexical and the function definition
+is a separate lexical scope.
+
+C allows declarations of functions without prototypes\footnote{These are sometimes
+referred to as K\&R-style function declarations because this is the only way
+functions were  declared in the first edition of the C Programming Language book
+by Brian Kernigan and Dennis Ritchie. The second edition incorporated changes from the
+C ANSI Standard and introduced function prototypes.}, where the types
+of the arguments to functions are not specified .  These
+functions are dangerous to use because there can be mismatches 
+between argument types and parameter types at function
+calls.  This can corrupt data or the call stack.  In checked scopes, 
+the use or declaration of  functions without prototypes is not allowed.
+
+As we add different notions of checking to Checked C, we will use the
+checked and unchecked keywords for all the different notions of
+checking. We may introduce additional keywords to control specific kinds
+of checking.
+
+\section{String literals, compound literals, and initializer expressions}
+
+C programs can declare string literals and compound literals.  Examples
+of string literals are expressions such as \keyword{"hello"} and \keyword{L"hello"}
+(in the latter case, the modifier `L' changes the type of the characters in the string).
+A compound literal is an expression that declares an array literal or an object literal.
+It consists of a parenthesized type name followed by list of initializers in braces.
+A compound literal has static storage if its at the top level of a file and automatic
+storage if it occurs within a block.  Here are examples of compound literals:
+\begin{verbatim}
+int *arr = (int []) { 0, 1, 2};
+struct Point {
+  int x;
+  int y;
+}
+struct S *zero_coord = &((struct Point) { 0, 0 };
+\end{verbatim}
+
+A string literal has an array type with an element type that is one of \keyword{char},
+\verb+wchar_t+,  \verb+char16_t+, or \verb+char32_t+.   For Checked C, there is a question
+about whether the array type should be an unchecked or checked array.
+The type of a string literal with an element type \var{T} depends on whether the literal occurs
+in a checked scope or an unchecked scope:
+\begin{itemize}
+\item In a checked scope, the type is ``null-terminated checked array of \var{T}``.
+\item In an unchecked scope, the type is ``unchecked array of \var{T}''.
+\end{itemize}
+
+This creates an issue in unchecked scopes when a string literal is used where
+a null-terminated checked pointer type is expected.  It makes sense to allow
+this because string literals has known bounds.  However, a string
+literal would have the type ``unchecked array of \var{T}'', which
+would convert to ``unchecked pointer to \var{T}''.
+There is no conversion from the unchecked pointer type to
+``unchecked null-terminated pointer to \var{T}''.
+To allow this, we alter the rule for implicit conversion of array types to pointer types:
+\begin{itemize}
+\item If the type of a string literal or compound literal expression with type
+``array of \var{T}'' has been altered to be ``\var{T} \keyword{*}'', and the expression
+appears in a context where a checked pointer type is expected, the type of the expression
+is further altered to be ``checked pointer to \var{T}''.  The kind of the checked
+pointer shall match the kind of the expected pointer type. The contexts where this
+is allowed are the right-hand side of an assignment, an argument to a function call, or in
+an initializer.
+\item The string literal or compound literal may be possibly parenthesized.
+\item The type ``checked pointer to \var{T}'' must be a valid type.  Null-terminated array pointers
+to non-scalar and non-integer types are not allowed.
+\end{itemize}
+This rule is not strictly necessary for compound array literals.  The type name in the
+compound array literal could be modified, of course.  We allow this rule anyway to reduce
+the amount of code changes required to modify code to be checked.
+
+Note that some C compilers use the same memory to represent different
+occurrenes of string literals that have the same characters
+sequence.  The meaning of modifying a string literal is implementation-dependent.
+For bounds safety, an implementation should either
+\begin{itemize}
+\item not do this for string literals whose modified pointer types differ in whether they are null-terminated, or
+\item make string literals read-only.
+\end{itemize}
+
+\subsection{Examples}
+\begin{verbatim}
+checked void f(void) {
+  // "hello" has type char nt_checked[6]. The type is altered during type checking
+  // to nt_array_ptr<char>.
+  nt_array_ptr<char> p = "hello";
+
+  // "goodbye" has type char nt_checked[8]. The type is altered during type checking
+  // checking to the pointer type array_ptr.
+  array_ptr<char> r = "goodbye";
+
+  // Use compound array literals instead.
+  p = (char nt_checked[6]) { 'h', 'e', 'l', 'l', 'o', '\0' };
+  r = (char checked[8] { 'g', 'o', 'o', 'd', 'b', 'y', 'e', '\0' };
+}
+
+checked char lookup(int i) {
+  // "abcdef" has type char nt_checked[7]. The type is altered during type checking
+  // to nt_array_ptr<char>. The subscript operation will be bounds checked.
+  return "abcdef"[i];
+}
+
+unchecked char unsafe_lookup(int i) {
+  // "abcdef" has type char[7]. The type is altered during type checking
+  // to char *. The subscript operation will not be bounds checked.
+  return "abcdef"[i];
+}
+
+// find pattern in str
+extern int find(nt_array_ptr<char> pattern, nt_array_ptr<char> str);
+
+int g(void) {
+  // "brown" has type char[6]. The type is altered during type checking
+  // to the type char *. It is then further altered to have the type
+  // nt_array_ptr<char>, matching the argument type for pattern.
+  // A similar alteration happens for the second argument string literal.
+
+  int r = find("brown", "the brown fox jumped over the fence");
+}
+
+// Declare a string with a count.
+struct string_with_count {
+  nt_array_ptr<char> buf;
+  int len;
+}
+
+ptr<struct string_with_count> S =
+   &((struct string_with_count) { "hello world", 11 });
+\end{verbatim}
+
+\subsection{Initializers}
+C allows declared variables to be initialized using initializers.  An initializer
+is either an expression or a brace-enclosed list of initialization values.
+The brace-enclosed list may be a partial list and specify values only for
+part of an object or array.  In that case, the remaining part of the
+array or object is initialized with default values (0 for integers or
+pointers).
+
+For Checked C, no modifications are needed to initializers.
+the value of the initializer is interpreted based on the type of the
+declared variable and its members.  A checked array or pointer is initialized
+the same way that an unchecked array or pointer is initialized.  For
+null-terminated checked arrays, we require that the last element in the
+array be initialized to a null terminator.\footnote{There does not need to
+be a full list of initialization values. An initializer with a partial list of
+initialization values will still meet this requirement.   The default for integers
+and pointers is 0,  which is the null terminator for those values.}
+
+A variety of interesting and complex initialized checked data structures can be
+declared:
+\begin{verbatim}
+// Initialize a checked pointer to the null pointer.
+ptr<int> p = 0;
+
+// Initialize a checked array.
+int arr1 checked[5] = { 0, 1, 2, 3, 4 };
+int arr2 checked[3] = { 0, 1, 2 };
+
+// Initialize pointers to checked arrays
+array_ptr<int> ap1 = arr1;
+array_ptr<int> ap2 = (int checked[4]) { 0, 0, 0, 0 };
+
+// Initialize a multi-dimensional checked array
+float unit_transform checked[2][2] = { { 1.0f, 0.0f}, { 0.0f, 1.0f }};
+
+// A ragged 2-dimensional array, where the inner dimension size varies.
+struct inner_array {
+  int len;
+  array_ptr<double> elems; // bounds declaration missing because we
+                           // haven't described them yet.
+};
+
+typedef struct inner_array ragged_2d_arr[];
+
+ragged_2d_arr data = 
+  { { 3, (double checked[]) { 1.0, 0.0, 0.0 } },
+    { 1, (double checked[]) { 5.0 } },
+    { 0, 0 },
+    { 2, (double checked[]) { 6.0, 7.0 } } 
+  };
+
+struct BufferPair {
+  int len1;
+  array_ptr<int> buf1;
+  int len2;
+  array_ptr<int> buf2;
+};
+
+// Initialize all members.
+struct BufferPair p1 = { 5, arr1, 3, arr2 };
+
+// Declare a partial initializer.
+// len2 and buf2 are initialized to 0.
+struct BufferPair p2 =  { 0, arr1 };
+
+// Strings and initialized arrays of characters.
+
+nt_array_ptr<char> red = "red";
+char green checked[] = "green";
+char blue nt_checked[] = "blue";
+char purple nt_checked[7] = "purple";
+
+// Checked arrays of checked strings
+nt_array_ptr<char> colors checked[] = { "red", "green", "blue", "purple" };
+
+// Null-terminated arrays of checked strings
+nt_array_ptr<char> more_colors nt_checked[] = { "white", "black", "grey", 0 };
+
+// A null-terminated array of ponters to null-terminated arrays
+// of strings.
+nt_array_ptr<nt_array_ptr<char>> sentences nt_checked[4] = 
+  {  (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "first sentence", 0 },
+     (nt_array_ptr<char> nt_checked[]) { "here", "is", "another", 0 },
+     (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "last", "one", 0 },
+     0
+   };
+\end{verbatim}
+
+
+
+\section{Relative alignment of \arrayptr\ values}
+\label{section:relative-alignment}
+
+\arrayptrT\ pointers provide
+pointer arithmetic on arrays. The bounds for these pointers usually
+describe a range of memory that is exactly the size of some array of \var{T}.
+The pointers point to an element of the array. In other words, the lower
+bound, the upper bound, and pointer are  relatively aligned to the type
+\var{T}. Given a lower bound \var{lb}, an upper bound \var{ub}, and a
+pointer \var{p}, there should exist some integer \var{count} such that
+\var{ub} = \var{lb} + \var{count}. In addition, there is either some
+integer \var{index} such that \var{p} = \var{lb} + \var{index},
+where addition is C pointer arithmetic, or \var{p} is null.
+
+The type to which a pointer and its bounds are relatively aligned is
+called the relative alignment type. By default, the relative alignment
+type for a pointer and its bounds is the referent type. However, the
+relative alignment type can be overridden by specifying it explicitly as
+part of the bounds.  This is described in 
+Section~\ref{section:representing-relative-alignment}.
+This can be used for bounds for the results of pointers casts and 
+for  \arrayptrvoid\ pointers. The type
+\texttt{void} has no defined size, so the default relative alignment is
+undefined for \texttt{void}.
+
+We considered removing the entire concept of relative alignment from the
+design to simplify the design.  We decided against that because it would 
+increase the cost of bounds checking throughout the program.  
+Section~\ref{section:design-alternatives:always-unaligned} explains
+this choice in more detail.
 
 \section{Pointer arithmetic error conditions}
 \label{section:pointer-arithmetic-errors}
@@ -597,162 +1107,6 @@ the check \lstinline+p < hi+ implies that the increment cannot
 overflow. The checks are also inexpensive on superscalar processors:
 they can be placed so that they are statically predicted by 
 processors to never fail.
-
-\section{Relative alignment of \plainarrayptr\ values}
-\label{section:relative-alignment}
-
-\arrayptrT\ pointers provide
-pointer arithmetic on arrays. The bounds for these pointers usually
-describe a range of memory that is exactly the size of some array of \var{T}.
-The pointers point to an element of the array. In other words, the lower
-bound, the upper bound, and pointer are  relatively aligned to the type
-\var{T}. Given a lower bound \var{lb}, an upper bound \var{ub}, and a
-pointer \var{p}, there should exist some integer \var{count} such that
-\var{ub} = \var{lb} + \var{count}. In addition, there is either some
-integer \var{index} such that \var{p} = \var{lb} + \var{index},
-where addition is C pointer arithmetic, or \var{p} is null.
-
-The type to which a pointer and its bounds are relatively aligned is
-called the relative alignment type. By default, the relative alignment
-type for a pointer and its bounds is the referent type. However, the
-relative alignment type can be overridden by specifying it explicitly as
-part of the bounds.  This is described in 
-Section~\ref{section:representing-relative-alignment}.
-This can be used for bounds for the results of pointers casts and 
-for  \arrayptrvoid\ pointers. The type
-\texttt{void} has no defined size, so the default relative alignment is
-undefined for \texttt{void}.
-
-We considered removing the entire concept of relative alignment from the
-design to simplify the design.  We decided against that because it would 
-increase the cost of bounds checking throughout the program.  
-Section~\ref{section:design-alternatives:always-unaligned} explains
-this choice in more detail.
-
-\section{Program scopes for checked pointer types}
-
-To improve program reliability and to simplify understanding programs,
-it is desirable to limit code to using only checked pointers. To support
-this, we introduce checked program scopes. The \keyword{checked} keyword
-can be attached to blocks and function definitions. In checked program
-scopes, the declared types of variables are allowed to be or use
-checked pointer types or checked array types; unchecked pointer types
-and unchecked array types are not allowed.  Similarly, for functions,
-return types and parameter types are allowed to be or use checked pointer
-types or checked array types.  
-
-On the other hand,  declarations in checked scopes can use unchecked pointer
-types and unchecked array types, provided that the declarations provide a
-bounds-safe interface.   These are described in
-Section~\ref{section:function-bounds-safe-interfaces}.
-Variables and functions used in checked scopes are 
-allowed to have or use checked pointer types, checked array types, or
-unchecked pointer types and unchecked array types with bounds declarations.
-
-A new pragma directive \texttt{BOUNDS\_CHECKED} is introduced to control whether
-the top-level scope is a checked scope:
-\begin{alltt}
-#pragma BOUNDS_CHECKED \textit{on-off-switch}
-\end{alltt}
-
-Where \texttt{\textit{on-off-switch}} is one of \verb|ON OFF DEFAULT|
-
-By default, function definitions are not checked. A block inherits the
-checking properties of its parent. This preserves the meaning of
-existing C code.
-
-A checked block is introduced by placing  \keyword{checked} before a
-compound block:
-\begin{lstlisting}
-checked 
-{
-  int a = 5;
-  ptr<int> pa = &a;
-
-  int b checked[5][5];
-  for (int i = 0; i < 5; i++) {
-    for (int j = 0; j < 5; j++) {
-      // all references are bounds checked
-      b[i][j] = -1;
-    }
-  }
-}
-\end{lstlisting}
-
-It is rarer for a programmer to need to introduce an unchecked scope. It
-is needed usually to allow the use of unchecked pointers within a checked
-block. The \keyword{unchecked} keyword can be used in all the places where the
-checked keyword can be used. This example shows the use of an unchecked
-block:
-
-\begin{lstlisting}
-checked
-{
-  int a = 5;
-  unchecked
-  {
-    int *upa = &a;
-    int b[5][5];
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < 5; j++) {
-        // not bounds checked
-        b[i][j] = -1;
-      }
-    }     
-  }
- ...
-}
-\end{lstlisting}
-
-In a checked function definition, the body of the function is a 
-checked  block. A checked function definition is declared by placing the
-\keyword{checked} keyword before the definition. Here are examples of checked and
-unchecked function definitions:
-
-\begin{lstlisting}
-// checked at the function level: no unchecked pointers can appear in
-// argument types, the return type, or the body of the function.
-checked int f(ptr<int> p) 
-{
-    int a = 5;
-    ptr<int> pa = &a;
-    ...
-}
-
-// unchecked at the function level: checked and unchecked pointer types
-// occur in argument types, the return type, or the body of the function.
-unchecked int f(int *p, ptr<int> r)
-{
-  int a = 5;
-  int *pa = &a;
-  ...
-}
-
-// f is unchecked by default
-int f(int *p, ptr<int> r)
-{
-  int a = 5;
-  int *pa = &a;
-  ...
-}
-\end{lstlisting}
-
-When a function call occurs in a checked block, the function being
-called does not have to be declared as checked. The notion of whether a
-scope is checked or not checked is lexical and the function definition
-is a separate lexical scope.
-
-C allows declarations of functions without prototypes, where the types 
-of the arguments to functions are not specified.  These
-functions are dangerous to use because there can be mismatches 
-between argument types and parameter types at function
-calls.  This can corrupt data or the call stack.  In checked scopes, 
-the use or declaration of  functions without prototypes is not allowed.
-
-As we add different notions of checking to Checked C, we will use the
-checked and unchecked keywords for all the different notions of
-checking. We may introduce additional keywords to control specific kinds
-of checking.
 
 \section{Programmer-inserted dynamic checks}
 \label{section:programmer-dynamic-checks}
@@ -1160,7 +1514,7 @@ signed integer overflow:
 \end{itemize}
 
 In the case of a runtime error, program execution cannot continue in a
-way the uses the value of the expression that produced the error.
+way that uses the value of the expression that produced the error.
 
 For programs with expressions and initializers with undefined meanings,
 those programs must be rejected at translation-time. 

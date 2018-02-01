@@ -1,6 +1,6 @@
 // Simple Example of Checked C, from Section 2.8 of the spec
 
-#include "../include/stdchecked.h"
+#include <stdchecked.h>
 
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end),

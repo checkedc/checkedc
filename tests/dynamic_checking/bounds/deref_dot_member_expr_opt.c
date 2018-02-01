@@ -14,7 +14,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang -fcheckedc-extension %S/deref_dot_member_expr.c -o %t1 -DTEST_READ -Werror -Wno-unused-value -O3
+// RUN: %clang %S/deref_dot_member_expr.c -o %t1 -DTEST_READ -Werror -Wno-unused-value -O3
 // RUN: %t1 pass1 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
 // RUN: %t1 pass2 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
 // RUN: %t1 pass3 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
@@ -26,7 +26,7 @@
 // RUN: %t1 fail4 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 // RUN: %t1 fail5 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
 //
-// RUN: %clang -fcheckedc-extension %S/deref_dot_member_expr.c -o %t2 -DTEST_WRITE -Werror -O3
+// RUN: %clang %S/deref_dot_member_expr.c -o %t2 -DTEST_WRITE -Werror -O3
 // RUN: %t2 pass1 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-1-WRITE
 // RUN: %t2 pass2 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-2-WRITE
 // RUN: %t2 pass3 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-3-WRITE
@@ -38,7 +38,7 @@
 // RUN: %t2 fail4 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 // RUN: %t2 fail5 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %S/deref_dot_member_expr.c -o %t3 -DTEST_INCREMENT -Werror -O3
+// RUN: %clang %S/deref_dot_member_expr.c -o %t3 -DTEST_INCREMENT -Werror -O3
 // RUN: %t3 pass1 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-1-INCREMENT
 // RUN: %t3 pass2 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-2-INCREMENT
 // RUN: %t3 pass3 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-3-INCREMENT
@@ -50,7 +50,7 @@
 // RUN: %t3 fail4 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 // RUN: %t3 fail5 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %S/deref_dot_member_expr.c -o %t4 -DTEST_COMPOUND_ASSIGN -Werror -O3
+// RUN: %clang %S/deref_dot_member_expr.c -o %t4 -DTEST_COMPOUND_ASSIGN -Werror -O3
 // RUN: %t4 pass1 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-1-COMPOUND-ASSIGN
 // RUN: %t4 pass2 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-2-COMPOUND-ASSIGN
 // RUN: %t4 pass3 | FileCheck %S/deref_dot_member_expr.c --check-prefixes=CHECK,CHECK-PASS,PASS-3-COMPOUND-ASSIGN

@@ -1,0 +1,29 @@
+\centering
+\begin{tabular}{lll}
+\toprule
+Bounds Kind & Declaration & Canonical Bounds \\
+\midrule
+Range & \boundsdecl{\ArrayptrT~p}{\bounds{\mv{l}}{\mv{u}}} &
+\bounds{\mv{l}}{\mv{u}} \\
+Count & \boundsdecl{\ArrayptrT~p}{\boundscount{\mv{n}}} &
+\bounds{p}{p + \mv{n}} \\
+Byte Count & \boundsdecl{\ArrayptrT~p}{\boundsbytecount{\mv{n}}} &
+\bounds{p}{((\Arrayptr{\kw{char}})p) + \mv{n}} \\
+Singleton & \expr{\PtrT~p} & \bounds{p}{p + 1} \\
+\addlinespace
+\emph{Array} & \expr{\mv{T}~a~\kwchecked[\mv{N}]} &
+\bounds{a}{a + \mv{N}} \\
+\bottomrule
+\end{tabular}
+\caption{Canonical Bounds Expressions. In Canonical Bounds, the
+\expr{+} refers to C's pointer-integer addition operator, which adds
+integer multiples of the size of the pointer's referent type to the
+original pointer (hence the cast to \Arrayptr{\kw{char}} in the
+\kwbytecount{} case). The bounds on \emph{Array} are used when
+\expr{a} is converted from an array into a pointer, and \mv{N} must be
+constant.}
+\label{tab:canonical}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../tr02"
+%%% End:

@@ -3,9 +3,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 // Parsing of function declarations
 extern array_ptr<void> alloc(unsigned size) : byte_count(size);
@@ -21,11 +21,11 @@ extern array_ptr<int> f6(array_ptr<int> arr : bounds(arr, arr + 5))
 extern array_ptr<int> f7(int start,
                          array_ptr<int> arr : bounds(arr - start, arr - start + 5))
                       : bounds(arr - start, arr - start + 5);
-extern array_ptr<char> f8(void) : bounds(none);
-// count, bounds, and none are contextual keywords.  They are treated as keyword
+extern array_ptr<char> f8(void) : bounds(unknown);
+// count, bounds, and unknown are contextual keywords.  They are treated as keyword
 // only when they immediately follow a ':';
 extern array_ptr<char> f9(int count) : count(count);
-extern array_ptr<char> f10(int none) : count(none);
+extern array_ptr<char> f10(int unknown) : count(unknown);
 extern array_ptr<int> f11(int bounds, array_ptr<int> arr : count(bounds))
                       : bounds(arr, arr + bounds);
 
@@ -65,7 +65,7 @@ extern array_ptr<int> f7(int start,
    return arr;
 }
 
-extern array_ptr<char> f8(void) : bounds(none) {
+extern array_ptr<char> f8(void) : bounds(unknown) {
   return 0;
 }
 
@@ -75,9 +75,9 @@ extern array_ptr<char> f9(int count) : count(count) {
   return 0;
 }
 
-// 'none' is a contextual keyword.  It is only a keyword when it
+// 'unknown' is a contextual keyword.  It is only a keyword when it
 // immediately follows the ':' in a bounds declaration.
-extern array_ptr<char> f10(int none) : count(none) {
+extern array_ptr<char> f10(int unknown) : count(unknown) {
   return 0;
 }
 

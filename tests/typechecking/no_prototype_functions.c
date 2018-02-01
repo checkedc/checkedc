@@ -2,9 +2,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 struct S1 {
   ptr<int> m1;

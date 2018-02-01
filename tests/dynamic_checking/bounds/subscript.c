@@ -18,7 +18,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang -fcheckedc-extension %s -DTEST_READ -o %t1 -Werror -Wno-unused-value
+// RUN: %clang %s -DTEST_READ -o %t1 -Werror -Wno-unused-value
 // RUN: %t1 0 0 0 0  0 0   0 0 0  | FileCheck %s
 // RUN: %t1 1 2 4 4  1 2   1 1 1  | FileCheck %s
 // RUN: %t1 2 4 8 8  2 1   2 2 2  | FileCheck %s
@@ -43,7 +43,7 @@
 // RUN: %t1 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
 // RUN: %t1 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
-// RUN: %clang -fcheckedc-extension %s -DTEST_WRITE -o %t2 -Werror
+// RUN: %clang %s -DTEST_WRITE -o %t2 -Werror
 // RUN: %t2 0 0 0 0  0 0   0 0 0  | FileCheck %s
 // RUN: %t2 1 2 4 4  1 2   1 1 1  | FileCheck %s
 // RUN: %t2 2 4 8 8  2 1   2 2 2  | FileCheck %s
@@ -68,7 +68,7 @@
 // RUN: %t2 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
 // RUN: %t2 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
-// RUN: %clang -fcheckedc-extension %s -DTEST_INCREMENT -o %t3 -Werror
+// RUN: %clang %s -DTEST_INCREMENT -o %t3 -Werror
 // RUN: %t3 0 0 0 0  0 0   0 0 0  | FileCheck %s
 // RUN: %t3 1 2 4 4  1 2   1 1 1  | FileCheck %s
 // RUN: %t3 2 4 8 8  2 1   2 2 2  | FileCheck %s
@@ -93,7 +93,7 @@
 // RUN: %t3 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
 // RUN: %t3 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
-// RUN: %clang -fcheckedc-extension %s -DTEST_COMPOUND_ASSIGN -o %t4 -Werror
+// RUN: %clang %s -DTEST_COMPOUND_ASSIGN -o %t4 -Werror
 // RUN: %t4 0 0 0 0  0 0   0 0 0  | FileCheck %s
 // RUN: %t4 1 2 4 4  1 2   1 1 1  | FileCheck %s
 // RUN: %t4 2 4 8 8  2 1   2 2 2  | FileCheck %s
@@ -121,7 +121,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "../../../include/stdchecked.h"
+#include <stdchecked.h>
 
 #ifdef POINTER_ARITHMETIC
 #define ACCESS_DIM1(e1, index1) (*(e1 + index1))

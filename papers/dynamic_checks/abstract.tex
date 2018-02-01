@@ -1,0 +1,24 @@
+Checked C is an extension to C that aims to provide a route for
+programmers to upgrade their existing C programs to a safer language
+without losing the low-level control they enjoy. Checked C currently
+only addresses unsafe code with spatial memory violations such as
+buffer overruns and out-of-bounds memory accesses. \\[1em]
+
+Checked C addresses these memory safety problems by adding new pointer
+and array types to C, and a method for annotating pointers with
+expressions denoting the bounds of the objects they reference in
+memory. To ensure memory safety, the Checked C compiler uses a mixture
+of static and dynamic checks over these additions to the C language. \\[1em]
+
+This Technical Report concerns these Dynamic Checks, and the
+algorithms and infrastructure required to support them, including: the
+soundness property Checked C is aiming to preserve, propagation rules
+for bounds information, and the code generation algorithm for the
+checks themselves. This report includes an evaluation of these dynamic
+bounds checks, their overhead, and their interaction with a
+state-of-the-art optimizer. 
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:

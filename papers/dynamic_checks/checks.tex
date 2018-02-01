@@ -1,0 +1,319 @@
+\chapter{Checks}
+\label{sec:checks}
+
+This section describes how we have implemented our prototype Checked C
+compiler. Our compiler, based on the Clang/LLVM toolchain, is
+available online at \url{https://github.com/Microsoft/checkedc-clang}.
+
+\section{Design Requirements}
+
+The Checked C project has certain aims for the language which
+influence the design of its checks, for instance where we rely on
+static checks and where we rely on dynamic checks.
+
+The main aim of Checked C is that we can upgrade code incrementally
+from C to Checked C, which means, among other things, that we must
+be layout compatible with existing C code. We may not, for instance,
+change the pointer representation, as this would break the data layout
+of existing code and change the calling convention.
+
+A second aim is that we should keep any overhead of dynamic checks
+only to where the programmer accesses memory and they are required for
+soundness. This means that any overhead should be understandable and
+predictable. On the other hand we will have to perform checks
+statically at compile-time on pointer assignments and function calls
+to ensure soundness.
+
+A final aim is that Checked C should be able to be used wherever C
+can currently be used, including embedded devices. This means we do
+not require that programs are linked to runtime libraries which
+implement the checks, so that executable size remains small.
+
+\section{Static Checks}
+\label{sec:static-checks}
+
+At assignments into variables with bounds, Checked C requires that the
+bounds of the value being assigned into the variable imply the bounds
+of the variable. In particular, this means that the bounds of a
+variable are a (non-strict) sub-range of the bounds of the expression
+being assigned into it. This ensures that any future memory accesses
+via the newly-assigned variable cannot access memory outside the
+bounds of the original expression.
+
+C's semantics for function calls behave as if the programmer has
+assigned the argument expressions to the parameter declarations, and
+so are covered by this same static checking, only without any implied
+mutual ordering, and bounds on function parameters can reference other
+declared parameters.
+
+We also require checks on updates to variables and members involved in
+bounds checks, such that they continue to denote the bounds of these
+objects in memory. For example, increasing the value in a length
+member of a struct also containing an pointer to an array of that
+length, without a corresponding \lstinline|realloc| or other knowledge
+that the bounds of the array are actually longer, could lead to an
+out-of-bounds memory access, even if this operation is performed
+within a checked region.
+
+Lastly, a static check is required when casting an expression to a
+\PtrT type. This check ensures that the value being cast is within the
+implied bounds of the \PtrT type so that this checked singleton
+pointer can be dereferenced without needing to check its range.
+
+In all these cases, where the compiler cannot prove these facts, it
+may use the explicit dynamically-checked cast operators described
+in~\autoref{sec:dynamiccastops} to prove these facts dynamically
+rather than statically.
+
+Further discussion of these static checks, and how exactly we
+``prove'' anything about C programs to the compiler will be described
+in a future Checked C Technical Report.
+
+
+\section{Dynamic Checks}
+\label{sec:dynamic-checks}
+
+As mentioned previously, we are only interested in inserting dynamic
+checks in expressions that actually access memory. We can also only
+insert dynamic checks where we have bounds expressions for the pointer
+we're accessing memory through.
+
+As described in~\autoref{sec:cs-value-semantics}, all C memory reads
+are via lvalue conversions, and all writes are via assignment or
+increment operators. This means we can add the bounds checks during
+the evaluation of the lvalue sub-expressions of these operators, if the
+accesses dereference checked pointers. This sidesteps generating
+dynamic checks on the lvalue sub-expression of the C $\addrof$
+operator, which does not access memory (it only computes a pointer
+value).
+
+In particular, we will add dynamic checks into the evaluation of the
+lvalue expression in lvalue conversions; on the left of the assignment
+and compound assignment operators; and on the evaluation of the lvalue
+expression in increment and decrement operators. We also add dynamic checks to
+the base expression in a struct member access, if the base expression
+is an lvalue, to ensure each level of access into the struct is within
+bounds, as required by our narrowing rules in~\autoref{sec:narrowing}.
+
+We currently use a lazy propagation algorithm which will only
+propagate bounds information from declarations to uses which require
+the bounds for either static or dynamic checks. This avoids computing
+bounds for unchecked memory accesses.
+
+\subsection{Generating Dynamic Checks}
+\label{sec:dynamic-checks-impl}
+
+The Clang/LLVM toolchain consists of a C compiler (Clang itself), a
+general-purpose optimizer and code generator, and various other
+compiler tools. The central part of the compiler is LLVM's
+Intermediate Representation (LLVM IR), a typed, high-level assembly
+language which abstracts away many machine and compilation details
+while still providing a language that is at an abstraction level
+closer to  assembly languages.
+
+The architecture of the Clang/LLVM toolchain is fairly conventional.
+Our fork of Clang parses Checked C, performs Checked C-specific static
+checks, and then generates unoptimized LLVM IR. LLVM then analyses and
+optimizes LLVM IR, before generating platform-specific assembly. Our
+fork of the Clang/LLVM toolchain only includes changes to Clang, we
+have not needed to change LLVM.
+
+Clang's LLVM IR Generator is actually made up of five mutually
+recursive code generators which process the Checked C syntax tree. In
+terms of the C semantics above, four of these code generators generate
+code for value expressions---namely scalar values (such as integers,
+characters and floats), aggregate values (such as arrays and structs),
+vector values (for vectorized code), and complex number values. The
+code generator we are interested in, however, is the fifth, which is
+responsible for generating the LLVM IR for lvalue expressions.
+
+In C, we already know the uses of C lvalues that access memory
+(described in~\autoref{sec:dynamic-checks}), so we extend the code
+generation of LLVM for these lvalues to insert the required dynamic
+checks. There are three kinds of checks we currently insert, non-null
+checks (required for any checked pointer); bounds checks (required
+only for lvalues that access memory through a checked array pointer);
+and dynamic cast checks (required for casts
+from~\autoref{sec:dynamiccastops}). If a pointer requires both a
+non-null check and a bounds check, the non-null check is performed
+first.
+
+\paragraph{LLVM IR} The following is a quick introduction to LLVM
+IR~\cite{LLVMLangRef}. LLVM IR is typed, with instructions containing
+explicit argument type annotations. The two types we care about here
+are LLVM's pointer type, denoted \lstinline[language=LLVM]|T*|, and
+LLVM's boolean type, denoted \lstinline[language=LLVM]|i1|. Both
+Checked C's checked pointers, and C's unchecked pointers translate to
+LLVM pointers. LLVM pointers are a different type to LLVM's integers,
+but can be compared using the same integer comparison operators.
+
+LLVM's integer comparison instruction, \lstinline[language=LLVM]|icmp|
+is parameterized by the kind of comparison, here we use
+\lstinline[language=LLVM]|eq| (equal), \lstinline[language=LLVM]|ne|
+(not equal), \lstinline[language=LLVM]|ult| (unsigned less than), and
+\lstinline[language=LLVM]|ule| (unsigned less than or equal to).
+Unlike in C, LLVM's integer comparisons are fully defined for
+pointers, even if the pointers point to separate objects.
+
+LLVM has a high-level \lstinline[language=LLVM]|call| instruction for
+calling other functions and intrinsics. LLVM's conditional branch
+instruction, \lstinline[language=LLVM]|br| always takes a boolean
+condition, and two labels, the first for if the condition is true, the
+second for when it is false.
+
+\paragraph{Non-null checks} As shown in~\autoref{llvm:nonnull}, these
+have fairly conventional generated code, involving comparing the
+computed pointer to \lstinline[language=LLVM]|null| (the LLVM keyword
+for the null pointer), branching on the result. Importantly this
+branch has to happen before we access memory using the computed value.
+
+One optimization we perform with non-null checks is for pointer member
+expressions, $e_v \arrow m$. We could check that the pointer computed
+for the member, $m$, is non-null, but this computed pointer will be
+different for each member in the struct, meaning different non-null
+checks per-pointer, that will potentially not be optimized away.
+Instead, we do a non-null check on the struct base, $e_v$, which
+increases check redundancy, allowing more optimization, without
+affecting soundness.\endnote{In C, the \NULL{} pointer does not point
+to any object, and you may not use a pointer into one object to
+compute the pointer into another object unless the former contains the
+latter object. Therefore computing a pointer offset from \NULL{} is
+very much undefined behaviour. LLVM matches this by allowing computed
+offsets from \lstinline[language=LLVM]|null| to be optimized to
+\lstinline[language=LLVM]|null|.}
+
+\begin{code}[language=LLVM,float=ht,label=llvm:nonnull,
+caption={Example Non-null check generated by the Checked C compiler.}]
+  ; ... function prefix
+  %ptr = ; ... computes pointer value
+  %ptr_non_null = icmp ne <ty>* %ptr, null
+  br i1 %ptr.non_null label %success, label %fail
+
+%success:
+  ; ... function continues
+  ; uses of %ptr are valid
+
+%fail:
+  call void @llvm.trap()
+  unreachable
+\end{code}
+
+\paragraph{Bounds Checks} As shown in~\autoref{llvm:bounds}, these are
+very similar to the non-null checks. After we have computed the
+pointer value (which has usually happened before a non-null check not
+shown in the example), we compute LLVM values for the upper bound and
+lower bound directly from the parts of the bounds expression as
+propagated by the algorithm in~\autoref{sec:propagation-rules}.
+Importantly, the pointer can be equal to the lower bound, but it has
+to be strictly less than the upper bound, to agree with the invariants
+in~\autoref{sec:canonical-forms}.
+
+\begin{code}[language=LLVM,float=ht,label=llvm:bounds,
+caption={Example Bounds check generated by the Checked C compiler.}]
+  ; ... function prefix
+  %ptr = ; ... computes pointer value
+  %ptr_lb = ; ... computes pointer lower bound
+  %ptr_ub = ; ... computes pointer upper bound
+  %ptr_in_lb = icmp ule <ty>* %ptr_lb, %ptr ; lower check
+  %ptr_in_ub = icmp ult <ty>* %ptr, %ptr_ub ; upper check
+  %ptr_in_bounds = and i1 %ptr_in_lb, %ptr_in_ub
+  br i1 %ptr_in_bounds label %success, label %fail
+
+%success:
+  ; ... function continues
+  ; loads and stores to %ptr are valid
+
+%fail:
+  call void @llvm.trap()
+  unreachable
+\end{code}
+
+\paragraph{Dynamic Cast Checks} In this case the checks are a good
+deal more complicated. If the value being cast is \NULL{}, then there
+is no need to check the bounds, as the null pointer is within any
+bounds. Otherwise, the code ensures that the cast bounds are a
+sub-range of the bounds of the pointer. If either check succeeds, the
+pointer is cast to the new LLVM type, and execution continues.
+
+\begin{code}[language=LLVM,float=ht,label=llvm:cast,
+caption={Example Bounds Cast Check generated by the Checked C compiler.}]
+  ; ... function prefix
+  %ptr = ; ... computes pointer value
+  %ptr_null = icmp eq <ty>* %ptr, null
+  br i1 %ptr_null, label %success, label %subrange_check
+
+%subrange_check:
+  %ptr_lb = ; ... computes pointer lower bound
+  %ptr_ub = ; ... computes pointer upper bound
+  %cast_lb = ; ... computes cast lower bound
+  %cast_ub = ; ... computes cast upper bound
+  %cast_in_lb = icmp ule <ty>* %ptr_lb, %cast_lb ; lower check
+  %cast_in_ub = icmp ule <ty>* %cast_ub, %ptr_ub ; upper check
+  %cast_subrange = and i1 %cast_in_lb, %cast_in_ub
+  br i1 %cast_subrange, label %success, label %fail
+
+%success:
+  %cast_ptr = bitcast <ty>* %ptr to <ty>*
+  ; ... function continues
+  ; loads and stores to %cast_ptr are valid
+
+%fail:
+  call void @llvm.trap()
+  unreachable
+\end{code}
+
+\paragraph{Trap Blocks} In all these checks we generate ``trap
+blocks'', which are the LLVM Basic Blocks that generate and signal the
+run-time exception for when the check fails. These consist of two
+instructions, a call to the LLVM trap intrinsic,
+\lstinline[language=LLVM]|@llvm.trap()|, which the LLVM code generator
+knows how to turn into platform-specific trap instructions; and an
+\lstinline[language=LLVM]|unreachable| instruction so that the LLVM
+static analyser knows that execution does not continue after this
+branch.
+
+We insert trap blocks at the end of the function so that the
+successful control flow is emphasized over the failure control flow.
+We also insert one of these per dynamic check (rather than all the
+dynamic checks sharing a single trap block per-function) so that
+debugging when optimizations are disabled is far easier. The Clang
+code generator automatically takes care of generating debug
+information for our generated code.
+
+\paragraph{Gotchas} As we use the scalar value code generator to
+generate the values for the upper and lower bounds checks, we have to
+be very careful that bounds checks are not recursive. A program is
+allowed to dereference checked pointers to compute bounds, however it
+is not allowed to dereference itself to compute its own bounds---doing
+so would lead to an infinite loop in check generation. We can almost
+entirely prevent this by only allowing bounds expressions to reference
+prior declarations, but care is needed around potential pointer
+aliasing.
+
+
+\subsection{Operating System Support For Dynamic Checks}
+
+We include no OS-specific behaviour for our dynamic checks, despite
+the fact that modern operating systems provide coarse-grained fault
+mechanisms for some amount of memory safety.
+
+For instance, Linux, Mac OS X, and Windows will all signal a run-time
+error if a program attempts to access unmapped memory, including the
+first page at the \NULL{} address. Our Checked C compiler could rely on this mechanism for performing some of the above dynamic checks, but does not.
+
+Our compiler avoids these mechanisms for two reasons. The first is
+that we want to be able to deploy Checked C anywhere, including
+platforms without a full operating system to perform this check on our
+behalf. Secondly, the POSIX standard includes a mechanism for allowing
+the program to override the handling behaviour of or to ignore this
+run-time error. Doing so could affect program soundness.
+
+We definitely cannot use this mechanism to implement bounds checks, as
+the ranges of mapped memory are too coarse-grained for our propagation
+and narrowing algorithm.
+
+
+%%% Local Variables:
+%%% TeX-master: "tr02"
+%%% mode: latex
+%%% End:

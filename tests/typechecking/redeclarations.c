@@ -3,9 +3,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 //---------------------------------------------------------------------------//
 // Declarations of functions with unchecked parameters are compatible with   //
@@ -110,6 +110,14 @@ void f42(array_ptr<int> p : count(len), int len);  // expected-error {{function 
 // Drop a parameter bounds declaration.
 void f43(array_ptr<int> p : count(len), int len);
 void f43(array_ptr<int> p, int len);               // expected-error {{function redeclaration dropped bounds for parameter}}
+
+void f44(array_ptr<int> p);
+void f44(array_ptr<int> p : bounds(unknown));
+
+// Pointers with a null-terminated pointer type have a default bounds of count(0)
+void f45(nt_array_ptr<int> p);
+void f45(nt_array_ptr<int> p : count(0));
+void f45(nt_array_ptr<int> p : count(1));   // expected-error {{conflicting parameter bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds-safe interfaces for returns  //

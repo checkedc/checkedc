@@ -11,7 +11,7 @@
 \usepackage{soul} % provide highlighting support
 \usepackage{color}
 \usepackage{listings}
-\usetikzlibrary{patterns}
+\usetikzlibrary{patterns, positioning}
 
 % use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -111,6 +111,12 @@
 \newcommand{\arrayptrint}{\arrayptrinst{\keyword{int}}}
 \newcommand{\arrayptrvoid}{\arrayptrinst{\keyword{void}}}
 
+\newcommand{\ntarrayptr}{\texttt{nt\_array\_ptr}}
+\newcommand{\ntarrayptrinst}[1]{\texttt{nt\_array\_ptr<#1>}}
+\newcommand{\ntarrayptrT}{\ntarrayptrinst{\var{T}}}
+\newcommand{\ntarrayptrchar}{\ntarrayptrinst{\texttt{char}}}
+\newcommand{\ntarrayptrvoid}{\ntarrayptrinst{\texttt{void}}}
+
 % use the name spanptr because span is already a command
 % in tex
 \newcommand{\spanptr}{\texttt{span}}
@@ -127,6 +133,7 @@
 \newcommand{\ptrint}{\ptrinst{\texttt{int}}}
 \newcommand{\ptrvoid}{\ptrinst{\texttt{void}}}
 
+\newcommand{\uncheckedptr}{\texttt{*}}
 \newcommand{\uncheckedptrinst}[1]{\texttt{#1 *}}
 \newcommand{\uncheckedptrT}{\texttt{\var{T} *}}
 \newcommand{\uncheckedptrvoid}{\uncheckedptrinst{void}}
@@ -140,7 +147,7 @@
 \newcommand{\boundsrel}[3]{\texttt{bounds(#1, #2) \relalign{#3}}}
 \newcommand{\boundsrelval}[3]{\texttt{bounds(#1\, #2)} \relalignval{#3}}
 \newcommand{\boundsany}{\texttt{bounds(any)}}
-\newcommand{\boundsnone}{\texttt{bounds(none)}}
+\newcommand{\boundsunknown}{\texttt{bounds(unknown)}}
 \newcommand{\boundscount}[1]{\texttt{count(#1)}}
 \newcommand{\boundsbytecount}[1]{\texttt{byte\_count(#1)}}
 

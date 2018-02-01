@@ -1,0 +1,33 @@
+% Table of benchmark results
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+          & \multicolumn{3}{c}{Code Changes}
+          & \multicolumn{3}{c}{Observed Overheads} \\
+\addlinespace
+Benchmark
+          & \multicolumn{1}{c}{\emph{LM} \%}
+          & \multicolumn{1}{c}{\emph{EM} \%}
+          & \multicolumn{1}{c}{\emph{LU} \%}
+          & \multicolumn{1}{c}{\emph{RT} $\pm$\%}
+          & \multicolumn{1}{c}{\emph{CT} $\pm$\%}
+          & \multicolumn{1}{c}{\emph{ES} $\pm$\%} \\
+\midrule
+\input{scripts/bm_results_tab}
+\bottomrule
+\end{tabular}
+\caption{Benchmark Results. Key: \emph{LM~\%}:
+Percentage of Source LoC Modified, including Additions; \emph{EM~\%}:
+Percentage of Code Modifications deemed to be Easy (see
+\ref{sec:eval-code-changes}); \emph{LU~\%}: Percentage of Lines
+remaining Unchecked; \emph{RT~$\pm$\%}: Percentage Change in Run Time;
+\emph{CT~$\pm$\%}: Percentage Change in Compile Time;
+\emph{ES~$\pm$\%}: Percentage Change in Executable Size
+(\texttt{.text} section only)}
+\label{tab:bmresults}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../tr02"
+%%% End:

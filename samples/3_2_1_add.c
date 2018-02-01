@@ -1,6 +1,6 @@
 // Simple Example of Checked C, from Section 3.2.1 of the spec
 
-#include "../include/stdchecked.h"
+#include <stdchecked.h>
 
 int add(int a checked[][2][2] : count(len),
         int b checked[][2][2] : count(len),

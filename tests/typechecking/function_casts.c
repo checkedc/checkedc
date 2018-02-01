@@ -1,10 +1,10 @@
 // Unit tests for typechecking new Checked C function pointers
 //
 // The following line is for the LLVM test harness:
-// RUN: %clang_cc1 -fcheckedc-extension -verify %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 //
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 int f0(int a) {
   return a;
@@ -37,6 +37,17 @@ ptr<int(int)> allowed_convert6 = ***f0;
 // Arbitrary Data is definitely not allowed
 ptr<int(int)> bad_convert1 = (int(*)(int))0xdeadbeef; // expected-error {{can only cast function names or null pointers to checked function pointer type '_Ptr<int (int)>'}}
 ptr<int(int)> bad_convert2 = (int(*)(int))g0;         // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' from incompatible type 'float (float)'}}
+
+// Conversions of checked function pointers to/from void pointers are not allowed;
+void * void_unchecked_ptr1 = 0;
+ptr<void> void_ptr1 = 0;
+array_ptr<void> void_array_ptr1 = 0;
+
+ptr<int(int)> bad_convert3 = void_unchecked_ptr1; // expected-error {{incompatible type}}
+ptr<int(int)> bad_convert4 = void_ptr1;           // expected-error {{incompatible type}}
+ptr<int(int)> bad_convert5 = void_array_ptr1;     // expected-error {{incompatible type}}
+ptr<void> void_ptr2 = f0;                         // expected-error {{incompatible type}}
+array_ptr<void> void_array_ptr2 = f0;             // expected-error {{incompatible type}}
 
 // Now locally within a function body
 void local_convert(int(*f1)(int), ptr<int(int)> f2) {
@@ -89,6 +100,17 @@ void local_convert(int(*f1)(int), ptr<int(int)> f2) {
   ptr<int(int)> bad_convert3 = *bad_f0;                 // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
   ptr<int(int)> bad_convert4 = ***bad_f0;               // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
+  // Conversions of checked function pointers to/from void pointers are not allowed;
+  void * void_unchecked_ptr1 = 0;
+  ptr<void> void_ptr1 = 0;
+  array_ptr<void> void_array_ptr1 = 0;
+
+  ptr<int(int)> bad_convert5 = void_unchecked_ptr1; // expected-error {{incompatible type}}
+  ptr<int(int)> bad_convert6 = void_ptr1;           // expected-error {{incompatible type}}
+  ptr<int(int)> bad_convert7 = void_array_ptr1;     // expected-error {{incompatible type}}
+  ptr<void> void_ptr2 = f0;                         // expected-error {{incompatible type}}
+  array_ptr<void> void_array_ptr2 = f0;             // expected-error {{incompatible type}}
+
   //
   // Casts in a Call
   //
@@ -126,6 +148,9 @@ void local_convert(int(*f1)(int), ptr<int(int)> f2) {
   takes_safe(bad_f0);                  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
   takes_safe(*bad_f0);                 // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
   takes_safe(***bad_f0);               // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+
+  takes_safe(void_ptr1);        // expected-error {{incompatible type}}
+  takes_safe(void_array_ptr1);  // expected-error {{incompatible type}}
 
   //
   // Explicit User Casts
@@ -173,6 +198,8 @@ void local_convert(int(*f1)(int), ptr<int(int)> f2) {
   ptr<int(int)> bad_cast_2 = (ptr<int(int)>)(bad_f0);                  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
   ptr<int(int)> bad_cast_3 = (ptr<int(int)>)(*bad_f0);                 // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
   ptr<int(int)> bad_cast_4 = (ptr<int(int)>)(***bad_f0);               // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> bad_cast_5 = (ptr<int(int)>)(void_ptr1);               // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' from incompatible checked pointer type '_Ptr<void>'}}
+  ptr<int(int)> bad_cast_6 = (ptr<int(int)>)(void_array_ptr1);         // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
 
   //
   // Weird Casts

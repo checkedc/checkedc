@@ -1,0 +1,77 @@
+\chapter{C Syntax}
+\label{app:c-syntax}
+
+This appendix contains a definition of the relevant parts of C Syntax
+for this report. This is based on the C11 Specification, but written
+with mathematical symbols rather than ASCII text.
+
+\begin{align*}
+  \text{LValue Expressions} \\*
+  e_l \gis {} & x  \tag*{Variables} \\
+  \gor {} & \deref e_v \tag*{Dereference} \\
+  \gor {} & e_v[e_v] \tag*{Index} \\
+  \gor {} & e_l \member m \tag*{Struct Member Access} \\
+  \gor {} & e_v \arrow m \tag*{Pointer Member Access} \\[1em]
+%
+\text{Value Expressions} \\*
+  e_v \gis {} & \addrof e_l \tag*{Address-of} \\
+  \gor {} & e_l \assign e_v \tag*{Assignment} \\
+  \gor {} & e_l \compassign e_v \tag*{Compound Assignment} \\
+  \gor {} & e_l \inc \mathrel{\mid} \inc e_l \tag*{Increment} \\
+  \gor {} & e_l \dec \mathrel{\mid} \dec e_l \tag*{Decrement} \\
+  \gor {} & e_v \member m \tag*{Struct Member Access} \\
+  \gor {} & e_v , e_v \tag*{Comma Expression} \\
+  \gor {} & e_v \binop e_v \tag*{Binary Operation} \\
+  \gor {} & e_v \mathrel{R} e_v \tag*{Binary Relational Operation} \\
+  \gor {} & \unop e_v \tag*{Unary Operation} \\
+  \gor {} & e_v(\overline{e_v}) \tag*{Function Call} \\
+  \gor {} & (t)e_v \tag*{Cast} \\
+  \gor {} & e_v \mathrel{?} e_v : e_v \tag*{Conditional Operator} \\
+  \gor {} & l \tag*{Literal Value} \\
+  \gor {} & e_l \tag*{Lvalue \& Array Conversion} \displaybreak\\[1em]
+  % 
+  \text{Binary Operators} \\*
+  \binop \gis {} & + \tag*{Addition} \\
+  \gor {} & - \tag*{Subtraction} \\
+  \gor {} & * \tag*{Multiplication} \\
+  \gor {} & / \tag*{Division} \\
+  \gor {} & \% \tag*{Modulus} \\
+  \gor {} & \& \tag*{Bitwise AND} \\
+  \gor {} & \mid \tag*{Bitwise OR} \\
+  \gor {} & \wedge \tag*{Bitwise XOR} \\
+  \gor {} & \gg \tag*{Bitwise Shift Right} \\
+  \gor {} & \ll \tag*{Bitwise Shift Left} \\[1em]  
+  % 
+  \text{Relational Operators} \\*
+  R \gis {} & \&\& \tag*{Logical AND} \\
+  \gor {} & \mid\mid \tag*{Logical OR} \\
+  \gor {} & \mathord{==} \tag*{Equality} \\
+  \gor {} & \mathord{!=} \tag*{Negated Equality} \\
+  \gor {} & \mathord{>} \mathrel{\mid}
+             \mathord{\ge} \mathrel{\mid}
+             \mathord{<} \mathrel{\mid}
+             \mathord{\le} \tag*{Comparison} \\[1em]
+  % 
+  \text{Unary Operators} \\*
+  \unop \gis {} & + \tag*{Unary Plus} \\
+  \gor {} & - \tag*{Numerical Negation} \\
+  \gor {} & \sim \tag*{Bitwise Negation} \\
+  \gor {} & ! \tag*{Logical Negation} \\[1em]
+  %
+  \text{Literals} \\*
+  l \gis {} & \mathtt{NULL} \tag*{Null Pointer Literal} \\
+  \gor {} & \mathrm{integers} \tag*{Integer Literals} \\
+  \gor {} & \mathrm{floats} \tag*{Float Literals} \\
+  \gor {} & \{ l , \dots \} \tag*{Array \& Struct Literals} \\[1em]
+  %
+  \text{Types} \\*
+  t \gis {} & \dots \\[1em]
+  %
+  \text{Struct Members} \\*
+  m \gis {} & \dots \\
+\end{align*}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:

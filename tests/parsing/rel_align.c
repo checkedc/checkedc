@@ -2,9 +2,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 extern int cLen;
 extern array_ptr<int> f : byte_count(cLen * sizeof(int));
@@ -36,11 +36,11 @@ extern void f2(array_ptr<int> arr : count(5)) {
   int len = 5;
   array_ptr<int> t : byte_count(5 * sizeof(int)) = arr,
                                     u : bounds(u, u + 5) rel_align(char) = arr,
-                                    v : bounds(none) = arr;
+                                    v : bounds(unknown) = arr;
 
   array_ptr<int> t1 : byte_count(5 * sizeof(int)) = arr,
                                      u1 : bounds(u1, u1 + 5) rel_align_value(sizeof(int)) = arr,
-                                     v1 : bounds(none) = arr;
+                                     v1 : bounds(unknown) = arr;
 }
 
 extern void f3(array_ptr<int> arr : count(5)) {
@@ -56,10 +56,10 @@ extern void f3(array_ptr<int> arr : count(5)) {
 
 extern void f4(array_ptr<int> arr : count(len), int len) {
   int count = len;
-  int none = 0;
-  array_ptr<int> s : bounds(arr + none, arr + len) rel_align(char) = arr;
+  int unknown = 0;
+  array_ptr<int> s : bounds(arr + unknown, arr + len) rel_align(char) = arr;
   array_ptr<int> t : bounds(t, t + count) rel_align(char) = arr;
-  array_ptr<int> s1 : bounds(arr + none, arr + len) rel_align_value(len) = arr; // expected-error {{expression is not an integer constant expression}} 
+  array_ptr<int> s1 : bounds(arr + unknown, arr + len) rel_align_value(len) = arr; // expected-error {{expression is not an integer constant expression}} 
   array_ptr<int> t1 : bounds(t, t + count) rel_align_value(sizeof(char)) = arr;
   int bounds = len;
   array_ptr<int> u : bounds(u, u + bounds) rel_align(char) = arr;
@@ -193,11 +193,11 @@ extern void f16(void) {
       : bounds(arr, arr + len) rel_align(char);
 }
 
-extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}} expected-error {{expected a type}}
+extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}}
 													    }
 extern array_ptr<int> f18(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(char) { // expected-error {{expected bounds expression}}
 }
-extern array_ptr<int> f19(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}} expected-error {{expression is not an integer constant expression}}
+extern array_ptr<int> f19(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}}
 }
 
 int f20(void) {
@@ -225,9 +225,9 @@ extern void f23(int *p : iitype(ptr<int>) rel_alive(1), int y) {// expected-erro
 extern array_ptr<int> f24(array_ptr<int> arr : bounds(arr, arr + 5) rel_align(1))// expected-error {{expected a type}}
   : bounds(arr, arr + 5) rel_align(1);// expected-error {{expected a type}}
 
-extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1){} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
+extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1){} // expected-error {{expected bounds expression or bounds-safe interface type}}
 
-extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}} expected-error {{expected a type}}
+extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}}
 
 extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds() rel_alive(1) { // expected-error {{expected bounds expression or bounds-safe interface type}}
 }
@@ -250,24 +250,24 @@ struct S2 {
 };
 
 struct S3 {
-  int none;
-  array_ptr<int> arr2 : count(none);
-  array_ptr<int> arr3 : bounds(none + arr2, none + arr2 + 5) rel_align(1);  // expected-error {{expected ')'}} \
+  int unknown;
+  array_ptr<int> arr2 : count(unknown);
+  array_ptr<int> arr3 : bounds(unknown + arr2, unknown + arr2 + 5) rel_align(1);  // expected-error {{expected ')'}} \
                                                               // expected-note {{to match this '('}} \
                                                               // expected-error {{expected a type}} \
                                                               // expected-error {{expected range bounds expression}} 
-  array_ptr<int> arr4 : bounds(arr2, arr2 + none) rel_align(char);
+  array_ptr<int> arr4 : bounds(arr2, arr2 + unknown) rel_align(char);
   
-  array_ptr<int> arr5 : bounds(none + arr2, none + arr2 + 5) rel_align_value(sizeof(char));// expected-error {{expected ')'}} \
+  array_ptr<int> arr5 : bounds(unknown + arr2, unknown + arr2 + 5) rel_align_value(sizeof(char));// expected-error {{expected ')'}} \
                                                                                            // expected-note {{to match this '('}} \
                                                                                            // expected-error {{expected range bounds expression}} 
-  array_ptr<int> arr6 : bounds(arr2, arr2 + none) rel_align_value(1);
+  array_ptr<int> arr6 : bounds(arr2, arr2 + unknown) rel_align_value(1);
 };
 
 struct S4 {
   int bounds;
   array_ptr<int> arr1 : bounds(bounds + arr1, bounds + arr1 + 2) rel_align(char);
-  array_ptr<int> arr2 : bounds(none);
+  array_ptr<int> arr2 : bounds(unknown);
   array_ptr<int> arr3 : bounds(bounds + arr2, bounds + arr2 + 5) rel_align(char);
   array_ptr<int> arr4 : bounds(arr3, arr3 + bounds) rel_align(char);
 

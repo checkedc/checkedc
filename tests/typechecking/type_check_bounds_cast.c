@@ -1,9 +1,9 @@
 // Feature tests of parsing new Checked C dynamic and assume bounds
 // cast. The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension -verify-ignore-unexpected=note %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 extern void f1() {
   array_ptr<int> a : count(1) = 0;
@@ -21,8 +21,8 @@ extern void f2() {
   char p[10];
   array_ptr<int> a : count(1) = 0;
   int b checked[10];
-  array_ptr<int> c : count(10) = (array_ptr<int>)a;
-  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, 5);
+  array_ptr<int> c : count(10) = (array_ptr<int>)a; // expected-error {{declared bounds for 'c' are invalid after initialization}}
+  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, 5); // expected-error {{declared bounds for 'd' are invalid after initialization}}
   a = _Assume_bounds_cast<array_ptr<int>>(p); // expected-error {{invalid bounds cast}}
 }
 
@@ -36,9 +36,9 @@ extern void f3() {
 
 extern void f4() {
   array_ptr<int> a : count(2) = 0;
-  array_ptr<ptr<char>> b : count(2) = 0;
+  array_ptr<char> b : count(2) = 0;
 
-  b = _Assume_bounds_cast<array_ptr<ptr<char>>>(a, 2);
+  b = _Assume_bounds_cast<array_ptr<char>>(a, 2);
   a = _Assume_bounds_cast<array_ptr<int>>(b); // expected-error {{invalid bounds cast}}
 }
 

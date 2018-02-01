@@ -2,9 +2,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -fcheckedc-extension %s
+// RUN: %clang_cc1 -verify %s
 
-#include "../../include/stdchecked.h"
+#include <stdchecked.h>
 
 struct S1 {
   array_ptr<int> arr : count(5);
@@ -49,7 +49,7 @@ struct S9 {
 };
 
 struct S10 {
-  array_ptr<int> arr : bounds(none);
+  array_ptr<int> arr : bounds(unknown);
 };
 
 // Count is a contextual keyword.  It is only a keyword when it immediately
@@ -57,7 +57,7 @@ struct S10 {
 // identifer.
 struct S11 {
   int count;
-  array_ptr<int> arr : bounds(none);
+  array_ptr<int> arr : bounds(unknown);
 };
 
 struct S12 {
@@ -66,19 +66,19 @@ struct S12 {
 };
 
 struct S13 {
-  // 'none' is a contextual keyword.  It is only a keyword when it
+  // 'unknown' is a contextual keyword.  It is only a keyword when it
   // is the sole argument to a 'bounds' expression.
   // not a keyword
-  int none;
+  int unknown;
   // a keyword
-  array_ptr<int> arr1 : bounds(none);
+  array_ptr<int> arr1 : bounds(unknown);
   // not a keyword
-  array_ptr<int> arr2 : count(none);
+  array_ptr<int> arr2 : count(unknown);
   // a keyword
-  array_ptr<int> arr3 : bounds(none + arr2, none + arr2 + 5); // expected-error {{expected ')'}} \
+  array_ptr<int> arr3 : bounds(unknown + arr2, unknown + arr2 + 5); // expected-error {{expected ')'}} \
                                                               // expected-note {{to match this '('}}
   // not a keyword
-  array_ptr<int> arr4 : bounds(arr3, arr3 + none); 
+  array_ptr<int> arr4 : bounds(arr3, arr3 + unknown); 
 };
 
 struct S14 {
@@ -90,7 +90,7 @@ struct S14 {
   // not a keyword as an argument
   array_ptr<int> arr1 : bounds(bounds + arr1, bounds + arr1 + 2);
   // a keyword
-  array_ptr<int> arr2 : bounds(none);
+  array_ptr<int> arr2 : bounds(unknown);
   // not a keyword as an argument.
   array_ptr<int> arr3 : bounds(bounds + arr2, bounds + arr2 + 5);
   // not a keyword

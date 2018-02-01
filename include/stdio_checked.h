@@ -1,31 +1,39 @@
 //---------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in math.h that                 //
+// Bounds-safe interfaces for functions in stdio.h that                //
 // take pointer arguments.                                             //
 //                                                                     //
 // These are listed in the same order that they occur in the C11       //
 // specification.                                                      //
-//                                                                     //
-// TODO: revise string types after support for pointers to             //
-// null-terminated arrays is added to C.                               //
 //                                                                     //
 // TODO: Better Support for _FORTIFY_SOURCE > 0                        //
 /////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
 
+#pragma BOUNDS_CHECKED ON
 
-// TODO: handle strings
-// int remove(const char *name);
-// int rename(const char *from, const char *to);
+#if defined(_WIN32) || defined(_WIN64)
+// stdin, stdout, and stderr only have to be expressions that have
+// type FILE *.  On Windows, they are function calls, so we need to change
+// the return type of the function being called.
+_ACRTIMP_ALT FILE* __cdecl __acrt_iob_func(unsigned) : itype(_Ptr<FILE>);
+#else
+extern FILE *stdin : itype(_Ptr<FILE>);
+extern FILE *stdout : itype(_Ptr<FILE>);
+extern FILE *stderr : itype(_Ptr<FILE>);
+#endif
+
+int remove(const char *name : itype(_Nt_array_ptr<const char>));
+int rename(const char *from : itype(_Nt_array_ptr<const char>),
+           const char *to : itype(_Nt_array_ptr<const char>));
 FILE *tmpfile(void) : itype(_Ptr<FILE>);
-// TODO: handle strings
-// char *tmpnam(char *source);
+char *tmpnam(char *source : itype(_Nt_array_ptr<char>)) : itype(_Nt_array_ptr<char>);
 int fclose(FILE *stream : itype(_Ptr<FILE>));
 int fflush(FILE *stream : itype(_Ptr<FILE>));
-FILE *fopen(const char * restrict filename,
-            const char * restrict mode) : itype(_Ptr<FILE>);
-FILE *freopen(const char * restrict filename,
-              const char * restrict mode,
+FILE *fopen(const char * restrict filename : itype(restrict _Nt_array_ptr<const char>),
+            const char * restrict mode : itype(restrict _Nt_array_ptr<const char>)) : itype(_Ptr<FILE>);
+FILE *freopen(const char * restrict filename : itype(restrict _Nt_array_ptr<const char>),
+              const char * restrict mode : itype(restrict _Nt_array_ptr<const char>),
               FILE * restrict stream : itype(restrict _Ptr<FILE>)) :
   itype(_Ptr<FILE>);
 
@@ -42,68 +50,111 @@ int setvbuf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 // * Any pointer arguments may not meet the requirements of the
 //  format string.
 //
-int fprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
-            const char * restrict format, ...);
-int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
-           const char * restrict format, ...);
-// TODO: handle strings
-// int printf(const char * restrict format, ...);
-// int scanf(const char * restrict format, ...);
 
-// OMITTED INTENTIONALLY:
-// sprintf cannot be made checked.  It is missing the bounds
-// for the output buffer.
-// int sprintf(char * restrict s,
-//            const char * restrict format, ...);
-//
-// TODO: handle strings
-// int sscanf(const char * restrict s,
-//            const char * restrict format, ...);
-// TODO: Apple System Headers Support
-#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
-int snprintf(char * restrict s : count(n), size_t n,
-             const char * restrict format, ...);
+// We wrap each definition in a complex conditional, there two boolean values:
+// - we are fortifying, or we're not (_FORTIFY_SOURCE==0 is not fortifying)
+// - there is or there isn't a macro hash-defining this symbol (defined(symbol))
+// Cases:
+// - Fortifying,     Macro Exists: this is expected, we don't need the definition
+// - Not Fortifying, Macro Exists: we need the definition, we need to undef macro
+// - Fortifying,     No Macro:     we need the definition
+// - Not Fortifying, No Macro:     we need the definition
+
+#if _FORTIFY_SOURCE == 0 || !defined(fprintf)
+#undef fprintf
+_Unchecked
+int fprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
+            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 #endif
 
+_Unchecked
+int fscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
+           const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+
+#if _FORTIFY_SOURCE == 0 || !defined(printf)
+#undef printf
+_Unchecked
+int printf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+#endif
+
+_Unchecked
+int scanf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+
+#if _FORTIFY_SOURCE == 0 || !defined(sprintf)
+#undef sprintf
+// The output buffer parameter s is an unchecked pointer because no bounds are provided.
+_Unchecked
+int sprintf(char * restrict s,
+            const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+#endif
+
+_Unchecked
+int sscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
+           const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+
+#if _FORTIFY_SOURCE == 0 || !defined(snprintf)
+#undef snprintf
+_Unchecked
+int snprintf(char * restrict s : count(n), size_t n,
+             const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+#endif
+
+#if _FORTIFY_SOURCE == 0 || !defined(vfprintf)
+#undef vfprintf
+_Unchecked
 int vfprintf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
-             const char * restrict format,
+             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
              va_list arg);
+#endif
+
+_Unchecked
 int vfscanf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
-            const char * restrict format,
+            const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
             va_list arg);
 
-// TODO: handle strings
-// int vprintf(const char * restrict format,
-//             va_list arg);
-// int vscanf(const char * restrict format,
-//            va_list arg);
-// TODO: Apple System Headers Support
-#if !defined (__APPLE__) && _FORTIFY_SOURCE > 0
+#if _FORTIFY_SOURCE == 0 || !defined(vprintf)
+#undef vprintf
+_Unchecked
+int vprintf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
+             va_list arg);
+#endif
+
+_Unchecked
+int vscanf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
+            va_list arg);
+
+#if _FORTIFY_SOURCE == 0 || !defined(vsnprintf)
+#undef vsnprintf
+_Unchecked
 int vsnprintf(char * restrict s : count(n), size_t n,
               const char * restrict format,
               va_list arg);
 #endif
-// OMITTED INTENTIONALLY:
-// vsprintf cannot be made checked. it is missing the bounds
-// for the output buffer.
-// int vsprintf(char * restrict s,
-//             const char * restrict format,
-//             va_list arg);
-// TODO: handle strings
-// int vsscanf(const char * restrict s,
-//            const char * restrict format,
-//            va_list arg);
+
+#if _FORTIFY_SOURCE == 0 || !defined(vsprintf)
+#undef vsprintf
+// The output buffer parameter has an unchecked pointer type becuse it is missing bounds.
+_Unchecked
+int vsprintf(char * restrict s,
+             const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
+             va_list arg);
+#endif
+
+_Unchecked
+int vsscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
+            const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
+            va_list arg);
 
 int fgetc(FILE *stream : itype(_Ptr<FILE>));
+int fputc(int c, FILE *stream : itype(_Ptr<FILE>));
 char *fgets(char * restrict s : count(n), int n,
             FILE * restrict stream : itype(restrict _Ptr<FILE>)) :
   bounds(s, s + n);
-int fputs(const char * restrict s,
+int fputs(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
           FILE * restrict stream : itype(restrict _Ptr<FILE>));
 int getc(FILE *stream : itype(_Ptr<FILE>));
 int putc(int c, FILE *stream : itype(_Ptr<FILE>));
-// TODO: strings
-// int puts(const char *str);
+int puts(const char *str : itype(_Nt_array_ptr<const char>));
 int ungetc(int c, FILE *stream : itype(_Ptr<FILE>));
 
 size_t fread(void * restrict pointer : byte_count(size * nmemb),
@@ -127,7 +178,8 @@ void rewind(FILE *stream : itype(_Ptr<FILE>));
 void clearerr(FILE *stream : itype(_Ptr<FILE>));
 int feof(FILE *stream : itype(_Ptr<FILE>));
 int ferror(FILE *stream : itype(_Ptr<FILE>));
-// TODO: strings
-// void perror(const char *s);
+void perror(const char *s : itype(_Nt_array_ptr<const char>));
 
 #include "_builtin_stdio_checked.h"
+
+#pragma BOUNDS_CHECKED OFF

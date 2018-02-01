@@ -1,0 +1,100 @@
+\chapter{Propagation Rules}
+\label{app:propagation-rules}
+
+These are the algebraic definitions of our propagation algorithm to go
+with the descriptions in~\autoref{sec:propagation-rules}. Certain
+helper functions are explained in the text, rather than
+algebraically.
+
+\begin{figure}[ht]
+\begin{align*}
+  % Lvalue Bounds
+  \lbounds(e_l) &\in \mbounds(e_v, e_v) \tag*{Lvalue Bounds} \\[1ex]
+  \lbounds(x) &= \abounds(x, \mv{N}) \tag*{Variables} \\
+                & \qquad \text{when } \typeof(x) = \arr(\mv{T}, \mv{N}) \\
+                &= \sbounds(\addrof x) \text{ otherwise.} \\[1ex]
+  \lbounds(\deref e_v) &= \vbounds(e_v) \tag*{Dereference} \\[1ex]
+  \lbounds(e_1[e_2]) &= \vbounds(e_{base}) \tag*{Index} \\
+                & \qquad \text{where } e_{base} = base(e_1, e_2) \\[1ex]
+  \lbounds(e_l \member m) &= \abounds(e_l \member m, \mv{N}) \tag*{Struct Member Access} \\
+                &\qquad \text{when } \typeof(e_l \member m) = \arr(\mv{T}, \mv{N}) \\
+                &= \sbounds(\addrof (e_l \member m)) \text{ otherwise.} \\[1ex]
+  \lbounds(e_v \arrow m) &= \abounds(e_v \arrow m, \mv{N}) \tag*{Pointer Member Access} \\
+                &\qquad \text{when } \typeof(e_v \arrow m) = \arr(\mv{T}, \mv{N}) \\
+                &= \sbounds(\addrof (e_v \arrow m)) \text{ otherwise.} \\[1em]
+                %% Bounds Helpers/Sugar
+  \sbounds(e_v) &= \mbounds(e_v, e_v + 1) \tag*{Single Object Bounds} \\
+  \abounds(e_l, N) &= \mbounds(e_l, e_l + N) \tag*{Constant-sized Array Bounds} \\
+                & \qquad \text{when } N \text{ is constant.} \\
+  &= \mbounds(\text{unknown}) \text{ otherwise.}
+\end{align*}
+\caption[Lvalue Bounds Propagation]{Lvalue Bounds Propagation Rules (Mutually
+Recursive with~\autoref{fig:val-bounds-prop})}
+\label{fig:lval-bounds-prop}
+\end{figure}
+
+
+\begin{figure}[ht]
+\begin{align*}
+ % Value Bounds
+  \vbounds(e_v) &\in \mbounds(e_v, e_v) \tag*{Value Bounds} \\[1ex]
+  \vbounds(\mathtt{NULL}) &= \mbounds(\text{any}) \tag*{Null Pointer Literal} \\[1ex]
+  \vbounds(l) &= \mbounds(\text{unknown}) \tag*{Other Literals} \\[1ex]
+  \vbounds(\addrof e_l) &= \lbounds(e_l) \tag*{Address-of} \\[1ex]
+  \vbounds(e_l \assign e_v) &= \vbounds(e_v) \tag*{Assignment} \\[1ex]
+  \vbounds(e_l \compassign e_v) &= \ltbounds(e_l) \tag*{Compound Assignment} \\[1ex]
+  \vbounds(e_l \inc) &= \ltbounds(e_l) \tag*{Increment \& Decrement} \\
+                &\qquad \text{Likewise for all Increment \& Decrement operators} \\[1ex]
+  \vbounds(e_v\member m) &= \srbounds(e_v, m) \tag*{Struct Member Operator} \\[1ex]
+  \vbounds(e_f(\overline{e_{arg}})) &= \rbounds(e_f) \left[ \textrm{params}(f) \middle/ \overline{e_{arg}}\right] \tag*{Function Call}\\[1ex]
+  \vbounds(e_{v1} , e_{v2}) &= \vbounds(e_{v2}) \tag*{Comma Expression} \\[1ex]
+  \vbounds(e_l) &= \lbounds(e_l) \tag*{Array Conversion} \\
+                &\qquad \text{when } \typeof(e_l) = \arr(\mv{T}, \mv{N}) \\
+                &= \ltbounds(e_l) \text{ otherwise}
+                  \tag*{Lvalue Conversion} \\[1ex]
+  \vbounds(e_1 \binop e_2) &= \vbounds(e_{base}) \tag*{Pointer Arithmetic} \\
+                &\qquad \text{when } e_1 \binop e_2 \text{ has pointer type} \\
+                &\qquad \text{where } e_{base} = base(e_1, e_2) \\[1ex]
+  \vbounds(e_1 \mathrel{R} e_2) &= \mbounds(\text{unknown}) \tag*{Binary Relational Operators} \\[1ex]
+  \vbounds(! e_v) &= \mbounds(\text{unknown}) \tag*{Logical Negation Operator} \\[1ex]
+  \vbounds(e_v) &= \vbounds(e_{vi}) \tag*{Other Expressions} \\
+                &\qquad
+                  \text{where } e_{vi}
+                  \text{ is the subexpression of } e_v
+                  \text{ with known bounds} \\
+                &\qquad
+                  \text{If more than one subexpression of } e_v
+                  \text{ has known bounds,}\\
+                &\qquad\quad
+                  \text{all calculated bounds must be equal.} \\[1ex]
+                &= \mbounds(\text{unknown}) \text{ otherwise}\\[1em]
+  \rbounds(f) &\in \mbounds(e_v, e_v) \tag*{Bounds on Function Return} \\[1em]
+  \srbounds(e_v, m) &\in \mbounds(e_v', e_v') \tag*{Struct Relative Bounds}
+\end{align*}
+\caption[Value Bounds Propagation Rules]{Value Bounds Propagation Rules (Mutually
+Recursive with~\autoref{fig:lval-bounds-prop}
+and~\autoref{fig:lval-target-bounds-prop})}
+\label{fig:val-bounds-prop}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{align*}
+%% Lvalue Target Bounds
+  \ltbounds(e_l) &\in \mbounds(e_v, e_v) \tag*{Lvalue Target Bounds} \\[1ex]
+  \ltbounds(e_l) &= \sbounds(e_l) \tag*{Checked Singleton Pointer Bounds}\\
+                 &\qquad \text{where } \typeof(e_l) = \PtrT \\[1ex]
+  \ltbounds(x) &= \dbounds(x) \tag*{Variable Target Bounds}\\[1ex]
+  \ltbounds(e_l \member m) &= \srbounds(e_l, m) \tag*{Struct Member Target Bounds}\\
+  \ltbounds(e_v \arrow m) &= \srbounds(e_v, m) \tag*{Pointer Member Target Bounds}\\[1ex]
+  \ltbounds(\_) &= \mbounds(\text{unknown}) \\[1em]
+  \dbounds(x) &\in \mbounds(e_v, e_v) \tag*{Declared Bounds}
+\end{align*}
+\caption[Lvalue Target Bounds Propagation Rules]{Lvalue Target Bounds
+Propagation Rules}
+\label{fig:lval-target-bounds-prop}
+\end{figure}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:

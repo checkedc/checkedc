@@ -114,6 +114,7 @@ the end of the array pointed to by the checked pointer are rejected at compile t
 A programmer may use an \assumeboundscast\ operation do this instead.
 
 \subsection{Description of cast operators}
+\label{subsection:cast-operator-description}
 
 This section describes each of the cast operators and the static
 and runtime checking that is done for each operator.   
@@ -125,16 +126,12 @@ to any existing C typing rules that apply to the cast.
 \begin{itemize}
 \item If \var{D} and \var{S} are compatible types or \var{D} and \var{S} are unchecked
 pointer types, checking succeeds.
-
-\item Otherwise, if \var{D} is \ptrvoid\ or \uncheckedptrvoid\ and \var{S} is a \ptr\ type,
-checking succceeds.\footnote{This rule is implied logically by other rules.   We present
-it separately so that there is a simple rule for casts to void pointers.}
 \item Otherwise, if \var{D} is not a function pointer type and \var{D} is
 \begin{itemize}
 \item \ptrT: the bounds of \var{e} are computed using the rules
 in Section~\ref{section:checking-nested-assignment-expressions}.
 \begin{itemize}
-\item If the bounds are \boundsnone, checking fails with a compile-time
+\item If the bounds are \boundsunknown, checking fails with a compile-time
 error.
 \item Otherwise, if the bounds are \boundsany, checking 
 succeeds.
@@ -173,6 +170,13 @@ operand.
 \end{itemize}
 \end{itemize}
 
+These rules allow casts that could cause type safety violations even in code
+that uses only checked pointer types.  They allow casts between pointers to unrelated types
+and to and from void pointer types.  We are working on an extension that will provide
+a type-safe replacement for casts between checked void pointers.  When this is complete, we
+will disallow these casts. We also plan to revisit casts between pointers to
+unrelated types.
+
 The \dynamicboundscast\ operator is not strictly needed.
 Programmers could write checks by hand.  However, programmers
 would have to compute the bounds of expressions by hand too, so it is convenient to
@@ -194,7 +198,7 @@ have it. It takes 1 to 3 arguments, depending on the kind of conversion being do
 
 Here is the checking that is done. The bounds of \var{e1} are computed
 using the rules in Section~\ref{section:checking-nested-assignment-expressions}.
-If the bounds of \var{e1} are \boundsnone, it is a compile-time error. 
+If the bounds of \var{e1} are \boundsunknown, it is a compile-time error. 
 If the bounds of \var{e1} are \boundsany, no runtime checks are needed.
 Otherwise the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible to that form).
 The following runtime checks are done:
@@ -299,41 +303,48 @@ void f(void) {
 }
 \end{verbatim}
 
-\section{Implicit conversions involving checked pointers}
+\section{Implicit conversions involving checked pointer types}
 \label{section:implicit-conversions}
 
 C allows implicit conversions at assignments, function call arguments,
-and conditional expressions.  The purpose of
-implicit conversions is to make programs shorter and easier to
+and conditional expressions. This makes programs shorter and easier to
 read.  Implicit conversions describe when an expression of type
-\var{S} is allowed where an expression of type \var{T} is expected.
-They allow additional programs to typecheck.
+\var{S} is allowed where an expression of type \var{T} is expected,
+allowing additional programs to typecheck.
 This section defines implicit conversions that are allowed for checked
 pointer types.
 
-An implicit conversion may allow typechecking to succeed, but
-checking of bounds declarations may still fail.  Implicit
-conversions are treated as though they are explicit C cast
-operations during the checking of bounds declarations.
+One kind of pointer type can be converted to another kind of pointer type provided
+that bounds safety is maintained.  Figure~\ref{fig:implicit-type-conversion} shows the
+kind conversions that are allowed.  Any kind can be converted to another
+kind that is reachable following arrows. For example, it makes sense to allow an unchecked
+pointer type to be converted to an \arrayptr\ or \ptr.
 
-\subsection{From unchecked pointers to checked pointers}
-An expression with an unchecked pointer type can be converted implicitly to an
-expression with a checked pointer type.   The destination referent type
-and source referent type must be {\em assignment compatible}: they must
-either be the same type or the only difference between the two types must be that
-the destination type is subject to more checking than the source type.
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[sibling distance=0.5in]
+\node (ptr) {\ptr};
+\node (arrayptr)   [above=of ptr]      {\arrayptr}    edge[<->, thick] (ptr);
+\node (ntarrayptr) [right=of arrayptr] {\ntarrayptr}  edge[->, thick] (arrayptr);
+\node (unchecked)  [above=of arrayptr] {\texttt{*}} edge[->, thick] (arrayptr);
+\end{tikzpicture}
+\end{center}
+\caption{Implicit conversions between different kinds of pointers}
+\label{fig:implicit-type-conversion}
+\end{figure}
 
-This can be done for the right-hand side of an assignment, a call argument,
-or an arm of a conditional expression.
-The type of the left-hand side of the assignment, the parameter, or the other 
-arm of the conditional expression must be the checked pointer type that is the
-target of the implicit conversion.
+Each pointer type has a referent type (the type to which the pointer refers).
+For example, \arrayptrT\ points to \var{T}.   For an implicit conversion, the
+source referent type and the destination referent type must be the same type or
+be {\em assignment compatible}.  Informally, the destination referent type must
+be at least as checked as the source referent typing.  Losing checking is not allowed.
 
 A destination referent type \var{D} is assignment compatible with a source referent
 type \var{S} if
 \begin{itemize}
 \item \var{D} and \var{S} are compatible types, or
 \item \var{D} is \void\ and \var{S} is not a function type, or
+\item \var{S} is \void\ and \var{D} is not a function type, or
 \item \var{D} is an array of \var{E} and \var{S} is an array of \var{T}
 and:
 \begin{itemize}
@@ -343,35 +354,96 @@ and:
 \item \var{E} is assignment compatible with \var{T}.
 \end{itemize}
 \end{itemize}
-C allows implicit conversions between \uncheckedptrvoid\ and other pointer
-types. For now, implicit conversions from \uncheckedptrvoid\ to checked pointer
-types are allowed. This may be revised later when a design
-for checking type-safety of casts is complete.
 
-\subsection{From checked pointers to unchecked pointers}
+There are several important points about these conversions:
+\begin{itemize}
+\item  While an implicit conversion may allow typechecking to succeed,
+       checking of bounds declarations may still fail.  Implicit
+       conversions are treated as though they are explicit C cast
+       operations during the checking of bounds declarations.
+\item  Implicit conversions from checked pointer types to
+      unchecked pointer types are not allowed because that would cause a loss of bounds safety.
+      There is an important exception: they are allowed at bounds-safe interfaces,
+      where an lvalue is treated as having both an unchecked
+      and checked type (Section~\ref{section:function-bounds-safe-interfaces}).
+\item The rules for assignment compatibility allow conversions to and from checked void pointers,
+      provided that bounds safety is maintained.  These rules subsume the existing C rule for
+      void pointers.  As mentioned in Section~\ref{subsection:cast-operator-description}, we plan
+      to disallow conversions between checked void pointers eventually.
+\item We do not allow implicit conversions to \ntarrayptrT\ because of the possibility
+      of null terminators being overwritten via pointer aliases.  If we had a way of controlling
+      aliasing of pointers, we could allow those conversions.
+\end{itemize}
 
-We must be very careful about implicit conversions from checked pointer
-types to unchecked pointer types.  These kinds of conversions could allow bounds checking to
-be subverted accidentally in a quiet fashion. Implicit conversions from checked pointer types to
-unchecked pointer types are allowed only at bounds-safe interfaces
-(Section~\ref{section:function-bounds-safe-interfaces}).
+\subsection{Assignments and calls}
 
-\subsection{From checked pointers to checked pointers}
+An expression that occurs as the right-hand side of an assignment or as
+a call argument may be implicitly converted to another type, provided
+that the rules just discussed are met.
+The type of the left-hand side of the assignment or the corresponding
+parameter is the destination type for the conversion.
 
-An expression with a checked pointer type can be converted implicitly to the same kind
-of checked pointer type with a \texttt{void} referent type.
-This can be done for the right-hand side of an assignment, a call argument, 
-and an arm of a conditional expression.  
-The type of the left-hand side of the assignment, the parameter, or the other
-arm of the conditional expression
-must be the checked \void\ pointer type that is the target of the implicit
-conversion. For example, implicit conversions from 
-\ptrinst{\var{T}} to \ptrvoid\ and from \arrayptrinst{\var{T}} to \arrayptrvoid\ are allowed 
-at assignments. 
+\subsection{Conditional expressions}
 
-Implicit conversions from checked pointers to \void\ to checked pointers to \var{T} are not allowed.
-The philosophy behind this is the same one that is used in C++: places where type-safety
-can be compromised by a cast should be explicit in the code.
+For a conditional expression with the form \var{e1} \texttt{?} \var{e2}
+\texttt{:} \var{e3}, the arms of the conditional expression may be implicitly
+converted so that their types  match.  The concept of source and destination types
+does not make sense here because the arms should be treated symmetrically.
+
+We take a different approach.  Given two arms with different pointer types, we try
+to choose a pointer type that meets the restrictions of both arms.  For example, if
+an arm has \ptr\ type, pointer arithmetic should not be possible on the result
+of the conditional expression.   We order pointer types by restrictiveness
+and choose the ``greatest lower bound'' of the pointer types of the arms (if one exists).
+% Informally, The ``greatest lower bound'' is as restrictive as the type of either arm,
+% but not more restrictive than necessary.
+
+First, the greatest lower bound of the pointer kinds is determined.
+Figure~\ref{fig:pointer-kind-ordering} shows an ordering  of pointer kinds by
+restrictiveness and allowed conversions.   A kind at the destination of an arrow is below a kind
+at the source of an arrow.  We choose the highest such kind that is at or beneath the
+kinds of both arms.   For example, the greatest lower bound
+kind of \ptr\ and \uncheckedptr\ is \ptr. The greatest lower bound kind
+of \uncheckedptr\ and \ntarrayptr\ is \arrayptr.
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[sibling distance=0.5in]
+\node (ptr) {\ptr};
+\node (arrayptr)   [above=of ptr]      {\arrayptr}    edge[->, thick] (ptr);
+\node (unchecked)  [above=of arrayptr] {\texttt{*}} edge[->, thick] (arrayptr);
+\node (ntarrayptr) [right=of unchecked] {\ntarrayptr}  edge[->, thick] (arrayptr);
+\end{tikzpicture}
+\end{center}
+\caption{Ordering of pointer kinds by restrictiveness of operations and allowed conversions.}
+\label{fig:pointer-kind-ordering}
+\end{figure}
+
+Second, the greatest lower bound of the pointer referent types for the arms is computed.
+If the pointer referent types are the same type, that type is the greatest lower bound.
+Otherwise, the greatest lower bound is the referent type that is at least as checked as the
+other referent type and is otherwise compatible.  Given referent types \var{S} and \var{R},
+we check assignment compatibility using each type as the destination.  We
+choose the referent type for which assignment compatibility is valid.
+If assignment compatibilty is not valid for either type, no greatest lower
+bound exists and the implicit conversion is not allowed.
+
+Void referent types are treated specially. They are considered to be lower than
+corresponding non-void referent types because fewer operations are allowed on
+void referent types. We require that the source referent
+type in the assignment compatibility test not be the void type.
+This matches the existing C rules for conditional expressions.  Those
+rules state that if one arm has void pointer type, the other
+arm must be implicitly cast to void pointer type.  Implicit casts from void pointers to other
+pointer types are not allowed for conditional expression arms.
+
+Here are some examples of greatest lower bounds:
+\begin{itemize}
+\item  For arms with the types \arrayptrint\ and \ptrint, it is \ptrint.
+\item  For arms with the types \arrayptrvoid\ and \uncheckedptrinst{\keyword{int}},
+it is \arrayptrvoid.
+\item In contrast, for arms with the types \arrayptrinst{\keyword{float}} and \arrayptrinst{\keyword{int}}, none exists:
+\keyword{float} is not assignment-compatible with \keyword{int}.
+\end{itemize}
 
 \subsection{Between checked pointers and integers}
 
@@ -384,7 +456,7 @@ from integers to checked pointers are typically not useful in Checked C because
 the checking of bounds declarations fails or the resulting pointer cannot
 be used to access memory.   The rules for checking bounds declarations only
 allow the target type to be \arrayptr\ type and the bounds of the expression to be
-\boundsnone.
+\boundsunknown.
 
 \subsection{Examples}
 
@@ -759,27 +831,34 @@ To handle this, implicit pointer conversions are inserted during type checking.
 Section~\ref{section:implicit-conversions} covered implicit conversions from unchecked pointer types to checked pointer types.
 
 Implicit conversions from checked pointer types to unchecked pointer types
-with assignment-compatible referent types are allowed exactly at the uses of functions,
-variables, or members with a  bounds-safe interface.  In this case, assignment
-compatibility is applied in a reverse fashion.  The source referent type must be
+with assignment-compatible referent types are allowed at the uses of functions,
+variables, or members with bounds-safe interfaces, and at return statements.  
+In this case, assignment compatibility is applied in a reverse fashion (assignment compatibility
+is defined in Section~\ref{subsection:unchecked-to-checked}).
+The source referent type must be
 assignment compatible with the destination referent type.  The conversions are
 done for rvalue expressions by inserting C cast operators to the desired unchecked types.
-They may be done at:
+They are done at:
 \begin{itemize}
 \item Function call arguments: If the function being called has a
-      bounds-safe interface for unchecked pointer type arguments, a parameter
-      type has an unchecked pointer type, the corresponding argument expression
+      bounds-safe interface for parameters with unchecked pointer types, a parameter
+      has an unchecked pointer type, the corresponding argument expression
       has a checked pointer type, and the argument referent type is assignment
       compatible with the parameter referent type, then the argument expression
       will be converted implicitly to the unchecked pointer type.
-\item Assignments to a variable with external scope: if the variable being
+\item Assignments to variables with external scope: if the variable being
      assigned to has an unchecked pointer type and a bounds-safe interface, the
      right-hand side expression has a checked pointer type, and the right-hand
      side expression referent type is assignment compatible with the referent
      type of the variable, then the right-hand side expression will be converted
      implicitly to the unchecked pointer type.
 \item
-   Member assignments: a similar conversion is done for member assignments.
+    Member assignments: a similar conversion is done for member assignments.
+\item Return statements: if a function has an unchecked pointer return type and a
+  return bounds-safe interface, and a return statement in the body of the function
+  has an expression with a checked pointer type, and the return statement expression is
+  assignment compatible with the return type of the function, then the return expression
+  will be converted implicitly to the unchecked pointer type.
 \end{itemize}
 
 Implicit conversions at bounds-safe interfaces are allowed from checked pointer types to
@@ -801,7 +880,7 @@ checking is done after any implicit pointer conversions have been
 inserted.
 \begin{itemize}
 \item Contexts are extended to include unchecked pointer variables with
-      bounds-safe interfaces
+      bounds-safe interfaces.
 \item Inference of bounds of expressions (Section~\ref{section:inferring-expression-bounds}) incorporates information from bounds-safe interfaces:
 \begin{itemize}
 \item Uses of variables (Section~\ref{section:checking-variables}): 
@@ -819,20 +898,28 @@ inserted.
 \item In unchecked contexts, all variables with bounds-safe interfaces
       that are modified by an assignment within the statement, declaration,
       or bundled block, where the right-hand side expression
-      is implicitly converted from a checked pointer type to an unchecked pointer type.
+      is converted implicitly from a checked pointer type to an unchecked pointer type.
 \end{itemize}
 For the included variables, bounds are tracked through the statement or
 bundled block.
-\item The checking of function call arguments in
-      Section~\ref{section:checking-function-call-arguments} 
-      in function calls includes parameters with bounds-safe interfaces: 
+\item The checking of function call arguments
+      in function calls (Section~\ref{section:checking-function-call-arguments})
+      includes parameters with bounds-safe interfaces:
 \begin{itemize}
 \item In checked contexts.
-\item In unchecked contexts, when one or more argument expressions have been 
+\item In unchecked contexts, when one or more argument expressions have been
       converted implicitly to unchecked pointer types.
 \end{itemize}
 The parameters are included by adding their bounds-safe interfaces to the
 declared bounds in the constructed \keyword{where} clauses.
+\item The checking of return statements (Section~\ref{section:checking-return-statements})
+includes return statements where there is a return bounds-safe interface for the enclosing function:
+\begin{itemize}
+\item In checked contexts.
+\item In unchecked contexts, when the return statement expression has been converted
+      implicitly to an unchecked pointer type.
+\end{itemize}
+The return bounds-safe interface is used in place of the function return bounds.
 \end{itemize}
 
 The checking for assignments and function calls has some interesting 
@@ -917,8 +1004,8 @@ rules for inferring bounds to integral expressions:
 
   \begin{itemize}
   \item
-    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsnone, and 
-    \boundsdecl{\var{e2}}{\boundsnone}, and it can be proved that \texttt{\var{e1} != 0}, then
+    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsunknown, and 
+    \boundsdecl{\var{e2}}{\boundsunknown}, and it can be proved that \texttt{\var{e1} != 0}, then
     \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
     If the special variable \exprcurrentvalue\ occurs in \var{b}:
@@ -928,12 +1015,11 @@ rules for inferring bounds to integral expressions:
       \texttt{\exprcurrentvalue\ \var{inverse-op} \var{e2}}
       is substituted for \exprcurrentvalue.
     \item
-      Otherwise the bounds of the expression are altered to be \boundsnone.
-      bounds(none).
+      Otherwise the bounds of the expression are altered to be \boundsunknown.
     \end{itemize}
   \item
-    Similar rules apply for the reverse situation where \boundsdecl{\var{e1}}{\boundsnone}
-    and \boundsdecl{\var{e2}}{\var{b}}, where \var{b} is not \boundsnone.
+    Similar rules apply for the reverse situation where \boundsdecl{\var{e1}}{\boundsunknown}
+    and \boundsdecl{\var{e2}}{\var{b}}, where \var{b} is not \boundsunknown.
   \end{itemize}
 \item
   Given \texttt{\var{e1} \var{op} \var{e2}} where \var{op} is a shift operator, \var{e1} is the integral value
@@ -941,11 +1027,11 @@ rules for inferring bounds to integral expressions:
 
   \begin{itemize}
   \item
-    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsnone, and \var{e2} has
-    \boundsnone, and it can be proved that \texttt{\var{e1} != 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
+    If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsunknown, and \var{e2} has
+    \boundsunknown, and it can be proved that \texttt{\var{e1} != 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
     If the special variable \exprcurrentvalue\ occurs in \var{b}.
-    bounds of the expression are altered to be \boundsnone. Shift
+    bounds of the expression are altered to be \boundsunknown. Shift
     expressions are not invertible because they lose information.
   \end{itemize}
 \end{itemize}

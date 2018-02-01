@@ -18,7 +18,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang -fcheckedc-extension %s -o %t1 -DTEST_READ -Werror
+// RUN: %clang %s -o %t1 -DTEST_READ -Werror
 // RUN: %t1 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
 // RUN: %t1 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
 // RUN: %t1 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
@@ -29,7 +29,7 @@
 // RUN: %t1 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 // RUN: %t1 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
 //
-// RUN: %clang -fcheckedc-extension %s -o %t2 -DTEST_WRITE -Werror
+// RUN: %clang %s -o %t2 -DTEST_WRITE -Werror
 // RUN: %t2 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-WRITE
 // RUN: %t2 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-WRITE
 // RUN: %t2 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-WRITE
@@ -40,7 +40,7 @@
 // RUN: %t2 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 // RUN: %t2 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %s -o %t3 -DTEST_INCREMENT -Werror
+// RUN: %clang %s -o %t3 -DTEST_INCREMENT -Werror
 // RUN: %t3 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-INCREMENT
 // RUN: %t3 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-INCREMENT
 // RUN: %t3 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-INCREMENT
@@ -51,7 +51,7 @@
 // RUN: %t3 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 // RUN: %t3 fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-5
 
-// RUN: %clang -fcheckedc-extension %s -o %t4 -DTEST_COMPOUND_ASSIGN -Werror
+// RUN: %clang %s -o %t4 -DTEST_COMPOUND_ASSIGN -Werror
 // RUN: %t4 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-COMPOUND-ASSIGN
 // RUN: %t4 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-COMPOUND-ASSIGN
 // RUN: %t4 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-COMPOUND-ASSIGN
@@ -67,7 +67,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../../include/stdchecked.h"
+#include <stdchecked.h>
 
 #ifdef TEST_READ
 #define TEST_OP(e1, e2)
@@ -99,7 +99,7 @@ void passing_test_1(int i);
 void passing_test_2(int i);
 void passing_test_3(void);
 #ifdef ARROW_OPERATOR
-void passing_test_4(struct S2 *s, int i);
+void passing_test_4(ptr<struct S2> s, int i);
 #else
 void passing_test_4(struct S2 s, int i);
 #endif
@@ -107,7 +107,7 @@ void passing_test_4(struct S2 s, int i);
 void failing_test_1(int i);
 void failing_test_2(int i);
 #ifdef ARROW_OPERATOR
-void failing_test_3(struct S2 *s, int i);
+void failing_test_3(ptr<struct S2> s, int i);
 #else
 void failing_test_3(struct S2 s, int i);
 #endif
@@ -267,7 +267,7 @@ void passing_test_2(int i) {
   assert(0 <= i && i < 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10};
 #ifdef ARROW_OPERATOR
-  struct S2 *sp = &s;
+  ptr<struct S2> sp = &s;
   TEST_OP(sp->arr[i], 1);
   printf("Result: %d\n", sp->arr[i]);
 #else
@@ -281,7 +281,7 @@ void passing_test_2(int i) {
 void passing_test_3(void) {
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
 #ifdef ARROW_OPERATOR
-  struct S2 *sp = &s;
+  ptr<struct S2> sp = &s;
   TEST_OP(*(sp->arr), 2);
   printf("Result: %d\n", *(sp->arr));
 #else
@@ -295,7 +295,7 @@ void passing_test_3(void) {
 // as an argument.
 
 #ifdef ARROW_OPERATOR
-void passing_test_4(struct S2 *s, int i) {
+void passing_test_4(ptr<struct S2> s, int i) {
 #else
 void passing_test_4(struct S2 s, int i) {
 #endif
@@ -334,7 +334,7 @@ void failing_test_2(int i) {
   assert(i < 0 || i >= 10);
   struct S2 s = { { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 }, 10 };
 #ifdef ARROW_OPERATOR
-  struct S2 *sp = &s;
+  ptr<struct S2> sp = &s;
   TEST_OP(sp->arr[i], 1);
   printf("Unreachable: %d\n", sp->arr[i]);
 #else
@@ -346,7 +346,7 @@ void failing_test_2(int i) {
 }
 
 #ifdef ARROW_OPERATOR
-void failing_test_3(struct S2 *s, int i) {
+void failing_test_3(ptr<struct S2> s, int i) {
 #else
 void failing_test_3(struct S2 s, int i) {
 #endif

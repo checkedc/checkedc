@@ -1,0 +1,25 @@
+\chapter{Conclusion}
+\label{sec:conclusion}
+
+This report has described how I implemented the dynamic checks in the
+Checked C compiler. I have presented a flow-insensitive algorithm for
+propagating bounds information through expressions, such that these
+bounds can be checked when memory is accessed, and has shown one
+possible compilation of these bounds expressions into dynamic checks.
+
+I have also shown that, for a set of pointer-intensive benchmarks,
+though the programmer will have to modify on average
+\ResultLinesModifiedMean of each benchmark in order to have the
+soundness Checked C guarantees, this gives a run-time overhead of on
+average \ResultRunTimeMean and at most \ResultRunTimeMax.
+
+This work is an important step towards proving the viability and
+usefulness of Checked C.
+
+
+%\section{Future Work}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "tr02"
+%%% End:
