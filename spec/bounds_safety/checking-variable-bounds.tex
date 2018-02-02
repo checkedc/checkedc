@@ -211,7 +211,7 @@ Suppose there is a function call expression of the form
   then \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\boundsunknown}.
 \end{enumerate}
 
-The special variable \texttt{return\_value} may appear \var{exp1}. It
+The special variable \lstlinline|return_value| may appear in \var{exp1}. It
 is the value of the function call expression, so it is replaced with the
 special variable \exprcurrentvalue.
 
@@ -257,17 +257,18 @@ relative alignment explicit.
 array_ptr<int> alloc_helper(int n)
 where return_value : bounds(return_value, return_value + n) rel_align(int)
 {
-       array_ptr<int> result : bounds(result, result + n) rel_align(int) =
-         malloc((sizeof(int) * n);
-       return result;
+    array_ptr<int> result : bounds(result, result + n) rel_align(int) =
+      malloc((sizeof(int) * n);
+    return result;
 }
 
-array_ptr<int> init(array_ptr<int> target : bounds(target, target + s) rel_align(int), 
+array_ptr<int> init(array_ptr<int> target : bounds(target, target + s)
+                                            rel_align(int), 
                     int s) 
 where return_value : bounds(return_value, return_value + s) rel_align(int)
 {
     for (int i = 0; i < count; i++) {
-         target[i] = i;
+      target[i] = i;
     }
 
     return target;
@@ -276,7 +277,7 @@ where return_value : bounds(return_value, return_value + s) rel_align(int)
 void go(int size) 
 {
     array_ptr<int> x : bounds(x, x + size) rel_align(int) = 
-      init(alloc_helper(size), size);
+        init(alloc_helper(size), size);
     ...
 }
 \end{lstlisting}

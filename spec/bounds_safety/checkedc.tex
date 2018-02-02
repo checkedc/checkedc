@@ -96,13 +96,14 @@
 % macro for font for keywords
 %
 \newcommand{\keyword}[1]{\lstinline|#1|}
-\newcommand{\sizeof}[1]{\lstinline|sizeof(|{#1}\lstinline|)|}
+\newcommand{\code}[1]{\lstinline|#1|}
+\newcommand{\sizeof}[1]{\lstinline|sizeof(|#1\lstinline|)|}
 %
 
 %
 % type macros
 %
-\newcommand{\void}{\texttt{void}}
+\newcommand{\void}{\lstinline{void}}
 % array_ptr type macros
 %
 \newcommand{\arrayptr}{\lstinline|array_ptr|}
@@ -145,7 +146,7 @@
 %
 \newcommand{\relalign}[1]{\lstinline|rel_align(|{#1}\lstinline|)|}
 \newcommand{\relalignval}[1]{\lstinline|rel_align_value(|{#1}\lstinline|)|}
-\newcommand{\bounds}[2]{\lstinline|bounds(|{#1}\lstinline|,|{#2}\lstinline|)|}
+\newcommand{\bounds}[2]{\lstinline|bounds(|{#1}\lstinline|, |{#2}\lstinline|)|}
 \newcommand{\boundsrel}[3]{\bounds{#1}{#2} \relalign{#3}}
 \newcommand{\boundsrelval}[3]{\bounds{#1}{#2} \relalignval{#3}}
 \newcommand{\boundsany}{\lstinline|bounds(any)|}
