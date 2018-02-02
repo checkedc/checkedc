@@ -25,7 +25,7 @@ the form:
 \> \boundsdecl{\var{x}}{\var{bounds-exp}} \\
 \\
 \var{bounds}\var{-exp:} \\
-\> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
+\> \boundscount{\var{non-modifying-exp}} \\
 \> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
 \> \boundsunknown \\
 \> \boundsany
@@ -104,7 +104,7 @@ than the maximum number of \arrayptrT\ elements
 that can be indexed by an integer whose type matches that of \var{e1}.
 For \ntarrayptr, there is
 an null terminator at or beyond the upper bound, so \var{e1}
-must be less than the maximum number of \arrayptrT elements minus one.
+must be less than the maximum number of \arrayptrT\ elements minus one.
 
 A bounds declaration \boundsdecl{\var{x}}{\boundscount{\var{e1}}} is an
 abbreviation for \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}}} with additional conditions that \var{e1}
@@ -769,7 +769,8 @@ void resize(int len)
 {
     array_ptr<int> tmp : count(len) = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
-    buflen = len;  // fails at compile-time because the bounds are not true
+    buflen = len;  // fails at compile-time because the bounds are not
+                   // true.
     buf = tmp;
 }
 \end{lstlisting}
@@ -1769,28 +1770,30 @@ int compare(array_ptr<int> x : bounds(x, x_end),
             array_ptr<int> y : bounds(y, y_end)
             array_ptr<int> x_end, array_ptr<int> y_end)
 { 
-    while (x < x_end && y < y_end) {
-        if (*x == *y) {  // bounds check: x >= x && x < x_end; easily optimizable
-                         // bounds check: y >= y && y < y_end; easily optimizable
-            x++;
-            y++;
-        }
-        else if (*x < *y) {  // bounds checks here are easily optimizable as well
-            return -1;
-        }
-        else {
-            return 1;
-        }
+  while (x < x_end && y < y_end) {
+    if (*x == *y) { // bounds check: x >= x && x < x_end; easily
+                    // optimizable.
+                    // bounds check: y >= y && y < y_end; easily
+                    // optimizable.
+      x++;
+      y++;
     }
-    if (x == x_end && y == y_end) {
-        return 0;
-    }
-    else if (x != x_end) {
-        return 1;
+    else if (*x < *y) { // bounds checks here are easily optimizable too.
+      return -1;
     }
     else {
-        return -1; 
+      return 1;
     }
+  }
+  if (x == x_end && y == y_end) {
+    return 0;
+  }
+  else if (x != x_end) {
+    return 1;
+  }
+  else {
+    return -1; 
+  }
 }
 \end{lstlisting}
 

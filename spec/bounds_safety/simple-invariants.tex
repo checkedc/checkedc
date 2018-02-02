@@ -95,9 +95,9 @@ precondition that must be true at the call site. The compiler will check this pr
 A \keyword{where} clause may be used as a stand-alone statement, 
 in which case it stands on its own as a set of invariants and bounds
 declaration:
-\begin{verbatim}
+\begin{lstlisting}
 where x>=0 && x<=10;
-\end{verbatim}
+\end{lstlisting}
 This is just a special case of an expression statement
 that omits the expression but still has \keyword{where} clause.
 
@@ -112,7 +112,7 @@ a non-modifying expression.
 Here are some simple examples where the fact created by a control-flow
 statement is explicitly declared using redundant \keyword{where} clauses:
 
-\begin{verbatim}
+\begin{lstlisting}
 if (x < 5) {
     where x < 5;
 }
@@ -134,12 +134,12 @@ switch (x) {
         break;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here is a simple example that introduces the fact that \texttt{i} is always
 \texttt{>=} 0:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
@@ -150,12 +150,12 @@ int sum10(array_ptr<int> buf : count(10)) {
         where i >= 0;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 From this fact, it can be deduced that the access to \texttt{buf} is always in
 range. A \texttt{where} clause can be used double check this:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
@@ -167,7 +167,7 @@ int sum10(array_ptr<int> buf : count(10)) {
         where i >= 0;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Checking facts}
 
@@ -327,7 +327,7 @@ simply returns the value of \var{e}. The compilers generates code for
 \texttt{*\inbounds{\var{e}}} with no dynamic bounds checks. The prior example
 can be written as:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
@@ -338,14 +338,14 @@ int sum10(array_ptr<int> buf : count(10)) {
         where i >= 0;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Examples}
 
 Here is a simple example of capturing the lower bounds of an
 \arrayptr\ variable using another variable:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     array_ptr<int> tmp = buf;
     where buf : bounds(tmp, end); // substitute tmp for buf
@@ -356,12 +356,12 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here is a more complicated example where \texttt{buf} is incremented
 \emph{and} \texttt{buf} is the lower bound:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     int sum = 0;
     while (buf < end) {
@@ -371,7 +371,7 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here are the steps that the compiler goes through, illustrated using 
 \keyword{where} clauses. First, the compiler computes the facts true after
@@ -381,7 +381,7 @@ bounds expression that is true before the increment, producing the set
 of facts after the increment of 
 \texttt{\boundsdecl{buf}{\bounds{buf-1}{end}}}:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     int sum = 0;
     while (buf < end) {
@@ -391,7 +391,7 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 The next step is for the compiler to show that that \texttt{buf :
 bounds(buf - 1, end)} implies \texttt{buf : bounds(buf, end)}. The
@@ -399,7 +399,7 @@ transitivity rule for bounds expressions implies that the compiler must
 show \texttt{buf - 1 <= buf}. This follows from the identity
 \texttt{\var{x} - \var{k} < \var{x}}, completing the validation of the bounds expression:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf where bounds(buf) == (buf, end), 
         array_ptr<int> end) {
     int sum = 0;
@@ -410,4 +410,4 @@ int sum(array_ptr<int> buf where bounds(buf) == (buf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}

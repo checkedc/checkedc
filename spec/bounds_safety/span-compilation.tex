@@ -14,7 +14,7 @@ uses the proposed extensions to C. The italicized assert in
 \texttt{Deref} represents code that is injected by the compiler to check
 the bounds at run time.
 
-\begin{verbatim}
+\begin{lstlisting}
 struct span<T>
 {
     array_ptr<T> low;
@@ -43,13 +43,13 @@ struct span<T>
         return tmp;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here is a version of the sum routine where the local variable buf has
 type \spanptr. This means that no bounds need to be declared
 for buf.
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> argbuf : bounds(argbuf, end), 
         array_ptr<int> end) {
     span<int> buf = new span(argbuf, argbuf, end);
@@ -61,11 +61,11 @@ int sum(array_ptr<int> argbuf : bounds(argbuf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 The compiler can inline the code for the \spanptr\ struct operations
 and place struct members in local variables:
-\begin{verbatim}
+\begin{lstlisting}
 int sum (array_ptr<int> argbuf : bounds(argbuf, end),
          array_ptr<int> end) {
     // buf = new span(argbuf, argbuf, end);
@@ -90,12 +90,12 @@ int sum (array_ptr<int> argbuf : bounds(argbuf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 The compiler can then apply copy propagation and reverse copy
 propagation:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum (array_ptr<int> argbuf : bounds(argbuf, end), 
          array_ptr<int> end) {
     // buf = new span(argbuf, argbuf, end);
@@ -116,11 +116,11 @@ int sum (array_ptr<int> argbuf : bounds(argbuf, end),
     return sum;
 
 }
-\end{verbatim}
+\end{lstlisting}
 
 It can then eliminate eliminating identity assignments:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum (array_ptr<int> argbuf : bounds(argbuf, end), 
          array_ptr<int> end) {
     // buf = new span(argbuf, argbuf, end);
@@ -138,12 +138,12 @@ int sum (array_ptr<int> argbuf : bounds(argbuf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 It can do another round of copy propagation and dead-code elimination,
 producing:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> argbuf : bounds(argbuf, end), 
         array_ptr<int> end) {
     // buf = new span(argbuf, argbuf, end);
@@ -159,14 +159,14 @@ int sum(array_ptr<int> argbuf : bounds(argbuf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Finally, the compiler can analyze this code and realize that the assert
 statement is redundant. The condition \texttt{(buf\_ptr \textless{}
 end)} is redundant with the while condition. The variable
 \texttt{buf\_ptr} always monotonically increases and is not subject to
 overflow:
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> argbuf : bounds(argbuf, end), 
         array_ptr<int> end) {
     // buf = new span(argbuf, argbuf, end);
@@ -181,12 +181,12 @@ int sum(array_ptr<int> argbuf : bounds(argbuf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 The \keyword{where} clauses are static only and the compiler can erase
 them from the final code:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> argbuf : bounds(argbuf, end), 
         array_ptr<int> end) {
     // buf = new span(argbuf, argbuf, end);
@@ -200,4 +200,4 @@ int sum(array_ptr<int> argbuf : bounds(argbuf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}

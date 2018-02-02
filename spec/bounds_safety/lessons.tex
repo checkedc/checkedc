@@ -193,7 +193,7 @@ computations.
 
 The following code example from Figure 1 of the Deputy ESOP paper shows
 this. Here is the original code:
-\begin{verbatim}
+\begin{lstlisting}
 int sum (int * buf, int * end) {
     int sum = 0;
     while (buf < end) {
@@ -202,7 +202,7 @@ int sum (int * buf, int * end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here is the Deputy-generated code, assuming that the function parameters
 are annotated with dependent types. The new code inserted by Deputy has
@@ -271,22 +271,22 @@ operator.
 
 Consider a structure with a pointer field whose size depends on another
 field:
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
    int * count(len) arr;
    int len;
 }
-\end{verbatim}
+\end{lstlisting}
 
 If there is a local variable of type S, neither field of the variable
 can be updated independently of the other field:
 
-\begin{verbatim}
+\begin{lstlisting}
 S y;
 int * count(5) tmp = malloc(sizeof(int) 5);
 y.arr = tmp;
 y.len = 5;
-\end{verbatim}
+\end{lstlisting}
 
 The assignment to y.arr will fail to type check because y.len is
 out-of-date. Reversing the order of assignments does not help. The
@@ -333,7 +333,7 @@ original example in Section~\ref{section:dependent-typing-issues}.
 Here is the code for the method using
 \spanptr.
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
     span<int> buf = new span(tmpbuf, tmpbuf, end);
     int sum = 0;
@@ -343,7 +343,7 @@ int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Summary of lessons}
 

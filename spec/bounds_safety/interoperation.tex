@@ -264,7 +264,7 @@ Here are examples of uses of C cast operators to cast unchecked
 pointers to checked pointers.  The static checking rules are straightforward
 to apply here.  The examples assume that integers are
 4 bytes in size:
-\begin{verbatim}
+\begin{lstlisting}
 int x = 0;
 ptr<int> px = (ptr<int>) &x;
 array_ptr<char> pax : count(4) = (array_ptr<char>) px;
@@ -279,7 +279,7 @@ void swizzle(ptr<int> p) {
    char t0 = bytes[0], t1 = bytes[1], t2 = bytes[2]; t3 = bytes[3];
    bytes[0] = t3, bytes[1] = t2, bytes[2] = t1, bytes[3] = t0;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Non-examples}
 
@@ -288,20 +288,20 @@ pointers to checked pointers.  These examples are rejected because the
 source bounds are not large enough to justify the destination bounds or
 there are no source bounds.
 In this example, \verb|&x| points to only one integer:
-\begin{verbatim}
+\begin{lstlisting}
 int x = 0;
 // fails to check: source not large enough
 array_ptr<int> pax : count(5) = (array_ptr<int>) &x;
-\end{verbatim}
+\end{lstlisting}
 In this example, the result of \texttt{random()} has no bounds:
-\begin{verbatim}
+\begin{lstlisting}
 char *random(void);
 
 void f(void) {
     // fails to check: random() has no bounds
     array_ptr<char> sp : count(1) = random();
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Implicit conversions involving checked pointer types}
 \label{section:implicit-conversions}
@@ -464,7 +464,7 @@ The following code shows examples of implicit conversions.  In these examples,
 the right-hand sides of assignments have the type ``unchecked pointer to
 \var{T}'', while the left-hand sides have the type ``checked pointer to
 \var{T}''.  Implicit conversions are done at those assignments.
-\begin{verbatim}
+\begin{lstlisting}
 int x = 0;
 ptr<int> px = &x;
 array_ptr<int> pax : count(1) = &x;
@@ -473,63 +473,63 @@ int a[5] = { 0, 1, 2, 3, 4};
 ptr<int> pa = a;
 array_ptr<int> apa : count(5) = a;
 array_ptr<int> middle : bounds(a, a + 5) =  a + 2;
-\end{verbatim}
+\end{lstlisting}
 
 An unchecked multidimensional array can be passed to a function expecting
 a checked multi-dimensional array:
-\begin{verbatim}
+\begin{lstlisting}
 int b[3][3] = { { 0, 1, 2}, { 3, 4, 5}, { 6, 7, 8}};
 extern void f(int arg checked[3][3]);
 f(b);
-\end{verbatim}
+\end{listing}
 
 The mechanics behind this are somewhat complicated.  Parameters with type
 ``array of \var{T}'' are actually treated as having type ``pointer to \var{T}''.
 Parameters with the type ``checked array of \var{T}'' are treated as ``checked
 pointer to \var{T}''.  The actual type of the parameter of \texttt{f} is
-\begin{verbatim}
+\begin{lstlisting}
 extern void f(array_ptr<int checked[3]> arg);
-\end{verbatim}
+\end{lstlisting}
 Local variables with type ``array of \var{T}'' are treated as having
 type ``unchecked pointer to \var{T}'' when they are used.  The type of
 \texttt{b} at \texttt{f(b)} is ``unchecked pointer to an array of 3 integers''.
 At the call to  \texttt{f(b)}, there is an implicit conversion from an
 ``unchecked pointer to an unchecked array of 3 integers'' to a ``checked pointer
 to a checked array of 3 integers'':
-\begin{verbatim}
+\begin{lstlisting}
 int (*pb)[3] = b;
 array_ptr<int checked[3]> param : count(3) = pb;
-\end{verbatim}
+\end{lstlisting}
 This implicit conversion is allowed because \verb|int checked[3]| is assignment
 compatible with \verb|int[3]|.  Assignment compatibility allows other
 interesting implicit conversions:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int[3]> t1 : bounds(b, b + 3)  = b;
 array_ptr<int> t2 : bounds(b, b + 3) = t1[1];
 array_ptr<int> t3 : bounds(b, b + 3) = b[1];
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Non-examples}
 
 Implicit conversions must still pass the bounds rules for the corresponding explicit
 C cast operation.  Implicit conversions where the source bounds are not large
 enough will be rejected during bounds declaration checking:
-\begin{verbatim}
+\begin{lstlisting}
 int x = 0;
 // fails to check: source not large enough
 array_ptr<int> pax : count(5) : &x;
-\end{verbatim}
+\end{lstlisting}
 
 Implicit conversions of unchecked pointers with no bounds to checked pointers
 will also be rejected:
-\begin{verbatim}
+\begin{lstlisting}
 char *random(void);
 
 void f(void) {
     // fails to check: random() has no bounds
     array_ptr<char> sp : count(1) = random(); 
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Bounds-safe interfaces to existing unchecked functions and variables}
 \label{section:function-bounds-safe-interfaces}
@@ -539,15 +539,15 @@ existing C code to use the new pointer types. This would be problematic for libr
 system APIs that have backward  compatibility constraints, however.   Consider what would happen
 if the signature for \texttt{memcpy} were changed to use \arrayptr. The function
 
-\begin{verbatim}
+\begin{lstlisting}
 void *memcpy(void *dest, const void *src, size_t count);
-\end{verbatim}
+\end{lstlisting}
 
 would become
 
-\begin{verbatim}
+\begin{lstlisting}
 void *memcpy(array_ptr<void> dest, array_ptr<const void> src, size_t count);
-\end{verbatim}
+\end{lstlisting}
 
 This would break existing code that uses \texttt{memcpy}.  The code would no
 longer type check.  The reverse problem also exists: suppose the signature for
@@ -627,11 +627,13 @@ these functions, implicit conversions from checked types to unchecked
 pointer types are inserted for the corresponding argument expressions
   
 Here is a bounds-safe interface for \texttt{memcpy}:
-\begin{verbatim}
-void *memcpy(void *dest : byte_count(len), const void *src : byte_count(len), 
+\begin{lstlisting}
+void *memcpy(void *dest : byte_count(len),
+             const void *src : byte_count(len), 
              size_t len) 
-             where return_value : bounds((char *) dest, (char *) dest + count)
-\end{verbatim}
+             where return_value : bounds((char *) dest,
+                                         (char *) dest + count);
+\end{lstlisting}
 The correctness of bounds information is enforced at compile-time when
 \texttt{memcpy} is passed checked pointer arguments. It is not enforced when 
 \texttt{memcpy} is passed unchecked pointer arguments.
@@ -658,12 +660,12 @@ or type annotations.
 
 Here are the bounds for a structure that is a counted buffer of
 characters.
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
-     char *arr : count(len);
-     int len;
+  char *arr : count(len);
+  int len;
 }
-\end{verbatim}
+\end{lstlisting}
 
 It is important to understand that the \emph{semantics of unchecked
 pointers does not change in unchecked scopes even when bounds are
@@ -703,21 +705,21 @@ an unchecked pointer to the struct \texttt{S} defined earlier,
 with a type annotation. \verb+count_char+ counts the number
 of occurrences of \verb+arg+ in \verb+S+. Checked code must pass a
 value that is a valid \verb+ptr+ to \verb+count_char+:
-\begin{verbatim}
+\begin{lstlisting}
 int count_char(S *str : itype(ptr<S>), char arg);
-\end{verbatim}
+\end{lstlisting}
 
 Here are functions from the C Standard Library with type annotations.
 In the examples, type annotations for return types are placed 
 after the parameter list, the same way that bounds expression for
 return values are placed:
-\begin{verbatim}
+\begin{lstlisting}
 void modf(double value, double *iptr : itype(ptr<double>));
 int fclose(FILE *stream : itype(ptr<FILE>));
 FILE *tmpfile(void) : itype(ptr<FILE>);
 struct tm *gmtime(const time_t *timer : itype(ptr<const time_t>)) :
     itype(ptr<struct tm>);
-\end{verbatim}
+\end{lstlisting}
 
 The \var{type name} in a type annotation must be compatible
 with the original unchecked pointer type when checkedness
@@ -734,7 +736,7 @@ at least one checked type are checked types.
 \label{section:bounds-safe-interface-examples}
 
 Here are some examples:
-\begin{verbatim}
+\begin{lstlisting}
 void copy(array_ptr<int> dest : count(len),
           array_ptr<int> src : count(len), int len)
 {
@@ -755,10 +757,10 @@ f(S s)
         sp[0] = 'a';
      }
 }
-\end{verbatim}
+\end{lstlisting}
 
 This example will fail at compile time:
-\begin{verbatim}
+\begin{lstlisting}
 void bad_copy(int *dest,
               array_ptr<int> src : count(len), int len)
 {
@@ -768,10 +770,10 @@ void bad_copy(int *dest,
     // requirements.  This will fail because dest has no bounds.
     memcpy(dest, src, len * sizeof(int));
 }
-\end{verbatim}
+\end{lstlisting}
 
 In contrast, this example will compile:
-\begin{verbatim}
+\begin{lstlisting}
 void subtle_copy(int *dest,
                  array_ptr<int> src : count(len), int len)
 {
@@ -783,7 +785,7 @@ void subtle_copy(int *dest,
     // the programmer did not want to do this).
     memcpy(dest, (void *) src, len * sizeof(int));
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Redeclaring existing functions and variables with bounds-safe interfaces}
 \label{section:bounds-safe-interface-redeclaration}
@@ -804,7 +806,7 @@ return value may have a bounds declaration and one return value may omit the bou
 \end{itemize}
 
 The following are examples of declarations of functions with compatible types:
-\begin{verbatim}
+\begin{lstlisting}
 int f(int *);
 int f(int * : count(5));
 
@@ -812,7 +814,7 @@ int g(int *a, int len, int *b);               // decl 1
 int g(int *a : count(len), int len, int *b);  // decl 2
 int g(int *a, int len, int *b : count(len));  // decl 3
 int g(int *a : count(len), int len, int *b : count(len));  // decl 4
-\end{verbatim}
+\end{lstlisting}
 The declarations of \texttt{g} are particularly interesting. They are all
 compatible declarations.  The only version
 that could be used in a checked scope is declaration 4.   For declarations 2 and 3,
@@ -964,23 +966,23 @@ done by masking out the bits that are always 0.
 
 For example, suppose there is the following structure:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
-   array_ptr<int> p : bounds(p, p + 4);
-   int tag : 2;
+  array_ptr<int> p : bounds(p, p + 4);
+  int tag : 2;
 }
-\end{verbatim}
+\end{lstlisting}
 
 A programmer might know that on a machine with 32 bit pointers, the
 least 2 significant bits of p are always 0, so the tag could be stored
 within p. The bounds would be changed to:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
-   array_ptr<int> p : bounds((array_ptr<int>) ((size_t) p & ~3), 
-                             (array_ptr<int>) ((size_t) p & ~3) + 4) rel_align(char);
+  array_ptr<int> p : bounds((array_ptr<int>) ((size_t) p & ~3), 
+                            (array_ptr<int>) ((size_t) p & ~3) + 4) rel_align(char);
 }
-\end{verbatim}
+\end{lstlisting}
 
 There is one important caveat (for now): tags cannot be stored in null pointers. A
 null pointer may have bounds that are not valid. This is fine because
@@ -1042,7 +1044,7 @@ The following example shows functions for tagged pointers
 (where the tag is stored in the least siginficant bit) that
 create a tagged pointer and that set the tag to 1.
 
-\begin{verbatim}
+\begin{lstlisting}
 #define untagged_bounds(x) \
    bounds((array_ptr<int>) ((size_t) x & ~0x1), \
           (array_ptr<int>) ((size_t) x & ~0x1) + 1) rel_align(char)
@@ -1072,7 +1074,7 @@ where untagged_bounds(return_value)
   }
   return x;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Allowing bounds to be declared for integer-typed variables}
 
@@ -1085,7 +1087,7 @@ integers, we allow bounds to be declared for integer-typed variables.
 This may seem confusing, but it is a natural extension to tracking the
 bounds for pointer values that have been cast to integers.   The \verb+set+
 function can be written to use temporary variables instead:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> set(array_ptr<int> x : untagged_bounds(x))
 where untagged_bounds(return_value)
 {
@@ -1100,7 +1102,7 @@ where untagged_bounds(return_value)
   }
   return x;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Restricted interoperation with functions without prototypes}
 C allows declarations of functions that do not specify the type of their parameters
@@ -1151,15 +1153,15 @@ declarations.
 \subsection{Examples of errors caught by rules}
 The rules catch common errors.  They catch passing a checked pointer
 to a function with no prototype:
-\begin{verbatim}
+\begin{lstlisting}
 int f();
 
 int g(ptr<int> a) {
   f(a);  // error - passing a checked type to a function without a prototype
 }
-\end{verbatim}
+\end{lstlisting}
 They also catch redeclaring a function with no prototype to have a checked parameter:
-\begin{verbatim}
+\begin{lstlisting}
 int f();
 
 struct S {
@@ -1171,12 +1173,12 @@ struct S {
 int f(S y) {
  ...
  }
-\end{verbatim}
+\end{lstlisting}
 By rule 2, the definition of \verb+f+ is incompatible with the initial
 declaration of \verb+f+, so this is an error.  It is an error even
 if \verb+S+ is an incomplete type at the time of
 a prototype declaration for \verb+f+:
-\begin{verbatim} 
+\begin{lstlisting} 
 int f();
 
 struct S;
@@ -1193,13 +1195,13 @@ struct S {
 int f(S y) {
  ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Example of errors not caught by the rules}
 The rules are not foolproof, though. Checking can be bypassed by code that
 declares a function with no prototype in one
 compilation unit and defines it in another compilation unit:
-\begin{verbatim}
+\begin{lstlisting}
 Compilation unit 1:
 
 int g(ptr<int> x) {
@@ -1212,7 +1214,7 @@ extern int g();
 void h(void) {
   g(5);  // Error
 }
-\end{verbatim}
+\end{lstlisting}
 The definition of \verb+g+ in compilation unit 1 is incompatible with
 the declaration in compilation unit 2, but there is no way for a compiler
 to detect this.
@@ -1232,7 +1234,7 @@ passed to functions with no prototypes.  This is necessary so that bounds-safe i
 can be added to existing code without breaking the code.   
 
 Here are some examples:
-\begin{verbatim}
+\begin{lstlisting}
 int g();
 
 int g(ptr<int> *x);
@@ -1245,7 +1247,7 @@ struct S {
 }
 
 int f(S *arg);
-\end{verbatim}
+\end{lstlisting}
 
 There are three reasons to allow unchecked pointers that point to checked data to
 be passed to functions without prototypes.  First, the unchecked pointer types 

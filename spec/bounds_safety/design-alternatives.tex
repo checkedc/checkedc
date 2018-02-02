@@ -75,12 +75,12 @@ resulting values have the type
 special field names can only be read and cannot be modified by
 assignments.
 
-\begin{verbatim}
+\begin{lstlisting}
 span<int> p = ...
 array_ptr<int> low = p.lower_bound;
 array_ptr<int> high = p.upper_bound;
 array_ptr<int> current = p.current;
-\end{verbatim}
+\end{lstlisting}
 
 The operations on a \spanptr\ would be similar to those on \arrayptr, except that
 the dynamic bounds values would be used:
@@ -115,20 +115,20 @@ bounds of a variable of array type are easily determined at compile
 time, so the pointer type would then be converted to an
 \spanptrT:
 
-\begin{verbatim}
+\begin{lstlisting}
 int x[10]
 span<int> p = x;
 // p.current = x; p.lower_bound = x; p.upper_bound = x + 10;
 
-\end{verbatim}
+\end{lstlisting}
 
 Similarly, an \arrayptr\ value with declared bounds can be
 converted implicitly to a \spanptr\ value:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> src = ...
 span<int> p = src;
-\end{verbatim}
+\end{lstlisting}
 
 The operators for casting in Section~\ref{section:pointer-casting} would be expanded
 to have rules that treat \spanptr\ values similarly to \arrayptr\ values.
@@ -210,28 +210,28 @@ values.
 Code takes the address of an array element and immediately does pointer
 arithmetic will still fail to type check, introducing a potential
 backward compatibility issue:
-\begin{verbatim}
+\begin{lstlisting}
 f(void)
 {
     int a[10];
     int *x = &a[0] + 5; // &a[0] has type ptr<T>.  Pointer arithmetic is not allowed
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 We expect this kind of code to be rare because the succinct style is to
 use \texttt{a} instead of \texttt{\&a[0]}, but it is nonetheless a
 possibility, so this proposal still violates the principle of not
 changing the meaning of existing C code.
 
-\begin{verbatim}
+\begin{lstlisting}
 f(void)
 {
     int a[10];
     int *x = ((int *) &a[0]) + 5; // redundant but OK under old rule
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Array-to-pointer conversion rules}
 
@@ -265,7 +265,7 @@ It is common in C code to use array types interchangeably with pointer
 types. The rule that complete array types are converted to
 \arrayptr\ types could cause problems for such code
 
-\begin{verbatim}
+\begin{lstlisting}
 f(int *arg, int len)
 { 
    ...
@@ -281,7 +281,7 @@ h(void) {
    int *ptr = x;
    f(ptr, 10);
 }
-\end{verbatim}
+\end{lstlisting}
 
 To allow existing code to continue to compile unchanged, we adopt the
 rule that an \arrayptrT\ can be
@@ -301,7 +301,7 @@ this, any implicit conversion of an \arrayptr\ value with a
 bounds to an unchecked pointer type must be bounds checked. Otherwise, it
 is easy to write ``checked'' code that creates undetected buffer overruns:
 
-\begin{verbatim}
+\begin{lstlisting}
 // f looks like it is correct, but does something bad that is
 // undetected before calling unchecked code
 f(array_ptr<int> p where p : bounds(p, p + 10))
@@ -314,7 +314,7 @@ void poke(int *p, int val)
 {
     *p val
 }
-\end{verbatim}
+\end{lstlisting}
 
 The silent introduction of a bounds check at a call to a method violates
 the design principles of control and clarity. The implicit conversion
@@ -343,7 +343,7 @@ is a synonym for \verb|&*|\verb|(|\var{e1}\verb|+|\var{e2}\verb|)|.  It is not c
 programmers mean to refer to single elements or multiple elements of arrays.
 In some cases, programmers mean
 to refer to only single elements:
-\begin{verbatim}
+\begin{lstlisting}
 void swap(int *p, int *q) {
     tmp = *p;
     *p = *q;
@@ -354,10 +354,10 @@ void f(void) {
     int arr[5] = {0, 1, 2, 3, 4};
     swap(&arr[0], &arr[5]);
 }
-\end{verbatim}
+\end{lstlisting}
 
 In other cases, programmers mean to refer to a range of elements:
-\begin{verbatim}
+\begin{lstlisting}
 int sum(int *start, int count) {
    int total = 0;
    for (int i = 0; i < count; i++) {
@@ -370,7 +370,7 @@ void f(void) {
     int arr[5] = {0, 1, 2, 3, 4};
     sum(&arr[3], 3);
 }
-\end{verbatim}
+\end{lstlisting}
 
 C provides no way to differentiate between the two cases. 
 This leads us to choose the more general bounds (the wider bounds).
@@ -435,12 +435,12 @@ causing accidental runtime failures when null values are encountered.
 Consider the code for the use of \texttt{malloc}.   With eager evaluation,
 the bounds expressions in \bounds{result}{result + size} would not
 be evaluated if \texttt{malloc} returns \texttt{null}:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> result = malloc(size) where result : bounds (result, result + size);
 if (result != NULL) {
       ... *result = ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 We considered eager evaluation, but rejected it because it would turn \arrayptr\
 types into \spanptr\ types.  When bounds expressions are always eagerly
@@ -542,10 +542,10 @@ is no longer a requirement that a pointer stored in the variable be
 derived from a pointer to the object associated with the bounds. The
 following example would be valid:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> x : count(5) = malloc(sizeof(int) * 5);
 array_ptr<int> y : bounds(x, x + 5) = malloc(sizeof(int) * 2);
-\end{verbatim}
+\end{lstlisting}
 
 This makes it more likely that programming errors involving bounds
 declarations are detected only at runtime.   We did not pursue
@@ -657,12 +657,12 @@ It would be problematic to use \texttt{object\_bounds} widely for
 C function arguments.   Implicit in many uses of
 \texttt{object\_bounds} would be an assertion that the parameter
 to which it is being applied  non-null pointer.  Consider:
-\begin{verbatim}
+\begin{lstlisting}
 f(array_ptr<int> x : object_bounds(x, x + 5) {
     array_ptr<int> y = x + 1;
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 This risks dividing C functions into those that can
 take null pointer arguments and those that only take non-null 
 pointer arguments. In our experience, requirements that pointers 

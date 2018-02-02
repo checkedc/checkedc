@@ -15,27 +15,27 @@ bounds. The member bounds declarations may also be placed inline.
 A structure declaration may also include \keyword{where} clauses at the same
 level as member declarations.  Here are examples:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data where data : count(num);
     int num;
 };
-\end{verbatim}
+\end{lstlisting}
 or
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data : count(num);
     int num;
 };
-\end{verbatim}
+\end{lstlisting}
 or
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data;
     int num;
     where data : count(num);
 };
-\end{verbatim}
+\end{lstlisting}
 
 Member bounds declarations are program invariants that are assumed to be true
 by default for objects of that type. A member bounds declaraton may be suspended for a specific
@@ -44,7 +44,7 @@ members involved in the member bounds declarations. The member bounds
 declaration is declared to hold again after the initialization or modification is done.
 Here is an example of variable of type S being initialized:
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y 
     where suspends(y.data);
@@ -54,7 +54,7 @@ void f(int len) {
     where holds(y.data);    // the member bounds for y.data now holds
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 \keyword{Suspends} and \keyword{holds} are dataflow-sensitive declarations of 
 the states of the member bounds declarations for specific members of variables. They can be
@@ -65,7 +65,7 @@ types as syntactic short-hand. In that case, they apply to the nested
 members of the variable or variable member. The example could also be
 written as:
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y 
     where suspends(y);
@@ -75,7 +75,7 @@ void f(int len) {
     where holds(y);    // the member bounds for y.data now holds
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 Making member bounds declarations be invariants provides a way to deal with issues
 caused by aliasing. There can be pointers to data structures or members
@@ -85,7 +85,7 @@ the pointers are called aliases because they all name the same
 memory location.  Aliasing makes it hard to reason about programs.
 
 Consider the example:
-\begin{verbatim}
+\begin{lstlisting}
 f(S *q, S *r, bool b)
 {
    if (b) {
@@ -97,7 +97,7 @@ f(S *q, S *r, bool b)
       r->len = 5;
    }
 }
-\end{verbatim}
+\end{lstlisting}
 
 Even when b is true, the value \texttt{r->arr} may still be
 changed by a call to f. This can happen when \texttt{q} and \texttt{r}
@@ -209,7 +209,7 @@ structure being declared. Any member paths occurring in the member
 bounds expressions must start with members of the structure type being
 declared. Here is an example of the use of child members:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct A {
    array_ptr<int> data;
 }
@@ -223,7 +223,7 @@ struct S {
    where count(a.data) == n.num;
    N n;
 };
-\end{verbatim}
+\end{lstlisting}
 
 Allowing member bounds to use nested members of members complicates
 explaining concepts. Sometimes concepts will be explained using member
@@ -284,7 +284,7 @@ default, the state is \texttt{holds}.
 
 Consider the following structure type definitions:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data : count(num);
     int num;
@@ -296,11 +296,11 @@ struct T {
     array_ptr<float> weights : count(len);
     int len;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here are some function declarations involving the state of member
 bounds:
-\begin{verbatim}
+\begin{lstlisting}
 T f(T x where holds(x)) where holds(return_value)   // the default 
 
 T f(T x where suspends(x.arr1))
@@ -308,7 +308,7 @@ where suspends(return_value.arr2)
 
 T f(T x where suspends(x.arr1.data)
 where suspends(return_value.arr1.data)
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Extent of declarations of member bounds state for variables}
 \label{section:member-bounds-state-extent}
@@ -360,19 +360,19 @@ length of the array. The function \texttt{f} takes a length parameter
 \texttt{len} and creates an initialized instance of \texttt{S} in the 
 variable \texttt{y}.  It then copies \texttt{y} to \texttt{z}.
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
    array_ptr<int> data
    where count(data)== num;
    int num;
 };
-\end{verbatim}
+\end{lstlisting}
 
 Here is a version of \texttt{f} where all member bounds state declarations are
 made explicit. For structure variable members whose member bounds are
 suspended, the bounds declarations are made explicit as well.
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y where suspends(y.data);
     S z where suspends(z.data);
@@ -385,11 +385,11 @@ void f(int len) {
     z = y
     where holds(z.data);
 }
-\end{verbatim}
+\end{lstlisting}
 
 This can be written more succinctly as:
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y;
     S z;
@@ -402,7 +402,7 @@ void f(int len) {
     z = y
     where holds(z);   // z is initialized now
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Integration of member bounds and bounds for variables}
 
@@ -411,7 +411,7 @@ declaration and a bounds declaration at the same time. This coexistence
 happens when a member is initialized to satisfy its member bounds
 declaration. Here is a version of \texttt{f} that is annotated with both member
 bounds and bounds declarations for variable members.
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y;
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
@@ -422,7 +422,7 @@ void f(int len) {
           y.data : count(y.num);
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 After the assignment \texttt{y.num = len}, the member bounds holds for
 \texttt{y.data} and the bounds declaration \texttt{y.data : count(y.num)}
@@ -468,8 +468,8 @@ member path in \var{mb} with the expression ``\var{x}\texttt{.}''.
 
 For example, given
 
-\begin{verbatim}
- S  copy_and_resize(S arg, int len) {
+\begin{lstlisting}
+S copy_and_resize(S arg, int len) {
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
        where suspends(arg);
     for (int i = 0; i < arg.num; i++) {
@@ -480,23 +480,23 @@ For example, given
     where holds(arg);   // member bounds for arg holds now
     return arg;
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 There is implicitly a bounds declaration at the suspension of the member
 bounds for arg:
 
-\begin{verbatim}
+\begin{lstlisting}
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
        where suspends(arg) && arg.data : count(arg.num);
-\end{verbatim}
+\end{lstlisting}
 
 If the suspends were done after the assignment to \texttt{arg.data}:
 
-\begin{verbatim}
+\begin{lstlisting}
     arg.data = newarr
     suspends(arg);
-\end{verbatim}
+\end{lstlisting}
 
 there would not be an implicit bounds declaration because \texttt{arg.data} is
 modified by the assignment.
@@ -506,9 +506,9 @@ declarations are inserted if the declaration suspends the member bounds
 for a member of x. There was no point at which the member bounds was
 known to be true. For example,
 
-\begin{verbatim}
+\begin{lstlisting}
 f(S arg where suspends(arg))
-\end{verbatim}
+\end{lstlisting}
 
 does not have an implicit bounds declaration of the form \verb|arg.data :count(arg.len)|.
 
@@ -533,24 +533,24 @@ unchecked pointer types.
 Here is a member bounds declaration for a structure that is a counted buffer
 of characters:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct CountedBuffer {
      char *arr : count(len);
      int len;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here are bounds-safe interface types for members of a structure for binary
 tree nodes. The structure contains pointers to two other nodes.  In
 checked code, pointer arithmetic on those pointers is not allowed.
 
-\begin{verbatim}
+\begin{lstlisting}
 struct BinaryNode {
     int data;
     BinaryNode *left : itype(ptr<BinaryNode>);
     BinaryNode *right : itype(ptr<BinaryNode>);
 }
-\end{verbatim}
+\end{lstlisting}
 
 If bounds information is declared for one member of a structure with an
 unchecked pointer type, it must be declared for all other members of the

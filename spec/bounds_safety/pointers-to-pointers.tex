@@ -113,40 +113,41 @@ pointer.
 It will be important to support by-reference parameter passing of \arrayptr-typed variables
 in C.  It is a common way that multiple values are returned from a function.  By-reference parameter
 passing of \arrayptr s will lead to programs where the addresses of local variables or struct
-members of type \arrayptr are taken.
+members of type \arrayptr\ are taken.
 
 For example, a function that returns a newly-allocated buffer and its length could be written as:
-\begin{verbatim}
-void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len), ptr<int> plen)
+\begin{lstlisting}
+void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len),
+            ptr<int> plen)
 { ...
 }
-\end{verbatim}
+\end{lstlisting}
 A caller would take the addresses of local variables to use this function:
-\begin{verbatim}
+\begin{lstlisting}
 void f(void)
 {
     int len;
     array_ptr<char> buf : count(len) = NULL;
     create(&buf, &len);
 }
-\end{verbatim}
+\end{lstlisting}
 
 We can gain insight into this problem by considering a related
 problem.   When the address of a variable that occurs in a bounds declaration is 
 taken, it is important to ensure that the invariants for the bounds declaration are not
 broken accidentally.  Consider:
-\begin{verbatim}
+\begin{lstlisting}
 void bad_code(array_ptr<char> buf : count(len), int len) 
 {
     ptr<int> plen = &len;
     *plen = 5;
 }
-\end{verbatim}
+\end{lstlisting}
 The problem with allowing the address of just \texttt{len} to be taken is
 that the lvalue for \texttt{len} actually has additional constraints. This
 suggests that pointer variables that hold addresses of address-taken variables should
 themselves have additional constraints.  For example:
-\begin{verbatim}
+\begin{lstlisting}
 void constrained_code(array_ptr<char> buf : count(len), int len) 
 {
     ptr<int> plen = NULL;
@@ -161,7 +162,7 @@ void constrained_code(array_ptr<char> buf : count(len), int len)
        *pbuf = a;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 There are some interesting issues that arise from this idea:
 \begin{compactitem}
 \item The bounds on the lvalues for \texttt{len} and
@@ -246,16 +247,16 @@ within them.
 Here are potential bounds-safe interfaces for \texttt{malloc} and \texttt{calloc}.
 We omit notation for describing that \texttt{malloc} and \texttt{calloc} produce 
 pointers to new memory:
-\begin{verbatim}
+\begin{lstlisting}
 void *malloc(size_t len) 
 where return_value : byte_count(len) && return_value: _uninit_data;
 
 void *calloc(size_t num, size_t size)
 where return_value : byte_count(num * size)  && return_value : _zero_data
-\end{verbatim}
+\end{lstlisting}
 A cast from the result of a \texttt{malloc} call to a checked pointer type with pointer types
 would propagate the  \texttt{\_uninit} predicate:
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     int len;
     int array_ptr<char> chars : len;
@@ -266,12 +267,12 @@ void f(void)
    S *s = malloc(sizeof(S)) where s : _uninit_data;
    s->chars = NULL where s : _init_data;
    ...
-\end{verbatim}
+\end{lstlisting}
 Of course we might want inference rules that add annotations automatically.  
 
 It might be possible to use ranges to write code that tracks at a fine grain that 
 data is being zeroed:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<char> zero_mem(array_ptr<char> x : count(len) where x : _uninit, size_t len) 
    where x : _zero_init
 {
@@ -283,4 +284,4 @@ array_ptr<char> zero_mem(array_ptr<char> x : count(len) where x : _uninit, size_
    }
    return;
 }
-\end{verbatim}
+\end{lstlisting}

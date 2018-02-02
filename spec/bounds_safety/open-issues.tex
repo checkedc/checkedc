@@ -47,22 +47,22 @@ language definition is used to determine when a variable is definitely initializ
 The current syntax for describing post-conditions places a \keyword{where}
 clause after the function parameter list declaration:
 
-\begin{verbatim}
+\begin{lstlisting}
 f( ...)
 where cond1 ...
-\end{verbatim}
+\end{lstlisting}
 
 This syntax might lead to confusion. We might want to adopt an alternate
 syntax that makes this clearer. Some suggestions are the keywords
 \texttt{on\_return} or \texttt{after}:
 
-\begin{verbatim}
+\begin{lstlisting}
 f(...)
 on_return cond1 ...
 
 f(...)
 after cond1 ...
-\end{verbatim}
+\end{lstlisting}
 
 Section~\ref{section:alternate-pointer-type-syntax} describes alternate
 syntax proposals for pointer types.

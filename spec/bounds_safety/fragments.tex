@@ -16,40 +16,34 @@ empirical data.
 Consider as an example, z = *(x+5); where x : bounds(x, x + c). The
 compiler will produce code of the form
 
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
 assert(x != null);
 t1 = x + 5;
 check x + 5 for overflow
 assert(t1 != null && x <= t1 && t1 < x + c);
 z = *t1;
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 
 This simplifies to:
 
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
 assert(x != null);
 t1 = x + 5;
 check for overflow x + 5
 assert(x <= t1 && t1 < x+c);
 z = *t1;
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 
 The compiler can recognize that \texttt{x <= t1} is always true,
 leading to:-
 
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
 assert(x != null);
 t1 = x + 5;
 check for overflow of x + 5
 assert(t1 < x + c);
 z = *t1;
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 
 \section{Incompleteness of static checking}
 

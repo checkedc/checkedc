@@ -143,11 +143,11 @@ The reverse is not allowed.
 Array pointers (\arrayptr) of function types are not allowed. Functions have
 no size associated with them, so bounds checking pointers to them does not
 make sense.  Programmers should use \ptr\ instead:
-\begin{verbatim}
+\begin{lstlisting}
 typedef array_ptr<int (int x, int y)> callback_fn; // illegal
 typedef ptr<int (int x, int y)> callback_ptr;      // legal
 typedef array_ptr<callback_ptr> callback_arr;      // legal
-\end{verbatim}
+\end{lstlisting}
 
 \section{New kinds of array types}
 
@@ -309,12 +309,12 @@ At a minimum, the proof system should support local
 reasoning about widened bounds involving pointer
 variables with constant offsets.
 This is enough to handle simple cases such as:
-\begin{verbatim}
+\begin{lstlisting}
 nt_array_ptr<char> p = ...
 if (*p == 'a')
  if (*(p + 1) == 'b')
    if (*(p + 2) == 'c')
-\end{verbatim}
+\end{lstlisting}
    
 The element type \var{T} of an \ntarrayptrT\ must be
 an integral or pointer type.   \ntarrayptrT\ extends \arrayptrT: the
@@ -324,9 +324,9 @@ with the same bounds.
 
 Here is a declaration of a function that takes a null-terminated
 array of characters and counts its length:
-\begin{verbatim}
+\begin{lstlisting}
 int compute_length(nt_array_ptr<char> s);
-\end{verbatim}
+\end{lstlisting}
 
 % We haven't introduced checked scopes yet - need to put this somehwere
 % else.
@@ -341,9 +341,9 @@ referent type of an \arrayptr.
 The function \verb+compute_length+
 should not modify the contents of a string. Here
 is a version that uses \verb+const+ to declare that:
-\begin{verbatim}
+\begin{lstlisting}
 int compute_length(nt_array_ptr<const char> s);
-\end{verbatim}
+\end{lstlisting}
 
 Just as there are new checked array types for \arrayptr s,
 there are new checked null-terminated array types for \ntarrayptr s.
@@ -351,17 +351,17 @@ These are useful for declaring  checked types for string constants.
 Null-terminated array types are declared using the
 \keyword{nt\_checked} keyword before the array dimensions,
 instead of the \keyword{checked} keyword:
-\begin{verbatim}
+\begin{lstlisting}
 int arr nt_checked[10];
-\end{verbatim}
+\end{lstlisting}
 \verb+nt_checked+ declares an array whose
 last element is a null terminator.  The size of the
 array includes the null terminator element.
 Here is an example of a declaration of a checked null-terminated
 array type for a string constant:
-\begin{verbatim}
+\begin{lstlisting}
 char s nt_checked[6] = "hello";
-\end{verbatim}
+\end{lstlisting}
 
 An \keyword{nt\_checked} array with size \var{d} converts
 to an \ntarrayptr\ with a count of \var{d - 1} elements.
@@ -488,7 +488,7 @@ for types (0 for pointer types). It suffices to have an initializer for the firs
 of a structure or element of an array. The initializer list \verb+{ 0 }+ can be used.
 
 Here are examples of variable declarations with initializers:
-\begin{verbatim}
+\begin{lstlisting}
 ptr<int> p = 0;                   // initializer required.
 array_ptr<int> q : count(5) = 0;  // has bounds; initializer required.
 array_ptr<int> lower, upper;      // no bounds; initializer not required.
@@ -509,7 +509,7 @@ struct VariableBuffer buf = { 0 };  // initializer for struct required.
 struct Range pair;                  // no bounds on members; initializer not required.
 ptr<int> data checked[10] = { 0 };  // initializer for array required.
 struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
-\end{verbatim}
+\end{lstlisting}
 
 For heap-allocated data that contains checked pointers that may be used to access memory, the
 data must be zero-initialized by the programmer.  We recommend that programmers use
@@ -549,7 +549,7 @@ existing C code.
 
 A checked block is introduced by placing  \keyword{checked} before a
 compound block:
-\begin{verbatim}
+\begin{lstlisting}
 checked 
 {
     int a = 5;
@@ -563,7 +563,7 @@ checked
         }
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 It is rarer for a programmer to need to introduce an unchecked scope. It
 is needed usually to allow the use of unchecked pointers within a checked
@@ -571,7 +571,7 @@ block. The \keyword{unchecked} keyword can be used in all the places where the
 checked keyword can be used. This example shows the use of an unchecked
 block:
 
-\begin{verbatim}
+\begin{lstlisting}
 checked 
 {
     int a = 5;
@@ -588,16 +588,16 @@ checked
     }
  ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 In a checked function definition, the body of the function is a 
 checked  block. A checked function definition is declared by placing the
 \keyword{checked} keyword before the definition. Here are examples of checked and
 unchecked function definitions:
 
-\begin{verbatim}
-// checked at the function level: no unchecked pointers can appear in argument
-// types, the return type, or the body of the function.
+\begin{lstlisting}
+// checked at the function level: no unchecked pointers can appear in
+// argument types, the return type, or the body of the function.
 checked int f(ptr<int> p) 
 {
     int a = 5;
@@ -605,8 +605,9 @@ checked int f(ptr<int> p)
     ...
 }
 
-// unchecked at the function level: checked and unchecked pointer types can
-// occur in argument types, the return type, or the body of the function
+// unchecked at the function level: checked and unchecked pointer types
+// can occur in argument types, the return type, or the body of the
+// function.
 unchecked int f(int *p, ptr<int> r)
 {
     int a = 5;
@@ -621,7 +622,7 @@ int f(int *p, ptr<int> r)
     int *pa = &a;
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 When a function call occurs in a checked block, the function being
 called does not have to be declared as checked. The notion of whether a
@@ -653,14 +654,14 @@ A compound literal is an expression that declares an array literal or an object 
 It consists of a parenthesized type name followed by list of initializers in braces.
 A compound literal has static storage if its at the top level of a file and automatic
 storage if it occurs within a block.  Here are examples of compound literals:
-\begin{verbatim}
+\begin{lstlisting}
 int *arr = (int []) { 0, 1, 2};
 struct Point {
   int x;
   int y;
 }
 struct S *zero_coord = &((struct Point) { 0, 0 };
-\end{verbatim}
+\end{lstlisting}
 
 A string literal has an array type with an element type that is one of \keyword{char},
 \verb+wchar_t+,  \verb+char16_t+, or \verb+char32_t+.   For Checked C, there is a question
@@ -706,14 +707,14 @@ For bounds safety, an implementation should either
 \end{itemize}
 
 \subsection{Examples}
-\begin{verbatim}
+\begin{lstlisting}
 checked void f(void) {
-  // "hello" has type char nt_checked[6]. The type is altered during type checking
-  // to nt_array_ptr<char>.
+  // "hello" has type char nt_checked[6]. The type is altered during type
+  // checking to nt_array_ptr<char>.
   nt_array_ptr<char> p = "hello";
 
-  // "goodbye" has type char nt_checked[8]. The type is altered during type checking
-  // checking to the pointer type array_ptr.
+  // "goodbye" has type char nt_checked[8]. The type is altered during 
+  // type checking to the pointer type array_ptr.
   array_ptr<char> r = "goodbye";
 
   // Use compound array literals instead.
@@ -722,8 +723,9 @@ checked void f(void) {
 }
 
 checked char lookup(int i) {
-  // "abcdef" has type char nt_checked[7]. The type is altered during type checking
-  // to nt_array_ptr<char>. The subscript operation will be bounds checked.
+  // "abcdef" has type char nt_checked[7]. The type is altered during type
+  // checking to nt_array_ptr<char>. The subscript operation will be
+  // bounds checked.
   return "abcdef"[i];
 }
 
@@ -753,7 +755,7 @@ struct string_with_count {
 
 ptr<struct string_with_count> S =
    &((struct string_with_count) { "hello world", 11 });
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Initializers}
 C allows declared variables to be initialized using initializers.  An initializer
@@ -775,7 +777,7 @@ and pointers is 0,  which is the null terminator for those values.}
 
 A variety of interesting and complex initialized checked data structures can be
 declared:
-\begin{verbatim}
+\begin{lstlisting}
 // Initialize a checked pointer to the null pointer.
 ptr<int> p = 0;
 
@@ -828,22 +830,24 @@ char blue nt_checked[] = "blue";
 char purple nt_checked[7] = "purple";
 
 // Checked arrays of checked strings
-nt_array_ptr<char> colors checked[] = { "red", "green", "blue", "purple" };
+nt_array_ptr<char> colors checked[] = { "red", "green", "blue",
+                                        "purple" };
 
 // Null-terminated arrays of checked strings
-nt_array_ptr<char> more_colors nt_checked[] = { "white", "black", "grey", 0 };
+nt_array_ptr<char> more_colors nt_checked[] = { "white", "black",
+                                                "grey", 0 };
 
 // A null-terminated array of ponters to null-terminated arrays
 // of strings.
 nt_array_ptr<nt_array_ptr<char>> sentences nt_checked[4] = 
-  {  (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "first sentence", 0 },
+  {  (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "first",
+                                         "sentence", 0 },
      (nt_array_ptr<char> nt_checked[]) { "here", "is", "another", 0 },
-     (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "last", "one", 0 },
+     (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "last",
+                                         "one", 0 },
      0
    };
-\end{verbatim}
-
-
+\end{lstlisting}
 
 \section{Relative alignment of \arrayptr\ values}
 \label{section:relative-alignment}
@@ -1039,7 +1043,7 @@ of its result cannot be represented by the result type:
 \item
   \texttt{+\textsubscript{ovf}} takes an unsigned integer \var{i} and an
   integer \var{j} and produces an unsigned integer in the range 0 to
-  \texttt{UINTPTR\_MAX}. Its result is the mathemetical value ]var{i} + \var{j}.
+  \texttt{UINTPTR\_MAX}. Its result is the mathemetical value \var{i} + \var{j}.
 \item
   For subtraction, there are two forms:
 
