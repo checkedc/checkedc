@@ -325,21 +325,21 @@ it is not expected fail.
 \section{Alternate bounds for the address-of operator applied to a pointer dereference}
 \label{section:alternate-address-of-pointer-bounds}
 
-The bounds for \verb|&*|\var{e} are defined to be the bounds of \var{e} in 
+The bounds for \lstinline|&*|\var{e} are defined to be the bounds of \var{e} in 
 Section~\ref{section:address-of-expression-bounds}.  We considered
-using narrower bounds for \verb|&*|\var{e} of \bounds{\var{e}}{\var{e}\texttt{ + 1}},
+using narrower bounds for \lstinline|&*|\var{e} of \bounds{\var{e}}{\var{e}\texttt{ + 1}},
 where the bounds describe memory containing only a single value.
 We rejected this choice for two reasons.
 
 First, the narrower bounds use \var{e}.  This is a problem because expressions used within
 bounds expressions must be non-modifying expressions. These are a subset of C expressions that do 
 not modify variables or memory.  The expression \var{e} might not be a valid non-modifying 
-expression, in which case there would be no way to write the narrower bounds expression.  We could try to restrict \verb|&*|\var{e} so that \var{e} must be a non-modifying expression.  We do not know
+expression, in which case there would be no way to write the narrower bounds expression.  We could try to restrict \lstinline|&*|\var{e} so that \var{e} must be a non-modifying expression.  We do not know
 the extent of changes that this could require in existing C programs.
 
-Second, the meaning of \verb|&*|\var{e} is ambiguous in C.   This ambiguity often
-arises when programmers take the address of array elements: \verb|&|\var{e1}\verb|[|\var{e2}\verb|]|
-is a synonym for \verb|&*|\verb|(|\var{e1}\verb|+|\var{e2}\verb|)|.  It is not clear whether
+Second, the meaning of \lstinline|&*|\var{e} is ambiguous in C.   This ambiguity often
+arises when programmers take the address of array elements: \lstinline|&|\var{e1}\lstinline|[|\var{e2}\lstinline|]|
+is a synonym for \lstinline|&*|\lstinline|(|\var{e1}\lstinline|+|\var{e2}\lstinline|)|.  It is not clear whether
 programmers mean to refer to single elements or multiple elements of arrays.
 In some cases, programmers mean
 to refer to only single elements:

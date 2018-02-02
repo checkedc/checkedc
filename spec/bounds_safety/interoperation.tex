@@ -287,7 +287,7 @@ Here are examples of incorrect uses of C cast operators to cast unchecked
 pointers to checked pointers.  These examples are rejected because the
 source bounds are not large enough to justify the destination bounds or
 there are no source bounds.
-In this example, \verb|&x| points to only one integer:
+In this example, \lstinline|&x| points to only one integer:
 \begin{lstlisting}
 int x = 0;
 // fails to check: source not large enough
@@ -500,8 +500,8 @@ to a checked array of 3 integers'':
 int (*pb)[3] = b;
 array_ptr<int checked[3]> param : count(3) = pb;
 \end{lstlisting}
-This implicit conversion is allowed because \verb|int checked[3]| is assignment
-compatible with \verb|int[3]|.  Assignment compatibility allows other
+This implicit conversion is allowed because \lstinline|int checked[3]| is assignment
+compatible with \lstinline|int[3]|.  Assignment compatibility allows other
 interesting implicit conversions:
 \begin{lstlisting}
 array_ptr<int[3]> t1 : bounds(b, b + 3)  = b;
@@ -698,13 +698,13 @@ type annotations:\\
 The keyword \texttt{itype} is short for bounds-safe  interface type.
 
 A type annotation can be used to declare that an unchecked
-pointer to a structure should be treated as a \verb+ptr+ in
+pointer to a structure should be treated as a \lstinline+ptr+ in
 checked code. Here is a declaration for a function
-\verb+count_char+ that takes
+\lstinline+count_char+ that takes
 an unchecked pointer to the struct \texttt{S} defined earlier,
-with a type annotation. \verb+count_char+ counts the number
-of occurrences of \verb+arg+ in \verb+S+. Checked code must pass a
-value that is a valid \verb+ptr+ to \verb+count_char+:
+with a type annotation. \lstinline+count_char+ counts the number
+of occurrences of \lstinline+arg+ in \lstinline+S+. Checked code must pass a
+value that is a valid \lstinline+ptr+ to \lstinline+count_char+:
 \begin{lstlisting}
 int count_char(S *str : itype(ptr<S>), char arg);
 \end{lstlisting}
@@ -1085,7 +1085,7 @@ expression or may not be able to do all of a computation within an expression.
 To allow more general handling of casts between pointers and
 integers, we allow bounds to be declared for integer-typed variables.
 This may seem confusing, but it is a natural extension to tracking the
-bounds for pointer values that have been cast to integers.   The \verb+set+
+bounds for pointer values that have been cast to integers.   The \lstinline+set+
 function can be written to use temporary variables instead:
 \begin{lstlisting}
 array_ptr<int> set(array_ptr<int> x : untagged_bounds(x))
@@ -1174,10 +1174,10 @@ int f(S y) {
  ...
  }
 \end{lstlisting}
-By rule 2, the definition of \verb+f+ is incompatible with the initial
-declaration of \verb+f+, so this is an error.  It is an error even
-if \verb+S+ is an incomplete type at the time of
-a prototype declaration for \verb+f+:
+By rule 2, the definition of \lstinline+f+ is incompatible with the initial
+declaration of \lstinline+f+, so this is an error.  It is an error even
+if \lstinline+S+ is an incomplete type at the time of
+a prototype declaration for \lstinline+f+:
 \begin{lstlisting} 
 int f();
 
@@ -1215,7 +1215,7 @@ void h(void) {
   g(5);  // Error
 }
 \end{lstlisting}
-The definition of \verb+g+ in compilation unit 1 is incompatible with
+The definition of \lstinline+g+ in compilation unit 1 is incompatible with
 the declaration in compilation unit 2, but there is no way for a compiler
 to detect this.
 

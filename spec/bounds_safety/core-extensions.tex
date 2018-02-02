@@ -338,9 +338,9 @@ int compute_length(nt_array_ptr<char> s);
 Modifiers can be applied to the reference type of
 an \ntarrayptr, in the same way that they can be applied to the
 referent type of an \arrayptr.
-The function \verb+compute_length+
+The function \lstinline+compute_length+
 should not modify the contents of a string. Here
-is a version that uses \verb+const+ to declare that:
+is a version that uses \lstinline+const+ to declare that:
 \begin{lstlisting}
 int compute_length(nt_array_ptr<const char> s);
 \end{lstlisting}
@@ -354,7 +354,7 @@ instead of the \keyword{checked} keyword:
 \begin{lstlisting}
 int arr nt_checked[10];
 \end{lstlisting}
-\verb+nt_checked+ declares an array whose
+\lstinline+nt_checked+ declares an array whose
 last element is a null terminator.  The size of the
 array includes the null terminator element.
 Here is an example of a declaration of a checked null-terminated
@@ -405,7 +405,8 @@ The following operations involving pointer-typed values are allowed:
   just like unchecked pointers.
 \item
   Pointers to objects of the same type can be compared relationally. Relational comparisons are the
-  \verb|<|, \verb|<=|, \verb|>|, \verb|>=| operators. The pointers do not have to be
+  \lstinline|<|, \lstinline|<=|, \lstinline|>|, \lstinline|>=| operators. The pointers do not have 
+  to be
   the same kind of pointer. For example, an \uncheckedptrT\ can be compared with an
   \arrayptrT . To support bounds checking and reasoning about program behavior, the
   result of comparing pointers to different objects must be defined.
@@ -479,13 +480,13 @@ Programmers must initialize these variables explicitly using C's initializer syn
 when they are declared.
 
 Initializing an automatic variable with a checked pointer type is simple: a programmer adds
-\verb+= 0+ or \verb+x = NULL+ to the variable declarator. C's initializer syntax 
+\lstinline+= 0+ or \lstinline+x = NULL+ to the variable declarator. C's initializer syntax 
 allows compact initializers for structure variables and array variables.
 A list of initialization values is specified using a brace-enclosed list of expressions.
 The initializer list can be partial list that describes
 only some of the initialization value  The remaining data will be initialized to default values
 for types (0 for pointer types). It suffices to have an initializer for the first member
-of a structure or element of an array. The initializer list \verb+{ 0 }+ can be used.
+of a structure or element of an array. The initializer list \lstinline+{ 0 }+ can be used.
 
 Here are examples of variable declarations with initializers:
 \begin{lstlisting}
@@ -513,7 +514,7 @@ struct VariableBuffer stack checked[10] = { 0 }; // initializer for array requir
 
 For heap-allocated data that contains checked pointers that may be used to access memory, the
 data must be zero-initialized by the programmer.  We recommend that programmers use
-\verb+calloc+ instead of \verb+malloc+ for heap-allocating data containing checked pointers.
+\lstinline+calloc+ instead of \lstinline+malloc+ for heap-allocating data containing checked pointers.
 
 \section{Program scopes for checked pointer types}
 
@@ -535,13 +536,13 @@ Variables and functions used in checked scopes are
 allowed to have or use checked pointer types, checked array types, or
 unchecked pointer types and unchecked array types with bounds declarations.
 
-A new pragma directive \texttt{BOUNDS\_CHECKED} is introduced to control whether
+A new pragma directive \lstinline|BOUNDS_CHECKED| is introduced to control whether
 the top-level scope is a checked scope:
-\begin{alltt}
-#pragma BOUNDS_CHECKED \textit{on-off-switch}
-\end{alltt}
+\begin{lstlisting}[escapechar=\|]
+#pragma BOUNDS_CHECKED |\textit{on-off-switch}|
+\end{lstlisting}
 
-Where \texttt{\textit{on-off-switch}} is one of \verb|ON OFF DEFAULT|
+Where \texttt{\textit{on-off-switch}} is one of \lstinline|ON OFF DEFAULT|
 
 By default, function definitions are not checked. A block inherits the
 checking properties of its parent. This preserves the meaning of
@@ -664,7 +665,7 @@ struct S *zero_coord = &((struct Point) { 0, 0 };
 \end{lstlisting}
 
 A string literal has an array type with an element type that is one of \keyword{char},
-\verb+wchar_t+,  \verb+char16_t+, or \verb+char32_t+.   For Checked C, there is a question
+\lstinline+wchar_t+,  \lstinline+char16_t+, or \lstinline+char32_t+.   For Checked C, there is a question
 about whether the array type should be an unchecked or checked array.
 The type of a string literal with an element type \var{T} depends on whether the literal occurs
 in a checked scope or an unchecked scope:

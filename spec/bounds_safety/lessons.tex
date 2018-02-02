@@ -131,20 +131,20 @@ eliminated by later optimization. In this specific case, the compiler
 injects a runtime check \verb|assert(0 <= i && i < tx_ring->info_count);| into the program. 
 In the example, the runtime checks are italicized assert statements.
 
-\begin{alltt}
-struct e1000_tx_ring \{
+\begin{lstlisting}
+struct e1000_tx_ring {
     ...
     unsigned int info_count;
     struct e1000_buffer * count(info_count)
         buffer_info;
     ...
-\};
+};
 
 static boolean t
 e1000_clean_tx_irq(
     struct e1000_adapter *adapter,
     struct e1000_tx_ring *tx_ring)
-\{
+{
     ...
     \textit{assert(tx_ring != NULL);}
     spin lock(&tx_ring->tx_lock);
@@ -156,8 +156,8 @@ e1000_clean_tx_irq(
     ...
 
     spin unlock(&tx_ring->tx_lock);
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
 \section{Problems with making {C} function bodies dependently-typed}
 \label{section:dependent-typing-issues}
@@ -208,21 +208,21 @@ Here is the Deputy-generated code, assuming that the function parameters
 are annotated with dependent types. The new code inserted by Deputy has
 been italicized:
 
-\begin{alltt}
-int sum (int * count(end - buf) buf, int * end) \{
+\begin{lstlisting}[escapechar=\@]
+int sum (int * count(end - buf) buf, int * end) {
     int sum = 0;
     while (buf < end) \{
-        \textit{assert(0 < end - buf);}
+        @\textit{assert(0 < end - buf);}@
         sum += * buf;
         int tmplen = (end - buf) - 1;
-        \textit{assert(0 <= 1 <= end - buf);}
+        @\textit{assert(0 <= 1 <= end - buf);}@
         int * count(tmplen) tmp = buf + 1;
-        \textit{assert(0 <= end - tmp <= tmplen);  // how to explain this failure??}
+        @\textit{assert(0 <= end - tmp <= tmplen);@ // how to explain this failure??}
         buf = tmp;
-    \}
+    }
     return sum;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
 The program now has computations of \texttt{end - buf} and \texttt{end
 - tmp} that track the bounds of the array \texttt{buf}. A C programmer

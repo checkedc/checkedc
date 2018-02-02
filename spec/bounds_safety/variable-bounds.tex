@@ -529,8 +529,8 @@ where-clause\textsubscript{opt}} \\
 \>\var{variable relop non-modifying-exp} \\
 \>\var{non-modifying-exp relop variable} \\
 \\
-where \var{relop} is one of \verb|<|, \verb|<=|, \verb|==|,
-\verb|!=|, \verb|>=|, \verb|>|.\\
+where \var{relop} is one of \lstinline|<|, \lstinline|<=|, \lstinline|==|,
+\lstinline|!=|, \lstinline|>=|, \lstinline|>|.\\
 \\
 In addition, the grammar is updated to allow where clauses at expression
 statements:\\
@@ -608,8 +608,8 @@ will be terminated by the runtime system or in, systems that support it,
 a runtime exception will be raised.   If {\var{e1}} has bounds {\boundscount{\var{e2}}},
 the bounds are expanded to \bounds{\var{t}}{\var{t} + \var{e2}} before inserting a check.
 
-Consider as an example \verb|z = *x;| where
-\verb|x| has \verb|bounds(x, x + c)|. The compiler will produce code equivalent to:
+Consider as an example \lstinline|z = *x;| where
+\lstinline|x| has \lstinline|bounds(x, x + c)|. The compiler will produce code equivalent to:
 \begin{lstlisting}
 dynamic_check(x != null);
 dynamic_check(x <= x && x < x + c);
@@ -641,9 +641,9 @@ is used to access memory.   The compiler computes the bounds of
 \texttt{e1}. The compiler inserts
 runtime checks that \texttt{\var{e1} + \var{e2}} is within this bounds as
 part of the evaluation of \texttt{\var{e1}[\var{e2}]} For example,
-given \verb|x[5]| where \verb|x| has \verb|bounds(x, x + c)|, the
-compiler inserts runtime checks that \verb|x <= x + 5 < x + c|. 
-The runtime checks simplify to \verb|5 < c|.
+given \lstinline|x[5]| where \lstinline|x| has \lstinline|bounds(x, x + c)|, the
+compiler inserts runtime checks that \lstinline|x <= x + 5 < x + c|. 
+The runtime checks simplify to \lstinline|5 < c|.
 
 For a multi-dimensional array access, only one bounds check is done.
 The check ensures that the memory access is within the bounds of the entire multi-dimensional
@@ -834,7 +834,7 @@ expr2;
 
 In Checked C, however, bounds are checked only at the ends of
 statements.  Thus bounds could be valid after
-\verb+expr1, expr+, but not valid after \verb+expr1+ alone.
+\lstinline+expr1, expr+, but not valid after \lstinline+expr1+ alone.
 In the resize example, the following suceeds with a bundle
 block:
 \begin{lstlisting}

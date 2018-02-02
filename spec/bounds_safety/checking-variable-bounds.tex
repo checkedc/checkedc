@@ -36,7 +36,7 @@ expressions are covered in Chapters~\ref{chapter:structure-bounds} and
 \ref{chapter:pointers-to-data-with-arrayptrs}.
 Section~\ref{section:bounds-checking-indirections} does discuss how to 
 insert bounds checking at uses of the
-indirection operator (\texttt{*}). This is different than discussing the
+indirection operator (\lstinline|*|). This is different than discussing the
 bounds of the values \emph{returned} or \emph{stored} through the
 indirection operator.
 
@@ -113,7 +113,7 @@ described in sections that treat expressions with subexpressions.
 
 \subsection{Null pointers}
 
-The bounds for 0 is the \texttt{any} bounds:
+The bounds for 0 is the \lstinline|any| bounds:
 
 \boundsinfer{0}{\boundsany}
 
@@ -281,9 +281,8 @@ void go(int size)
 }
 \end{lstlisting}
 
-The valid bounds for the call to \texttt{init(alloc\_helper(size),
-size)} in \texttt{go} are computed using the return bounds for
-\texttt{init}:
+The valid bounds for the call to \lstinline|init(alloc_helper(size),size)| in
+\lstinline|go| are computed using the return bounds for \lstinline|init|:
 
 \begin{lstlisting}
     return_value : bounds(return_value, return_value + s) rel_align(int)
@@ -292,19 +291,18 @@ size)} in \texttt{go} are computed using the return bounds for
 First, there is a check that all the actual arguments corresponding to
 the formal parameters used by the return bounds expression are valid
 non-modifying bounds expressions. This check succeeds even though the
-first actual argument \texttt{alloc\_helper(size)} is not a valid bounds
-expression. The formal parameter \texttt{target} is not used by the
+first actual argument \lstinline|alloc_helper(size)| is not a valid bounds
+expression. The formal parameter \lstinline|target| is not used by the
 return bounds expression.
 
 Next, the actual arguments are substituted for the formal parameters and
-\exprcurrentvalue\ is substituted for \texttt{return\_value}.
-The argument \texttt{size} is substituted for \texttt{s}, producing
-\begin{alltt}
-    init(alloc\_helper(size), size) \(\vdash\) 
-        bounds(\exprcurrentvalue, \exprcurrentvalue + size) rel_align(int)
-\end{alltt}
+\exprcurrentvalue\ is substituted for \lstinline|return_value|.
+The argument \lstinline|size| is substituted for \lstinline|s|, producing
+\begin{lstlisting}[escapechar=\|]
+    init(alloc_helper(size), size) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size) rel_align(int)
+\end{lstlisting}
 
-It would not be possible to represent the bounds if \texttt{size} were a
+It would not be possible to represent the bounds if \lstinline|size| were a
 function call too:
 \begin{lstlisting}
     array_ptr<int> x = init(alloc_helper(getsize()), getsize());
@@ -316,17 +314,17 @@ Function calls are not valid in bounds expressions:
     bounds(expr_current_value, current_expr_value + getsize())  // illegal
 \end{lstlisting}
 
-The solution would be to assign the result of \texttt{getsize(}) to a
+The solution would be to assign the result of \lstinline|getsize()| to a
 variable:
 \begin{lstlisting}
    int tmp = getsize();
    array_ptr<int> x = init(alloc_helper(tmp), tmp);
 \end{lstlisting}
 
-The parameters to the call to \texttt{init} also need to be validated
+The parameters to the call to \lstinline|init| also need to be validated
 (see Section~\ref{section:checking-function-call-arguments}). This
-requires determining the valid bounds for \texttt{alloc\_helper(size)}. The
-return bounds for \texttt{alloc\_helper} are used:
+requires determining the valid bounds for \lstinline|alloc_helper(size)|. The
+return bounds for \lstinline|alloc_helper| are used:
 \begin{lstlisting}
    return_value : bounds(return_value, return_value + n) rel_align(int)
 \end{lstlisting}
@@ -334,12 +332,11 @@ return bounds for \texttt{alloc\_helper} are used:
 First, there is a check that the actual arguments that correspond to
 formal parameters used in the return bounds are valid non-modifying
 expressions. The only argument is the variable size, so this check
-succeeds. Next, \texttt{size} is substituted for \texttt{n} and
-\exprcurrentvalue\ is substituted for \texttt{return\_value}, producing:
-\begin{alltt}
-   alloc\_helper(size) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size) 
-                         rel_align(int)
-\end{alltt}
+succeeds. Next, \lstinline|size| is substituted for \lstinline|n| and
+\exprcurrentvalue\ is substituted for \lstinline|return_value|, producing:
+\begin{lstlisting}[escapechar=\|]
+   alloc_helper(size) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size) rel_align(int)
+\end{lstlisting}
 
 \subsection{Pointer arithmetic}
 
@@ -449,66 +446,61 @@ opposite direction of equal magnitude must be made for occurrences of
 
 The following example illustrates the treatment of
 \exprcurrentvalue. Consider the prior example that had a
-function called \texttt{alloc\_helper} that returned some
+function called \lstinline|alloc_helper| that returned some
 newly-allocated memory. Suppose there is an expression that offsets a
-pointer returned by a call to \texttt{alloc\_helper}.
-
+pointer returned by a call to \lstinline|alloc_helper|:
 \begin{lstlisting}
    alloc_helper(size) + 2
 \end{lstlisting}
-
 To compute the bounds for this expression, first the valid bounds for
-\texttt{alloc\_helper(size)} are computed:
+\lstinline|alloc_helper(size)| are computed:
 
-\begin{alltt}
-   alloc\_helper(size) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size)
-\end{alltt}
+\begin{lstlisting}[escapechar=\|]
+   alloc_helper(size) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size)
+\end{lstlisting}
 
-Next, \texttt{\exprcurrentvalue\ - 2} is substituted for
+Next, \exprcurrentvalue \lstinline| - 2| is substituted for
 \exprcurrentvalue\, yielding:
 
-\begin{alltt}
-   alloc\_helper(size) + 2 \(\vdash\) (\exprcurrentvalue - 2, \exprcurrentvalue - 2 + size)
-\end{alltt}
+\begin{lstlisting}[escapechar=\|]
+   alloc_helper(size) + 2 |\(\vdash\)| bounds(expr_current_value - 2, expr_current_value - 2 + size)
+\end{lstlisting}
 
 Now, suppose the pointer is being adjusted to insert some blank padding
 at the beginning of the newly-allocated object. We can remove the
-occurrence of \texttt{\exprcurrentvalue\ - 2} in the upper bound by
+occurrence of \exprcurrentvalue \lstinline| - 2| in the upper bound by
 over-allocating in the expression:
 
-\begin{alltt}
-   alloc_helper(size + 2) + 2
-\end{alltt}
+\begin{lstlisting}
+  alloc_helper(size + 2) + 2
+\end{lstlisting}
 
-The valid bounds for \texttt{alloc\_helper(size + 2)} are:
+The valid bounds for \lstinline|alloc_helper(size + 2)| are:
 
-\begin{alltt}
-   alloc\_helper(size + 2) \(\vdash\) bounds(\exprcurrentvalue, \exprcurrentvalue + size + 2)
-\end{alltt}
+\begin{lstlisting}[escapechar=\|]
+  alloc_helper(size + 2) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size + 2)
+\end{lstlisting}
 
 The valid bounds for the entire expression are:
 
-\begin{alltt}
-    alloc\_helper(size + 2) + 2 \(\vdash\) bounds(\exprcurrentvalue - 2,
-                                        \exprcurrentvalue - 2 + size + 2)
-\end{alltt}
+\begin{lstlisting}[escapechar=\|]
+  alloc_helper(size + 2) + 2 |\(\vdash\)| bounds(expr_current_value - 2, expr_current_value - 2 + size + 2)
+\end{lstlisting}
 
 which can be simplified to:
 
-\begin{alltt}
-    alloc\_helper(size + 2) + 2 \(\vdash\) bounds(\exprcurrentvalue - 2, 
-                                        \exprcurrentvalue + size)
-\end{alltt}
+\begin{lstlisting}[escapechar=\|]
+  alloc_helper(size + 2) + 2 |\(\vdash\)| bounds(expr_current_value - 2, expr_current_value + size)
+\end{lstlisting}
 
 As we will explain in Chapter~\ref{chapter:simple-invariants}, 
 it is fine to narrow a bounds by
 adding a positive constant to the lower bounds. This allows us to adjust
 the bounds to what would be desired when extra padding is inserted:
 
-\begin{alltt}
-    alloc\_helper(size + 2) + 2 \(\vdash\) bounds(\exprcurrentvalue, 
-                                        \exprcurrentvalue + size)
-\end{alltt}
+\begin{lstlisting}[escapechar=\|]
+    alloc_helper(size + 2) + 2 |\(\vdash\)| bounds(expr_current_value, expr_current_value + size)
+\end{lstlisting}
 
 \subsection{Cast expressions}
 \label{section:cast-expressions}
@@ -653,9 +645,9 @@ array_ptr<int> a : count(len) = ...
 len = len - 1
 \end{lstlisting}
 
-The original value of \texttt{len} can be computed from the new value.
-In this case, a valid new bounds after the decrement of \texttt{len} is
-\texttt{count(a) == len + 1.} The bounds for \texttt{a} after the
+The original value of \lstinline|len| can be computed from the new value.
+In this case, a valid new bounds after the decrement of \lstinline|len| is
+\lstinline|count(a) == len + 1.| The bounds for \lstinline|a| after the
 assignment are:
 \begin{lstlisting}
 len = len - 1
@@ -687,10 +679,10 @@ while (p < high) {
 }
 \end{lstlisting}
 
-Bounds ty is preserved when the range of a bounds expression is
-narrowed. \texttt{(p - 1, high)} implies that \texttt{(p, high)} is a
+Bounds validity is preserved when the range of a bounds expression is
+narrowed. \lstinline|(p - 1, high)| implies that \lstinline|(p, high)| is a
 valid bounds expression. This reestablishes the loop bounds invariant
-for \texttt{p} of \texttt{(p, high)}.
+for \lstinline|p| of \lstinline|(p, high)|.
 
 \begin{lstlisting}
 while (p < high) {
