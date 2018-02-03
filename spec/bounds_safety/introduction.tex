@@ -61,7 +61,7 @@ Checked C addresses the bounds checking problem for C by:
 \begin{itemize}
 \item
   Introducing different pointer types to capture the different ways in
-  which pointers are used. The unchecked C pointer type \texttt{*} is kept
+  which pointers are used. The unchecked C pointer type \code{*} is kept
   and three new {\it checked} pointer types are added: one for pointers
   that are never used in pointer arithmetic and do not need bounds
   checking (\ptr),  one for \emph{array pointer types} that are involved
@@ -76,14 +76,14 @@ Checked C addresses the bounds checking problem for C by:
   variable are given by non-modifying C expressions. These are a subset
   of C expressions that do not modify variables or memory. They include
   local variables, parameters, constant expressions, casts, and
-  operators such as addition, subtraction, and address-of (\texttt{\&})
+  operators such as addition, subtraction, and address-of (\code{&})
   operators. Static checking ensures that programs declare and maintain
   bounds information properly. The bounds are used at runtime to enforce
 \item
   Introducing different array types to distinguish between arrays whose
   accesses are bounds-checked and existing C arrays whose accesses are
   not bounds-checked. A programmer places the modifier \keyword{checked}
-  before the declaration of the bound(s) of the array: \texttt{int x
+  before the declaration of the bound(s) of the array: \code{int x
   checked[5][5]} declares a 2-dimensional array for which all
   accesses will be bounds-checked.  Arrays with null terminators
   as their last element can be declared using \keyword{nt\_checked}
@@ -121,7 +121,7 @@ Checked C addresses the bounds checking problem for C by:
   To support this, lightweight invariants are added to Checked C. A lightweight
   invariant declares a relation between a variable and a simple
   expression using a relational operator. An example would be the
-  statement \texttt{x < y + 5}. Lightweight invariants can be
+  statement \code{x < y + 5}. Lightweight invariants can be
   declared at variable declarations, at assignment statements, for
   parameters, and for return values. Checked C is extended with rules for
   checking these lightweight invariants. Just as type checking rules are
@@ -187,9 +187,9 @@ invariants, such as transitivity of relational operators. Compilers
 do not try to devise invariants or prove the correctness of
 invariants; they apply simple local reasoning to check them. The
 programmer has to call out the relevant facts. If a programmer declares
-an invariant \texttt{x == y} but neglects to declare the invariant
-\texttt{y == z}, a checker may not be able to reason several
-statements later that \texttt{x == z}, even though it may be true at
+an invariant \code{x == y} but neglects to declare the invariant
+\code{y == z}, a checker may not be able to reason several
+statements later that \code{x == z}, even though it may be true at
 that point in the program. This is taking advantage of the fact that
 checking a proof is usually much easier than creating the proof.
 
@@ -210,7 +210,7 @@ We hand-edited about 11,000 lines of the code to use checked pointer
 types with full bounds annotations.  We used macros to encapsulate 
 the bounds annotations so that they could be elided from the code
 and OpenSSL compiled and tested using the new types.  We also modified the
-generic stack type in OpenSSL to use the \texttt{ptr} type, which required
+generic stack type in OpenSSL to use the \code{ptr} type, which required
 cross-cutting changes across the code base (in all, about 160 files were changed) 
 as well dealing with complicated macros.   
 
@@ -401,11 +401,11 @@ Chapter~\ref{chapter:simple-invariants}
 extends the checking of bounds to incorporate simple
 reasoning about bounds and program behavior. It includes a set of rules
 for deducing facts that are true about a program at a specific point in
-the program (for example, given an assignment \texttt{x = y;} the fact
+the program (for example, given an assignment \code{x = y;} the fact
 that x == y is true after the assignment). Facts can also be deduced
 from program control-flow. There are additional rules for reasoning
 about whether one fact is true given a set of other facts (for example,
-given x == y and the statement \texttt{z = y;} z == x is true after that
+given x == y and the statement \code{z = y;} z == x is true after that
 statement). These rules and facts can be used to deduce the correctness
 of bounds declarations that differ from those inferred directly by the
 checking described in Chapters~\ref{chapter:checking-bounds} 
@@ -413,14 +413,14 @@ and~\ref{chapter:pointers-to-data-with-arrayptrs}. For example,
 a programmer may wish to narrow the memory that is accessible via an
 \arrayptr\ variable by declaring bounds that are a subrange of
 the bounds inferred by the checking. A programmer may wish to update the
-bounds for an \arrayptr\ variable after an assignment \texttt{x
-= y}, substituting x for y.
+bounds for an \arrayptr\ variable after an assignment \code{x = y}, substituting 
+\code{x} for \code{y}.
 
 The same static checking that is used for bounds can be used to reason
 about the ranges of variables at specific points in a program. From
 there, it is a short step to deducing at compile-time that bounds are
 always satisfied at a particular memory access in a program. For
-example, a fact can be that the range of an integer variable \texttt{i}
+example, a fact can be that the range of an integer variable \code{i}
 is always between 0 and 10. This can be used to deduce that an array
 access in a crucial inner loop is always in bounds.
 

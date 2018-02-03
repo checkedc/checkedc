@@ -49,20 +49,21 @@ that must be covered by the checking rules.  In-line return bounds expressions
 are replaced with the form that uses a name for the return value. The form
 \boundsdecl{\var{f}(\ldots{})}{\var{e1}} is changed to 
 \texttt{\var{f}(\ldots{}) \keyword{where}
-  \boundsdecl{\texttt{return\_value}}{e1}}.
-The \texttt{count} and
-\texttt{byte\_count} bounds expressions are also expanded to bounds expressions.
+  \boundsdecl{\code{return_value}}{e1}}.
+The \code{count} and
+\code{byte_count} bounds expressions are also expanded to bounds expressions.
 The form \boundsdecl{\var{x}}{\boundscount{\var{e1}}}
-is replaced with \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}}}
+is replaced with \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \code{+} \var{e1}}}
 and \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
-is replaced with \boundsdecl{\var{x}}{\bounds{(\arrayptrchar) \var{x}}{(\arrayptrchar)
-\var{x} + \var{e1}}}. For now, we ignore the
-additional side conditions on count expressions. Checking of these
+is replaced with \boundsdecl{\var{x}}{\bounds{\cast{\arrayptrchar}{\var{x}}}
+                                             {\cast{\arrayptrchar}{\var{x} \lstinline|+| \var{e1}}}}.
+For now, we ignore the additional side conditions on count expressions. Checking of these
 conditions will be addressed in Chapter~\ref{chapter:simple-invariants}.
 
 Also, relative alignment is made explicit for all bounds
 declarations: \boundsdecl{\var{x}}{\bounds{\var{e2}}{\var{e3}}} is expanded to
-\boundsdecl{\var{x}}{\boundsrelval{\var{e2}}{\var{e3}}{\texttt{sizeof(typeof(\var{x}))}}}.
+\boundsdecl{\var{x}}{\boundsrelval{\var{e2}}{\var{e3}}
+                                  {\sizeof{\lstinline|typeof(|\var{x}\lstinline|)|}}}.
 For code without explicit or implicit casts of \arrayptr s, relative
 alignment can be ignored.
 
@@ -129,7 +130,7 @@ Suppose there is a use of some variable \var{x}.
   for this occurrence of \var{x}.
 \item
   If \var{x} has type \ptrT, 
-  \boundsinfer{\var{x}}{\boundsrel{\var{x}}{\var{x} \texttt{+ 1}}{\var{T}}}.
+  \boundsinfer{\var{x}}{\boundsrel{\var{x}}{\var{x} \code{+ 1}}{\var{T}}}.
    On the right-hand side, \var{x} is reinterpreted as having \arrayptr\ type.
 \item
   If \var{x} has an array type, the rules depend on whether \var{x}  is a parameter
@@ -161,24 +162,24 @@ and \var{x} has a known number of elements \var{n}, then
 
 There are three kinds of address-of expressions:
 \begin{itemize}
-\item Address of a variable (\texttt{\&\var{x}}): a variable \var{x} with type \var{T} 
+\item Address of a variable (\lstinline|&|\var{x}): a variable \var{x} with type \var{T} 
 whose address is taken is considered to be an array of one element:
 
-\boundsinfer{\texttt{\&\var{x}}} 
-            {\boundsrel{\texttt{\&\var{x}}}{\texttt{\&\var{x} + 1}}{\var{T}}}.
+\boundsinfer{\lstinline|&|\var{x}}
+            {\boundsrel{\lstinline|&|\var{x}}{\lstinline|&|\var{x} \lstinline| + 1|}{\var{T}}}.
             
-\item Address of a pointer dereference operation ({\texttt{\&*\var{e}}}):
+\item Address of a pointer dereference operation (\lstinline|&*|\var{e}):
 The address-of operation and the pointer dereference operation cancel. 
 The bounds are the bounds of the underlying expression. 
 If \boundsinfer{\var{e}}{\var{bounds-exp}}, then
-\boundsinfer{\texttt{\&*\var{e}}}{\var{bounds-exp}}.
+\boundsinfer{\lstinline|&*|\var{e}}{\var{bounds-exp}}.
 
-\item Address-of a subscripting expression (\texttt{\&\var{e1}[\var{e2}]}):
+\item Address-of a subscripting expression (\lstinline|&|\var{e1}\lstinline|[|\var{e2}\lstinline|]|):
 This is the same as taking the address of a pointer dereference operation.
-According to the C semantics, \texttt{\var{e1}[\var{e2}]} is equivalent
-to \texttt{*(\var{e1} + \var{e2})}.  If 
-\boundsinfer{\var{e1} + \var{e2}}{\var{bounds-exp}}, then
-\boundsinfer{\texttt{\&\var{e1}[\var{e2}]}}{\var{bounds-exp}}.
+According to the C semantics, \var{e1}\lstinline|[|\var{e2}\lstinline|]| is equivalent
+to \lstinline|*(|\var{e1} \lstinline|+| \var{e2}\lstinline|)|.  If 
+\boundsinfer{\var{e1} \lstinline|+| \var{e2}}{\var{bounds-exp}}, then
+\boundsinfer{\lstinline|&|\var{e1}\lstinline|[|\var{e2}\lstinline|]|}{\var{bounds-exp}}.
 \end{itemize}
    
 \subsection{Function calls}
@@ -187,31 +188,31 @@ to \texttt{*(\var{e1} + \var{e2})}.  If
 Let \var{f} be the name of a function that returns an
 \arrayptr\ value (pointers to functions will be handled later).
 Suppose there is a function call expression of the form
-\var{f}\texttt{(}\var{e1 \ldots{} en}\texttt{)}:
+\var{f}\code{(}\var{e1 \ldots{} en}\code{)}:
 
 \begin{enumerate}
 \item
   If \var{f} has a bounds declaration for the return value of the form
-  \texttt{return\_value :} \var{exp1}, then
+  \code{return_value :} \var{exp1}, then
 
   \begin{itemize}
   \item
     Any arguments that correspond to formal parameters occurring in
     \var{exp1} must be valid non-modifying expressions. If they are
-    not, \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\boundsunknown}.
+    not, \boundsinfer{\var{f}\lstinline|(|\var{e1} \ldots{} \var{en}\lstinline|)|}{\boundsunknown}.
   \item
-    Otherwise, substitute \texttt{\var{e1} \ldots{} \var{en}} for the formal
+    Otherwise, substitute \var{e1} \ldots{} \var{en} for the formal
     parameters of \var{f} occurring in \var{exp1}. Also substitute the
     special symbol \exprcurrentvalue\ for
-    \texttt{return\_value}. These substitutions produce \var{exp2}.
-    \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\var{exp2}}.
+    \code{return_value}. These substitutions produce \var{exp2}.
+    \boundsinfer{\var{f}\lstinline|(|\var{e1} \ldots{} \var{en}\lstinline|)|}{\var{exp2}}.
   \end{itemize}
 \item
   If \var{f} does not have a bounds declaration for its return value,
-  then \boundsinfer{\var{f}\texttt{(\var{e1} \ldots{} \var{en})}}{\boundsunknown}.
+  then \boundsinfer{\var{f}\lstinline|(|\var{e1} \ldots{} \var{en}\lstinline|)|}{\boundsunknown}.
 \end{enumerate}
 
-The special variable \lstlinline|return_value| may appear in \var{exp1}. It
+The special variable \lstinline|return_value| may appear in \var{exp1}. It
 is the value of the function call expression, so it is replaced with the
 special variable \exprcurrentvalue.
 
@@ -221,9 +222,9 @@ Section~\ref{section:checking-function-call-arguments}.
 
 The following code provides examples of function call expressions where
 bounds need to be computed. In the code, the programmer wraps a call to
-\texttt{malloc} in an allocation helper, \texttt{alloc\_helper}. The
-function \texttt{alloc\_helper} returns an \arrayptr\ value
-that is passed as an argument to \texttt{init}, which initializes the array
+\code{malloc} in an allocation helper, \code{alloc_helper}. The
+function \code{alloc_helper} returns an \arrayptr\ value
+that is passed as an argument to \code{init}, which initializes the array
 and returns the \arrayptr\ value.
 \begin{lstlisting}
 array_ptr<int> alloc_helper(int n) : count(n)
@@ -391,7 +392,7 @@ If \var{e4} is a pointer to \var{T} and
 then \boundsinfer{\var{e4 op e1}}
                  {\boundsrel{\var{e2}}
                             {\var{e3}}
-                            {\texttt{GCD(\var{c}, sizeof(\var{T}))}}}.
+                            {\texttt{GCD(\var{c}, \sizeof{\var{T}})}}}.
 \end{quote}
 
 \subsubsection{Pointer arithmetic for unchecked pointer types}
@@ -413,10 +414,10 @@ the pointer expression is non-null is added:
 
 \begin{quote}
 If \var{e4} is a pointer to \var{T} and it can be proved that
-\var{e4} \texttt{!= 0} and 
+\var{e4} \code{!= 0} and 
 \boundsinfer{\var{e4}}{\boundsrel{\var{e2}}{\var{e3}}}{\var{c}}, then
 \boundsinfer{\var{e4 op e1}}{\boundsrel{\var{e2}}{\var{e3}}
-                                            {\texttt{gcd(\var{c},\sizeof{\var{T}})}}}.
+                                            {\texttt{GCD(\var{c},\sizeof{\var{T}})}}}.
 \end{quote}
 
 Chapter~\ref{chapter:simple-invariants}
@@ -431,11 +432,11 @@ If the special variable \exprcurrentvalue\ occurs in
 
 \begin{itemize}
 \item
-  If \var{op} is \texttt{+}, substitute \texttt{\exprcurrentvalue\ -}
+  If \var{op} is \code{+}, substitute \exprcurrentvalue\ \code{-}
   \var{e1} for all occurrences of \exprcurrentvalue\ in
   \bounds{\var{e2}}{\var{e3}}
 \item
-  If \var{op} is \texttt{-}, substitute \texttt{\exprcurrentvalue\ +}
+  If \var{op} is \code{-}, substitute \exprcurrentvalue\ \code{+}
   \var{e1} for all occurrences of \exprcurrentvalue\ in
   \bounds{\var{e2}}{\var{e3}}.
 \end{itemize}
@@ -506,7 +507,7 @@ the bounds to what would be desired when extra padding is inserted:
 \subsection{Cast expressions}
 \label{section:cast-expressions}
 
-Given a cast expression of the form \texttt{(\var{T})} \var{e},
+Given a cast expression of the form \cast{\var{T}}{\var{e}},
 the bounds for \var{e} are determined. The bounds for
 \var{e} are used as the bounds for the entire expression.
 
@@ -517,7 +518,7 @@ bounds for \var{e},
 \item
   If T is an integral type large enough to hold a pointer or a pointer
   type, let \var{S} be the type of \var{e}. The expression
-  \texttt{((\var{S}) \exprcurrentvalue)} is substituted for
+  \cast{\var{S}}{\exprcurrentvalue} is substituted for
   all occurrences of \exprcurrentvalue.
 \item
   Otherwise, the bounds of \var{e} are  altered to \boundsunknown.
@@ -525,8 +526,8 @@ bounds for \var{e},
   
 \subsection{Conditional expressions}
 
-Given an expression of the form \var{e1} \texttt{?} \var{e2}
-\texttt{:} \var{e3}, the bounds for \var{e2} and \var{e3} are
+Given an expression of the form \var{e1} \code{?} \var{e2}
+\code{:} \var{e3}, the bounds for \var{e2} and \var{e3} are
 determined. They must be syntactically identical (after putting the
 bounds into a normal form). The bounds for \var{e2} are used as the
 bounds for the entire expression.
@@ -545,7 +546,7 @@ alternatives. }
 
 \subsection{Comma expressions}
 
-Given an expression of the form \var{e1} \texttt{,} \var{e2}, the
+Given an expression of the form \var{e1} \code{,} \var{e2}, the
 bounds for \var{e2} are determined. The bounds for \var{e2} are used
 as the bounds for the entire expression.
 
@@ -555,7 +556,7 @@ bounds for \var{e2}, it is left unchanged.
 \section{Bounds for assignment expressions}
 \label{section:checking-assignment-expressions}
 
-For an assignment expression of the form \var{x} \texttt{=} \var{e},
+For an assignment expression of the form \var{x} \code{=} \var{e},
 where \var{x} is a variable and \var{e} is an expression, we start
 with a context that is true before the evaluation of the assignment
 expression. We determine the context that will be true after the
@@ -695,15 +696,15 @@ while (p < high) {
 The correctness of narrowing depends on pointer arithmetic overflow
 for checked pointer types being a runtime error. For a lower bound \var{e1} in a bounds
 expression, we can only substitute \var{e2} for \var{e1} as the lower
-bound if \var{e2} \textgreater{}= \var{e1}. The identity \texttt{p > p - 1} 
+bound if \var{e2} \code{>=} \var{e1}. The identity \code{p > p - 1} 
 holds only if overflow is a runtime error.
 
 \subsection{Invertible expressions}
-An expression is invertible with respect to a variable x if:
+An expression is invertible with respect to a variable \var{x} if:
 
 \begin{enumerate}
 \item
-  The expression is x
+  The expression is \var{x}
 \item
   or
 
@@ -713,7 +714,7 @@ An expression is invertible with respect to a variable x if:
     complement, unary minus, unary plus, exclusive-or, a bit-preserving
     cast operator, or a widening cast operator, and
   \item
-    The variable x occurs only in one argument of the operation and that
+    The variable \var{x} occurs only in one argument of the operation and that
     argument is an invertible expression with respect to \var{x}
   \item
     Any other argument of the operation is a non-modifying expression,
@@ -729,55 +730,51 @@ integral addition and subtraction are defined as two's complement
 arithmetic where extra bits are discarded on overflow. However, this
 introduces the possibility of non-portable code.
 
-Given the expression \texttt{x =} \var{e}, where \texttt{x} occurs once
-in \var{e}, mathematical rules are applied to solve for \texttt{x} in
-\var{e}. We generalize the left-hand side from x to an expression
+Given the expression \var{x} \code{=} \var{e}, where \var{x} occurs once
+in \var{e}, mathematical rules are applied to solve for \var{x} in
+\var{e}. We generalize the left-hand side from \var{x} to an expression
 \var{f} and define \texttt{inverse(}\var{f}\texttt{,}
 \var{e}\texttt{)} as follows:
 
 \begin{longtable}[c]{@{}ll@{}}
 \toprule
-\texttt{Given inverse(}\var{f}\texttt{,} \var{e}\texttt{), where} &
-\texttt{the result is:}\tabularnewline
+Given \texttt{inverse(\var{f}, \var{e})}, where & the result is:\tabularnewline
 \midrule
 \endhead
 \var{e} = \texttt{x} & \var{f}\tabularnewline
-\var{e} = \texttt{\textasciitilde{}}\var{e1} &
-\texttt{inverse(\textasciitilde{}}\var{f},
-\var{e1}\texttt{)}\tabularnewline
-e = \texttt{-}\var{e1} & \texttt{inverse(-}\var{f},
-\var{e1}\texttt{)}\tabularnewline
-\var{e} = \texttt{+}\var{e1} & \texttt{inverse(+}\var{f},
-\var{e1}\texttt{)}\tabularnewline
-\var{e} = \texttt{(}\var{t1}\texttt{)} \var{e1}, where \var{e1} has
-type \var{t2} & \texttt{inverse((}\var{t2}\texttt{)} \var{f},
-\var{e1}\texttt{)}\tabularnewline
-and \texttt{(\var{t1})} is not a narrowing cast & \\
-\var{e} = \var{e1} \texttt{+} \var{e2}, where \texttt{x} occurs in
-\var{e1} & \texttt{inverse(}\var{f} \texttt{-} \var{e2},
+\var{e} = \code{\~}\var{e1} &
+\texttt{inverse(\code{\~}\var{f}, \var{e1})}\tabularnewline
+\var{e} = \code{-}\var{e1} & \texttt{inverse(\code{-}\var{f}, \var{e1})}\tabularnewline
+\var{e} = \code{+}\var{e1} & \texttt{inverse(\code{+}\var{f}, \var{e1})}\tabularnewline
+\var{e} = \cast{\var{t1}}{\var{e1}}, where \var{e1} has
+type \var{t2} & \texttt{inverse(\cast{\var{t2}}{\var{f}},
+\var{e1})}\tabularnewline
+and \code{(}\var{t1}\code{)} is not a narrowing cast & \\
+\var{e} = \var{e1} \code{+} \var{e2}, where \texttt{x} occurs in
+\var{e1} & \texttt{inverse(}\var{f} \code{-} \var{e2},
 e1)\tabularnewline
-\var{e} = \var{e1} \texttt{+} \var{e2}, where \texttt{x} occurs in
-\var{e2} & \texttt{inverse(}\var{f} \texttt{-} \var{e1},
+\var{e} = \var{e1} \code{+} \var{e2}, where \texttt{x} occurs in
+\var{e2} & \texttt{inverse(}\var{f} \code{-} \var{e1},
 \var{e2})\tabularnewline
-\var{e} = \var{e1} \texttt{-} \var{e2}, where \texttt{x} occurs in
-\var{e1} & \texttt{inverse(}\var{f} \texttt{+} \var{e2},
+\var{e} = \var{e1} \code{-} \var{e2}, where \texttt{x} occurs in
+\var{e1} & \texttt{inverse(}\var{f} \code{+} \var{e2},
 \var{e1})\tabularnewline
-\var{e} = \var{e1} \texttt{-} \var{e2}, where \texttt{x} occurs in
-\var{e2} & \texttt{inverse(}\var{e1} \texttt{-} \var{f},
+\var{e} = \var{e1} \code{-} \var{e2}, where \texttt{x} occurs in
+\var{e2} & \texttt{inverse(}\var{e1} \code{-} \var{f},
 \var{e2})\tabularnewline
 &\tabularnewline
-\var{e} = \var{e1} \texttt{\^{}} \var{e2}, where \texttt{x} occurs in
-\var{e1} & \texttt{inverse(}\var{f} \texttt{\^{}} \var{e2},
+\var{e} = \var{e1} \code{^} \var{e2}, where \texttt{x} occurs in
+\var{e1} & \texttt{inverse(}\var{f} \code{^} \var{e2},
 \var{e1})\tabularnewline
-\var{e} = \var{e1} \texttt{\^{}} \var{e2}, where \texttt{x} occurs in
-\var{e2} & \texttt{inverse(}\var{f} \texttt{\^{}} \var{e1},
+\var{e} = \var{e1} \code{^} \var{e2}, where \texttt{x} occurs in
+\var{e2} & \texttt{inverse(}\var{f} \code{^} \var{e1},
 \var{e2})\tabularnewline
 \bottomrule
 \end{longtable}
 
 Given \texttt{inverse(x}, \var{e}), the rules are applied repeatedly
 until the original value of x in e has been computed. Here is an example
-of computing the inverse of \texttt{x = (x + 4) + 5}:
+of computing the inverse of \code{x = (x + 4) + 5}:
 \begin{lstlisting}
    inverse(x, (x + 4) + 5) =
        inverse(x - 5, x + 4) =
@@ -877,9 +874,9 @@ expression holds if:
   \item
    or given a context bounds expression of the form
    \boundsrel{\var{e1}}{\var{e2}}{\var{d}},
-   \texttt{((\arrayptrchar) \var{x} - (\arrayptrchar) \var{e1}) \% \var{c}}
-   canonicalizes to \texttt{0}, as does
-   \texttt{((\arrayptrchar) \var{e2} - (\arrayptrchar) \var{x}) \% \var{c}}.
+   \texttt{(\cast{\arrayptrchar}{\var{x}} - \cast{\arrayptrchar}{\var{e1}}) \% \var{c}}
+   canonicalizes to \code{0}, as does
+   \texttt{(\cast{\arrayptrchar}{\var{e2}} - \cast{\arrayptrchar}{\var{x}}) \% \var{c}}.
   \end{itemize}
 \end{itemize}
 
@@ -908,8 +905,8 @@ involved an expression that actually produced a value.
 This has a surprising consequence: integer arithmetic operations that
 check for overflow can be regarded as following mathematical rules
 during canonicalization. A compiler could not reassociate \texttt{((a
-+\textsubscript{ovf} b) +\textsubscript{ovf} c)} to \texttt{(a
-+\textsubscript{ovf} (b +\textsubscript{ovf} c)} and replace the first
+\plusovf\ b) \plusovf\ c)} to \texttt{(a
+\plusovf\ (b \plusovf\ c)} and replace the first
 expression with the second one because it could cause an overflow where
 none occurred before. For canonicalization, though, reassociation is
 fine.
@@ -918,19 +915,19 @@ Signed integer operations do not follow certain mathematical identities.
 This is because according to the rules in 
 Section~\ref{section:changes-to-undefined-behavior}, they may produce
 a value on overflow, but the properties of the value are not specified.
-Signed addition is not associative: \texttt{(a + b) + c} is not
-guaranteed to produce the same result as \texttt{a + (b + c)} in the
-presence of overflow. The expression \texttt{a + b} may overflow, while
-\texttt{b + c} may not overflow or the reverse may occur. In addition,
-for signed integers, it is not guaranteed that \texttt{a - b} =
-\texttt{a + (-b)} or that \texttt{-(-(a))} = \texttt{a}.
+Signed addition is not associative: \code{(a + b) + c} is not
+guaranteed to produce the same result as \code{a + (b + c)} in the
+presence of overflow. The expression \code{a + b} may overflow, while
+\code{b + c} may not overflow or the reverse may occur. In addition,
+for signed integers, it is not guaranteed that \code{a - b} =
+\code{a + (-b)} or that \code{-(-(a))} = \code{a}.
 
 The canonicalization rules need to disambiguate between signed and
 unsigned operators for integers, as well as operators that check for
 overflow. All integer operators will be subscripted by whether they
 apply to signed or unsigned integers and whether they check overflow 
-using the subscripts \texttt{signed}, \texttt{unsigned}, and
-\texttt{ovf}. For example, the expression \texttt{(a + b) + c} involving
+using the subscripts \code{signed}, \code{unsigned}, and
+\code{ovf}. For example, the expression \code{(a + b) + c} involving
 signed integers will be written as \texttt{(a
 +}\emph{\textsubscript{signed}} \texttt{b)
 +}\emph{\textsubscript{signed}} \texttt{c}.
@@ -939,7 +936,7 @@ The overflow checking operators introduced in
 Section~\ref{section:pointers-as-integers} only include
 operators that can occur in practice. For canonicalization, it is useful
 to have a complete set of operators, including
-\texttt{+\textsubscript{ovf}} and \texttt{\textsubscript{-ovf}} that
+\plusovf\ and \minusovf\ that
 take two integers (both signed or unsigned) and produce an integer that
 has the same type as the arguments, as well as unary negation that takes
 a signed or unsigned integer and produces a signed integer.
@@ -947,7 +944,7 @@ a signed or unsigned integer and produces a signed integer.
 In the rules for canoncialization, when a subscript on an integer
 operator is omitted, the rule applies to all forms of the operator.
 Sometimes the subscript \var{kind} will be used on operators. Either
-u\texttt{nsigned} or \texttt{ovf} should be substituted for \var{kind}
+\code{unsigned} or \code{ovf} should be substituted for \var{kind}
 in the rule.
 
 The first step in canonicalization is to convert non-modifying
@@ -965,25 +962,25 @@ expressions to an initial representation:
 \item
   Implicit cast operations are made explicit.
 \item
-  The pointer dereference \texttt{*} and pointer indirection operators
-  \texttt{(->)} are implicitly annotated with their pointer types.
+  The pointer dereference \code{*} and pointer indirection operators
+  \code{(->)} are implicitly annotated with their pointer types.
   This is necessary because converting pointer arithmetic to integer
   arithmetic will erase the type information needed by these operators.
 \item
   Unary plus operations are removed.
 \item
   Array references of the form
-  \var{e1}\texttt{[}\var{e2}\texttt{]} are converted to
-  \texttt{*((}\var{e1}\texttt{)} \texttt{+}
-  \texttt{(}\var{e2}\texttt{))}
+  \var{e1}\code{[}\var{e2}\code{]} are converted to
+  \code{*((}\var{e1}\code{)} \code{+}
+  \code{(}\var{e2}\code{))}
 \item
   Pointer arithmetic is expanded to integer-based arithmetic.
 \item
   Binary subtraction expressions are canonicalized to use unary minus
-  when possible: \var{e1} \texttt{-}\emph{\textsubscript{kind}}
+  when possible: \var{e1} \code{-}\emph{\textsubscript{kind}}
   \var{e2} is converted to \var{e1}
-  \texttt{+}\emph{\textsubscript{kind}}
-  \texttt{-}\emph{\textsubscript{kind} e2}.
+  \code{+}\emph{\textsubscript{kind}}
+  \code{-}\emph{\textsubscript{kind} e2}.
 \end{compactenum}
 
 For the second step of canonicalization, two sets of binary arithmetic
@@ -997,14 +994,13 @@ operators are defined
   \begin{itemize}
   \item
     The operators +\texttt{\textsubscript{unsigned}},
-    \texttt{*\textsubscript{unsigned}}, \texttt{+\textsubscript{ovf}},
-    and \texttt{*\textsubscript{ovf}}
+    \texttt{*\textsubscript{unsigned}}, \plusovf\,
+    and \mulovf\.
+  item
+    The bitwise operators \lstinline@|@, \code{&}, and
+    \code{^}.
   \item
-    The bitwise operators \texttt{\textbar{}}, \texttt{\&}, and
-    \texttt{\^{}}
-  \item
-    The Boolean operators \texttt{\textbar{}\textbar{}} and
-    \texttt{\&\&}
+    The Boolean operators \lstinline@||@ and \code{&&}.
   \end{itemize}
 \item
   The set of commutative-only operators (CO):
@@ -1041,39 +1037,40 @@ The following rules are applied until no further changes occur:
 
     \begin{compactenum}
     \item
-      \var{e} \texttt{+} \texttt{0} = \var{e}, \var{e} \texttt{-}
-      \texttt{0} = \var{e}, \texttt{0} \texttt{-} \var{e} =
-      \texttt{(-}\var{e}\texttt{)}, \texttt{0} \texttt{*} \var{e} =
-      \texttt{0}, \texttt{1} \texttt{*} \var{e} = \var{e}, \var{e} /
-      \texttt{1} = \var{e}, \var{e}\texttt{/-1} = \texttt{-}\var{e},
-      \var{e} \texttt{\%} \texttt{1} = \var{e}
+      \var{e} \code{+ 0 =} \var{e}, \var{e} \code{- 0 =} \var{e}, 
+      \code{0 -} \var{e} =
+      \code{(-}\var{e}\code{)}, \code{0 *} \var{e} = code{0}, 
+      \code{1 *} \var{e} = \var{e}, 
+      \var{e} \code{/ 1} = \var{e},
+      \var{e} \code{/ -1} = \code{-}\var{e},
+      \var{e} \lstinline|% 1| = \var{e}
     \item
       For a positive constant \var{c}, (\var{e}
-      \texttt{*}\emph{\textsubscript{kind}} \var{c}) \texttt{\%}
-      \var{c} = \texttt{0}
+      \code{*}\emph{\textsubscript{kind}} \var{c}) \lstinline|%|
+      \var{c} = \code{0}
     \end{compactenum}
   \item
-    Bitwise identities: \var{e} \texttt{\&} \texttt{0} = \texttt{0},
-    \var{e} \texttt{\textbar{}} \texttt{0} = \var{e}, \var{e}
-    \texttt{\^{}} \texttt{0} = \var{e}, and
-    \texttt{\textasciitilde{}(\textasciitilde{}}\var{e}\texttt{))} =
+    Bitwise identities: \var{e} \code{&} \code{0} = \code{0},
+    \var{e} \lstinline@|@ \code{0} = \var{e}, \var{e}
+    \lstinline|^| \code{0} = \var{e}, and
+    \lstinline|~(~|\var{e}|lstinline|))| =
     \var{e}
   \item
     Boolean identities: given a non-zero constant c, \var{e}
-    \texttt{\&\&} \var{c} simplifies to \var{e}, \var{e}
-    \texttt{\textbar{}\textbar{}} \var{c} simplifies to \texttt{1}, and
-    \texttt{!}\var{c} = \emph{0}. When \var{c} = \texttt{0}, \var{e}
-    \texttt{\&\&} \var{c} simplifies to \texttt{0}, \var{e}
-    \texttt{\textbar{}\textbar{}} \var{c} simplifies to \var{e}, and
-    \texttt{!}\var{c} = \texttt{1}.
+    \code{&&} \var{c} simplifies to \var{e}, \var{e}
+    \lstinline@||@ \var{c} simplifies to \code{1}, and
+    \code{!}\var{c} = \emph{0}. When \var{c} = \code{0}, \var{e}
+    \code{&&} \var{c} simplifies to \code{0}, \var{e}
+    \lstinline@||@ \var{c} simplifies to \var{e}, and
+    \code{!}\var{c} = \code{1}.
   \item
     Double negation:
-    \texttt{-}\emph{\textsubscript{kind}}(\texttt{-}\emph{\textsubscript{kind}}
-    \var{e}\texttt{)} = e.
+    \code{-}\emph{\textsubscript{kind}}(\code{-}\emph{\textsubscript{kind}}
+    \var{e}\code{)} = e.
   \item
-    Cancelling terms: \var{e} \texttt{-}\textsubscript{signed} \var{e}
-    simplifies to \texttt{0} and \var{e} \texttt{+\textsubscript{kind}}
-    (\texttt{-\textsubscript{kind}} \var{e}) simplifies to \texttt{0}.
+    Cancelling terms: \var{e} \code{-}\textsubscript{signed} \var{e}
+    simplifies to \code{0} and \var{e} \texttt{+\textsubscript{kind}}
+    (\texttt{-\textsubscript{kind}} \var{e}) simplifies to \code{0}.
     This is applied more generally to a sequence of addition operations
     of the form \texttt{(}\ldots{} \texttt{(}e1
     \texttt{+}\textsubscript{kind} e2\texttt{)} \ldots{}
@@ -1089,9 +1086,9 @@ The following rules are applied until no further changes occur:
 \begin{compactenum}
 \item
   For each operator \var{op} in CA, repeatedly rewriting any expression
-  of the from \var{e1} \var{op} \texttt{(}\var{e2} \var{op}
-  \var{e3}\texttt{)} to \texttt{(}\var{e1} \var{op}
-  \var{e2}\texttt{)} \var{op} \var{e3} until no further rewrites are
+  of the from \var{e1} \var{op} \code{(}\var{e2} \var{op}
+  \var{e3}\code{)} to \code{(}\var{e1} \var{op}
+  \var{e2}\code{)} \var{op} \var{e3} until no further rewrites are
   possible.
 \item
   For each operator \var{op} in CA, for each sequence of operations
@@ -1109,30 +1106,32 @@ The following rules are applied until no further changes occur:
 
   \begin{compactenum}
   \item
-    Rewriting \texttt{-}\emph{\textsubscript{kind}}\texttt{(}\var{e1}
-    \texttt{+}\emph{\textsubscript{kind}} \var{e2}\texttt{)} to
-    \texttt{(-}\emph{\textsubscript{kind} e1}\texttt{)} \texttt{+}
-    \texttt{(-}\emph{\textsubscript{kind} e2}\texttt{)},
+    Rewriting \code{-}\emph{\textsubscript{kind}}\code{(}\var{e1}
+    \code{+}\emph{\textsubscript{kind}} \var{e2}\code{)} to
+    \code{(-}\emph{\textsubscript{kind} e1}\code{)} \code{+}
+    \code{(-}\emph{\textsubscript{kind} e2}\code{)},
   \item
-    Rewriting \texttt{(}\var{e1} \texttt{+}\emph{\textsubscript{kind}}
-    \var{e2}\texttt{)} \texttt{*}\emph{\textsubscript{kind}} \var{e3}
-    to \texttt{(}\var{e1} \texttt{*}\emph{\textsubscript{kind}}
-    \var{e3}\texttt{)} \texttt{+}\emph{\textsubscript{kind}}
-    \texttt{(}\var{e2} \texttt{*}\emph{\textsubscript{kind}}
-    \var{e3}\texttt{)}
+    Rewriting \code{(}\var{e1} \code{+}\emph{\textsubscript{kind}}
+    \var{e2}\code{)} \code{*}\emph{\textsubscript{kind}} \var{e3}
+    to \code{(}\var{e1} \code{*}\emph{\textsubscript{kind}}
+    \var{e3}\code{)} \code{+}\emph{\textsubscript{kind}}
+    \code{(}\var{e2} \code{*}\emph{\textsubscript{kind}}
+    \var{e3}\code{)}
   \item
-    Rewriting \texttt{(}e1 \textbar{} e2\texttt{)} \& e3 as \texttt{(}e1
-    \& e3\texttt{)} \textbar{} \texttt{(}e2 \& e3\texttt{)} and
-    rewriting e3 \& \texttt{(}e1 \textbar{} e2\texttt{)} as \texttt{(}e3
-    \& e1 \textbar{} e3 \& e2\texttt{)}
+    Rewriting \code{(}\var{e1} \lstinline@|@ \var{e2}\code{)} \lstinline@&@ \var{e3} as 
+    \code{(}\var{e1} \lstinline@&@ \var{e3}\code{)} \lstinline@|@ \code{(}\var{e2} 
+    \lstinline@&@ \var{e3}\code{)} and
+    rewriting \var{e3} \lstinline@&@ \code{(}\var{e1} \lstinline@|@ \var{e2}\code{)} as 
+    \code{(}\var{e3} \lstinline@&@ \var{e1} \lstinline@|@ \var{e3} \lstinline@&@ \var{e2}\code{)}
   \item
-    Rewriting !(e1 \textbar{}\textbar{} e2) as ((!e1) \&\& (!e2)) and
-    !(e1 \&\& e2) as ((!e1) \textbar{}\textbar{} (!e2))
+    Rewriting !(\var{e1} \lstinline@||@ \var{e2}) as ((!\var{e1}) \lstinline@&&@ (!\var{e2})) and
+    !(\var{e1} \lstinline@&&@ \var{e2}) as ((!\var{e1}) \lstinline@||@ (!\var{e2}))
   \item
-    Rewriting (e1 \textbar{}\textbar{} e2) \&\& e3 as (e1 \&\& e3)
-    \textbar{}\textbar{} (e2 \&\& e3) and rewriting e3 \&\& (e1
-    \textbar{}\textbar{} e2) as (e3 \&\& e1 \textbar{}\textbar{} e3 \&\&
-    e2)
+    Rewriting (\var{e1} \lstinline@||@ \var{e2}) \lstinline@&&@ \var{e3} as 
+    (\var{e1} \lstinline@&&@ \var{e3})
+    \lstinline@||@ (\var{e2} \lstinline@&&@ \var{e3}) and rewriting \var{e3} \lstinline@&&@ (\var{e1}
+    \lstinline@||@ \var{e2}) as (\var{e3} \lstinline@&&@ \var{e1} \lstinline@||@ \var{e3} 
+    \lstinline@&&@ \var{e2})
   \end{compactenum}
 \end{compactenum}
 \end{compactenum}
@@ -1345,7 +1344,7 @@ each variable \var{v} in the list,
     \end{itemize}
   \item
     If \var{v} has an initializer, the initializer must have the form
-    \var{e} or \texttt{\{} \var{e} \texttt{\}}. In both cases,
+    \var{e} or \lstinline|{| \var{e} \lstinline|}|. In both cases,
 
     \begin{itemize}
     \item
@@ -1408,8 +1407,8 @@ f(int size) {
 \end{lstlisting}
 
 If the code were slightly rearranged, there would be a compile-time
-error. The assignment to \texttt{plen} invalidates the bounds for
-\texttt{parr} in the context at the point of the assignment.
+error. The assignment to \code{plen} invalidates the bounds for
+\code{parr} in the context at the point of the assignment.
 
 \begin{lstlisting}[escapechar=\|]
 f(int size) {
@@ -1444,9 +1443,9 @@ parameters,
 \item
   A statement of the form
 
-  x\textsubscript{1} = e\textsubscript{1} \texttt{,} x\textsubscript{2} = 
-  e\textsubscript{2} \texttt{,} \ldots{}. x\textsubscript{n} =
-  e\textsubscript{n} where \var{conditions} \texttt{;}
+  x\textsubscript{1} = e\textsubscript{1} \code{,} x\textsubscript{2} = 
+  e\textsubscript{2} \code{,} \ldots{}. x\textsubscript{n} =
+  e\textsubscript{n} where \var{conditions} \code{;}
 
   is constructed, where \var{conditions} contains all the bounds
   declarations on parameters. Parameters are renamed if necessary so
@@ -1479,7 +1478,7 @@ parameters,
  \section{Return statements}
  \label{section:checking-return-statements}
 
-A return statement has the form \texttt{return} \var{e}, where \var{e}
+A return statement has the form \code{return} \var{e}, where \var{e}
 is optional. The bounds for \var{e} are computed. If the special
 variable \exprcurrentvalue\ occurs in the bounds, the special
 variable \keyword{return\_value} is substituted into the bounds in its
@@ -1494,24 +1493,24 @@ from zero or more expressions, statements, and declarations:
 
 \begin{itemize}
 \item
-  Labeled statements of the form \texttt{case}
-  \var{constant-expression} \texttt{:} \var{statement},
-  \texttt{default :} \var{statement}, and \var{identifier} :
+  Labeled statements of the form \code{case}
+  \var{constant-expression} \code{:} \var{statement},
+  \code{default :} \var{statement}, and \var{identifier} :
   \var{statement}.
 \item
-  Selection statements of the form \texttt{if (}
-  \var{expression}\texttt{)} \var{statement} \texttt{else}
-  \var{statement} and \texttt{switch (} \var{expression} \texttt{)}
+  Selection statements of the form \code{if (}
+  \var{expression}\code{)} \var{statement} \code{else}
+  \var{statement} and \code{switch (} \var{expression} \code{)}
   \var{statement}.
 \item
-  Iteration statements such as \texttt{while (} \var{expression} )
-  \var{statement} and \texttt{for
+  Iteration statements such as \code{while (} \var{expression} )
+  \var{statement} and \code{for
   (}\var{declaration\textsubscript{opt}}
   \var{expression\textsubscript{opt} ; expression\textsubscript{opt}
-  statement}\texttt{)}.
+  statement}\code{)}.
 \item
-  Jump statements of the from \texttt{goto} \var{identifier},
-  \texttt{continue}, and \texttt{break}.
+  Jump statements of the from \code{goto} \var{identifier},
+  \code{continue}, and \code{break}.
 \item
   Compound statements of the form \texttt{\{ ... \}} where \texttt{...}
   are zero or more declarations or statements.

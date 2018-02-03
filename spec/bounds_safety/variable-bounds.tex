@@ -282,8 +282,10 @@ int sum(void)
 This is a declaration of a function that copies bytes provided that the
 pointers and lengths are aligned:
 \begin{lstlisting}
-int aligned_memcpy(array<char> dst where dst : count(len) && aligned(dst, 4),
-                   array<char> src where src : count(len) && aligned(src, 4),
+int aligned_memcpy(array<char> dst where dst : count(len) && 
+                                         aligned(dst, 4),
+                   array<char> src where src : count(len) && 
+                                         aligned(src, 4),
                    int len where len % 4 == 0);
 \end{lstlisting}
 

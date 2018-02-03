@@ -1,9 +1,9 @@
 % !Tex root = checkedc.tex
 
-\newcommand{\dynamicboundscast}{\texttt{dynamic\_bounds\_cast}}
-\newcommand{\dynamicboundscastinst}[2]{\texttt{dynamic\_bounds\_cast<#1>#2}}
-\newcommand{\assumeboundscast}{\texttt{assume\_bounds\_cast}}
-\newcommand{\assumeboundscastinst}[2]{\texttt{assume\_bounds\_cast<#1>#2}}
+\newcommand{\dynamicboundscast}{\lstinline|dynamic_bounds_cast|}
+\newcommand{\dynamicboundscastinst}[2]{\lstinline|dynamic_bounds_cast<|#1\lstinline|>|#2}
+\newcommand{\assumeboundscast}{\lstinline|assume_bounds_cast|}
+\newcommand{\assumeboundscastinst}[2]{\lstinline|assume_bounds_cast<|#1\lstinline|>|#2}
 
 \chapter{Interoperation}
 \label{chapter:interoperation}
@@ -73,7 +73,7 @@ describes the operators.
 \begin{tabular}{p{1.5in}p{4in}}
 \toprule
 Operator & Description \\
-\texttt{(T *)} & The C cast operator.  Additional static checking rules
+\lstinline|(|\var{T} \lstinline|*)|  & The C cast operator.  Additional static checking rules
 ensure pointer casts to checked pointer types are correct with respect to bounds.\\
 \dynamicboundscast\ & Does dynamic checks to ensure bounds
 safety.  It produces a runtime error if the checks fail.\\
@@ -87,7 +87,7 @@ Because it is unchecked, it is not allowed in \keyword{checked} blocks.\\
 
 The syntax of the new operators is similar to the syntax of C++ type
 conversion operators, where the destination pointer type is specified by
-placing a type argument \texttt{<\var{T}>} after the operator: \dynamicboundscastinst{\var{T}}{}
+placing a type argument \lstinline|<|\var{T}\lstinline|>| after the operator: \dynamicboundscastinst{\var{T}}{}
 and \assumeboundscastinst{\var{T}}{}.   A relative alignment type or constant can be
 specified using an optional second argument:  
 \dynamicboundscastinst{\var{T}, \var{A}}{} or \assumeboundscastinst{\var{T, \var{A}}}{}.
@@ -120,7 +120,7 @@ This section describes each of the cast operators and the static
 and runtime checking that is done for each operator.   
 
 For C cast operators, the checking is only static.
-Here are the rules for cast operators of the form \texttt{(\var{D}) \var{e}},
+Here are the rules for cast operators of the form \cast{\var{D}}{\var{e}},
 where \var{e} has source type \var{S}.  The rules are applied in addition
 to any existing C typing rules that apply to the cast.
 \begin{itemize}
@@ -136,14 +136,14 @@ error.
 \item Otherwise, if the bounds are \boundsany, checking 
 succeeds.
 \item Otherwise, the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible
-to that form).  It must be provable statically that \texttt{\var{e} >= \var{lb}}
-and that {\texttt{((char *) \var{ub}) - ((char *) \var{e}) >= sizeof(\var{T})}}.
-If \texttt{sizeof(\var{T})} is not defined because \var{T} is \void, \texttt{1} is
+to that form).  It must be provable statically that \var{e} \code{>=} \var{lb}
+and that {\texttt{(\cast{char *}{\var{ub}} - \cast{char *}{\var{e}}) >= sizeof(\var{T})}}.
+If \sizeof{\var{T}} is not defined because \var{T} is \void, \code{1} is
 used instead.
 \end{itemize}
 \item \arrayptrT: No new rules are needed.   The rules in
 Chapter~\ref{chapter:checking-bounds} already cover this case.
-\item \texttt{\var{T} *}: If the source type \var{S} is
+\item \var{T} \code{*}: If the source type \var{S} is
 \begin{itemize}
 \item \ptrT, the checking succeeds. This handles the case where \var{T}
 is an incomplete type.
@@ -159,10 +159,10 @@ pointer types.  If \var{D} is \ptrT, \var{S} is \uncheckedptrinst{U}, and \var{T
 compatible types, and one of the following, then checking succeeds:
 \begin{itemize}
 \item \var{e} is a function name.
-\item \var{e} has the form \texttt{*e1}, such that the \texttt{*} operator does not change the value of \var{e1},
-and checking succeeds for \texttt{(D) e1} (This requires that \var{e1} has function pointer type).
-\item \var{e} has the form \texttt{\&e1}, such that the \texttt{\&} operator does not change the value of \var{e1},
-and checking succeeds for \texttt{(D) e1} (This requires that \var{e1} has has function type).
+\item \var{e} has the form \code{*}\var{e1}, such that the \code{*} operator does not change the value of \var{e1},
+and checking succeeds for \cast{\var{D}}{\var{e1}} (this requires that \var{e1} has function pointer type).
+\item \var{e} has the form \code{&}\var{e1}, such that the \code{&} operator does not change the value of \var{e1},
+and checking succeeds for \cast{\var{D}}{\var{e1}} (This requires that \var{e1} has function type).
 \item \var{e} is a cast that does not change the value of the cast operand, and checking succeeds for the cast
 operand.
 \end{itemize}
@@ -203,7 +203,7 @@ If the bounds of \var{e1} are \boundsany, no runtime checks are needed.
 Otherwise the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible to that form).
 The following runtime checks are done:
 \begin{itemize}
-\item Check whether \var{e1} is 0.  If so, no further runtime checking
+\item Check whether \var{e1} is \code{0}.  If so, no further runtime checking
 is needed.
 \item Otherwise, if the operator has the form:
 \begin{itemize}
@@ -214,13 +214,13 @@ is needed.
 \item
   \dynamicboundscastinst{\var{T}}{(\var{e1}, \var{e2})}:
    check that \var{lb}
-  \texttt{<=} \var{e1} \texttt{\&\&} \var{e1} \texttt{+
-  sizeof(referent-type(}\var{T}\texttt{)) *} e2 \texttt{<=}
+  \code{<=} \var{e1} \code{&&} \var{e1} \code{+}
+  \sizeof{referent-type(\var{T})} * e2 \code{<=}
   \var{ub}.
 \item
   \dynamicboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})}: 
-  check that \var{lb} \texttt{<=} \var{e2} \texttt{\&\&}
-  \var{e3} \texttt{<=} \var{ub}. Also check that \var{e1}, \var{e2}, and \var{e3} 
+  check that \var{lb} \code{<=} \var{e2} \code{&&}
+  \var{e3} \code{<=} \var{ub}. Also check that \var{e1}, \var{e2}, and \var{e3} 
   are relatively aligned to \var{T} (or the optional alignment parameter instead, if one
   is given). 
 
@@ -242,10 +242,10 @@ without verification:
   relative alignment parameter instead, if there is one).
 \item
   \assumeboundscastinst{\var{T}}{(\var{e1})}
-  converts \var{e1} to a \ptr\ or \texttt{*} type.
+  converts \var{e1} to a \ptr\ or \code{*} type.
 \end{itemize}
 
-If any rule depends on \texttt{sizeof(\var{T})} and \var{T} is
+If any rule depends on \sizeof{\var{T}} and \var{T} is
 an incomplete type, the cast operation that uses the rule shall fail
 to check at compile-time.
 
@@ -293,7 +293,7 @@ int x = 0;
 // fails to check: source not large enough
 array_ptr<int> pax : count(5) = (array_ptr<int>) &x;
 \end{lstlisting}
-In this example, the result of \texttt{random()} has no bounds:
+In this example, the result of \code{random()} has no bounds:
 \begin{lstlisting}
 char *random(void);
 
@@ -385,8 +385,8 @@ parameter is the destination type for the conversion.
 
 \subsection{Conditional expressions}
 
-For a conditional expression with the form \var{e1} \texttt{?} \var{e2}
-\texttt{:} \var{e3}, the arms of the conditional expression may be implicitly
+For a conditional expression with the form \var{e1} \code{?} \var{e2}
+\code{:} \var{e3}, the arms of the conditional expression may be implicitly
 converted so that their types  match.  The concept of source and destination types
 does not make sense here because the arms should be treated symmetrically.
 
@@ -448,7 +448,7 @@ it is \arrayptrvoid.
 \subsection{Between checked pointers and integers}
 
 The null pointer (0) can be converted implicitly to any checked pointer type.
-A checked pointer can be converted implicitly to the \texttt{\_Bool} type.
+A checked pointer can be converted implicitly to the \code{_Bool} type.
 
 Some C compilers extend C by allowing implicit conversions between pointers
 and integers or between pointers to incompatible types.  Implicit conversions
@@ -486,14 +486,14 @@ f(b);
 The mechanics behind this are somewhat complicated.  Parameters with type
 ``array of \var{T}'' are actually treated as having type ``pointer to \var{T}''.
 Parameters with the type ``checked array of \var{T}'' are treated as ``checked
-pointer to \var{T}''.  The actual type of the parameter of \texttt{f} is
+pointer to \var{T}''.  The actual type of the parameter of \code{f} is
 \begin{lstlisting}
 extern void f(array_ptr<int checked[3]> arg);
 \end{lstlisting}
 Local variables with type ``array of \var{T}'' are treated as having
 type ``unchecked pointer to \var{T}'' when they are used.  The type of
-\texttt{b} at \texttt{f(b)} is ``unchecked pointer to an array of 3 integers''.
-At the call to  \texttt{f(b)}, there is an implicit conversion from an
+\code{b} at \code{f(b)} is ``unchecked pointer to an array of 3 integers''.
+At the call to  \code{f(b)}, there is an implicit conversion from an
 ``unchecked pointer to an unchecked array of 3 integers'' to a ``checked pointer
 to a checked array of 3 integers'':
 \begin{lstlisting}
@@ -537,7 +537,7 @@ void f(void) {
 The new pointer types capture specific properties of pointers. We would like to update
 existing C code to use the new pointer types. This would be problematic for library and operating
 system APIs that have backward  compatibility constraints, however.   Consider what would happen
-if the signature for \texttt{memcpy} were changed to use \arrayptr. The function
+if the signature for \code{memcpy} were changed to use \arrayptr. The function
 
 \begin{lstlisting}
 void *memcpy(void *dest, const void *src, size_t count);
@@ -549,10 +549,10 @@ would become
 void *memcpy(array_ptr<void> dest, array_ptr<const void> src, size_t count);
 \end{lstlisting}
 
-This would break existing code that uses \texttt{memcpy}.  The code would no
+This would break existing code that uses \code{memcpy}.  The code would no
 longer type check.  The reverse problem also exists: suppose the signature for
-\texttt{memcpy} is not updated.  Then every checked method that calls
-\texttt{memcpy} would need to cast the arguments to unchecked pointer types.
+\code{memcpy} is not updated.  Then every checked method that calls
+\code{memcpy} would need to cast the arguments to unchecked pointer types.
 
 Given that changing the types of existing APIs is problematic, we take an approach
 that does not change types, yet enables new checked code to be written easily
@@ -626,7 +626,7 @@ declared for the parameters and return values.  At calls to
 these functions, implicit conversions from checked types to unchecked
 pointer types are inserted for the corresponding argument expressions
   
-Here is a bounds-safe interface for \texttt{memcpy}:
+Here is a bounds-safe interface for \code{memcpy}:
 \begin{lstlisting}
 void *memcpy(void *dest : byte_count(len),
              const void *src : byte_count(len), 
@@ -635,8 +635,8 @@ void *memcpy(void *dest : byte_count(len),
                                          (char *) dest + count);
 \end{lstlisting}
 The correctness of bounds information is enforced at compile-time when
-\texttt{memcpy} is passed checked pointer arguments. It is not enforced when 
-\texttt{memcpy} is passed unchecked pointer arguments.
+\code{memcpy} is passed checked pointer arguments. It is not enforced when 
+\code{memcpy} is passed unchecked pointer arguments.
 
 Variables at external scope with unchecked pointer types can have
 bounds declared for them.   The declarations must follow the 
@@ -679,29 +679,29 @@ stripped from its source code.
 A type annotation describes an alternate checked type to use in checked code
 in place of an unchecked type. It is used, for example, when a variable with
 an unchecked pointer type should be treated as having
-a \texttt{ptr} type.  Syntactically, it can
+a \code{ptr} type.  Syntactically, it can
 be used in place of the  bounds expression in a bounds declaration.
 
 A type annotation is specified using the following syntax:
 
 \begin{tabbing}
 \var{type-}\=\var{annotation:} \\
-\>\texttt{itype (} \var{type name} \texttt{)}\\
+\>\code{itype (} \var{type name} \code{)}\\
 \\
 The syntax for inline bounds specifiers is extended to include
 type annotations:\\
 \\
 \var{inline-bounds-specifier:}\\
 \> \var{\ldots{}}\\
-\>\texttt{:} \var{type-annotation}
+\>\code{:} \var{type-annotation}
 \end{tabbing}
-The keyword \texttt{itype} is short for bounds-safe  interface type.
+The keyword \code{itype} is short for bounds-safe  interface type.
 
 A type annotation can be used to declare that an unchecked
 pointer to a structure should be treated as a \lstinline+ptr+ in
 checked code. Here is a declaration for a function
 \lstinline+count_char+ that takes
-an unchecked pointer to the struct \texttt{S} defined earlier,
+an unchecked pointer to the struct \code{S} defined earlier,
 with a type annotation. \lstinline+count_char+ counts the number
 of occurrences of \lstinline+arg+ in \lstinline+S+. Checked code must pass a
 value that is a valid \lstinline+ptr+ to \lstinline+count_char+:
@@ -815,12 +815,12 @@ int g(int *a : count(len), int len, int *b);  // decl 2
 int g(int *a, int len, int *b : count(len));  // decl 3
 int g(int *a : count(len), int len, int *b : count(len));  // decl 4
 \end{lstlisting}
-The declarations of \texttt{g} are particularly interesting. They are all
+The declarations of \code{g} are particularly interesting. They are all
 compatible declarations.  The only version
 that could be used in a checked scope is declaration 4.   For declarations 2 and 3,
-where bounds information is missing for a parameter, the argument passed to \texttt{g}
+where bounds information is missing for a parameter, the argument passed to \code{g}
 for that parameter cannot have an \arrayptr\ type.  The typing rules prevent arguments
-with checked type from being used with parameters of \texttt{g} that are missing
+with checked type from being used with parameters of \code{g} that are missing
 bounds information.
 
 \subsection{Type checking}
@@ -1000,22 +1000,21 @@ rules for inferring bounds to integral expressions:
 
 \begin{itemize}
 \item
-  Given \texttt{\var{e1} \var{op} \var{e2}}, where \var{op} is an additive, multiplicative, or bitwise
+  Given \var{e1} \var{op} \var{e2}, where \var{op} is an additive, multiplicative, or bitwise
   binary operator on integral types, the bounds of \var{e1} and \var{e2} can be
   computed:
 
   \begin{itemize}
   \item
     If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsunknown, and 
-    \boundsdecl{\var{e2}}{\boundsunknown}, and it can be proved that \texttt{\var{e1} != 0}, then
+    \boundsdecl{\var{e2}}{\boundsunknown}, and it can be proved that \var{e1} \code{!= 0}, then
     \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
     If the special variable \exprcurrentvalue\ occurs in \var{b}:
     \begin{itemize}
     \item
       If \var{op} has an inverse operation \var{inverse-op}, then 
-      \texttt{\exprcurrentvalue\ \var{inverse-op} \var{e2}}
-      is substituted for \exprcurrentvalue.
+      \exprcurrentvalue\ \var{inverse-op} \var{e2} is substituted for \exprcurrentvalue.
     \item
       Otherwise the bounds of the expression are altered to be \boundsunknown.
     \end{itemize}
@@ -1024,13 +1023,13 @@ rules for inferring bounds to integral expressions:
     and \boundsdecl{\var{e2}}{\var{b}}, where \var{b} is not \boundsunknown.
   \end{itemize}
 \item
-  Given \texttt{\var{e1} \var{op} \var{e2}} where \var{op} is a shift operator, \var{e1} is the integral value
+  Given \var{e1} \var{op} \var{e2} where \var{op} is a shift operator, \var{e1} is the integral value
   being shifted, and \var{e2} is the shift amount,
 
   \begin{itemize}
   \item
     If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsunknown, and \var{e2} has
-    \boundsunknown, and it can be proved that \texttt{\var{e1} != 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
+    \boundsunknown, and it can be proved that \var{e1} \code{!= 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
     If the special variable \exprcurrentvalue\ occurs in \var{b}.
     bounds of the expression are altered to be \boundsunknown. Shift

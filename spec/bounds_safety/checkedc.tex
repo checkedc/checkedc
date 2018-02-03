@@ -97,7 +97,7 @@
 %
 \newcommand{\keyword}[1]{\lstinline|#1|}
 \newcommand{\code}[1]{\lstinline|#1|}
-\newcommand{\sizeof}[1]{\lstinline|sizeof(|#1\lstinline|)|}
+
 %
 
 %
@@ -123,7 +123,7 @@
 % use the name spanptr because span is already a command
 % in tex
 \newcommand{\spanptr}{\lstinline|span|}
-\newcommand{\spanptrinst}[1]{\lstinline|span<|{#1}|\lstinline|>|}
+\newcommand{\spanptrinst}[1]{\lstinline|span<|{#1}\lstinline|>|}
 \newcommand{\spanptrT}{\spanptrinst{\var{T}}}
 \newcommand{\spanptrchar}{\spanptrinst{\keyword{char}}}
 \newcommand{\spanptrint}{\spanptrinst{\keyword{int}}}
@@ -164,8 +164,13 @@
 \newcommand{\boundsinfer}[2]{#1~$\vdash$~#2}
 
 % expression macros
+\newcommand{\sizeof}[1]{\lstinline|sizeof(|#1\lstinline|)|}
+\newcommand{\cast}[2]{\lstinline|(|#1\lstinline|)| #2}
 \newcommand{\inbounds}[1]{\lstinline|in_bounds(|{#1}\lstinline|)|}
 \newcommand{\exprcurrentvalue}{\lstinline|expr_current_value|}
+\newcommand{\plusovf}{\lstinline|+|\textsubscript{ovf}}
+\newcommand{\minusovf}{\lstinline|-|\textsubscript{ovf}}
+\newcommand{\mulovf}{\lstinline|*|\textsubscript{ovf}}
 
 \begin{document}
 

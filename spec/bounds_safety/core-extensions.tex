@@ -53,7 +53,7 @@ that \keyword{checkedc.h} is included before examples.
 
 \section{New kinds of pointer types}
 Three new checked pointer types are added to C. Each pointer type can be
-used in place of `\texttt{*}':
+used in place of `\code{*}':
 \begin{enumerate}
 \item
   \ptrT: this points to
@@ -80,10 +80,10 @@ used in place of `\texttt{*}':
  arrays.  It is described in Section~\ref{section:nullterm-types}
 \end{enumerate}
 
-Unchecked C pointer types that use `\texttt{*}' and are unchecked in their
+Unchecked C pointer types that use `\code{*}' and are unchecked in their
 ranges continue to exist. Pointer arithmetic is not forbidden on unchecked
 pointer types because it would break existing C code. C compilers will
-have an error or warning mode that flags unexpected uses of `\texttt{*}'.
+have an error or warning mode that flags unexpected uses of `\code{*}'.
 
 The same syntax as C++ template instantiations is used for building
 instances of these types because this syntax is well-known and
@@ -234,7 +234,7 @@ int x[5];
 
 Given a declaration \var{T} \var{D}, if \var{D} is an array
 declarator, it will have the form
-\texttt{\var{D1}[\var{constant-expression\textsubscript{opt}}]},
+\var{D1}\lstinline|[|\var{constant-expression\textsubscript{opt}}\lstinline|]|
 where \var{D1} is another declarator. The type of the identifier in the
 declaration \var{T D1} will be determined first. The type can be some
 constructed type of the form \var{type-modifier} of \var{T}, where
@@ -383,19 +383,19 @@ The following operations involving pointer-typed values are allowed:
 
 \begin{itemize}
 \item
-  Indirection: the \texttt{*} operator can be applied to a value of type
-  \var{T} \texttt{*}, \ptrT, or \arrayptrT. It produces a value of type \var{T}.
+  Indirection: the \code{*} operator can be applied to a value of type
+  \var{T} \code{*}, \ptrT, or \arrayptrT. It produces a value of type \var{T}.
 \item
-  Array reference: the \texttt{[]} operator can be applied to a
-  value of type \var{T} \texttt{*} or \arrayptrT. It
+  Array reference: the \code{[]} operator can be applied to a
+  value of type \var{T} \code{*} or \arrayptrT. It
   cannot be applied to a value of type \ptrT.
-  \texttt{\var{e1}[\var{e2}]} is equivalent to
-  \texttt{*(\var{e1} + \var{e2})}
+  \var{e1}\lstinline|[|\var{e2}\lstinline|]| is equivalent to
+  \lstinline|*(|\var{e1} \lstinline|+| \var{e2}\lstinline|)|.
 \item
   Assignment: two pointers of the same type can be assigned.
 \item
   Adding or subtracting a pointer type and an integer. This is allowed
-  for \var{T} \texttt{*} and \arrayptrT\ types.
+  for \var{T} \code{*} and \arrayptrT\ types.
 \item
   Pointers to objects of the same type can be compared for equality or
   inequality. The pointers do not have to be the same kind of pointer.
@@ -432,7 +432,7 @@ operators are described in Section~\ref{section:pointer-casting}.
 
 \subsection{Rules for the address-of operator}
 
-If an address-of operator (\texttt{\&}) applied to an lvalue expression
+If an address-of operator (\code{&}) applied to an lvalue expression
 of type \var{T}, the following rules apply:
 
 \begin{itemize}
@@ -441,7 +441,7 @@ of type \var{T}, the following rules apply:
   produces a value of type \arrayptrT.
 \item
   Otherwise, the address-of operator produces a value of type \var{T}
-  \texttt{*}.
+  \code{*}.
 \end{itemize}
 
 \subsection{Rules for conversion of checked array types to pointer types}
@@ -453,13 +453,13 @@ array of \var{T}'', the type of the expression is altered to
 be \ntarrayptrT.
 
 Following existing C language rules, this alteration does not happen if
-the expression is an operand of an address-of operator, \texttt{++},
-\texttt{--}, \texttt{sizeof}, or the left operand of an assignment
-operator or the `\texttt{.}' operator. The prohibition against this
+the expression is an operand of an address-of operator, \code{++},
+\code{--}, \code{sizeof}, or the left operand of an assignment
+operator or the `\code{.}' operator. The prohibition against this
 conversion occurring for operands of the address-of operator gives the
 results of the operator a more precise type. For sizeof, it also results
-in a more precise answer. The prohibitions against it for \texttt{++}, and
-\texttt{--} operands and the left operand of an assignment operator keeps array
+in a more precise answer. The prohibitions against it for \code{++}, and
+\code{--} operands and the left operand of an assignment operator keeps array
 variables from being modifiable.
 
 \section{Variable and member initialization}
@@ -542,7 +542,7 @@ the top-level scope is a checked scope:
 #pragma BOUNDS_CHECKED |\textit{on-off-switch}|
 \end{lstlisting}
 
-Where \texttt{\textit{on-off-switch}} is one of \lstinline|ON OFF DEFAULT|
+Where \textit{on-off-switch} is one of \lstinline|ON OFF DEFAULT|
 
 By default, function definitions are not checked. A block inherits the
 checking properties of its parent. This preserves the meaning of
@@ -872,8 +872,8 @@ part of the bounds.  This is described in
 Section~\ref{section:representing-relative-alignment}.
 This can be used for bounds for the results of pointers casts and 
 for  \arrayptrvoid\ pointers. The type
-\texttt{void} has no defined size, so the default relative alignment is
-undefined for \texttt{void}.
+\void\ has no defined size, so the default relative alignment is
+undefined for \void.
 
 We considered removing the entire concept of relative alignment from the
 design to simplify the design.  We decided against that because it would 
@@ -919,8 +919,8 @@ mechanism may be invoked to redirect program execution to a new point of
 execution that does not use the value of the expression.
 
 Defining pointer arithmetic this way simplifies reasoning about the new
-pointer types. Expected identities such as \texttt{p + 1 > p} now hold
-because, if \texttt{p + 1} overflows, the value cannot be
+pointer types. Expected identities such as \code{p + 1 > p} now hold
+because, if \code{p + 1} overflows, the value cannot be
 used. This allows programmers to narrow the bounds for
 \arrayptr\ values by incrementing the lower bound or
 decrementing the upper bound, even in situations where the bounds are at
@@ -944,10 +944,10 @@ specified. The order of bytes within built-in types larger than a byte,
 such as integers and floating-point numbers, is also not specified.
 Pointers shall be treated as addresses of locations of bytes in memory.
 The addresses shall be unsigned integers with a defined range of 0 to
-\texttt{UINTPTR\_MAX}. The maximum value of a signed integer that can be
-added to an address shall be given by \texttt{INTPTR\_MAX} and the
+\code{UINTPTR_MAX}. The maximum value of a signed integer that can be
+added to an address shall be given by \code{INTPTR_MAX} and the
 minimum value of a signed integer that can be added to an address shall
-be given by \texttt{INTPTR\_MIN}.
+be given by \code{INTPTR_MIN}.
 
 For the new
 \arrayptrT\ pointer
@@ -964,13 +964,13 @@ the ranges of signed integers and unsigned integers are different.
   \var{i} is a signed integer, the scaled result shall be treated as a
   signed integer. If \var{i} is an unsigned integer, the scaled result
   shall be treated as an unsigned integer. For a signed integer, the
-  minimum and maximum range for \var{j} shall be \texttt{INTPTR\_MIN} and
-  \texttt{INTPTR\_MAX} For an unsigned integer, the minimum and maximum
-  range for \var{j} shall be 0 and \texttt{UINTPTR\_MAX}. If \var{j} is
+  minimum and maximum range for \var{j} shall be \code{INTPTR_MIN} and
+  \code{INTPTR_MAX} For an unsigned integer, the minimum and maximum
+  range for \var{j} shall be 0 and \code{UINTPTR_MAX}. If \var{j} is
   outside its valid range, the operation doing the scaling operation
   shall produce a runtime error.
 \item
-  \var{p} \texttt{+} \var{i}, where \var{p} is an
+  \var{p} \code{+} \var{i}, where \var{p} is an
   \arrayptrT\ pointer
   and \var{i} is an integer. The integer \var{i} shall be scaled by
   \sizeof{\var{T}}, producing an integer \var{j}. The
@@ -979,12 +979,12 @@ the ranges of signed integers and unsigned integers are different.
   \var{p} + \var{j} is out of range for a pointer, the operation shall
   produce a runtime error.
 \item
-  \var{i} \texttt{+} \var{p}, where \var{p} is an
+  \var{i} \code{+} \var{p}, where \var{p} is an
   \arrayptrT\ pointer
-  and \var{i} is an integer, shall be defined as \var{p} \texttt{+}
+  and \var{i} is an integer, shall be defined as \var{p} \code{+}
   \var{i}.
 \item
-  \var{p} \texttt{-} \var{i}, where \var{p} is an
+  \var{p} \code{-} \var{i}, where \var{p} is an
   \arrayptrT\ pointer
   and \var{i} is an integer. The integer \var{i} shall be scaled by
   \sizeof{\var{T}}, producing an integer \var{j}. The
@@ -993,7 +993,7 @@ the ranges of signed integers and unsigned integers are different.
   operation. If \var{p -} \var{j} is out of range for a pointer, the
   operation shall produce a runtime error.
 \item
-  \var{p} \texttt{-} \var{q}, where \var{p} and \var{q} are
+  \var{p} \code{-} \var{q}, where \var{p} and \var{q} are
   \arrayptrT\
   pointers. The two pointers will be interpreted as unsigned integers
   and the mathematical value \var{p} - \var{q} shall be computed,
@@ -1018,12 +1018,12 @@ the ranges of signed integers and unsigned integers are different.
 
 An important implication of these definitions is that they put a maximum
 limit on the number of elements in an array of type \var{T}. It is
-\texttt{UINTPTR\_MAX/\sizeof{\var{T}}}. They also put
+\code{UINTPTR_MAX/}\sizeof{\var{T}}. They also put
 maximum limits on the number of elements that can be accessed in an
 array by a signed integer or an unsigned integer. That leads to limits
 on the size of arrays that can be described by some bounds. A signed
 integer that must be non-negative can describe an array of
-\texttt{INTPTR\_MAX/\sizeof{var{T}}} elements.
+\code{INTPTR_MAX/}\sizeof{var{T}} elements.
 
 \subsection{Expressing pointer arithmetic as integer arithmetic}
 \label{section:pointers-as-integers}
@@ -1034,54 +1034,53 @@ programmers do explicit size computations that follow the same rules as
 pointer arithmetic.
 
 To support this expansion, integer arithmetic operators are extended
-with the operators \texttt{+\textsubscript{ovf}},
-\texttt{-\textsubscript{ovf}} , and \texttt{*\textsubscript{ovf}}. The
+with the operators \plusovf, \minusovf, and \mulovf. The
 operators interpet pointers as unsigned integers in some range 0 to
-\texttt{UINTPTR\_MAX}. An operator produces a runtime error if the value
+\code{UINTPTR_MAX}. An operator produces a runtime error if the value
 of its result cannot be represented by the result type:
 
 \begin{itemize}
 \item
-  \texttt{+\textsubscript{ovf}} takes an unsigned integer \var{i} and an
+  \plusovf\ takes an unsigned integer \var{i} and an
   integer \var{j} and produces an unsigned integer in the range 0 to
-  \texttt{UINTPTR\_MAX}. Its result is the mathemetical value \var{i} + \var{j}.
+  \code{UINTPTR_MAX}. Its result is the mathemetical value \var{i} + \var{j}.
 \item
   For subtraction, there are two forms:
 
   \begin{itemize}
   \item
-    \texttt{-\textsubscript{ovf}} takes an unsigned integer \var{i} and an
+    \minusovf takes an unsigned integer \var{i} and an
     integer \var{j} as an argument and computes \var{i} - \var{j}, producing an unsigned
-    integer in the range 0 to \texttt{UINTPTR\_MAX}. Its result is the
+    integer in the range 0 to \code{UINTPTR_MAX}. Its result is the
     mathematical value \var{i} - \var{j}.
   \item
-    \texttt{-\textsubscript{ovf\_diff }}takes two unsigned integers \var{i}
+    \lstinline|-|\textsubscript{ovf\_diff } takes two unsigned integers \var{i}
     and \var{j} and computes \var{i} - \var{j}, producing a signed integer of type
-    \texttt{ptrdiff\_t}. Its result is the mathemetical value \var{i} - \var{j}.
+    \code{ptrdiff_t}. Its result is the mathemetical value \var{i} - \var{j}.
   \end{itemize}
 \item
-  \texttt{*\textsubscript{ovf }}takes two integers \var{i} and \var{j} (both either
+  \mulovf\ takes two integers \var{i} and \var{j} (both either
   signed or unsigned) as arguments. It produces an integer whose type is
   the same as the input argument types. Its result is the mathematical
   value \var{i} * \var{j}.
 \end{itemize}
 
-Given an expression \texttt{e1} with a pointer type and an expression
-\texttt{e2} with an integer type, the expansion of \texttt{e1 + e2} from
+Given an expression \code{e1} with a pointer type and an expression
+\code{e2} with an integer type, the expansion of \code{e1 + e2} from
 pointer arithmetic to integer arithmetic depends on the type of
-\texttt{e2}. The number of bytes to added must be the same kind of
-signed or unsigned integer as \texttt{e2}.
+\code{e2}. The number of bytes to added must be the same kind of
+signed or unsigned integer as \code{e2}.
 
 \begin{itemize}
 \item
-  If \texttt{e2} is an unsigned integer, \texttt{e1 + e2} expands to
-  \texttt{e1 +\textsubscript{ovf} \sizeof{\var{T}} *\textsubscript{ovf} e2}
+  If \code{e2} is an unsigned integer, \code{e1 + e2} expands to
+  \code{e1} \plusovf\ \sizeof{\var{T}} \mulovf\ \code{e2}.
 \item
-  If \texttt{e2} is a signed integer, the expansion of \texttt{e1 + e2}
+  If \code{e2} is a signed integer, the expansion of \code{e1 + e2}
   must cast \sizeof{\var{T}} to a signed integer. We introduce a
-  signed integer type \texttt{signed\_size\_t} that is large enough for
-  this cast. \texttt{e1 + e2} expands to \texttt{e1 +\textsubscript{ovf}
-  ((signed\_size\_t) \sizeof{\var{T}}) *\textsubscript{ovf} e2}. This cast is
+  signed integer type \code{signed_size_t} that is large enough for
+  this cast. \code{e1 + e2} expands to \code{e1} \plusovf\ 
+  \code{((signed_size_t)} \sizeof{\var{T}}\code{)} \plusovf\ \code{e2}. This cast is
   necessary because in C, multiplying a signed integer by an unsigned
   integer implicitly converts the signed integer to be an unsigned
   integer.
@@ -1119,17 +1118,17 @@ processors to never fail.
 A bounds check generates a runtime error if it fails. The ability to
 generate a runtime error is not limited to the C implementation. A
 programmer can check a Boolean condition and generate a runtime error
-using the expression \texttt{dynamic\_check(}\var{e1}\texttt{)}, where
+using the expression \code{dynamic_check(}\var{e1}\code{)}, where
 \var{e1} is an integral valued expression. At runtime, \var{e1} is
-evaluated. If the result is \texttt{0} (false), a runtime error occurs.
+evaluated. If the result is \code{0} (false), a runtime error occurs.
 If the result is non-zero (true), no runtime error occurs. Just as with
 a bounds check, if a runtime error occurs and a C implementation
 provides an error-handling facility, the error-handling facility may be
 invoked.
 
-The \texttt{dynamic\_check} expression is similar to an assertion, but
+The \code{dynamic_check} expression is similar to an assertion, but
 unlike an assertion, it is expected to be used in production or release
-versions of software. The \texttt{dynamic\_check} expression is useful
+versions of software. The \code{dynamic_check} expression is useful
 for these reasons:
 
 \begin{itemize}
@@ -1137,10 +1136,10 @@ for these reasons:
   It provides an escape hatch for limits of static checking. If a
   programmer knows a condition is true at runtime, yet the static
   checking cannot prove the fact, the programmer can use
-  \texttt{dynamic\_check} to show that the condition is true.
+  \code{dynamic_check} to show that the condition is true.
 \item
   It maintains programmer control: programmers can use unchecked pointers
-  and \texttt{dynamic\_check} to write the same code that the compiler
+  and \code{dynamic_check} to write the same code that the compiler
   would generate for checked pointers.
 \item
   It gives programmers more control over bounds checks. A programmer can
@@ -1376,7 +1375,7 @@ so it can eliminate the check.
 A compiler would not introduce this dynamic\_check because it would
 alter the behavior of \lstinline+append+. The bounds check on \lstinline+dst+
 in the original code is done only if a marker is not found in
-\lstinline+src+ and \texttt{\lstinline+src_count+ \textgreater{} \lstinline+0+}. A compiler could
+\lstinline+src+ and \lstinline+src_count > 0+. A compiler could
 try to deduce a precondition for the loop 
 that prevents the bounds check from failing, but this is
 not possible because the precondition depends on the contents of
@@ -1490,14 +1489,14 @@ signed integer overflow:
   Unchecked pointers shall be treated as addresses of locations in memory,
   just as checked pointers are treated as addressses. The addresses shall
   be unsigned integers with a defined range of 0 to
-  \texttt{UINTPTR\_MAX}:
+  \code{UINTPTR_MAX}:
 
   \begin{itemize}
   \item
     Comparison of pointers for all different kinds of pointers shall be
     defined as the corresponding integer comparison.
   \item
-    Subtraction \var{p} \texttt{-} \var{r} of two pointers \var{p} and \var{r}
+    Subtraction \var{p} \code{-} \var{r} of two pointers \var{p} and \var{r}
     of type \var{T} where one
     pointer is a checked pointer and the other is an unchecked pointer shall
     be done following the rules for subtraction of checked pointers,

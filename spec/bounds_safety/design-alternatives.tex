@@ -20,33 +20,33 @@ the material into the main design.
 \label{section:alternate-pointer-type-syntax}
 
 Instead of using the C++ template instantiation syntax, we
-considered allowing the new pointer names to be used in place of \texttt{*}.
-For example, given a declaration of the form \texttt{int *pi;}, this could be changed
-to declare a \texttt{ptr} to an integer by substituting \texttt{ptr} for \texttt{*},
-producing \texttt{int ptr pi;}.
+considered allowing the new pointer names to be used in place of \code{*}.
+For example, given a declaration of the form \code{int *pi;}, this could be changed
+to declare a \code{ptr} to an integer by substituting \code{ptr} for \code{*},
+producing \code{int ptr pi;}.
   
 This seems to make code less readable.  This is apparent for type names that 
-consist of several words: \texttt{const unsigned int ptr g} is more
-difficult to parse quickly than \texttt{\ptrinst{const unsigned int} g}.
-The use of symbols like \texttt{<} and \texttt{>} can be recognized 
+consist of several words: \code{const unsigned int ptr g} is more
+difficult to parse quickly than \ptrinst{const unsigned int} \code{g}.
+The use of symbols like \code{<} and \code{>} can be recognized 
 visually more quickly than the use  of an identifier.  
 
 Another possible approach is to treat the new kinds
 of pointer types  as new modifiers for pointers.  For example, 
-\texttt{int * ptr pi;} would declare a \texttt{ptr} to an integer. This is 
+\code{int * ptr pi;} would declare a \code{ptr} to an integer. This is 
 also difficult to parse and makes code even more verbose.
 
 A drawback to using C++ template instantiation syntax is that it interacts
-poorly with mixed C declarators. In the syntax of C declarators, \texttt{*} is used as
+poorly with mixed C declarators. In the syntax of C declarators, \code{*} is used as
 a prefix to an identifier to modify the type of an identifier. A mixed
 declarator is a declarator where different identifiers have different
 types because of different modifiers. An example of a mixed declarator
-is the declaration \texttt{int i, *pi;}. The C++ template instantiation produces a
+is the declaration \code{int i, *pi;}. The C++ template instantiation produces a
 type, so ``mixed'' declarators must be broken across multiple
 lines instead. The resulting declarations would be 
-\texttt{int i; \ptrint\ pi;} On the other hand, non-mixed
-declarators are fine: \texttt{int *pj, *pi;} becomes
-\texttt{\ptrint\ pi, pj;}.
+\code{int i;} \ptrint\ \code{pi;} On the other hand, non-mixed
+declarators are fine: \code{int *pj, *pi;} becomes
+\ptrint \code{pi, pj;}.
 
 \section{Span pointer types}
 \label{section:span-design}
@@ -68,8 +68,8 @@ In our proposal, a \spanptrT\ pointer would carry three values with it: the memo
 will be accessed by dereferencing the \spanptrT, a lower
 bound on the memory that can be accessed via the current pointer value,
 and an upper bound on accessible memory. Those values can be accessed
-using the \texttt{.} operator combined with the special field names
-\texttt{current}, \texttt{lower\_bound}, and \texttt{upper\_bound}. The
+using the \code{.} operator combined with the special field names
+\code{current}, \code{lower_bound}, and \code{upper_bound}. The
 resulting values have the type
 \arrayptrT. The
 special field names can only be read and cannot be modified by
@@ -85,12 +85,12 @@ array_ptr<int> current = p.current;
 The operations on a \spanptr\ would be similar to those on \arrayptr, except that
 the dynamic bounds values would be used:
 \begin{itemize}
-\item  Indirection: the \texttt{*} operator could be applied also to a value of type \spanptrT.
+\item  Indirection: the \code{*} operator could be applied also to a value of type \spanptrT.
 It would produce a value of type \var{T}
 \item
- Array reference: the \texttt{[]} operator could be applied also to a
-  value of type \spanptrT.    \texttt{\var{e1}[\var{e2}]} is equivalent to
-  \texttt{*(\var{e1} + \var{e2})}
+ Array reference: the \code{[]} operator could be applied also to a
+  value of type \spanptrT.   \var{e1}\lstinline|[|\var{e2}\lstinline|]| is equivalent to
+  \lstinline|*(|\var{e1} \lstinline|+| \var{e2}\lstinline|)|.
 \item Pointer arithmetic: adding or subtracting a value of \spanptr\ pointer type and an integer
       would be allowed. Pointer arithmetic overflow would be considered a runtime error.
 \end{itemize}
@@ -106,7 +106,7 @@ the bounds of the value can be determined automatically.
 
 For example, a variable of array type could be converted automatically to
 a \spanptr. First, the array type would be converted to a
-pointer type of either \var{T} \texttt{*} or
+pointer type of either \var{T} \code{*} or
 \arrayptrT , depending
 on whether the array type is checked or unchecked. This pointer type
 would then be converted to an
@@ -152,20 +152,20 @@ not relatively aligned.   This would result in more costly bounds checks and
 more bounds checks in optimized code.
 
 Checks against upper bounds would  take several more instructions.
-Given a pointer \var{p} to type \var{T}, \texttt{*\var{p}} accesses the memory from
-\var{p} to \texttt{\var{p} + sizeof(\var{T}) - 1}. Given an upper bound \var{ub}, the
-upper bounds check for \var{p} becomes \texttt{\var{p} + sizeof(\var{T}) - 1 < \var{ub}},
-not \texttt{\var{p} < \var{ub}}.  The
-computation of \texttt{\var{p} + sizeof(\var{T}) - 1} would need an overflow check also, 
-so several extra instructions would be added to an upper bounds check, 
+Given a pointer \var{p} to type \var{T}, \lstinline|*|\var{p} accesses the memory from
+\var{p} to \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline| - 1|. Given an upper bound \var{ub}, the
+upper bounds check for \var{p} becomes \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1 <|
+\var{ub}, not \var{p} \lstinline|<| \var{ub}.  The
+computation of \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1| would need an overflow 
+check also,  so several extra instructions would be added to an upper bounds check, 
 not just an extra addition.
 
 There would also be more bounds checks because it would be harder for compiler optimizers
 to eliminate upper bounds checks in loops.  Most programmers would write code that
 strides through an array using a comparison that
-\texttt{\var{p} \textless{} \var{ub}}. The comparison 
-\texttt{\var{p} < \var{ub}} does not imply
-\texttt{\var{p} + sizeof(\var{T}) - 1 < \var{ub}}, so the comparison is
+\var{p} \lstinline|<| \var{ub}. The comparison 
+\var{p} \lstinline|<| \var{ub} does not imply
+\var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1 <| \var{ub}, so the comparison is
 not sufficient for a compiler to optimize away
 the upper bounds check. A compiler would have to know that a pointer
 and bounds are relatively aligned in order to eliminate the upper bounds
@@ -183,18 +183,18 @@ and that implicit array-to-pointer conversions required bounds checking.
 
 \subsection{Address-of operator rules}
 
-The address-of operator (\texttt{\&}) applied to an lvalue expression of
+The address-of operator (\code{&}) applied to an lvalue expression of
 type \var{T} would produce a value of type
 \ptrT.
 
 Existing C code expects the address-of operator to produce a \var{T} *.
 To allow most code to compile without changes, we add an implicit cast
 rule: \ptrT\ can be cast
-implicitly to a \var{T} * in those situations where a \var{T}
-\texttt{*} type is expected, except for pointer arithmetic operators
+implicitly to a \uncheckedptrT\ in those situations where a \uncheckedptrT\ 
+type is expected, except for pointer arithmetic operators
 that add or subtract a pointer and an integer. Those situations include
 pointer assignment, arguments to function calls, return statements, and
-conditional expressions. In all these situations a \var{T} \texttt{*}
+conditional expressions. In all these situations a \uncheckedptrT\
 type must have been declared explicitly in the code already, so this
 implicit cast does not introduce unchecked pointer types where none existed
 before.
@@ -202,7 +202,7 @@ before.
 Pointer arithmetic operators are excluded to avoid the silent
 introduction of unchecked pointer types and to preserve the value of having
 the \ptrT\ type. If
-there were always an implicit cast from \ptrT\ to \var{T} \texttt{*},
+there were always an implicit cast from \ptrT\ to \uncheckedptrT,
 then any expression that uses pointer arithmetic could do pointer
 arithmetic on \ptrT\
 values.
@@ -220,7 +220,7 @@ f(void)
 \end{lstlisting}
 
 We expect this kind of code to be rare because the succinct style is to
-use \texttt{a} instead of \texttt{\&a[0]}, but it is nonetheless a
+use \code{a} instead of \code{&a[0]}, but it is nonetheless a
 possibility, so this proposal still violates the principle of not
 changing the meaning of existing C code.
 
@@ -239,9 +239,9 @@ Array types may be complete or incomplete. A complete array type
 specifies the number of elements in the array using a constant
 expression. In incomplete array type does not specify the number of
 elements in the array. Examples of complete array types are 
-\texttt{int[10]}
-and \texttt{int[10][10]}. Examples of incomplete array types are
-\texttt{int[]} and \texttt{int[][10]}.
+\code{int[10]}
+and \code{int[10][10]}. Examples of incomplete array types are
+\code{int[]} and \code{int[][10]}.
 
 If the type of an expression or a subexpression is an ``array of
 \var{T}'', the following rules would apply. If the array is a complete
@@ -249,8 +249,8 @@ type, the type of the expression is altered to
 \arrayptrT. If it is
 an incomplete type, the type of the expression is altered to \var{T} *.
 This alteration does not happen if the expression is an operand of an
-address-of operator, \texttt{++}, \texttt{-\/-}, \texttt{sizeof}, or the
-left operand of an assignment operator or the `\texttt{.}' operator.
+address-of operator, \code{++}, \code{--}, \code{sizeof}, or the
+left operand of an assignment operator or the `\code{.}' operator.
 
 These rules would have an interesting effect for arrays of complete
 types: all array references involving those arrays would be bounds
@@ -288,7 +288,7 @@ rule that an \arrayptrT\ can be
 implicitly cast to a \var{T} * in situations where a T * type is
 expected. Those situations may include pointer assignment, arguments to
 function calls, return statements, and conditional expressions. For
-onditional, expressions of the form \var{exp1} \texttt{?} \var{exp2} \texttt{:}
+onditional, expressions of the form \var{exp1} \code{?} \var{exp2} \code{:}
 \var{exp3}, the implicit coercion occurs when \var{exp2} or \var{exp3} has type T * and
 the other expression has type
 \arrayptrT. These situations do not
@@ -327,7 +327,7 @@ it is not expected fail.
 
 The bounds for \lstinline|&*|\var{e} are defined to be the bounds of \var{e} in 
 Section~\ref{section:address-of-expression-bounds}.  We considered
-using narrower bounds for \lstinline|&*|\var{e} of \bounds{\var{e}}{\var{e}\texttt{ + 1}},
+using narrower bounds for \lstinline|&*|\var{e} of \bounds{\var{e}}{\var{e}\code{ + 1}},
 where the bounds describe memory containing only a single value.
 We rejected this choice for two reasons.
 
@@ -394,7 +394,7 @@ bounds declarations. A bounds declaration has the form:
 
 \begin{tabbing}
 \var{bounds}\=\var{-exp:} \\
-\> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
+\> \code{count(}\var{non-modifying-exp}\code{)} \\
 \> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
 \> \boundsunknown \\
 \> \boundsany
@@ -406,7 +406,7 @@ It may be attached to declarators, parameter declarations, or assignment stateme
 \var{init-}\=\var{declarator:} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} 
-where-clause\textsubscript{opt}} \texttt{=} \var{initializer
+where-clause\textsubscript{opt}} \code{=} \var{initializer
 where-clause\textsubscript{opt}} \\
 \>\ldots{} \\
 \\
@@ -415,7 +415,7 @@ where-clause\textsubscript{opt}} \\
 \>\var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \\
 \var{expression-statement:}\\
-\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\texttt{;}
+\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\code{;}
 \end{tabbing}
 
 The information in the bounds declaration is used at pointer
@@ -432,9 +432,9 @@ eagerly, they must  be evaluated only when \var{v} is non-null. If \var{v} is nu
 the bounds might not be meaningful.  This keeps eager evaluation from
 causing accidental runtime failures when null values are encountered.    
 
-Consider the code for the use of \texttt{malloc}.   With eager evaluation,
+Consider the code for the use of \code{malloc}.   With eager evaluation,
 the bounds expressions in \bounds{result}{result + size} would not
-be evaluated if \texttt{malloc} returns \texttt{null}:
+be evaluated if \code{malloc} returns \code{null}:
 \begin{lstlisting}
 array_ptr<int> result = malloc(size) where result : bounds (result, result + size);
 if (result != NULL) {
@@ -529,8 +529,8 @@ following. Given an expression \var{e} with a bounds expression
 values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
 and \var{ubv}, respectively. If \var{ev} is not null, there will
 always exist some object at runtime with the bounds (\var{low},
-\var{high}) such that \var{low} \texttt{<=} \var{lbv}\ \&\&
-\var{ubv} \texttt{<=} \var{high}. In other words, the
+\var{high}) such that \var{low} \code{<=} \var{lbv}\ \&\&
+\var{ubv} \code{<=} \var{high}. In other words, the
 requirement is that expression bounds are always a subrange of the range
 of memory for some valid object. This is provided that the value of the
 expression with which those bounds are associated is non-null.
@@ -581,7 +581,7 @@ interest.
 
 \section{Null pointers and bounds expressions}
 
-\newcommand{\objectbounds}[2]{\texttt{object\_bounds(#1, #2)}}
+\newcommand{\objectbounds}[2]{\lstinline|object_bounds(|#1\lstinline|,| #2 \lstinline|)|}
 
 The meaning of bounds expressions is conditional on values not being null. 
 From Section~\ref{section:bounds-declarations}:
@@ -589,29 +589,30 @@ From Section~\ref{section:bounds-declarations}:
 At runtime, given an expression \var{e} with a bounds expression
 \bounds{\var{lb}}{\var{ub}}, let the runtime
 values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
-and \var{ubv}, respectively. The value \var{ev} will be \texttt{0} (null) or
+and \var{ubv}, respectively. The value \var{ev} will be \code{0} (null) or
 have been derived via a sequence of operations from a pointer to some
 object \var{obj} with \bounds{\var{low}}{\var{high}}.
 The following statement will be true at runtime:
-\var{ev} \texttt{== 0 || (\var{low} <= \var{lbv}\&\& 
-\var{ubv} <= \var{high})}. 
+\var{ev} \lstinline@== 0 || (@\var{low} \lstinline@<=@ \var{lbv} \lstinline@&&@
+\var{ubv} \lstinline@<=@ \var{high}\lstinline@)@. 
 \end{quote}
 
 If \var{ev} is null, the bounds may or may not be valid.
 This creates a problem.  Pointer arithmetic cannot be allowed
 on null values.  If it were allowed, then
 \boundsdecl{\var{e}}{\bounds{\var{lb}}{\var{ub}}} would
-not imply \boundsdecl{\var{e}+\var{k}}{\bounds{\var{lb}}{\var{ub}}}, where \var{k} is
+not imply \boundsdecl{\var{e} + \var{k}}{\bounds{\var{lb}}{\var{ub}}}, where \var{k} is
 a non-zero constant.
-Consider the counterexample where \var{ev} (the runtime value of \var{e}) is \texttt{0}.
-For the first bounds expression, \texttt{\var{ev} == 0 \textbar\textbar (\var{low} <= \var{lbv}
-\&\& \var{ubv} <= \var{high})} is true. For the second bounds expression \texttt{\var{ev} +
-\var{k} == 0 \textbar\textbar (\var{low} <= \var{lbv} \&\& \var{ubv} <=
-\var{high})} must be true.  We know that \texttt{\var{ev} + \var{k} == 0} is false, so
+Consider the counterexample where \var{ev} (the runtime value of \var{e}) is \code{0}.
+For the first bounds expression, \var{ev} \lstinline@== 0 || (@\var{low} \lstinline@<=@ \var{lbv}
+\lstinline@&&@ \var{ubv} \lstinline@<=@ \var{high}\lstinline@)@ is true. For the second bounds 
+expression \var{ev} \lstinline@+@ \var{k} \lstinline@== 0 || (@\var{low} \lstinline@<=@ \var{lbv}
+\lstinline@&&@\var{ubv} \lstinline@<=@ \var{high}\lstinline@)@ must be true.  We know that 
+\var{ev} \lstinline@+@ \var{k} \lstinline@== 0@ is false, so
 that means that the first bounds expression
-must imply that \texttt{(\var{low} <= \var{lbv} \&\& \var{ubv} <= \var{high})} is true. 
+must imply that \var{low} \lstinline@<=@ \var{lbv} \lstinline@&&@ \var{ubv} \lstinline@<=@ \var{high} is true. 
 However, it does not: 
-\texttt{\var{A} \textbar{}\textbar{} \var{B}} does not imply \var{B}.
+\var{A} \lstinline@||@ \var{B} does not imply \var{B}.
 
 This is handled in the design by using runtime checking to prevent
 pointer arithmetic involving null pointers.  However, this produces
@@ -635,27 +636,26 @@ runtime values of \var{e}, \var{lb}, and \var{ub} be \var{ev},
 \var{lbv}, and \var{ubv}, respectively. The value \var{ev} will have been derived
 via a sequence of operations from a pointer to some object \var{obj}
 with \objectbounds{\var{low}}{\var{high}}.  The following statement 
-will be true at runtime: \texttt{\var{low} <= \var{lbv} \&\&
-\var{ubv} <= \var{high}}
+will be true at runtime: \var{low} \lstinline@<=@ \var{lbv} \lstinline@&&@
+\var{ubv} \lstinline@<=@ \var{high}.
 \end{quote}
 In other words, the bounds are always valid. This implies
-that any access to memory where \texttt{\var{lbv} <= \var{ev}
-\&\& \var{ev} < \var{ubv}} will be within the bounds of \var{obj}.
+that any access to memory where \var{lbv} \lstinline@<=@ \var{ev}
+\lstinline@&&@ \var{ev} \lstinline@<@ \var{ubv} will be within the bounds of \var{obj}.
 
 The meaning of \boundsdecl{\var{e}}{\bounds{\var{lb}}{\var{ub}}}
-could be defined as \var{e} \texttt{== 0
-\textbar{}\textbar{}} \objectbounds{\var{lb}}{\var{ub}}.
+could be defined as \var{e} \lstinline@== 0 ||@ \objectbounds{\var{lb}}{\var{ub}}.
 \objectbounds{\var{e1}}{\var{e2}} would imply \bounds{\var{e1}}{\var{e2}}.
 Conversely, if some value \var{v} has \bounds{\var{e1}}{\var{e2}} and
 \var{v} is not null, this would imply \objectbounds{\var{e1}}{\var{e2}}.
 
-For variables and expressions with an \texttt{object\_bounds}
+For variables and expressions with an \code{object_bounds}
 bounds expression, runtime checks for null pointer arithmetic
 would not be necessary.
 
-It would be problematic to use \texttt{object\_bounds} widely for
+It would be problematic to use \code{object_bounds} widely for
 C function arguments.   Implicit in many uses of
-\texttt{object\_bounds} would be an assertion that the parameter
+\code{object_bounds} would be an assertion that the parameter
 to which it is being applied  non-null pointer.  Consider:
 \begin{lstlisting}
 f(array_ptr<int> x : object_bounds(x, x + 5) {
@@ -669,14 +669,14 @@ pointer arguments. In our experience, requirements that pointers
 not be null tend to propagate virally throughout code bases.  If an 
 entire code base can be  converted, this can work well.  Otherwise, 
 it results in messy dynamic checks for non-nullness in code.
-Now, it is possible with lightweight invariants and \texttt{dynamic\_check}
+Now, it is possible with lightweight invariants and \code{dynamic_check}
 that such checks would not be messy.
 
 The existing practice in C is that null pointers are widely used interchangeably
 with non-null pointers.  This introduces uncertainty about the usefulness of this 
 feature for C code bases.  The runtime benefit of eliminating non-null
 checks in pointer arithmetic is likely small.  Following the principal of 
-minimality, we have rejected the design choice of adding \texttt{object\_bounds} 
+minimality, we have rejected the design choice of adding \code{object_bounds} 
 for now. 
 
 
