@@ -252,7 +252,7 @@ void *malloc(size_t len)
 where return_value : byte_count(len) && return_value: _uninit_data;
 
 void *calloc(size_t num, size_t size)
-where return_value : byte_count(num * size)  && return_value : _zero_data
+where return_value : byte_count(num * size)  && return_value : _zero_data;
 \end{lstlisting}
 A cast from the result of a \texttt{malloc} call to a checked pointer type with pointer types
 would propagate the  \texttt{\_uninit} predicate:

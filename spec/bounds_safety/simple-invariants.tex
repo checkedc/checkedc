@@ -96,7 +96,7 @@ A \keyword{where} clause may be used as a stand-alone statement,
 in which case it stands on its own as a set of invariants and bounds
 declaration:
 \begin{lstlisting}
-where x>=0 && x<=10;
+where x >= 0 && x <= 10;
 \end{lstlisting}
 This is just a special case of an expression statement
 that omits the expression but still has \keyword{where} clause.
@@ -380,7 +380,7 @@ Here are the steps that the compiler goes through, illustrated using
 \code{buf + 1}, which is \code{buf - 1}. It substitutes it into the
 bounds expression that is true before the increment, producing the set
 of facts after the increment of 
-\boundsdecl{buf}{\bounds{\code{buf-1}}{\code{end}}}:
+\boundsdecl{buf}{\bounds{\code{buf - 1}}{\code{end}}}:
 
 \begin{lstlisting}
 int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
@@ -398,7 +398,7 @@ The next step is for the compiler to show that that \code{buf :
 bounds(buf - 1, end)} implies \code{buf : bounds(buf, end)}. The
 transitivity rule for bounds expressions implies that the compiler must
 show \code{buf - 1 <= buf}. This follows from the
-identity\var{x} \code{-} \var{k} \code{<} \var{x},
+identity \var{x} \code{-} \var{k} \code{<} \var{x},
 completing the validation of the bounds expression:
 
 \begin{lstlisting}

@@ -308,6 +308,16 @@ Two specific design principles are adopted based on these principles:
   subset of C++ too.
 \end{enumerate}
 
+\section{Notation}
+This specification includes many code examples.   Code will be shown in a teletype font (like \texttt{\small this}).
+Operators and symbolic characters will be shown in black (like \lstinline|->|).    Keywords will be shown in blue and program
+variables will be shown in light blue (like \lstinline|for (int i = 0; i<10; i++)|).   At times, we will
+define properties or make mathematical statements that range over sets of values or program
+elements, such as mathematical integers, variables, or expressions.   We will use meta-variables in {\it italics} that
+range over these values or program elements.  We might say something like 
+``for all expressions \var{e\textsubscript{1}} and \var{e\textsubscript{2}}.''   These meta-variables
+ differ from program variables, which are elements of specific C programs.
+
 \section{Organization of this document}
 
 The target audience for this document includes programmers interested in 
@@ -470,11 +480,13 @@ read most of the document. Language designers can skip Sections~\ref{section:com
 Compiler writers can skip the discussions in Section~\ref{section:programmer-dynamic-checks}
 and Chapters~\ref{chapter:related-work} and \ref{chapter:design-alternatives}.
 
+
+
 \section{Acknowledgements}
 
 This design has benefited from many discussions with Weidong Cui, Gabriel Dos Reis, 
-Chris Hawblitzel, Galen Hunt, Shuvendu Lahiri, and Reuben Olinsky.  The design has
-benefited also from feedback from Sam Elliott, Michael Hicks, Wonsub Kim, Greg
+Sam Elliott, Chris Hawblitzel, Galen Hunt, Shuvendu Lahiri, and Reuben Olinsky.  The design has
+benefited also from feedback from Michael Hicks, Wonsub Kim, Greg
 Morrisett, Jonghyun Park, and Andrew Ruef. We thank them for their contributions to
 the design.
 

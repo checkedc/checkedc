@@ -447,7 +447,7 @@ it is \arrayptrvoid.
 
 \subsection{Between checked pointers and integers}
 
-The null pointer (0) can be converted implicitly to any checked pointer type.
+The null pointer (\code{0}) can be converted implicitly to any checked pointer type.
 A checked pointer can be converted implicitly to the \code{_Bool} type.
 
 Some C compilers extend C by allowing implicit conversions between pointers
@@ -481,7 +481,7 @@ a checked multi-dimensional array:
 int b[3][3] = { { 0, 1, 2}, { 3, 4, 5}, { 6, 7, 8}};
 extern void f(int arg checked[3][3]);
 f(b);
-\end{listing}
+\end{lstlisting}
 
 The mechanics behind this are somewhat complicated.  Parameters with type
 ``array of \var{T}'' are actually treated as having type ``pointer to \var{T}''.
@@ -546,7 +546,8 @@ void *memcpy(void *dest, const void *src, size_t count);
 would become
 
 \begin{lstlisting}
-void *memcpy(array_ptr<void> dest, array_ptr<const void> src, size_t count);
+void *memcpy(array_ptr<void> dest, array_ptr<const void> src,
+                      size_t count);
 \end{lstlisting}
 
 This would break existing code that uses \code{memcpy}.  The code would no
@@ -686,7 +687,7 @@ A type annotation is specified using the following syntax:
 
 \begin{tabbing}
 \var{type-}\=\var{annotation:} \\
-\>\code{itype (} \var{type name} \code{)}\\
+\>\code{itype (}\var{type name}\code{)}\\
 \\
 The syntax for inline bounds specifiers is extended to include
 type annotations:\\
@@ -738,7 +739,7 @@ at least one checked type are checked types.
 Here are some examples:
 \begin{lstlisting}
 void copy(array_ptr<int> dest : count(len),
-          array_ptr<int> src : count(len), int len)
+              array_ptr<int> src : count(len), int len)
 {
     // dest, src will be converted implicitly to void * pointers.
     // Even though this is an unchecked context, the function call
@@ -761,8 +762,7 @@ f(S s)
 
 This example will fail at compile time:
 \begin{lstlisting}
-void bad_copy(int *dest,
-              array_ptr<int> src : count(len), int len)
+void bad_copy(int *dest, array_ptr<int> src : count(len), int len)
 {
     // dest, src will be converted implicitly to void * pointers.
     // Because an argument had a checked pointer type, the function call
@@ -774,8 +774,7 @@ void bad_copy(int *dest,
 
 In contrast, this example will compile:
 \begin{lstlisting}
-void subtle_copy(int *dest,
-                 array_ptr<int> src : count(len), int len)
+void subtle_copy(int *dest, array_ptr<int> src : count(len), int len)
 {
     // This function call will not be checked for bounds
     // requirements because no arguments have checked pointer
@@ -1031,7 +1030,7 @@ rules for inferring bounds to integral expressions:
     If \boundsdecl{\var{e1}}{\var{b}}, where \var{b} is not \boundsunknown, and \var{e2} has
     \boundsunknown, and it can be proved that \var{e1} \code{!= 0}, then \boundsinfer{\var{e1} \var{op} \var{e2}}{\var{b}}.
   \item
-    If the special variable \exprcurrentvalue\ occurs in \var{b}.
+    If the special variable \exprcurrentvalue\ occurs in \var{b},
     bounds of the expression are altered to be \boundsunknown. Shift
     expressions are not invertible because they lose information.
   \end{itemize}

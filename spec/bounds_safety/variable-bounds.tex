@@ -31,9 +31,9 @@ the form:
 \> \boundsany
 \end{tabbing}
 
-where \var{x} is a variable. There are additional forms for handling
-casts and void pointers that are described in 
-Sections~\ref{section:pointer-cast-results} and \ref{section:pointers-to-void}.
+where \var{x} is a variable. Additional forms for handling
+\void\ pointers and casts are described in 
+Sections~\ref{section:pointers-to-void} and \ref{section:pointer-cast-results}.
 
 A bounds expression describes the memory that can be accessed using the
 value of \var{x}, provided that x is not null. Bounds expressions
@@ -576,7 +576,7 @@ produces an lvalue that can be used to access memory. If the expression
 occurs on the left-hand side of an assigment, the memory pointed to
 by the lvalue is updated with the value of the right-hand side of
 the assignment.
-For example, given \lstinline|*|\var{e1} \lstinline|=|\var{e2},
+For example, given \lstinline|*|\var{e1} \lstinline|=| \var{e2},
 the memory pointed to by the lvalue is updated with the value of \var{e2}.
 If the expression occurs within another expression, the lvalue is usually
 (but not always)  used to read memory.  In the terminology of the C Standard,
@@ -584,7 +584,7 @@ an lvalue conversion is inserted that reads memory. For example, given
 \lstinline|*|\var{e1}\lstinline| + 5|,
 an lvalue conversion is inserted for \lstinline|*|\var{e1}.  A case where a
 conversion is not inserted is  when the address of an expression is taken:
-\lstinline|&*|\&*\var{e1}. Subscript expressions behave similarly to pointer
+\lstinline|&*|\var{e1}. Subscript expressions behave like pointer
 dereference expressions.  The expression \var{e1}\lstinline|[|\var{e2}\lstinline|]| produces
 an lvalue that can be used to access memory.
 
@@ -592,8 +592,8 @@ A bounds check is inserted at a dereference expression or subscript expression
 of an \arrayptr\ or \ntarrayptr\ whose result will be used to directly
 access memory (the result must be used by the left-hand side of an
 assignment or an lvalue conversion).   We first describe bounds checks
-for \arrayptr\.   The bounds checks for \ntarrayptr\ are slightly
-different and described later in this section.
+for \arrayptr.   The bounds checks for \ntarrayptr\ are slightly
+different.  We describe them after \arrayptr.
 
 Given \lstinline|*|\var{e1}, where \var{e1} is an expression of type
 \arrayptr, the compiler determines the bounds for \var{e1}
@@ -601,7 +601,7 @@ following the rules in Section~\ref{section:inferring-expression-bounds}.
 Special rules are followed in
 \code{bundled} blocks to determine the bounds for \var{e1}. The
 compiler inserts the bounds check as part of the evaluation of \var{*e1}.
-The bound check is inserted after \var{e1} is evaluated and before the result of
+The bounds check is inserted after \var{e1} is evaluated and before the result of
 \var{*e1} is produced.  The compiler also inserts a null check.
 
 If {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}}, the compiler
@@ -675,13 +675,13 @@ the compiler computes \var{e1} to some temporary \var{t}.
 The compiler inserts a runtime check that  \var{e2} \lstinline|<=|\var{t} \lstinline|&&|
 \var{t} \lstinline|<=| \var{e3}.
 
-For memory writes, assignment of 0 (the null value)
+For memory writes, assignment of \code{0} (the null value)
 using the assignment operator is allowed at the upper bound.
 This is the first element of the null-terminated sequence
 and there must be enough space in the sequence for at least a null terminator.
 Otherwise, the check
-is the same as for \arrayptr.   Given an expression {\var{e1}} that
-has {\bounds{\var{e2}}{\var{e3}}}, here is a precise description:
+is the same as for \arrayptr.   For an expression {\var{e1}} that
+has {\bounds{\var{e2}}{\var{e3}}}:
 \begin{itemize}
 \item Given an assignment of the form \lstinline|*|\var{e1} \lstinline|=| \var{e4}, the
 value of \var{e4} is computed to some temporary \var{v}.  The
@@ -689,8 +689,8 @@ check is \lstinline|(|\var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} \ls
 \var{e3}\lstinline@) || (@ \var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} 
 \lstinline|==| \var{e3} \lstinline|&&| \var{v} \lstinline|== 0)|.
 
-When checking for a write of 0 exactly at the upper bound, we need
-to include the first element of the sequence in the allowed memory range.
+When checking for a write of \code{0} exactly at the upper bound, we 
+include the first element of the sequence in the allowed memory range.
 The second lower bound comparison \var{e2} \lstinline|<=| \var{t}
 prevents an assignment
 at the upper bound when this expanded range is empty.
@@ -753,7 +753,7 @@ When updates involve multiple statements, a bounds declaration may be valid only
 after all the updates are done.  In Checked C, statements and declarations can be 
 grouped into bundled blocks.  Bounds declarations are checked only at the end of bundled blocks.
 
-Consider the following example where a function is added to the earler sum
+Consider the following example where a function is added to the earlier \code{sum}
 example that allows a buffer to be reallocated:
 \begin{lstlisting}
 // external-scoped variables that hold a buffer and its length
@@ -801,7 +801,7 @@ void resize(int len)
 The C syntax for is extended with:
 \begin{tabbing}
 \var{statement:}\=\\
-\>\var{bundled-statement}\code{;} \\
+\>\var{bundled-statement} \\
 \\
 \var{bundled-statement:} \\
 \>\lstinline|bundled {| \var{bundled-item-list\textsubscript{opt}} \lstinline|}| \\
@@ -837,10 +837,10 @@ expr1;
 expr2;
 \end{lstlisting}
 
-In Checked C, however, bounds are checked only at the ends of
+In Checked C, however, bounds declarations are checked for validity only at the ends of
 statements.  Thus bounds could be valid after
 \lstinline+expr1, expr+, but not valid after \lstinline+expr1+ alone.
-In the resize example, the following suceeds with a bundle
+In the \code{resize} example, the following suceeds with a bundle
 block:
 \begin{lstlisting}
 void resize(int len) 
@@ -1052,7 +1052,7 @@ Additional side conditions that deal with integer overflow or wraparound
 are needed.
 
 This section informally examines why and the additional conditions that
-are needed. We start by looking at an allocation using malloc with an
+are needed. We start by looking at an allocation using \code{malloc} with an
 old-style \code{char *} return type and a bounds declaration:
 
 \begin{lstlisting}
@@ -1135,7 +1135,7 @@ must do the following checks:
 \begin{itemize}
 \item
   If the count is a signed integer, the function must check that the
-  count \textgreater{}= 0 before trying to allocate the array.
+  count \code{>= 0} before trying to allocate the array.
 \item
   If the size of \var{T} is larger than 1 byte, the function must check that the
   count is less than the upper bound as well.
@@ -1232,7 +1232,7 @@ aligned. Together, they represent a view of an array of \var{T}, where
 the pointer has type
 \arrayptrT. The
 bounds specify a range of memory that is exactly the size of some array
-of T and the pointer points exactly at an element of that array. For
+of \var{T} and the pointer points exactly at an element of that array. For
 example, suppose short ints are 2 bytes in size and 
 {\boundsdecl{\code{x}}{\bounds{\code{y}}{\code{z}}}}, where the types of \code{x},
 \code{y}, \code{z} are \arrayptrinst{\code{short int}} .
@@ -1622,14 +1622,14 @@ start[5] = 0; // bounds checked using (start, end - 1)\\
 
 Figure~\ref{fig:bounds-extent:choose} expands on the \code{choose} function earlier. 
 There are 4 explicit bounds declarations for \code{c}. The bounds declarations
-and their extents are also color-coded. Three bounds declarations for c
-have the form \boundsdecl{c}{\boundscount{clen}}. They must be syntactically
+and their extents are also color-coded. Three bounds declarations for \code{c}
+have the form \boundsdecl{\code{c}}{\boundscount{\code{clen}}}. They must be syntactically
 identical because there are statements that they cover in common. Their
 extents are highlighted in blue.  Another bounds declaration has
-the form \boundsdecl{c}{\boundscount{clen - 1}}.   Its extent is highlighted
+the form \boundsdecl{\code{c}}{\boundscount{\code{clen - 1}}}.   Its extent is highlighted
 in yellow. It covers code where \code{c} is incremented and the 
 length is decremented.  The increment invalidates the bounds declaration
-\boundsdecl{c}{\boundscount{clen}}.  A different bounds declaration for \code{c}
+\boundsdecl{\code{c}}{\boundscount{\code{clen}}}.  A different bounds declaration for \code{c}
 is needed after the increment.
 
 \begin{figure}

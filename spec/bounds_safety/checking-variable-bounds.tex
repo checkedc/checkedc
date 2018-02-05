@@ -649,7 +649,7 @@ len = len - 1
 
 The original value of \lstinline|len| can be computed from the new value.
 In this case, a valid new bounds after the decrement of \lstinline|len| is
-\lstinline|count(a) == len + 1.| The bounds for \lstinline|a| after the
+\lstinline|count(a)  == len + 1.| The bounds for \lstinline|a| after the
 assignment are:
 \begin{lstlisting}
 len = len - 1
@@ -668,11 +668,10 @@ while (p < high) {
 
 First, the new bounds expression for the expression \lstinline|p + 1| is
 computed. It is the same as the original bounds expression
-\lstinline|bounds(p, high)|. Because p is modified by the assignment, the
+\lstinline|bounds(p, high)|. Because \code{p} is modified by the assignment, the
 inverted expression for \lstinline|p + 1| is substituted into
 \lstinline|(p, high)|. The inverted expression for \lstinline|p + 1| is \lstinline|p - 1|.
-Substituting \lstinline|p-1| for \lstinline|p| leads to bounds of the form
-\lstinline|bounds(p - 1, high)|:
+This leads to bounds of the form \lstinline|bounds(p - 1, high)|:
 
 \begin{lstlisting}
 while (p < high) {
@@ -790,24 +789,23 @@ This means that the approach of
 Section~\ref{section:checking-assignment-expressions} has to be extended to walk
 expressions recursively and update the context during the walk.
 
-Given some expression e that has subexpressions e\textsubscript{1}
-\ldots{}. e\textsubscript{n}, start with the context for e. Compute a
-new context and the bounds expression for e as follows:
+Given some expression \var{e} that has subexpressions \var{e}\textsubscript{1}
+\ldots{}. \var{e}\textsubscript{n}, start with the context for \var{e}. Compute a
+new context and the bounds expression for \var{e} as follows:
 
 \begin{itemize}
 \item
-  Traverse e\textsubscript{1} \ldots{} e\textsubscript{n} in an order
+  Traverse \var{e}\textsubscript{1} \ldots{} \var{e}\textsubscript{n} in an order
   that respect the sequence points of \cite{ISO2011}. For each subexpression, take the
   context and compute the updated context and the bound expression (if
   any) for the subexpression.
 \item
-  If e is an assignment expression, 
+  If \var{e} is an assignment expression, 
   apply the rules in Section~\ref{section:checking-assignment-expressions} to
-  compute an updated context and a bounds expression for e
+  compute an updated context and a bounds expression for \var{e}
 \item
   Otherwise, apply the rules in Section~\ref{section:inferring-expression-bounds}
-  to compute an updated bounds
-  expression for e.
+  to compute an updated bounds expression for \var{e}.
 \end{itemize}
 
 \section{Expression statements}
@@ -1039,7 +1037,7 @@ The following rules are applied until no further changes occur:
     \item
       \var{e} \code{+ 0 =} \var{e}, \var{e} \code{- 0 =} \var{e}, 
       \code{0 -} \var{e} =
-      \code{(-}\var{e}\code{)}, \code{0 *} \var{e} = code{0}, 
+      \code{(-}\var{e}\code{)}, \code{0 *} \var{e} = \code{0}, 
       \code{1 *} \var{e} = \var{e}, 
       \var{e} \code{/ 1} = \var{e},
       \var{e} \code{/ -1} = \code{-}\var{e},
@@ -1053,7 +1051,7 @@ The following rules are applied until no further changes occur:
     Bitwise identities: \var{e} \code{&} \code{0} = \code{0},
     \var{e} \lstinline@|@ \code{0} = \var{e}, \var{e}
     \lstinline|^| \code{0} = \var{e}, and
-    \lstinline|~(~|\var{e}|lstinline|))| =
+    \lstinline|~(~|\var{e}|\lstinline|))| =
     \var{e}
   \item
     Boolean identities: given a non-zero constant c, \var{e}
@@ -1445,7 +1443,7 @@ parameters,
 
   x\textsubscript{1} = e\textsubscript{1} \code{,} x\textsubscript{2} = 
   e\textsubscript{2} \code{,} \ldots{}. x\textsubscript{n} =
-  e\textsubscript{n} where \var{conditions} \code{;}
+  e\textsubscript{n} where \var{conditions}\code{;}
 
   is constructed, where \var{conditions} contains all the bounds
   declarations on parameters. Parameters are renamed if necessary so

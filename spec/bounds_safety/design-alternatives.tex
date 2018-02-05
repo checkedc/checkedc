@@ -433,7 +433,7 @@ the bounds might not be meaningful.  This keeps eager evaluation from
 causing accidental runtime failures when null values are encountered.    
 
 Consider the code for the use of \code{malloc}.   With eager evaluation,
-the bounds expressions in \bounds{result}{result + size} would not
+the bounds expressions in \bounds{\code{result}}{\code{result + size}} would not
 be evaluated if \code{malloc} returns \code{null}:
 \begin{lstlisting}
 array_ptr<int> result = malloc(size) where result : bounds (result, result + size);

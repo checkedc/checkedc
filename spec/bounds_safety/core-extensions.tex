@@ -58,12 +58,12 @@ used in place of `\code{*}':
 \item
   \ptrT: this points to
   a value of type \textit{T}. Pointer arithmetic is not allowed on these
-  kinds of pointers. The expectation is that that many pointers are not
-  involved in pointer arithmetic and will be given this type. When
+  kinds of pointers. The expectation is that many pointers are not
+  involved in pointer arithmetic and can be given this type. When
   values of this pointer type are used to read or write memory, they
   must be non-null. The non-nullness is checked at runtime if necessary.
   The name \ptr\ is chosen for these kinds of pointers because these
-  are expected to be the most common type of pointer in C code. \ptr\
+  are expected to be the most common type of pointer. \ptr\
   is a short succinct name.
 \item
   \arrayptrT: this is
@@ -401,7 +401,7 @@ The following operations involving pointer-typed values are allowed:
   inequality. The pointers do not have to be the same kind of pointer.
   To support reasoning about program behavior, the result of comparing
   pointers to different objects must be defined.  Checked pointers can also
-  be compared for equality or inequality with 0 and void pointers, 
+  be compared for equality or inequality with \code{0} and \void\ pointers, 
   just like unchecked pointers.
 \item
   Pointers to objects of the same type can be compared relationally. Relational comparisons are the
@@ -653,15 +653,15 @@ of string literals are expressions such as \keyword{"hello"} and \keyword{L"hell
 (in the latter case, the modifier `L' changes the type of the characters in the string).
 A compound literal is an expression that declares an array literal or an object literal.
 It consists of a parenthesized type name followed by list of initializers in braces.
-A compound literal has static storage if its at the top level of a file and automatic
+A compound literal has static storage if it is at the top level of a file and automatic
 storage if it occurs within a block.  Here are examples of compound literals:
 \begin{lstlisting}
 int *arr = (int []) { 0, 1, 2};
 struct Point {
   int x;
   int y;
-}
-struct S *zero_coord = &((struct Point) { 0, 0 };
+};
+struct Point *zero_coord = &((struct Point) { 0, 0 });
 \end{lstlisting}
 
 A string literal has an array type with an element type that is one of \keyword{char},
@@ -676,7 +676,7 @@ in a checked scope or an unchecked scope:
 
 This creates an issue in unchecked scopes when a string literal is used where
 a null-terminated checked pointer type is expected.  It makes sense to allow
-this because string literals has known bounds.  However, a string
+this because string literals have known bounds.  However, a string
 literal would have the type ``unchecked array of \var{T}'', which
 would convert to ``unchecked pointer to \var{T}''.
 There is no conversion from the unchecked pointer type to
@@ -699,7 +699,7 @@ compound array literal could be modified, of course.  We allow this rule anyway 
 the amount of code changes required to modify code to be checked.
 
 Note that some C compilers use the same memory to represent different
-occurrenes of string literals that have the same characters
+occurrences of string literals that have the same characters
 sequence.  The meaning of modifying a string literal is implementation-dependent.
 For bounds safety, an implementation should either
 \begin{itemize}
@@ -720,7 +720,7 @@ checked void f(void) {
 
   // Use compound array literals instead.
   p = (char nt_checked[6]) { 'h', 'e', 'l', 'l', 'o', '\0' };
-  r = (char checked[8] { 'g', 'o', 'o', 'd', 'b', 'y', 'e', '\0' };
+  r = (char checked[8]) { 'g', 'o', 'o', 'd', 'b', 'y', 'e', '\0' };
 }
 
 checked char lookup(int i) {
@@ -746,13 +746,14 @@ int g(void) {
   // A similar alteration happens for the second argument string literal.
 
   int r = find("brown", "the brown fox jumped over the fence");
+  return r;
 }
 
 // Declare a string with a count.
 struct string_with_count {
   nt_array_ptr<char> buf;
   int len;
-}
+};
 
 ptr<struct string_with_count> S =
    &((struct string_with_count) { "hello world", 11 });
@@ -838,7 +839,7 @@ nt_array_ptr<char> colors checked[] = { "red", "green", "blue",
 nt_array_ptr<char> more_colors nt_checked[] = { "white", "black",
                                                 "grey", 0 };
 
-// A null-terminated array of ponters to null-terminated arrays
+// A null-terminated array of pointers to null-terminated arrays
 // of strings.
 nt_array_ptr<nt_array_ptr<char>> sentences nt_checked[4] = 
   {  (nt_array_ptr<char> nt_checked[]) { "this", "is", "the", "first",
@@ -1049,7 +1050,7 @@ of its result cannot be represented by the result type:
 
   \begin{itemize}
   \item
-    \minusovf takes an unsigned integer \var{i} and an
+    \minusovf\ takes an unsigned integer \var{i} and an
     integer \var{j} as an argument and computes \var{i} - \var{j}, producing an unsigned
     integer in the range 0 to \code{UINTPTR_MAX}. Its result is the
     mathematical value \var{i} - \var{j}.
