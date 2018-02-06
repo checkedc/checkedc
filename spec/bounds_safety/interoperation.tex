@@ -177,26 +177,20 @@ a type-safe replacement for casts between checked void pointers.  When this is c
 will disallow these casts. We also plan to revisit casts between pointers to
 unrelated types.
 
-The \dynamicboundscast\ operator is not strictly needed.
-Programmers could write checks by hand.  However, programmers
-would have to compute the bounds of expressions by hand too, so it is convenient to
-have it. It takes 1 to 3 arguments, depending on the kind of conversion being done:
+The \dynamicboundscast\ operator takes a type argument \var{D} and 1 or 2 expressions
+as arguments:
 \begin{itemize}
 \item
-  \dynamicboundscastinst{\var{T}}{(\var{e1})}
-  converts \var{e1} to either a \ptr\ or * type.
+  \dynamicboundscastinst{\var{D}}{(\var{e1})}
+  converts \var{e1} to either a \ptr\ or \code{*} type.  \var{D} is the target \ptr\
+  or \code{*} type.  \var{D} cannot be a function pointer type.
 \item
-  \dynamicboundscastinst{\var{T}}{(\var{e1},
-  \var{e2})} converts \var{e1} to an \arrayptr\ type with bounds \boundscount{\var{e2}}.
-\item
-  \dynamicboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})} converts \var{e1} to an
-  \arrayptr\ type with bounds
-  \bounds{\var{e2}}{\var{e3}}.  \dynamicboundscastinst{\var{T}, \var{A}}
-  {(\var{e1},\var{e2},\var{e3})}
-   optionally changes the relative alignment of the bounds to \var{A}.
+  \dynamicboundscastinst{\var{D}}{(\var{e1},
+  \var{bounds-exp})} converts \var{e1} to an \arrayptr\ type with
+  bounds \var{bounds-exp}.  \var{D} is the target \arrayptr\ type.
 \end{itemize}
 
-Here is the checking that is done. The bounds of \var{e1} are computed
+The bounds of \var{e1} are computed
 using the rules in Section~\ref{section:checking-nested-assignment-expressions}.
 If the bounds of \var{e1} are \boundsunknown, it is a compile-time error. 
 If the bounds of \var{e1} are \boundsany, no runtime checks are needed.
@@ -208,46 +202,40 @@ is needed.
 \item Otherwise, if the operator has the form:
 \begin{itemize}
 \item
-  \dynamicboundscastinst{\var{T}}{(\var{e1})}:
-  check that there is room for least one element of \var{T} by doing
-  the check for \dynamicboundscastinst{\var{T}}{(e1, 1)}.
+  \dynamicboundscastinst{\var{D}}{(\var{e1})}: \var{D} is pointer to some type \var{T}.
+  Check that there is room for at least one element of \var{T} by doing
+  the check for \dynamicboundscastinst{\arrayptrinst{\var{T}}}{(e1, \boundscount{\code{1}})}
 \item
-  \dynamicboundscastinst{\var{T}}{(\var{e1}, \var{e2})}:
-   check that \var{lb}
-  \code{<=} \var{e1} \code{&&} \var{e1} \code{+}
-  \sizeof{referent-type(\var{T})} * e2 \code{<=}
-  \var{ub}.
-\item
-  \dynamicboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})}: 
-  check that \var{lb} \code{<=} \var{e2} \code{&&}
-  \var{e3} \code{<=} \var{ub}. Also check that \var{e1}, \var{e2}, and \var{e3} 
-  are relatively aligned to \var{T} (or the optional alignment parameter instead, if one
-  is given). 
-
+  \dynamicboundscastinst{\var{D}}{(\var{e1}, \var{bounds-exp})}:
+   Expand \var{bounds-exp} to the standard
+   form \boundsrelval{\var{target-lb}}{\var{target-ub}}{\var{v}}.
+   Check that \var{lb}  \code{<=} \var{target-lb} \code{&&} \var{target-ub} \code{<=} \var{ub}.
+   Also check that \var{e1}, \var{target-lb}, and \var{target-lb} are relatively aligned 
+   with respect to\var{v}.
 \end{itemize}
 \end{itemize}
+The \dynamicboundscast\ operator is not strictly needed.
+Programmers could write checks by hand. It is convenient to have, though,
+because it avoids programmers having to write down the bounds of the source expression.
 
-The operator \assumeboundscastinst{\var{T}}{} declares bounds that are trusted
+The operator \assumeboundscastinst{\var{D}}{} declares bounds that are trusted
 without verification:
 \begin{itemize}
 \item
-  \assumeboundscastinst{\var{T}}{(\var{e1},\var{e2})}
-  converts \var{e1} to an \arrayptr\ type with \boundscount{\var{e2}}
+  \assumeboundscastinst{\var{D}}{(\var{e1})}
+  converts \var{e1} to a \ptr\ or \code{*} type. \var{D} is the target \ptr\ or \code{*} type.
 \item
-  \assumeboundscastinst{\var{T}}{(\var{e1},\var{e2},\var{e3})}
-  converts \var{e1} to an
-  \arrayptr\ type with \bounds{\var{e2}}{\var{e3}}.
-  It must be statically provable that \var{e1}, \var{e2} and \var{e3}
-  are relatively aligned for \var{T} (or the optional
-  relative alignment parameter instead, if there is one).
-\item
-  \assumeboundscastinst{\var{T}}{(\var{e1})}
-  converts \var{e1} to a \ptr\ or \code{*} type.
+  \assumeboundscastinst{\var{D}}{(\var{e1}, \var{bounds-exp})}
+  converts \var{e1} to an \arrayptr\ type with bounds \var{bounds-exp}.  \var{D} is the
+  target \arrayptr\ type.
 \end{itemize}
+For the second form, the relative alignment must be statically
+provable: expand \var{bounds-exp} to the standard form
+\boundsrelval{\var{target-lb}}{\var{target-ub}}{\var{v}} and check
+that \var{e1}, \var{target-lb} and \var{target-ub} are relatively aligned to \var{v}.
 
-If any rule depends on \sizeof{\var{T}} and \var{T} is
-an incomplete type, the cast operation that uses the rule shall fail
-to check at compile-time.
+If any rule requires knowing the size of an incomplete type,
+the cast operation that uses the rule shall fail to check at compile-time.
 
 A subtle point about the C cast operator and \dynamicboundscast\
 are that they allow {\em bounds-safe casts} of an expression
@@ -262,7 +250,7 @@ involving variables and uses of array variables.
 
 Here are examples of uses of C cast operators to cast unchecked
 pointers to checked pointers.  The static checking rules are straightforward
-to apply here.  The examples assume that integers are
+to apply.  The examples assume that integers are
 4 bytes in size:
 \begin{lstlisting}
 int x = 0;
@@ -271,7 +259,7 @@ array_ptr<char> pax : count(4) = (array_ptr<char>) px;
 array_ptr<char> odd_pax : count(3) = (array_ptr<char>) px;
 
 char data[12];
-ptr<int> pfirst = (ptr<int>) data; // pointed to 1st element as an integer;
+ptr<int> pfirst = (ptr<int>) data; // pointed to 1st element as an integer
 array_ptr<int> pdata : count(3) = (array_ptr<int>) data;
 
 void swizzle(ptr<int> p) {
@@ -280,7 +268,43 @@ void swizzle(ptr<int> p) {
    bytes[0] = t3, bytes[1] = t2, bytes[2] = t1, bytes[3] = t0;
 }
 \end{lstlisting}
+The \dynamicboundscast\ operator is used typically when converting
+code to Checked C.  The existing code may make assumptions
+about buffers being large enough that are potentially wrong.
+It would be better to check for errors directly, but the code may not
+be structured to handle errors:
+\begin{lstlisting}
+void f(array_ptr<char> buf : count(len), int len) {
+  // We expect buf to have enough space for at least 12 integers.
+  array_ptr<int> intbuf : count(12) =
+    dynamic_bounds_cast<array_ptr<int>>(buf, count(12));
+...
+}
 
+extern void copy(array_ptr<char> dest : count(n),
+                 array_ptr<char> src : count(n),
+                 size_t n);
+
+void fill_buffer(array_ptr<char> dest : count(destlen),
+                 size_t destlen,
+                 array_ptr<char> src : count(srclen),
+                 size_t srclen) {
+  // Existing code just assumed that dest was large enough; let's add a
+  // dynamic_bounds_cast to be sure.
+  array_ptr<char> target : count(srclen) =
+     dynamic_bounds_cast<array_ptr<char>>(dest, count(srclen));
+  copy(target, src, srclen);
+}
+\end{lstlisting}
+Here are examples of using the \assumeboundscast\ operator:
+\begin{lstlisting}
+// Memory-mapped hardware location where an integer can be written.
+ptr<int> output_loc = assume_bounds_cast<ptr<int>>(0x5055);
+// Memory-mapped hardware buffer starting at 0x6000 that stores 128
+// integers.
+array_ptr<int> output_buf : count(128) =
+  assume_bounds_cast<array_ptr<int>>(0x6000, count(128));
+\end{lstlisting}
 \subsection{Non-examples}
 
 Here are examples of incorrect uses of C cast operators to cast unchecked
