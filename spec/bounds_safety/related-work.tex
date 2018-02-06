@@ -778,11 +778,11 @@ A dependent type is a type that may depend on a value at runtime.
 Dependent types are built using type constructors that are applied to
 types and values. The type constructors capture specific properties of
 runtime values. For example, Deputy introduces a type constructor
-\verb|Array| that can be applied to an integer value (the length of the
-array) and an element type. \verb|Array 5 int| describes the type of
-integer arrays with 5 elements. The \verb|Array| type constructor can be
+\code|Array| that can be applied to an integer value (the length of the
+array) and an element type. \code|Array 5 int| describes the type of
+integer arrays with 5 elements. The \code|Array| type constructor can be
 applied to a program expression, so the type can depend
-on a runtime value. For example, \verb|Array n int| describes the type
+on a runtime value. For example, \code|Array n int| describes the type
 of integer arrays with \var{n} elements.
 
 There are several problems with using dependent types in C.

@@ -47,22 +47,22 @@ language definition is used to determine when a variable is definitely initializ
 The current syntax for describing post-conditions places a \keyword{where}
 clause after the function parameter list declaration:
 
-\begin{verbatim}
+\begin{lstlisting}
 f( ...)
 where cond1 ...
-\end{verbatim}
+\end{lstlisting}
 
 This syntax might lead to confusion. We might want to adopt an alternate
 syntax that makes this clearer. Some suggestions are the keywords
-\texttt{on\_return} or \texttt{after}:
+\keyword{on_return} or \keyword{after}:
 
-\begin{verbatim}
+\begin{lstlisting}
 f(...)
 on_return cond1 ...
 
 f(...)
 after cond1 ...
-\end{verbatim}
+\end{lstlisting}
 
 Section~\ref{section:alternate-pointer-type-syntax} describes alternate
 syntax proposals for pointer types.
@@ -77,7 +77,7 @@ This could be provided by adding a clause to bounds-exp that uses the
 same syntax as C conditional expressions:
 \begin{tabbing}
 \var{bounds}\=\var{-exp:} \\
-\>\texttt{\var{non-modifying-exp} ? \var{bounds-exp} : \var{bounds-exp}}
+\>\var{non-modifying-exp} \code{?} \var{bounds-exp} \code{:} \var{bounds-exp}
 \end{tabbing}
 
 We would need to add descriptions of introduction and elimination

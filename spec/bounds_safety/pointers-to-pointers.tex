@@ -1,6 +1,6 @@
 % !Tex root = checkedc.tex
 
-\chapter{Pointers  to data with \arrayptr s}
+\chapter{Pointers  to data with \plainarrayptr s}
 \label{chapter:pointers-to-data-with-arrayptrs}
 
 This chapter covers using pointers to data with \arrayptr s.  It also covers rules
@@ -37,7 +37,7 @@ pointer types. For example, the Cyclone dialect of C \cite{Jim2002} did this
 and languages like Java and C\# have rules for ensuring that variables
 are definitely assigned before they are used.
 For a variable of \arrayptr\ data, the compiler will insert code for 
-initializing checked pointers in the data automatically to \texttt{0}, which is always
+initializing checked pointers in the data automatically to \code{0}, which is always
 a valid pointer.    
 
 For heap-allocated data, we can require that allocators
@@ -62,15 +62,15 @@ be suspended for an object that is referenced by a pointer. The syntax is:
 
 \begin{tabbing}
 \var{fact:}\= \\
-\>\texttt{suspends(\var{e}->\var{mp})} \\
-\>\texttt{holds(\var{e}->\var{mp})} \\
+\>\code{suspends(}\var{e}\code{->}\var{mp}\code{)} \\
+\>\code{holds(}\var{e}\code{->}\var{mp}\code{)} \\
 \end{tabbing}
 
 where \var{e} is a pointer to a structure type \var{S} and \var{mp} is a member of
-path.  The syntax \texttt{(*\var{e}).\var{mp}} is equivalent to 
-\texttt{\var{e}->\var{mp}} and can be used in its place.  
-The syntax \texttt{suspends(*\var{e})} suspends all member bounds for 
-the object pointed to by \var{e} and the syntax \texttt{holds(*\var{e})} 
+path.  The syntax \code{(*}\var{e}\code{.}\var{mp} is equivalent to 
+\var{e}\code{->}\var{mp} and can be used in its place.  
+The syntax \code{suspends(*}\var{e}\code{)} suspends all member bounds for 
+the object pointed to by \var{e} and the syntax \code{holds(*}\var{e}\code{)} 
 means that all member bounds for \var{e} must hold.
 
 The expression \var{e} must be a non-modifying expression to ensure that the \var{e}
@@ -78,9 +78,9 @@ refers to the same object at \keyword{suspends} and \keyword{holds} declarations
 It must meet the following additional restrictions:
 \begin{itemize}
 \item \var{e} cannot access memory via a pointer operation.
-      It cannot contain a \texttt{*}, \texttt{->},  or a \texttt{[]} operation.
-\item No variable whose value is used \var{e} can be modified between the \texttt{suspends}
-and \texttt{holds} declarations.
+      It cannot contain a \code{*}, \code{->},  or a \code{[]} operation.
+\item No variable whose value is used \var{e} can be modified between the \code{suspends}
+and \code{holds} declarations.
 \item No variable whose value is used in \var{e} can have its address taken. 
 This is to avoid indirect modifications of variables.
 \end{itemize}
@@ -89,7 +89,7 @@ There are additional restrictions to avoid problems due to pointer aliasing
 (when two pointers may point to the same memory).   We propose simple restrictions
 for correctness.
 Function calls are not allowed between \keyword{suspends} and 
-\keyword{holds} declarations for \texttt{\var{e}->\var{mp}}.  The function calls 
+\keyword{holds} declarations for \var{e}\code{->}\var{mp}.  The function calls 
 might depend on the object pointed to by \var{e} having a  valid type-level invariant.
   
 We continue to assume that the addresses of \arrayptr\ members and members
@@ -97,8 +97,8 @@ used in member bounds cannot be taken.  It is undefined behavior for unchecked
 code to create pointers to the memory of those members.   With this assumption, we 
 can allow assignments through and reads via other pointer expressions
 between the \keyword{suspends} and \keyword{holds} declarations for
-\texttt{\var{e}->\var{mp}}.  This is provided that the assignments do not modify 
-\var{S.mp} or members in the bounds of \var{S.mp}.  No pointers should alias
+\var{e}\code{->}\var{mp}.  This is provided that the assignments do not modify 
+\var{S}\code{.}\var{mp} or members in the bounds of \var{S}\code{.}\var{mp}.  No pointers should alias
 \var{mp} or the other members, so the only aliases can be other structure
 pointers.  Those can only be created through casting.  It is the programmer's responsibility
 to update bounds-checked members properly in that case (Section~\ref{section:pointer-casting}).
@@ -113,40 +113,41 @@ pointer.
 It will be important to support by-reference parameter passing of \arrayptr-typed variables
 in C.  It is a common way that multiple values are returned from a function.  By-reference parameter
 passing of \arrayptr s will lead to programs where the addresses of local variables or struct
-members of type \arrayptr are taken.
+members of type \arrayptr\ are taken.
 
 For example, a function that returns a newly-allocated buffer and its length could be written as:
-\begin{verbatim}
-void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len), ptr<int> plen)
+\begin{lstlisting}
+void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len),
+            ptr<int> plen)
 { ...
 }
-\end{verbatim}
+\end{lstlisting}
 A caller would take the addresses of local variables to use this function:
-\begin{verbatim}
+\begin{lstlisting}
 void f(void)
 {
     int len;
     array_ptr<char> buf : count(len) = NULL;
     create(&buf, &len);
 }
-\end{verbatim}
+\end{lstlisting}
 
 We can gain insight into this problem by considering a related
 problem.   When the address of a variable that occurs in a bounds declaration is 
 taken, it is important to ensure that the invariants for the bounds declaration are not
 broken accidentally.  Consider:
-\begin{verbatim}
+\begin{lstlisting}
 void bad_code(array_ptr<char> buf : count(len), int len) 
 {
     ptr<int> plen = &len;
     *plen = 5;
 }
-\end{verbatim}
-The problem with allowing the address of just \texttt{len} to be taken is
-that the lvalue for \texttt{len} actually has additional constraints. This
+\end{lstlisting}
+The problem with allowing the address of just \code{len} to be taken is
+that the lvalue for \code{len} actually has additional constraints. This
 suggests that pointer variables that hold addresses of address-taken variables should
 themselves have additional constraints.  For example:
-\begin{verbatim}
+\begin{lstlisting}
 void constrained_code(array_ptr<char> buf : count(len), int len) 
 {
     ptr<int> plen = NULL;
@@ -161,11 +162,11 @@ void constrained_code(array_ptr<char> buf : count(len), int len)
        *pbuf = a;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 There are some interesting issues that arise from this idea:
 \begin{compactitem}
-\item The bounds on the lvalues for \texttt{len} and
-\texttt{buf} must be invariant throughout the execution of the program.
+\item The bounds on the lvalues for \code{len} and
+\code{buf} must be invariant throughout the execution of the program.
 While we can put constraints on pointers that point to those lvalues,
 we do not know when the lvalues will be updated.
 The implication of this is that only local variables with invariant
@@ -203,7 +204,7 @@ local variables.
 \label{section:allocation-of-uninitialized-data}
 
 In the long run, it is unsatisfactory to require that allocators always
-return zeroed data.  Some allocators such as \texttt{malloc} return pointers to
+return zeroed data.  Some allocators such as \code{malloc} return pointers to
 uninitialized data.  This improves efficiency when data is
 simply overwritten by the caller.  For example, it is not necessary
 for bounds safety for arrays of characters to be zeroed.
@@ -217,16 +218,16 @@ state of memory pointed to by a variable:
 \begin{itemize}
 \item Three predicates can be used in \keyword{where}\ clauses
 to describe the initialization state of a \arrayptr\ or \ptr-typed variable:
-\keyword{\_init\_data}, \keyword{\_uninit\_data}, and \keyword{\_zero\_data}.
-A predicate applies to a variable if it is combined using the \texttt{:}
-notation: \texttt{\var{x} : \_uninit\_data} means that x points to data
+\code{_init_data}, \code{_uninit_data}, and \code{_zero_data}.
+A predicate applies to a variable if it is combined using the \code{:}
+notation: \var{x} \code{: _uninit_data} means that \var{x} points to data
 that is uninitialized.
 \item The predicates also have range versions that take bounds expressions
-as arguments by suffixing the predicate name with \texttt{\_range}.  For example, 
+as arguments by suffixing the predicate name with \code{_range}.  For example, 
 if we want to express that the first n elements of \var{x} are initialized
 and the remaining elements are not, we could have
-\texttt{\var{x} : init\_data(x, x + n)
-\&\& \var{x} : uninit\_data(x + n + 1, x + len)}, where \texttt{len} is 
+\var{x} \code{: init_data(x, x + n) &&} \var{x}
+\code{: uninit_data(x + n + 1, x + len)}, where \code{len} is 
 the length of the array pointed to by \var{x}.
 \item The default state of data is that it is assumed to be initialized.
 Data must explicitly have another state declared for it to be in another
@@ -243,19 +244,19 @@ correctness with respect to bounds of casts to checked pointer types that have p
 within them.
 \end{itemize}
 
-Here are potential bounds-safe interfaces for \texttt{malloc} and \texttt{calloc}.
-We omit notation for describing that \texttt{malloc} and \texttt{calloc} produce 
+Here are potential bounds-safe interfaces for \code{malloc} and \code{calloc}.
+We omit notation for describing that \code{malloc} and \code{calloc} produce 
 pointers to new memory:
-\begin{verbatim}
+\begin{lstlisting}
 void *malloc(size_t len) 
 where return_value : byte_count(len) && return_value: _uninit_data;
 
 void *calloc(size_t num, size_t size)
-where return_value : byte_count(num * size)  && return_value : _zero_data
-\end{verbatim}
-A cast from the result of a \texttt{malloc} call to a checked pointer type with pointer types
-would propagate the  \texttt{\_uninit} predicate:
-\begin{verbatim}
+where return_value : byte_count(num * size)  && return_value : _zero_data;
+\end{lstlisting}
+A cast from the result of a \code{malloc} call to a checked pointer type with pointer types
+would propagate the  \code{_uninit} predicate:
+\begin{lstlisting}
 struct S {
     int len;
     int array_ptr<char> chars : len;
@@ -266,12 +267,12 @@ void f(void)
    S *s = malloc(sizeof(S)) where s : _uninit_data;
    s->chars = NULL where s : _init_data;
    ...
-\end{verbatim}
+\end{lstlisting}
 Of course we might want inference rules that add annotations automatically.  
 
 It might be possible to use ranges to write code that tracks at a fine grain that 
 data is being zeroed:
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<char> zero_mem(array_ptr<char> x : count(len) where x : _uninit, size_t len) 
    where x : _zero_init
 {
@@ -283,4 +284,4 @@ array_ptr<char> zero_mem(array_ptr<char> x : count(len) where x : _uninit, size_
    }
    return;
 }
-\end{verbatim}
+\end{lstlisting}

@@ -15,36 +15,36 @@ bounds. The member bounds declarations may also be placed inline.
 A structure declaration may also include \keyword{where} clauses at the same
 level as member declarations.  Here are examples:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data where data : count(num);
     int num;
 };
-\end{verbatim}
+\end{lstlisting}
 or
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data : count(num);
     int num;
 };
-\end{verbatim}
+\end{lstlisting}
 or
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data;
     int num;
     where data : count(num);
 };
-\end{verbatim}
+\end{lstlisting}
 
 Member bounds declarations are program invariants that are assumed to be true
 by default for objects of that type. A member bounds declaraton may be suspended for a specific
 object to allow for initialization of the object or modification of the
 members involved in the member bounds declarations. The member bounds
 declaration is declared to hold again after the initialization or modification is done.
-Here is an example of variable of type S being initialized:
+Here is an example of variable of type \code{S} being initialized:
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y 
     where suspends(y.data);
@@ -54,7 +54,7 @@ void f(int len) {
     where holds(y.data);    // the member bounds for y.data now holds
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 \keyword{Suspends} and \keyword{holds} are dataflow-sensitive declarations of 
 the states of the member bounds declarations for specific members of variables. They can be
@@ -65,7 +65,7 @@ types as syntactic short-hand. In that case, they apply to the nested
 members of the variable or variable member. The example could also be
 written as:
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y 
     where suspends(y);
@@ -75,7 +75,7 @@ void f(int len) {
     where holds(y);    // the member bounds for y.data now holds
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 Making member bounds declarations be invariants provides a way to deal with issues
 caused by aliasing. There can be pointers to data structures or members
@@ -85,7 +85,7 @@ the pointers are called aliases because they all name the same
 memory location.  Aliasing makes it hard to reason about programs.
 
 Consider the example:
-\begin{verbatim}
+\begin{lstlisting}
 f(S *q, S *r, bool b)
 {
    if (b) {
@@ -97,14 +97,14 @@ f(S *q, S *r, bool b)
       r->len = 5;
    }
 }
-\end{verbatim}
+\end{lstlisting}
 
-Even when b is true, the value \texttt{r->arr} may still be
-changed by a call to f. This can happen when \texttt{q} and \texttt{r}
+Even when b is true, the value \code{r->arr} may still be
+changed by a call to f. This can happen when \code{q} and \code{r}
 are the same value and are aliases for the same memory location.
-Changing one named value (\texttt{q->arr}) can have the
+Changing one named value (\code{q->arr}) can have the
 effect of changing some other value with a distinct name
-(\texttt{r->arr}). In general, it is difficult to know
+(\code{r->arr}). In general, it is difficult to know
 whether an assignment through one pointer variable is affecting the
 members of other pointer variables.
 
@@ -133,15 +133,15 @@ addresses are taken are not used in bounds expressions.
 Member bounds declarations have the form:
 \begin{tabbing}
 \var{member}\=\var{-bounds-decl:}\\
-\> \var{member-path} : \var{member-bounds-exp} \\
+\> \var{member-path} \code{:} \var{member-bounds-exp} \\
 \\
 \var{member-path:}\\
 \> \var{identifier} \\
-\> \var{member-path} \texttt{.} \var{identifier}
+\> \var{member-path} \code{.} \var{identifier}
 \end{tabbing}
 
 A member path is a sequence of one or more member names, separated by
-the `.' operator. The sequence of members must be a valid sequence of
+the `\code{.}' operator. The sequence of members must be a valid sequence of
 member accesses for the structure type. The common case of using a
 member of the structure type is simply a member path of length 1.
 
@@ -174,9 +174,9 @@ clauses.
 \begin{tabbing}
 \var{struct}\=\var{-member-declarator:}\\
 \> \var{declarator where-clause\textsubscript{opt}} \\
-\> \var{declarator\textsubscript{opt}} \texttt{:}
+\> \var{declarator\textsubscript{opt}} \code{:}
    \var{constant-expression} \\
-\> \var{declarator} \texttt{:} \var{member-bounds-exp}
+\> \var{declarator} \code{:} \var{member-bounds-exp}
 \var{where-clause\textsubscript{opt}} \\
 \\
 The list of member declarations is extended to include \keyword{where}
@@ -189,19 +189,19 @@ clauses:\\
 The remaining syntax for specifying a structure remains unchanged: \\
 \\
 \var{struct-or-union-specifier:}\\
-\> \var{struct-or-union identifier\textsubscript{opt}} \texttt{\{}
-\var{struct-member-declaration-list} \texttt{\}} \\
+\> \var{struct-or-union identifier\textsubscript{opt}} \lstinline|{|
+\var{struct-member-declaration-list} \lstinline|}| \\
 \\
 \var{struct-member-declaration-list:} \\
 \> \var{struct-member-declaration} \\
 \> \var{struct-member-declaration-list struct-member-declaration} \\
 \\
 \var{struct-member-declaration:} \\
-\> \var{specifier-qualifier-list struct-member-declarator-list} \texttt{;} \\
+\> \var{specifier-qualifier-list struct-member-declarator-list} \code{;} \\
 \\
 \var{struct-member-declarator-list:} \\
 \> \var{struct-member-declarator} \\
-\> \var{struct-declarator-list} \texttt{,} \var{struct-member-declarator} 
+\> \var{struct-declarator-list} \code{,} \var{struct-member-declarator} 
 \end{tabbing}
 
 A member bounds expression can use members and child members of the
@@ -209,21 +209,21 @@ structure being declared. Any member paths occurring in the member
 bounds expressions must start with members of the structure type being
 declared. Here is an example of the use of child members:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct A {
    array_ptr<int> data;
-}
+};
 
 struct N {
     int num;
-}
+};
 
 struct S {
    A a
    where count(a.data) == n.num;
    N n;
 };
-\end{verbatim}
+\end{lstlisting}
 
 Allowing member bounds to use nested members of members complicates
 explaining concepts. Sometimes concepts will be explained using member
@@ -239,11 +239,11 @@ variables with member accesses. Variable member paths are used where
 variables were allowed:
 \begin{tabbing}
 \var{bounds}\=\var{-decl:}\\
-\> \var{var-member-path} \texttt{:} \var{bounds-exp} \\
+\> \var{var-member-path} \code{:} \var{bounds-exp} \\
 \\
 \var{var-member-path:} \\
 \> \var{identifier} \\
-\> \var{var-member-path} \texttt{.} \var{identifier}
+\> \var{var-member-path} \code{.} \var{identifier}
 \end{tabbing}
 
 The first identifier in a variable member path must be the name of a
@@ -260,15 +260,15 @@ for a variable using two kinds of facts:
 \begin{tabbing}
 \var{fact:}\= \\
 \> \var{\ldots{}} \\
-\> \texttt{suspends(\var{var-member-path})} \\
-\> \texttt{holds(\var{var-member-path})}
+\> \code{suspends(}\var{var-member-path}\code{)} \\
+\> \code{holds(}\var{var-member-path}\code{)}
 \end{tabbing}
 
 If the \var{var-member-path} has an \arrayptr\ type, it must
 have the form \var{x.path,} where \var{x} is a variable name. 
-The fact \texttt{suspends(\var{x.path})} means that the
+The fact \code{suspends}(\var{x\code{.}path}\code{)} means that the
 member bounds declared by the type of \var{x} for \var{path} may not
-hold for \var{x}. The fact \texttt{holds(}\var{x.path}\texttt{)}
+hold for \var{x}. The fact \code{holds(}\var{x\code{.}path}\code{)}
 means that the member bounds declared by the type of x for \var{path}
 holds now for \var{x}.
 
@@ -278,13 +278,13 @@ bounds for the structure type and child members of the structure type.
 
 \subsection{Parameters and return values}
 
-The state of members bounds declarations can be declared for parameters and
+The state of member bounds declarations can be declared for parameters and
 return values using \keyword{suspends} and \keyword{holds} as well. By
-default, the state is \texttt{holds}.
+default, the state is \code{holds}.
 
 Consider the following structure type definitions:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
     array_ptr<int> data : count(num);
     int num;
@@ -296,11 +296,11 @@ struct T {
     array_ptr<float> weights : count(len);
     int len;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here are some function declarations involving the state of member
 bounds:
-\begin{verbatim}
+\begin{lstlisting}
 T f(T x where holds(x)) where holds(return_value)   // the default 
 
 T f(T x where suspends(x.arr1))
@@ -308,7 +308,7 @@ where suspends(return_value.arr2)
 
 T f(T x where suspends(x.arr1.data)
 where suspends(return_value.arr1.data)
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Extent of declarations of member bounds state for variables}
 \label{section:member-bounds-state-extent}
@@ -354,25 +354,25 @@ about which state declaration applies to an occurrence of a variable.
 It is an error for the member bounds state declarations to disagree.
 
 The following example illustrates the declaration of member bounds
-state. The structure \texttt{S} represents a variable length array,
-where \texttt{data} holds a pointer to an array and \texttt{num} is the 
-length of the array. The function \texttt{f} takes a length parameter  
-\texttt{len} and creates an initialized instance of \texttt{S} in the 
-variable \texttt{y}.  It then copies \texttt{y} to \texttt{z}.
+state. The structure \code{S} represents a variable length array,
+where \code{data} holds a pointer to an array and \code{num} is the 
+length of the array. The function \code{f} takes a length parameter  
+\code{len} and creates an initialized instance of \code{S} in the 
+variable \code{y}.  It then copies \code{y} to \code{z}.
 
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
    array_ptr<int> data
    where count(data)== num;
    int num;
 };
-\end{verbatim}
+\end{lstlisting}
 
-Here is a version of \texttt{f} where all member bounds state declarations are
+Here is a version of \code{f} where all member bounds state declarations are
 made explicit. For structure variable members whose member bounds are
 suspended, the bounds declarations are made explicit as well.
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y where suspends(y.data);
     S z where suspends(z.data);
@@ -385,11 +385,11 @@ void f(int len) {
     z = y
     where holds(z.data);
 }
-\end{verbatim}
+\end{lstlisting}
 
 This can be written more succinctly as:
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y;
     S z;
@@ -402,16 +402,16 @@ void f(int len) {
     z = y
     where holds(z);   // z is initialized now
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Integration of member bounds and bounds for variables}
 
 A member of a structure variable may be covered by its member bounds
 declaration and a bounds declaration at the same time. This coexistence
 happens when a member is initialized to satisfy its member bounds
-declaration. Here is a version of \texttt{f} that is annotated with both member
+declaration. Here is a version of \code{f} that is annotated with both member
 bounds and bounds declarations for variable members.
-\begin{verbatim}
+\begin{lstlisting}
 void f(int len) {
     S y;
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
@@ -422,54 +422,54 @@ void f(int len) {
           y.data : count(y.num);
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
-After the assignment \texttt{y.num = len}, the member bounds holds for
-\texttt{y.data} and the bounds declaration \texttt{y.data : count(y.num)}
+After the assignment \code{y.num = len}, the member bounds holds for
+\code{y.data} and the bounds declaration \code{y.data : count(y.num)}
 holds as well.
 
 \subsection{Determining bounds for a use of an \arrayptr\ member of a variable}
 \label{section:determining-variable-member-bounds}
 
 When a member path \var{mp} of a variable \var{x} is used and
-\var{x}\texttt{.}\var{mp} has type \arrayptr, the bounds for
-\var{x}\texttt{.}\var{mp} are determined using these rules:
+\var{x}\code{.}\var{mp} has type \arrayptr, the bounds for
+\var{x}\code{.}\var{mp} are determined using these rules:
 
 \begin{itemize}
 \item
   If the use is within the extent of a bounds declaration
-  \var{x}\texttt{.}\var{mp} \texttt{:} \var{bounds-exp} and
+  \var{x}\code{.}\var{mp} \code{:} \var{bounds-exp} and
   \var{bounds-exp} is not \boundsunknown, \var{bounds-exp} is
   the bounds.
 \item
   Otherwise, if the state of the member bounds for
-  \var{x}\texttt{.}\var{mp} is \texttt{holds}, the member bounds for
-  \var{x}\texttt{.}\var{mp} is used.
+  \var{x}\code{.}\var{mp} is \code{holds}, the member bounds for
+  \var{x}\code{.}\var{mp} is used.
 \item
-  Otherwise, the bounds of \var{x}\texttt{.}\var{mp} is
+  Otherwise, the bounds of \var{x}\code{.}\var{mp} is
   \boundsunknown.
 \end{itemize}
 
 \subsection{Suspends declarations and bounds for variables.}
 
-When the member bounds declaration \var{m}b for a variable member is
+When the member bounds declaration \var{mb} for a variable member is
 suspended by a statement of the form:
 
-\var{e2} \keyword{where} \texttt{suspends(}\var{x.mp}\texttt{);}
+\var{e2} \keyword{where} \code{suspends(}\var{x\code{.}mp}\code{);}
 
 where \var{x} is a variable and \var{mp} is a member path, there is an
-implicit bounds declaration for \var{x}\texttt{.}\var{mp} at the point
+implicit bounds declaration for \var{x}\code{.}\var{mp} at the point
 of suspension. This happens unless \var{e2} modifies a member \var{m}
 of \var{x} that occurs in \var{mb}. In addition, the state of the
-member bounds for \var{x}\texttt{.}\var{mp} must be \texttt{holds}
+member bounds for \var{x}\code{.}\var{mp} must be \code{holds}
 before the statement. The member bounds declaration \var{mb} is
 converted to a bounds declaration by prefixing each occurrence of a
-member path in \var{mb} with the expression ``\var{x}\texttt{.}''.
+member path in \var{mb} with the expression ``\var{x}\code{.}''.
 
 For example, given
 
-\begin{verbatim}
- S  copy_and_resize(S arg, int len) {
+\begin{lstlisting}
+S copy_and_resize(S arg, int len) {
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
        where suspends(arg);
     for (int i = 0; i < arg.num; i++) {
@@ -480,25 +480,25 @@ For example, given
     where holds(arg);   // member bounds for arg holds now
     return arg;
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 There is implicitly a bounds declaration at the suspension of the member
 bounds for arg:
 
-\begin{verbatim}
+\begin{lstlisting}
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
        where suspends(arg) && arg.data : count(arg.num);
-\end{verbatim}
+\end{lstlisting}
 
-If the suspends were done after the assignment to \texttt{arg.data}:
+If the suspends were done after the assignment to \code{arg.data}:
 
-\begin{verbatim}
+\begin{lstlisting}
     arg.data = newarr
     suspends(arg);
-\end{verbatim}
+\end{lstlisting}
 
-there would not be an implicit bounds declaration because \texttt{arg.data} is
+there would not be an implicit bounds declaration because \code{arg.data} is
 modified by the assignment.
 
 At a declaration of a structure variable x, no implicit bounds
@@ -506,11 +506,11 @@ declarations are inserted if the declaration suspends the member bounds
 for a member of x. There was no point at which the member bounds was
 known to be true. For example,
 
-\begin{verbatim}
+\begin{lstlisting}
 f(S arg where suspends(arg))
-\end{verbatim}
+\end{lstlisting}
 
-does not have an implicit bounds declaration of the form \verb|arg.data :count(arg.len)|.
+does not have an implicit bounds declaration of the form \lstinline|arg.data :count(arg.len)|.
 
 \subsection{Holds declarations and bounds for variables}
 
@@ -533,24 +533,24 @@ unchecked pointer types.
 Here is a member bounds declaration for a structure that is a counted buffer
 of characters:
 
-\begin{verbatim}
+\begin{lstlisting}
 struct CountedBuffer {
      char *arr : count(len);
      int len;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here are bounds-safe interface types for members of a structure for binary
 tree nodes. The structure contains pointers to two other nodes.  In
 checked code, pointer arithmetic on those pointers is not allowed.
 
-\begin{verbatim}
+\begin{lstlisting}
 struct BinaryNode {
     int data;
     BinaryNode *left : itype(ptr<BinaryNode>);
     BinaryNode *right : itype(ptr<BinaryNode>);
 }
-\end{verbatim}
+\end{lstlisting}
 
 If bounds information is declared for one member of a structure with an
 unchecked pointer type, it must be declared for all other members of the
@@ -651,21 +651,21 @@ with structure types to mean that \var{e} has a set of member paths with individ
 \begin{itemize}
 \item Variables: If \var{x} has a structure type, the context is consulted for \var{x} for
 the set \var{s} of pairs of member paths and bounds expressions.  \boundsinfer{\var{x}}{\var{s}}.
-\item Member access: Given an expression \texttt{\var{e}.\var{m}}, where \var{m} is 
+\item Member access: Given an expression \var{e}\code{.}\var{m}, where \var{m} is 
 a member name and \boundsinfer{\var{e}}{\var{s}},
 \begin{itemize}
-\item If \texttt{\var{e}.\var{m}} has a structure type, then
+\item If \var{e}\code{.}\var{m} has a structure type, then
 \begin{itemize}
 \item The set $\var{s}^{\prime}$ is defined as follows.  For each pair 
       \texttt{(\var{mp}, \var{b})} in \var{s}, if \var{mp} has the form 
-      \texttt{\var{m}.\var{rp}}, then \texttt{(\var{rp}, \var{b})} is
+      \var{m}\code{.}\var{rp}, then \texttt{(\var{rp}, \var{b})} is
       included in $\var{s}^\prime$.
-\item  Given $\var{s}^\prime$, \boundsinfer{\texttt{\var{e}.\var{m}}}{$\var{s}^\prime$}.
+\item  Given $\var{s}^\prime$, \boundsinfer{\var{e}\code{.}\var{m}}{$\var{s}^\prime$}.
 \end{itemize}
 \item Otherwise,
 \begin{itemize}
-\item If $\var{s} = \texttt{\{(\var{m}, \var{b})\}}$, then \boundsinfer{\texttt{\var{e}.\var{m}}}{b}
-\item Otherwise, \boundsinfer{\texttt{\var{e}.\var{m}}}{\boundsunknown}
+\item If $\var{s} = \texttt{\{(\var{m}, \var{b})\}}$, then \boundsinfer{\var{e}\code{.}\var{m}}{b}
+\item Otherwise, \boundsinfer{\var{e}\code{.}\var{m}}{\boundsunknown}
 \end{itemize}
 \end{itemize}
 \item Function calls: {\em To be filled in}

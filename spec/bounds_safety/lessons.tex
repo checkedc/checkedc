@@ -95,30 +95,30 @@ dependent type is a type that may depend on a value at runtime.
 Dependent types are built using type constructors that are applied to
 types and values. The type constructors capture specific properties of
 runtime values. For example, Deputy introduces a type constructor
-\verb|Array| that can be applied to an integer value (the length of the
-array) and an element type. \verb|Array 5 int| describes the type of
-integer arrays with 5 elements. The \verb|Array| type constructor can be
+\lstinline|Array| that can be applied to an integer value (the length of the
+array) and an element type. \lstinline|Array 5 int| describes the type of
+integer arrays with 5 elements. The \lstinline|Array| type constructor can be
 applied to a program variable or an expression, so the type can depend
-on a runtime value. For example, \verb|Array n int| describes the type
+on a runtime value. For example, \lstinline|Array n int| describes the type
 of integer arrays with n elements.
 
 The following example illustrates the use of dependent types in Deputy.
 It is adapted from Figure 3 of the Deputy OSDI paper , which in turn was
 adapted from the Deputy version of the Linux e1000 network card driver.
 
-The example has an annotation on the \texttt{buffer\_info} field of
-\texttt{e1000\_tx\_ring}. The annotation means that
-\texttt{buffer\_info} points at an array element and that at least
-\texttt{info\_count} elements are valid (specifically, it is valid to
-access memory between \texttt{buffer\_info} and \texttt{buffer\_info +
-info\_count - 1}). This information is part of the type of
-\texttt{buffer\_info}.
+The example has an annotation on the \code{buffer_info} field of
+\code{e1000_tx_ring}. The annotation means that
+\code{buffer_info} points at an array element and that at least
+\code{info_count} elements are valid (specifically, it is valid to
+access memory between \code{buffer_info} and \code{buffer_info +
+info_count - 1}). This information is part of the type of
+\code{buffer_info}.
 
-The type checking rule for adding a pointer of \verb|Array| type with an
+The type checking rule for adding a pointer of \lstinline|Array| type with an
 integer requires that the integer value be in bounds for the array. To
-type check \texttt{tx\_ring-\textgreater{}buffer\_info[i]}, the type
-checker must show at compile time that \texttt{i >= 0} and
-\texttt{i <= tx\_ring->count}. In general, taking
+type check \code{tx_ring->buffer_info[i]}, the type
+checker must show at compile time that \code{i >= 0} and
+\code{i <= tx_ring->count}. In general, taking
 an arbitrary program and establishing equality between runtime values at
 compile time is undecidable, which means that type checking would be
 undecidable. To make type checking decidable, Deputy examines statements
@@ -128,23 +128,23 @@ checks that establish the relationships are true before the statements.
 If a relationship between runtime values is not true, the checks cause
 the program to fail at run time. Of course, these runtime checks can be
 eliminated by later optimization. In this specific case, the compiler
-injects a runtime check \verb|assert(0 <= i && i < tx_ring->info_count);| into the program. 
+injects a runtime check \lstinline|assert(0 <= i && i < tx_ring->info_count);| into the program. 
 In the example, the runtime checks are italicized assert statements.
 
-\begin{alltt}
-struct e1000_tx_ring \{
+\begin{lstlisting}
+struct e1000_tx_ring {
     ...
     unsigned int info_count;
     struct e1000_buffer * count(info_count)
         buffer_info;
     ...
-\};
+};
 
 static boolean t
 e1000_clean_tx_irq(
     struct e1000_adapter *adapter,
     struct e1000_tx_ring *tx_ring)
-\{
+{
     ...
     \textit{assert(tx_ring != NULL);}
     spin lock(&tx_ring->tx_lock);
@@ -156,8 +156,8 @@ e1000_clean_tx_irq(
     ...
 
     spin unlock(&tx_ring->tx_lock);
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
 \section{Problems with making {C} function bodies dependently-typed}
 \label{section:dependent-typing-issues}
@@ -193,7 +193,7 @@ computations.
 
 The following code example from Figure 1 of the Deputy ESOP paper shows
 this. Here is the original code:
-\begin{verbatim}
+\begin{lstlisting}
 int sum (int * buf, int * end) {
     int sum = 0;
     while (buf < end) {
@@ -202,36 +202,36 @@ int sum (int * buf, int * end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here is the Deputy-generated code, assuming that the function parameters
 are annotated with dependent types. The new code inserted by Deputy has
 been italicized:
 
-\begin{alltt}
-int sum (int * count(end - buf) buf, int * end) \{
+\begin{lstlisting}[escapechar=\@]
+int sum (int * count(end - buf) buf, int * end) {
     int sum = 0;
     while (buf < end) \{
-        \textit{assert(0 < end - buf);}
+        @\textit{assert(0 < end - buf);}@
         sum += * buf;
         int tmplen = (end - buf) - 1;
-        \textit{assert(0 <= 1 <= end - buf);}
+        @\textit{assert(0 <= 1 <= end - buf);}@
         int * count(tmplen) tmp = buf + 1;
-        \textit{assert(0 <= end - tmp <= tmplen);  // how to explain this failure??}
+        @\textit{assert(0 <= end - tmp <= tmplen);@ // how to explain this failure??}
         buf = tmp;
-    \}
+    }
     return sum;
-\}
-\end{alltt}
+}
+\end{lstlisting}
 
-The program now has computations of \texttt{end - buf} and \texttt{end
-- tmp} that track the bounds of the array \texttt{buf}. A C programmer
+The program now has computations of \code{end - buf} and \code{end
+- tmp} that track the bounds of the array \code{buf}. A C programmer
 would not expect instructions for these computations to be injected into
 the program. This makes the program less efficient and these
 instructions are also not introduced under programmer control. In
 addition it might be difficult for a programmer to understand a bounds
 failure in this program at runtime when the failure involves a
-synthesized expression such as \verb|end - tmp <= tmplen| that did not
+synthesized expression such as \lstinline|end - tmp <= tmplen| that did not
 exist in the original source code.
 
 This suggests that the automatic inference and rewriting during
@@ -271,22 +271,22 @@ operator.
 
 Consider a structure with a pointer field whose size depends on another
 field:
-\begin{verbatim}
+\begin{lstlisting}
 struct S {
    int * count(len) arr;
    int len;
 }
-\end{verbatim}
+\end{lstlisting}
 
 If there is a local variable of type S, neither field of the variable
 can be updated independently of the other field:
 
-\begin{verbatim}
+\begin{lstlisting}
 S y;
 int * count(5) tmp = malloc(sizeof(int) 5);
 y.arr = tmp;
 y.len = 5;
-\end{verbatim}
+\end{lstlisting}
 
 The assignment to y.arr will fail to type check because y.len is
 out-of-date. Reversing the order of assignments does not help. The
@@ -333,7 +333,7 @@ original example in Section~\ref{section:dependent-typing-issues}.
 Here is the code for the method using
 \spanptr.
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
     span<int> buf = new span(tmpbuf, tmpbuf, end);
     int sum = 0;
@@ -343,7 +343,7 @@ int sum (int * count(end - tmpbuf) tmpbuf, int * end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Summary of lessons}
 

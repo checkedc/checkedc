@@ -25,15 +25,15 @@ the form:
 \> \boundsdecl{\var{x}}{\var{bounds-exp}} \\
 \\
 \var{bounds}\var{-exp:} \\
-\> \texttt{count(}\var{non-modifying-exp}\texttt{)} \\
+\> \boundscount{\var{non-modifying-exp}} \\
 \> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}} \\
 \> \boundsunknown \\
 \> \boundsany
 \end{tabbing}
 
-where \var{x} is a variable. There are additional forms for handling
-casts and void pointers that are described in 
-Sections~\ref{section:pointer-cast-results} and \ref{section:pointers-to-void}.
+where \var{x} is a variable. Additional forms for handling
+\void\ pointers and casts are described in 
+Sections~\ref{section:pointers-to-void} and \ref{section:pointer-cast-results}.
 
 A bounds expression describes the memory that can be accessed using the
 value of \var{x}, provided that x is not null. Bounds expressions
@@ -44,8 +44,8 @@ include counts, pairs that specify an upper bound and lower bound,
 \item
   \boundsdecl{\var{x}}{\boundscount{e1}} describes the number of
   elements that are accessible beginning at \var{x}. Only memory that
-  is at or above x and below \var{x} \texttt{+} \var{e1} can be
-  accessed through \var{x}, where \var{x} \texttt{+} \var{e1} is
+  is at or above x and below \var{x} \code{+} \var{e1} can be
+  accessed through \var{x}, where \var{x} \code{+} \var{e1} is
   interpreted using \arrayptr\ pointer arithmetic.
 \item
   \boundsdecl{\var{x}}{\bounds{\var{e1}}{\var{e2}}}
@@ -104,14 +104,14 @@ than the maximum number of \arrayptrT\ elements
 that can be indexed by an integer whose type matches that of \var{e1}.
 For \ntarrayptr, there is
 an null terminator at or beyond the upper bound, so \var{e1}
-must be less than the maximum number of \arrayptrT elements minus one.
+must be less than the maximum number of \arrayptrT\ elements minus one.
 
 A bounds declaration \boundsdecl{\var{x}}{\boundscount{\var{e1}}} is an
-abbreviation for \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \texttt{+} \var{e1}}} with additional conditions that \var{e1}
-\texttt{>= 0 \&\& \var{e1} <= (char *)}
-\var{ub}\texttt{.} \var{ub} is either
-\texttt{UINTPTR\_MAX/\sizeof{\var{T}}} or
-\texttt{INTPTR\_MAX/\sizeof{\var{T}}}. 
+abbreviation for \boundsdecl{\var{x}}{\bounds{\var{x}}{\var{x} \code{+} \var{e1}}} with additional conditions that \var{e1}
+\lstinline|>= 0 &&| \var{e1} \lstinline|<= (char *)|
+\var{ub}. \var{ub} is either
+\lstinline|UINTPTR_MAX/sizeof(|\var{T}\lstinline|)| or
+\lstinline|INTPTR_MAX/sizeof(|\var{T}\lstinline|)|.
 
 The conditions may require programmers to add additional checks at memory allocations
 to show that \var{e1} is in range. However, the conditions have advantages too.
@@ -135,17 +135,17 @@ The meaning of a bounds expression can be defined more precisely. At
 runtime, given an expression \var{e} with a bounds expression
 \bounds{\var{lb}}{\var{ub}}, let the runtime
 values of \var{e}, \var{lb}, and \var{ub} be \var{ev}, \var{lbv},
-and \var{ubv}, respectively. The value \var{ev} will be \texttt{0} (null) or
+and \var{ubv}, respectively. The value \var{ev} will be \code{0} (null) or
 have been derived via a sequence of operations from a pointer to some
 object \var{obj} with \bounds{\var{low}}{\var{high}}.
 The following statement will be true at runtime:
-\var{ev} \texttt{== 0 || (\var{low} <= \var{lbv}\&\& 
-\var{ubv} <= \var{high})}. In other words, 
+\var{ev} \lstinline@== 0 || (@\var{low} \lstinline|<=| \var{lbv} \lstinline|&&|
+\var{ubv} \lstinline|<=| \var{high}\lstinline|)|. In other words, 
 if \var{ev} is null, the bounds
 may or may not be valid. If \var{ev} is non-null, the bounds must be
-valid. This implies that any access to memory where \var{ev} \texttt{!=
-0 \&\&} \var{lbv} \texttt{<=} \var{ev} \texttt{\&\&} \var{ev}
-\texttt{<} \var{ubv} will be within the bounds of \var{obj}.
+valid. This implies that any access to memory where \var{ev}
+\lstinline|!= 0 &&| \var{lbv} \lstinline|<=| \var{ev} \lstinline|&&| \var{ev}
+\lstinline|<| \var{ubv} will be within the bounds of \var{obj}.
 
 In this chapter, to simplify the description, it is assumed that none of
 the \arrayptr\ variables that have bounds declarations have
@@ -154,8 +154,8 @@ whose addresses are taken are not used in bounds declarations. It is
 acceptable to use the address of an address-taken variable in a bounds
 declaration. This is provided that the resulting address is not used to
 access memory in the bounds declaration (that is, indirectly access the
-value of a variable). For example, given the declaration \texttt{int x},
-the expression \texttt{\&x} may appear in a bounds expression.  
+value of a variable). For example, given the declaration \code{int x},
+the expression \code{&x} may appear in a bounds expression.  
 Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} extends the
 design to avoid these restrictions.  It covers pointers to data with 
 \arrayptr\ values,  pointers to variables used in bounds, and bounds 
@@ -165,7 +165,7 @@ that use pointers.
 
 Bounds declarations may be added to declarations and statements using
 \keyword{where} clauses. They also may be placed inline at a declaration
-by following the declarator with \texttt{:} \var{bounds-exp}. In that
+by following the declarator with \code{:} \var{bounds-exp}. In that
 case, the bounds expression applies to the variable that is the subject
 of the declarator. By making the bounds be part of the program, this
 preserves the control and efficiency of C. The bounds declarations will
@@ -177,10 +177,10 @@ Chapter~\ref{chapter:checking-bounds}.
 
 Here are some examples of bounds declarations as part of variable
 declarations. The first function sums the integers stored in memory
-between \texttt{start} and \texttt{end}, where the integer stored at
-\texttt{end} is not included.
+between \code{start} and \code{end}, where the integer stored at
+\code{end} is not included.
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
     int result = 0;
@@ -192,13 +192,14 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
     }
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This can be written using \keyword{where} clauses as well, at the
 inconvenience of typing variable names twice in declarations:
 
-\begin{verbatim}
-int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> end)
+\begin{lstlisting}
+int sum(array_ptr<int> start where start : bounds(start, end), 
+        array_ptr<int> end)
 { 
     int result = 0;
     array_ptr<int> current where current : bounds(start, end) = start;
@@ -207,13 +208,13 @@ int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> en
     }
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This function searches for an integer in an array. If it finds the
 integer, it returns the index in the array where the integer occurs.
 Otherwise, it returns -1.
 
-\begin{verbatim}
+\begin{lstlisting}
 int find(int key, array_ptr<int> a : count(len), int len)
 {
     for (int i = 0; i < len; i++) {
@@ -224,13 +225,13 @@ int find(int key, array_ptr<int> a : count(len), int len)
     }
     return -1;
 }
-\end{verbatim}
+\end{lstlisting}
 
 If the code was written assuming that it would always find the integer,
 bounds-checking would detect the buffer overrun in the case the integer
 was not present:
 
-\begin{verbatim}
+\begin{lstlisting}
 int bad_find(int key, array_ptr<int> a : count(len), int len)
 {
     int i = 0;
@@ -243,11 +244,11 @@ int bad_find(int key, array_ptr<int> a : count(len), int len)
     return -1;
 }
 
-\end{verbatim}
+\end{lstlisting}
 
 This function adds two arrays of 2x2 arrays.
 
-\begin{verbatim}
+\begin{lstlisting}
 int add(int a checked[][2][2] : count(len), int b checked[][2][2] : count(len), 
         int len) 
 {
@@ -259,11 +260,11 @@ int add(int a checked[][2][2] : count(len), int b checked[][2][2] : count(len),
         a[i][1][1] += b[i][1][1];
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 Externally-scoped variables can have bounds as well:
 
-\begin{verbatim}
+\begin{lstlisting}
 // external-scoped variables that hold a buffer and its length
 int buflen = 0;
 array_ptr<int> buf : count(buflen) = NULL;
@@ -276,53 +277,55 @@ int sum(void)
     }
     return result;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This is a declaration of a function that copies bytes provided that the
 pointers and lengths are aligned:
-\begin{verbatim}
-int aligned_memcpy(array<char> dest where dest : count(len) && aligned(dest, 4),
-                   array<char> src where src : count(len) && aligned(src, 4),
+\begin{lstlisting}
+int aligned_memcpy(array<char> dst where dst : count(len) && 
+                                         aligned(dst, 4),
+                   array<char> src where src : count(len) && 
+                                         aligned(src, 4),
                    int len where len % 4 == 0);
-\end{verbatim}
+\end{lstlisting}
 
 The declaration can be shortened using in-line bounds declarations to:
 
-\begin{verbatim}
-int aligned_memcpy(array<char> dest : count(len) where aligned(dest, 4),
+\begin{lstlisting}
+int aligned_memcpy(array<char> dst : count(len) where aligned(dst, 4),
                    array<char> src : count(len) where aligned(src, 4),
                    int len where len % 4 == 0);
-\end{verbatim}
+\end{lstlisting}
 
 This example is adapted from the OpenSSL library. The signature of a
 method has been modified to have bounds declaration. The size of input
 and output buffers must be multiples of 16 because the function operates
 on 16-byte chunks of data.
 
-\begin{verbatim}
+\begin{lstlisting}
 void AES_cbc_encrypt(array_ptr<const unsigned char> in : count(len),
                      array_ptr<unsigned char> out : count(len),
                      size_t len where len % 16 == 0,
                      ptr<const AES_KEY> key,
                      array_ptr<unsigned char> ivec : count(16),
                      const int enc);
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Bounds declarations for return values}
 
 Bounds may be declared for the value returned by a function. The
-parameter list can be followed by either \texttt{:} \var{bounds-exp} or
+parameter list can be followed by either \code{:} \var{bounds-exp} or
 a \keyword{where} clause. The special variable \keyword{return\_value} can
 be used to refer to the return value. The parameters are considered in
 scope for the bounds declaration or \keyword{where} clause. Any parameters
 occurring in the return bounds declaration or \keyword{where} clause may
 not be modified by the body of the function.
 
-The following example show the \texttt{find} function from
+The following example show the \code{find} function from
 Section~\ref{section:variable-declarations} modified
 to return a pointer to the element instead of the index:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> find(int key, array_ptr<int> a : count(len), int len)
  : bounds(a, a + len)
 {
@@ -334,22 +337,22 @@ array_ptr<int> find(int key, array_ptr<int> a : count(len), int len)
     }
     return NULL;
 }
-\end{verbatim}
+\end{lstlisting}
 
 This also can be written as:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> find(int key, array_ptr<int> a : count(len), int len)
   where return_value : bounds(a, a + len)
 {
    ...
 }
-\end{verbatim}
+\end{lstlisting}
 Here is the declaration of a function that allocates memory:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<char> alloc(size_t size) : count(size);
-\end{verbatim}
+\end{lstlisting}
 
 
 
@@ -376,11 +379,11 @@ describes the extent of flow-sensitive bounds
 in more detail.
 
 Here is a simple example that illustrates bounds declarations at
-statements. The variable \texttt{tmp} first points to an array with 5
+statements. The variable \code{tmp} first points to an array with 5
 elements and then points to an array with 10 elements; the bounds are
 adjusted accordingly.
 
-\begin{verbatim}
+\begin{lstlisting}
 void f(void) 
 {
    int x[5];
@@ -390,12 +393,12 @@ void f(void)
    ...
    tmp = y where tmp : count(10);
 }
-\end{verbatim}
+\end{lstlisting}
 
-In the second example, an \arrayptr\ \texttt{c} and its length are initialized
-lazily to either \texttt{a} or \texttt{b}, depending on another parameter \texttt{val}:
+In the second example, an \arrayptr\ \code{c} and its length are initialized
+lazily to either \code{a} or \code{b}, depending on another parameter \code{val}:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* use either a or b depending on val */
 int choose(int val, array_ptr<int> a : count(alen), int alen,
                     array_ptr<int> b : count(blen), int blen) 
@@ -412,14 +415,14 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
     }    
     ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 Declaring bounds at assignments supports updating of variables that are
 used in the bounds for an existing \arrayptr\ variable. New
 bounds for the \arrayptr\ variable can be declared to reflect
 the update. Consider the following example:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
@@ -427,7 +430,7 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
     // Adjusting end. Can declare new bounds for start at the assignment
     end = end - 1 where start : bounds(start, end + 1);
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 \subsection{Invariant bounds declarations}
@@ -446,7 +449,7 @@ always invariants.
 \label{section:pointers-to-void}
 
 The definition of count expressions poses a problem for
-\arrayptrvoid. \texttt{Void} is an
+\arrayptrvoid. \code{Void} is an
 incomplete type and has no defined size, which means that count
 expressions are ill-defined for
 \arrayptrvoid. To address this, a
@@ -461,44 +464,44 @@ added:
 \boundsbytecount{\var{non-modifying-exp}}
 \end{quote}
 
-\texttt{byte\_count} is the identifier \texttt{byte\_count}.
+\code{byte_count} is the identifier \code{byte_count}.
 The bounds declaration \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
 describes the number of bytes that are accessible beginning at \var{x}. 
-Only memory that is at or above \var{x} and below \texttt{(\arrayptrchar)}
-\var{x} \texttt{+} \var{e1} can be accessed through \var{x}. The type
-of \var{e1} must be an integral type.  The usual C integer conversions are
+Only memory that is at or above \var{x} and below 
+\lstinline|(|\arrayptrchar\lstinline|)| \var{x} \code{+} \var{e1} can be accessed through 
+\var{x}. The type of \var{e1} must be an integral type.  The usual C integer conversions are
 applied to \var{e1}.  This bounds declaration is a synonym for 
 \boundsdecl{\var{x}}
-           {\boundsrel{(\arrayptrchar) \var{x}}
-                      {(\arrayptrchar) \var{x} \texttt{+} \var{e1}}
-                      {\texttt{char}}}
+           {\boundsrel{\lstinline|(|\arrayptrchar)\lstinline|)| \var{x}}
+                      {\lstinline|(|\arrayptrchar)\lstinline|)| \var{x} \code{+} \var{e1}}
+                      {\code{char}}}
 
-The standard C library functions for \texttt{malloc}, \texttt{memcmp}, and
-\texttt{memcpy} will be
+The standard C library functions for \code{malloc}, \code{memcmp}, and
+\code{memcpy} will be
 given bounds-safe interfaces to avoid breaking existing code as
 described in Section~\ref{section:function-bounds-safe-interfaces}. 
 However, if they were to return checked pointer
 types, their bounds declarations would be:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<void> malloc(size_t num) : byte_count(num);
 
-int memcmp(array_ptr<const void> dest : byte_count(num),
+int memcmp(array_ptr<const void> dst : byte_count(num),
            array_ptr<const void> src : byte_count(num), size_t num);
 
-array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
+array_ptr<void> memcpy(array_ptr<void> dst : byte_count(num),
                        array_ptr<const void> src : byte_count(num), size_t num) :
     byte_count(num);
-\end{verbatim}
+\end{lstlisting}
 
-The return value of \texttt{memcpy} is \texttt{dest}. The bounds for
+The return value of \code{memcpy} is \code{dst}. The bounds for
 this return value could be described more precisely by:
 
-\begin{verbatim}
-array_ptr<void> memcpy(array_ptr<void> dest : byte_count(num),
+\begin{lstlisting}
+array_ptr<void> memcpy(array_ptr<void> dst : byte_count(num),
                        array_ptr<void> src : byte_count(num), size_t num) :
-  bounds((<array_ptr<char>) dest, (array_ptr<char>) dest + num) rel_align(char)
-\end{verbatim}
+  bounds((<array_ptr<char>) dst, (array_ptr<char>) dst + num) rel_align(char)
+\end{lstlisting}
 \section{Syntax changes}
 The grammar from the ``C Programming Language'' \cite{Ritchie1988} is extended to include
 in-line bounds declarations and \keyword{where} clauses for declarations:
@@ -507,7 +510,7 @@ in-line bounds declarations and \keyword{where} clauses for declarations:
 \var{init-}\=\var{declarator:} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} 
-where-clause\textsubscript{opt}} \texttt{=} \var{initializer
+where-clause\textsubscript{opt}} \lstinline|=| \var{initializer
 where-clause\textsubscript{opt}} \\
 \>\ldots{} \\
 \\
@@ -515,40 +518,40 @@ where-clause\textsubscript{opt}} \\
 \>\var{declaration-specifiers declarator} \var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \\
 \var{inline-bounds-specifier:}\\
-\>\texttt{:} \var{bounds-exp} \\ 
+\>\lstinline|:| \var{bounds-exp} \\ 
 \\
 \var{where-clause}: \\
 \>\keyword{where} \var{facts} \\
 \\
 \var{facts:} \\
 \>\var{fact} \\
-\>\var{fact} \texttt{\&\&} \var{facts} \\
+\>\var{fact} \lstinline@&&@ \var{facts} \\
 \\
 \var{fact:}\\
 \>\var{variable inline-bounds-specifier} \\
 \>\var{variable relop non-modifying-exp} \\
 \>\var{non-modifying-exp relop variable} \\
 \\
-where \var{relop} is one of \verb|<|, \verb|<=|, \verb|==|,
-\verb|!=|, \verb|>=|, \verb|>|.\\
+where \var{relop} is one of \lstinline|<|, \lstinline|<=|, \lstinline|==|,
+\lstinline|!=|, \lstinline|>=|, \lstinline|>|.\\
 \\
 In addition, the grammar is updated to allow where clauses at expression
 statements:\\
 \\
 \var{expression-statement:}\\
-\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\texttt{;}
+\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\code{;}
 \end{tabbing}
 
-The names used in bounds expressions (\texttt{any},
-\texttt{bounds}, \texttt{count}, and \texttt{unknown}) are identifiers.
+The names used in bounds expressions (\code{any},
+\code{bounds}, \code{count}, and \code{unknown}) are identifiers.
 They are not keywords.  They can still be used for variable names,
 avoiding backward-compatibility problems.    The grammar for
 bounds expressions is:
 \begin{tabbing}
 \var{bounds}\=\var{-exp:} \\
-\> \var{identifier}\texttt{(}\var{non-modifying-exp}\texttt{)} \\
-\> \var{identifier}\texttt{(}\var{non-modifying-exp}\texttt{,}
-    \var{non-modifying-exp} \texttt{)}
+\> \var{identifier}\lstinline|(|\var{non-modifying-exp}\lstinline|)| \\
+\> \var{identifier}\lstinline|(|\var{non-modifying-exp}\lstinline|,|
+    \var{non-modifying-exp} \lstinline|)|
 \end{tabbing}
 
 After parsing, the following rules are applied to bounds
@@ -556,105 +559,102 @@ expressions:
 \begin{itemize}
 \item If the first grammar clause was parsed,
 \begin{itemize}
-\item If \var{identifier} is \texttt{bounds}, the \var{non-modifying-exp}
-must be the identifier \texttt{any} or the identifier \texttt{unknown}.
-\item Otherwise \var{identifier} must be \texttt{count}.
+\item If \var{identifier} is \code{bounds}, the \var{non-modifying-exp}
+must be the identifier \code{any} or the identifier \code{unknown}.
+\item Otherwise \var{identifier} must be \code{count}.
 \end{itemize}
 \item If the second grammar clause was parsed, \var{identifier} must be
-\texttt{bounds}.
+\code{bounds}.
 \end{itemize}
 
 \section{Insertion of bounds checks at pointer dereferences}
 
 \label{section:bounds-checking-indirections}
 The semantics of C expressions is subtle.  The expression
-\texttt{*\var{e1}} does not dereference memory.  It
+\lstinline|*|\var{e1} does not dereference memory.  It
 produces an lvalue that can be used to access memory. If the expression
 occurs on the left-hand side of an assigment, the memory pointed to
 by the lvalue is updated with the value of the right-hand side of
 the assignment.
-For example, given \texttt{*\var{e1} = \var{e2}},
+For example, given \lstinline|*|\var{e1} \lstinline|=| \var{e2},
 the memory pointed to by the lvalue is updated with the value of \var{e2}.
 If the expression occurs within another expression, the lvalue is usually
 (but not always)  used to read memory.  In the terminology of the C Standard,
-an lvalue conversion is inserted that reads memory. For example, given \texttt{*\var{e1} + 5},
-an lvalue conversion is inserted for \texttt{*\var{e1}}.  A case where a
+an lvalue conversion is inserted that reads memory. For example, given
+\lstinline|*|\var{e1}\lstinline| + 5|,
+an lvalue conversion is inserted for \lstinline|*|\var{e1}.  A case where a
 conversion is not inserted is  when the address of an expression is taken:
-\texttt{\&*\var{e1}}. Subscript expressions behave similarly to pointer
-dereference expressions.  The expression \texttt{\var{e1}{[\var{e2}]}} produces
+\lstinline|&*|\var{e1}. Subscript expressions behave like pointer
+dereference expressions.  The expression \var{e1}\lstinline|[|\var{e2}\lstinline|]| produces
 an lvalue that can be used to access memory.
 
 A bounds check is inserted at a dereference expression or subscript expression
 of an \arrayptr\ or \ntarrayptr\ whose result will be used to directly
 access memory (the result must be used by the left-hand side of an
 assignment or an lvalue conversion).   We first describe bounds checks
-for \arrayptr\.   The bounds checks for \ntarrayptr\ are slightly
-different and described later in this section.
+for \arrayptr.   The bounds checks for \ntarrayptr\ are slightly
+different.  We describe them after \arrayptr.
 
-Given \texttt{*\var{e1}}, where \var{e1} is an expression of type
+Given \lstinline|*|\var{e1}, where \var{e1} is an expression of type
 \arrayptr, the compiler determines the bounds for \var{e1}
 following the rules in Section~\ref{section:inferring-expression-bounds}.
 Special rules are followed in
-\texttt{bundled} blocks to determine the bounds for \var{e1}. The
+\code{bundled} blocks to determine the bounds for \var{e1}. The
 compiler inserts the bounds check as part of the evaluation of \var{*e1}.
-The bound check is inserted after \var{e1} is evaluated and before the result of
+The bounds check is inserted after \var{e1} is evaluated and before the result of
 \var{*e1} is produced.  The compiler also inserts a null check.
 
 If {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}}, the compiler
 computes \var{e1} to a temporary \var{t}.   The compiler inserts a runtime check that
-\texttt{\var{e2} <= \var{t} \&\&
-\var{t} < \var{e3}}. If the runtime check fails, the program
+\var{e2} \lstinline|<=| \var{t} \lstinline|&&|
+\var{t} \lstinline|<| \var{e3}. If the runtime check fails, the program
 will be terminated by the runtime system or in, systems that support it,
 a runtime exception will be raised.   If {\var{e1}} has bounds {\boundscount{\var{e2}}},
-the bounds are expanded to \bounds{\var{t}}{\var{t} + \var{e2}} before inserting a check.
+the bounds are expanded to \bounds{\var{t}}{\var{t} \lstinline|+| \var{e2}} before inserting a check.
 
-Consider as an example \verb|z = *x;| where
-\verb|x| has \verb|bounds(x, x + c)|. The compiler will produce code equivalent to:
-\begin{quote}
-\begin{verbatim}
+Consider as an example \lstinline|z = *x;| where
+\lstinline|x| has \lstinline|bounds(x, x + c)|. The compiler will produce code equivalent to:
+\begin{lstlisting}
 dynamic_check(x != null);
 dynamic_check(x <= x && x < x + c);
 z = *x;
-\end{verbatim}
-\end{quote}
-The condition \texttt{x <= x} is trivially true. The
-condition \texttt{x < x + c} simplifies to \texttt{0
-< c}, that is \texttt{c > 0}, which is what one
+\end{lstlisting}
+The condition \code{x <= x} is trivially true. The
+condition \code{x < x + c} simplifies to \code{0 < c}, that is \code{c > 0}, which is what one
 would expect.
 
-Now suppose pointer arithmetic is involved and \texttt{z = *(x + 5)}. The
-bounds of \texttt{x + 5} will be the same as the bounds of \texttt{x}.
-The expression \texttt{x + 5} must point into the same object as
-\texttt{x} for this to be a valid memory access. This means that
-{\texttt{x + 5}} has {\bounds{\texttt{x}}{\texttt{x + c}}}.
+Now suppose pointer arithmetic is involved and \code{z = *(x + 5)}. The
+bounds of \code{x + 5} will be the same as the bounds of \code{x}.
+The expression \code{x + 5} must point into the same object as
+\code{x} for this to be a valid memory access. This means that
+{\code{x + 5}} has {\bounds{\code{x}}{\code{x + c}}}.
 The compiler will produce code equivalent to:
 
-\begin{quote}
-\begin{verbatim}
+\begin{lstlisting}
 dynamic_check(x != null);
 t1 = x + 5;
 dynamic_check(t1 != null)
 dynamic_check(x <= t1 && t1 < x + c);
 z = *t1;
-\end{verbatim}
-\end{quote}
+\end{lstlisting}
 
-Array subscripting works as expected. For \texttt{\var{e1}[\var{e2}]}, the
-compiler inserts bounds checks if the result of \texttt{\var{e1}[\var{e2}]}
+Array subscripting works as expected. For \var{e1}\lstinline|[|\var{e2}\lstinline|]|, the
+compiler inserts bounds checks if the result of \var{e1}\lstinline|[|\var{e2}\lstinline|]|
 is used to access memory.   The compiler computes the bounds of
-\texttt{e1}. The compiler inserts
-runtime checks that \texttt{\var{e1} + \var{e2}} is within this bounds as
-part of the evaluation of \texttt{\var{e1}[\var{e2}]} For example,
-given \verb|x[5]| where \verb|x| has \verb|bounds(x, x + c)|, the
-compiler inserts runtime checks that \verb|x <= x + 5 < x + c|. 
-The runtime checks simplify to \verb|5 < c|.
+\var{e1}. The compiler inserts
+runtime checks that \var{e1} \lstinline|+| \var{e2} is within this bounds as
+part of the evaluation of \var{e1}\lstinline|[|\var{e2}\lstinline|]|. For example,
+given \lstinline|x[5]| where \lstinline|x| has \lstinline|bounds(x, x + c)|, the
+compiler inserts runtime checks that \lstinline|x <= x + 5 < x + c|. 
+The runtime checks simplify to \lstinline|5 < c|.
 
 For a multi-dimensional array access, only one bounds check is done.
-The check ensures that the memory access is within the bounds of the entire multi-dimensional
-array.  Given \texttt{\var{e1}[\var{e2}][e3]}, the expression \texttt{\var{e1}[\var{e2}]} is
-evaluated.  However, \texttt{\var{e1}[\var{e2}]} has array type, so no lvalue
+The check ensures that the memory access is within the bounds of the entire multi-dimensional;
+array.  Given  \var{e1}\lstinline|[|\var{e2}\lstinline|][|\var{e3}\lstinline|]|, the expression
+\var{e1}\lstinline|[|\var{e2}\lstinline|]| is
+evaluated.  However, \var{e1}\lstinline|[|\var{e2}\lstinline|]| has array type, so no lvalue
 conversion is inserted. That means that no bounds check is inserted:
-\texttt{\var{e1}[\var{e2}]} becomes pointer arithmetic.  The bounds check
+\var{e1}\lstinline|[|\var{e2}\lstinline|]| becomes pointer arithmetic. The bounds check
 is inserted as part of the subscript operation involving \var{e3}.
 
 This means that bounds are not checked for each individual dimension access.
@@ -670,47 +670,48 @@ sequence.  Allowing a read at the upper bound lets a program check the
 first element of the sequence to see if is non-null
 (bounds checks for \arrayptr\ values only allow access to
 memory below the upper bound).  For memory reads,
-given \texttt{*\var{e1}} where {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}},
+given \lstinline|*|\var{e1} where {\var{e1}} has {\bounds{\var{e2}}{\var{e3}}},
 the compiler computes \var{e1} to some temporary \var{t}.
-The compiler inserts a runtime check that  \texttt{\var{e2} <= \var{t} \&\&
-\var{t} <= \var{e3}}.
+The compiler inserts a runtime check that  \var{e2} \lstinline|<=|\var{t} \lstinline|&&|
+\var{t} \lstinline|<=| \var{e3}.
 
-For memory writes, assignment of 0 (the null value)
+For memory writes, assignment of \code{0} (the null value)
 using the assignment operator is allowed at the upper bound.
 This is the first element of the null-terminated sequence
 and there must be enough space in the sequence for at least a null terminator.
 Otherwise, the check
-is the same as for \arrayptr.   Given an expression {\var{e1}} that
-has {\bounds{\var{e2}}{\var{e3}}}, here is a precise description:
+is the same as for \arrayptr.   For an expression {\var{e1}} that
+has {\bounds{\var{e2}}{\var{e3}}}:
 \begin{itemize}
-\item Given an assignment of the form \texttt{*\var{e1} = \var{e4}}, the
+\item Given an assignment of the form \lstinline|*|\var{e1} \lstinline|=| \var{e4}, the
 value of \var{e4} is computed to some temporary \var{v}.  The
-check is \texttt{(\var{e2} <= \var{t} \&\& \var{t} < \var{e3}) ||
-(\var{e2} <= \var{t} \&\& \var{t} == \var{e3} \&\& \var{v} == 0)}.
+check is \lstinline|(|\var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} \lstinline|<| 
+\var{e3}\lstinline@) || (@ \var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} 
+\lstinline|==| \var{e3} \lstinline|&&| \var{v} \lstinline|== 0)|.
 
-When checking for a write of 0 exactly at the upper bound, we need
-to include the first element of the sequence in the allowed memory range.
-The second lower bound comparison \texttt{\var{e2} <= \var{t}}
+When checking for a write of \code{0} exactly at the upper bound, we 
+include the first element of the sequence in the allowed memory range.
+The second lower bound comparison \var{e2} \lstinline|<=| \var{t}
 prevents an assignment
 at the upper bound when this expanded range is empty.
 A compiler can avoid the duplicate comparison by using
 the check
-\texttt{\var{e2} <= \var{t} \&\& (\var{t} < \var{e3} ||
-(\var{t} == \var{e3} \&\& \var{v} == 0))}
+\var{e2} \lstinline|<=| \var{t} \lstinline|&& (|\var{t} \lstinline|<| \var{e3}
+\lstinline@|| (@\var{t} \lstinline|==| \var{e3} \lstinline|&&| \var{v} \lstinline|== 0))|
 \item Given an assignment via a compound assignment operator, the check
-is \texttt{\var{e2} <= \var{t} \&\& \var{t} < \var{e3}}.
+is \var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} \lstinline|<| \var{e3}.
 \end{itemize}
 
 If the bounds for \var{e1} are inferred, the checks
 must be provably true at compile time.
 
-No bounds checks are inserted when the \texttt{\&} operator is applied to
+No bounds checks are inserted when the \code{&} operator is applied to
 a dereference or subscript exression.
 The dereference or subscript expression does not produce a result that is used
-to access memory.  This expression \texttt{\&\var{e1}[\var{e2}]} works as
-expected by C programmers.  It is equivalent to pointer arithmetic computed using
-\texttt{\var{e1} + \var{e2}}.   Similarly, \texttt{+\&\var{e}} works
-as expected.  The \texttt{\&} and the \texttt{*} operator cancel so that
+to access memory.  This expression \lstinline|&|\var{e1}\lstinline|[|\var{e2}\lstinline|]|
+works as expected by C programmers.  It is equivalent to pointer arithmetic computed using
+\var{e1} \lstinline|+| \var{e2}.   Similarly, \lstinline|*&|\var{e} works
+as expected.  The \code{&} and the \code{*} operator cancel so that
 the value of the entire expression is \var{e}.
 
 \subsection{Deferring evaluation of bounds expressions to bounds checks}
@@ -723,23 +724,23 @@ bounds expression.
 
 Consider the following code:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> x;
 x = malloc ((sizeof(int) * 5)
 where x : bounds(x, x + 5);
-\end{verbatim}
+\end{lstlisting}
 
-The bounds expression \texttt{bounds(x, x + 5)} is not evaluated at the
+The bounds expression \code{bounds(x, x + 5)} is not evaluated at the
 bounds declaration.   it is evaluated at any bounds check involving a
 pointer derived from \var{x}.  The reason for deferring the
 evaluation of bounds expressions is that it avoids the need for
 storage to hold the ranges produced by the bounds
-expressions (in this case, the values of \texttt{x} and \texttt{x + 5}).
+expressions (in this case, the values of \code{x} and \code{x + 5}).
 Additional storage would be particularly
 problematic when bounds declarations are extend to structure members.
 It would cause the size and layout of data structures to change.
-Deferring evaluation also avoids complications when \texttt{x} is
-\texttt{null}. Section~\ref{section:bounds-declarations-alternate-semantics} 
+Deferring evaluation also avoids complications when \code{x} is
+\code{null}. Section~\ref{section:bounds-declarations-alternate-semantics} 
 discusses eager evaluation of bounds expressions at
 bounds declarations in more detail and explains why this was not chosen.
 
@@ -752,9 +753,9 @@ When updates involve multiple statements, a bounds declaration may be valid only
 after all the updates are done.  In Checked C, statements and declarations can be 
 grouped into bundled blocks.  Bounds declarations are checked only at the end of bundled blocks.
 
-Consider the following example where a function is added to the earler sum
+Consider the following example where a function is added to the earlier \code{sum}
 example that allows a buffer to be reallocated:
-\begin{verbatim}
+\begin{lstlisting}
 // external-scoped variables that hold a buffer and its length
 int buflen = 0;
 array_ptr<int> buf : count(buflen) = NULL;
@@ -773,17 +774,18 @@ void resize(int len)
 {
     array_ptr<int> tmp : count(len) = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
-    buflen = len;  // fails at compile-time because the bounds are not true
+    buflen = len;  // fails at compile-time because the bounds are not
+                   // true.
     buf = tmp;
 }
-\end{verbatim}
-Without bundling, the update to \texttt{buflen} will fail
+\end{lstlisting}
+Without bundling, the update to \code{buflen} will fail
 compile-time checking because the bounds declaration is not true after the
 assignment.
 
-The updates to \texttt{buflen} and \texttt{buf} can be grouped together,
+The updates to \code{buflen} and \code{buf} can be grouped together,
 so the checker considers them to be one action:
-\begin{verbatim}
+\begin{lstlisting}
 /* correct resize function */
 void resize(int len) 
 {
@@ -794,15 +796,15 @@ void resize(int len)
       buf = tmp;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 The C syntax for is extended with:
 \begin{tabbing}
 \var{statement:}\=\\
-\>\var{bundled-statement}\texttt{;} \\
+\>\var{bundled-statement} \\
 \\
 \var{bundled-statement:} \\
-\>\texttt{bundled \{ \var{bundled-item-list\textsubscript{opt}} \}} \\
+\>\lstinline|bundled {| \var{bundled-item-list\textsubscript{opt}} \lstinline|}| \\
 \\
 \var{bundled-item-list:}\\
 \> \var{bundled-item} \\
@@ -824,30 +826,30 @@ masse} after the required function calls have been made.
 
 Bundled blocks expose an interesting difference between regular C
 and Checked C programs.  In regular C, 
-\begin{verbatim}
+\begin{lstlisting}
 expr1, expr2;
-\end{verbatim}
+\end{lstlisting}
 
 is always the same as:
 
-\begin{verbatim}
+\begin{lstlisting}
 expr1;
 expr2;
-\end{verbatim}
+\end{lstlisting}
 
-In Checked C, however, bounds are checked only at the ends of
+In Checked C, however, bounds declarations are checked for validity only at the ends of
 statements.  Thus bounds could be valid after
-\verb+expr1, expr+, but not valid after \verb+expr1+ alone.
-In the resize example, the following suceeds with a bundle
+\lstinline+expr1, expr+, but not valid after \lstinline+expr1+ alone.
+In the \code{resize} example, the following suceeds with a bundle
 block:
-\begin{verbatim}
+\begin{lstlisting}
 void resize(int len) 
 {
     array_ptr<int> tmp = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
     buflen = len, buf = tmp; // succeeds, surprisingly
 }
-\end{verbatim}
+\end{lstlisting}
 Bundled blocks are still necessary because new declarations
 cannot be introduced within a comma operator.  They also provide
 easier-to-read syntax for complex updates to variables.
@@ -881,18 +883,18 @@ expressions:
 \item
   Sizeof expressions
 \item
-  Multiplicative expressions (\texttt{*}, \texttt{/}, \texttt{\%})
+  Multiplicative expressions (\code{*}, \code{/}, \code{\%})
 \item
-  Additive expressions (\texttt{+}, \texttt{-})
+  Additive expressions (\code{+}, \code{-})
 \item
-  Shift expressions (\texttt{>>}, \texttt{<<})
+  Shift expressions (\code{>>}, \code{<<})
 \item
-  Relational and equality expressions (\texttt{<}, \texttt{>},
-  \texttt{<=}, \texttt{>=}, \texttt{==}, \texttt{!=})
+  Relational and equality expressions (\code{<}, \code{>},
+  \code{<=}, \code{>=}, \code{==}, \code{!=})
 \item
-  Bitwise expressions: and (\texttt{\&}), or (\texttt{|}), exclusive-or (\texttt{\^})
+  Bitwise expressions: and (\code{&}), or (\lstinline@|@), exclusive-or (\code{^})
 \item
-  Logical AND (\texttt{\&\&}) and logical OR (\texttt{||}) expressions
+  Logical AND (\code{&&}) and logical OR (\lstinline@||@) expressions
 \item
   Conditional expressions
 \end{compactitem}
@@ -901,10 +903,10 @@ They also include expressions that access members of types or memory:
 
 \begin{compactitem}
 \item
-  Member references (to members of structures or unions) (the \texttt{.}
+  Member references (to members of structures or unions) (the \code{.}
   operator)
 \item
-  Indirect member dereferences (\texttt{->})
+  Indirect member dereferences (\code{->})
 \item
   Pointer dereferences
 \end{compactitem}
@@ -944,7 +946,7 @@ because programmers might find them useful.
 Local variables with static storage class or thread storage class can
 have only bounds declarations with bounds expressions that use variables
 with the same storage class as the local variable or variables that are declared
-\texttt{const}. The memory for static variables and thread variables
+\code{const}. The memory for static variables and thread variables
 persists across exit and reentry from functions and blocks. It follows
 that the bounds information must persist also.
 
@@ -953,7 +955,7 @@ declarations with bounds expressions that use variables with automatic,
 static, or thread storage class. However, the extent of local variable
 bounds declarations that use variables with external linkage ends at
 function calls, unless the variables with external linkage are declared
-\texttt{const}. This is because the function calls may modify the
+\code{const}. This is because the function calls may modify the
 variables with external linkage.
 
 \subsection{Lexical hiding of variables}
@@ -963,18 +965,18 @@ within the extent of the bounds declaration. This will limit the ability
 to update the {\it other} variables used in the bounds declaration.  There will be
 no way to update the hidden variable to make the bounds declaration be valid.
 Here is a simple example:
-\begin{verbatim}
+\begin{lstlisting}
 /* function that will fail checking */
 void bad(int i)
 {
-    array_ptr<int> x : count(i) = malloc ((sizeof(int) * i);
+    array_ptr<int> x : count(i) = malloc((sizeof(int) * i);
     {
         int x = 5;     // hide x
-        i = INT_MAX;   // illegal: the bounds declaration for array_ptr<int> x
-                       // would no longer be valid;
+        i = INT_MAX;   // illegal: the bounds declaration for
+                       // array_ptr<int> x would no longer be valid;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 When compilers insert bounds checks, they need to use the appropriately-scoped
 variables, even if some of the variables are hidden.
 
@@ -997,7 +999,7 @@ remain valid.
 To see what can go wrong without this requirement, consider the
 following example:
 
-\begin{verbatim}
+\begin{lstlisting}
 extern int size;
 
 void update_size(int i)
@@ -1017,11 +1019,11 @@ void go(void)
 int size = 10;
 int arr[10];
 array_ptr<int> ap = arr : count(size);
-\end{verbatim}
+\end{lstlisting}
 
 The checking of bounds declarations does not know at
-\texttt{update\_size} that \texttt{ap} needs to have at least \texttt{i}
-elements when \texttt{size} is updated, allowing a programmer to accidentally
+\code{update_size} that \code{ap} needs to have at least \code{i}
+elements when \code{size} is updated, allowing a programmer to accidentally
 invalidate bounds declarations.
 
 A simple rule enforces this restriction. Given the initial declaration
@@ -1050,18 +1052,18 @@ Additional side conditions that deal with integer overflow or wraparound
 are needed.
 
 This section informally examines why and the additional conditions that
-are needed. We start by looking at an allocation using malloc with an
-old-style \texttt{char *} return type and a bounds declaration:
+are needed. We start by looking at an allocation using \code{malloc} with an
+old-style \code{char *} return type and a bounds declaration:
 
-\begin{verbatim}
+\begin{lstlisting}
 extern char *malloc(size_t s) : count(s);
-\end{verbatim}
+\end{lstlisting}
 
-An array of type T is allocated with:
+An array of type \var{T} is allocated with:
 
-\begin{verbatim}
-array_ptr<T> p : count(e1) = (arrayptr<T>) malloc(sizeof(T) * e1);
-\end{verbatim}
+\begin{lstlisting}[escapechar=\@]
+array_ptr<@\var{T}@> p : count(@\var{e1}@) = (arrayptr<@\var{T}@>) malloc(sizeof(@\var{T}@) * @\var{e1}@);
+\end{lstlisting}
 
 The size computation in the count expression differs subtly from the
 explicit computation on the right-hand side. In the count expression,
@@ -1070,54 +1072,58 @@ computation does not have overflow checking. Intuitively, this leads to
 a mismatch when overflow or wraparound can happen, which causes static
 checking to fail.
 
-We expand the count expression to integer arithmetic to make its size
-computation clear. \texttt{count(e1)} expands to \bounds{p}{p + e1}. 
+We expand the count expression; to integer arithmetic to make its size
+computation clear. \lstinline|count(|\var{e1}\lstinline|)| expands to 
+\bounds{\code{p}}{\code{p +} \var{e1}}.
 Following the rules in Section~\ref{section:pointers-as-integers},
-the expansion of \texttt{p +
-e1} from pointer arithmetic to integer arithmetic depends on the type of
-\texttt{e1}.
+the expansion of \lstinline|p +| \var{e1} from pointer arithmetic to integer 
+arithmetic depends on the type of \var{e1}:
 
 \begin{itemize}
 \item
-  If \texttt{e1} is an unsigned integer, \texttt{p + e1} expands to
-  \texttt{p +\textsubscript{ovf} sizeof(T) *\textsubscript{ovf} e1}
+  If \var{e1} is an unsigned integer, \lstinline|p +| \var{e1} expands to
+  \lstinline|p| \lstinline{+}\textsubscript{ovf} \sizeof{\var{T}} \lstinline|*|\textsubscript{ovf}
+  \var{e1}.
 \item
-  If \texttt{e1} is a signed integer, \texttt{p + e1} expands to
-  \texttt{p +\textsubscript{ovf} ((signed\_size\_t) sizeof(T))
-  *\textsubscript{ovf} e1}.
+  If \var{e1} is a signed integer, \lstinline|p +| \var{e1} expands to
+  \lstinline|p| \lstinline{+}\textsubscript{ovf} 
+      \lstinline|((signed_size_t)| \sizeof{\var{T}}\lstinline|)| \lstinline{*}\textsubscript{ovf}
+  \var{e1}.
 \end{itemize}
 
-The number of bytes added to \texttt{p} is the size computation of the
+The number of bytes added to \code{p} is the size computation of the
 count expression. We can compare the size computations and see when the
 values differ. We add casts for any implicit conversions that would
-occur in the \texttt{malloc} size computation also:
+occur in the \code{malloc} size computation also:
 
-\begin{longtable}[c]{lp{1.75in}p{1.75in}p{1in}}
+\begin{longtable}[c]{lp{1.85in}p{1.75in}p{1in}}
 \toprule
-Type of e1 & Count size computation & \texttt{malloc} size computation &
+Type of \var{e1} & Count size computation & \code{malloc} size computation &
 Values differ?\tabularnewline
 \midrule
 \endhead
-Unsigned integer & \texttt{sizeof(T) *\textsubscript{ovf} e1} &
-\texttt{sizeof(T) * e1} & On overflow\tabularnewline
-Signed integer & \texttt{((signed\_size\_t) sizeof(T))
-*\textsubscript{ovf} e1} & \texttt{sizeof(T) * (size\_t) e1} & On
-overflow or when \texttt{e1 <} 0.\tabularnewline
+Unsigned integer & \sizeof{\var{T}} \lstinline|*|\textsubscript{ovf} \var{e1} &
+                   \sizeof{\var{T}} \lstinline|* |\var{e1} & 
+                   On overflow\tabularnewline
+Signed integer   & \lstinline|(signed_size_t)| \sizeof{\var{T}}
+                   \lstinline|*|\textsubscript{ovf} \var{e1} & 
+                   \sizeof{\var{T}} \lstinline|* (size_t)| \var{e1} & 
+                   On overflow or when \code{e1 < 0}.\tabularnewline
 \bottomrule
 \end{longtable}
 
 For correctness, we want the count size computation and the
-\texttt{malloc} size computations to produce identical values. This
+\code{malloc} size computations to produce identical values. This
 implies that malloc did allocate the number of bytes expected by the
-count size computation. We add conditions on \texttt{e1} to do this:
+count size computation. We add conditions on \var{e1} to do this:
 
 \begin{longtable}[c]{ll}
 \toprule
-Type of e1 & Restrictions\tabularnewline
+Type of \var{e1} & Restrictions\tabularnewline
 \midrule
 \endhead
-Unsigned integer & \texttt{e1 <= UINT\_MAX/sizeof(T)}\tabularnewline
-Signed integer & \texttt{e1 >= 0 and e1 <= INT\_MAX/sizeof(T)}\tabularnewline
+Unsigned integer & \var{e1} \lstinline|<= UINT_MAX/|\sizeof{\var{T}}\tabularnewline
+Signed integer   & \var{e1} \lstinline|>= 0| and \var{e1} \lstinline|<= INT_MAX/|\sizeof{\var{T}}\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -1129,7 +1135,7 @@ must do the following checks:
 \begin{itemize}
 \item
   If the count is a signed integer, the function must check that the
-  count \textgreater{}= 0 before trying to allocate the array.
+  count \code{>= 0} before trying to allocate the array.
 \item
   If the size of \var{T} is larger than 1 byte, the function must check that the
   count is less than the upper bound as well.
@@ -1137,20 +1143,20 @@ must do the following checks:
 
 When retrofitting existing code to use checked pointers, the code may be
 unprepared for overflow or wraparound to happen during allocation. This
-suggests that uses of \texttt{malloc} should be replaced by slightly
+suggests that uses of \code{malloc} should be replaced by slightly
 higher-level functions that takes the element count and the size of
 elements and handle overflow. C already has a function that is suitable
 for unsigned integer counts:
 
-\begin{verbatim}
+\begin{lstlisting}
 void *calloc(size_t nobj, size_t size);
-\end{verbatim}
+\end{lstlisting}
 
 A signed version is needed too:
-\begin{verbatim}
+\begin{lstlisting}
 void *signed_calloc(signed_size_t nobj, size_t size);
-\end{verbatim}
-However, \texttt{calloc} also zeros the allocated memory.  For the sake of efficiency,
+\end{lstlisting}
+However, \code{calloc} also zeros the allocated memory.  For the sake of efficiency,
 new allocation functions that compute sizes but do not zero memory may be needed.
 
 \section{Function types and function pointer types}
@@ -1159,18 +1165,19 @@ new allocation functions that compute sizes but do not zero memory may be needed
 Function types can be declared to have parameters and return values that have bounds
 declarations, just like functions.  The bounds declarations become part of the function types.
 Here are simple examples of function pointer types with bounds declarations:
-\begin{verbatim}
-// Function that takes a pointer to a 5 element array and returns an integer.
+\begin{lstlisting}
+// Function that takes a pointer to a 5 element array and returns an 
+// integer.
 int (array_ptr<int> arr : count(5))
 // checked function pointer
 ptr<int (array_ptr<int> arr : count(i), int i)>
 // unchecked function pointer
 int (*) (array_ptr<int> arr : count(i), int i)
-\end{verbatim}
+\end{lstlisting}
 Functions that take pointers to functions and arrays of function pointers can
 be declared also.  A typedef for the function type is used in the following example
 to keep the syntax understandable:
-\begin{verbatim}
+\begin{lstlisting}
 typedef int fn(array_ptr<int> arr : count(5));
 
 // Takes g and arg and calls g with arg.
@@ -1178,7 +1185,7 @@ int apply(ptr<fn> g, array_ptr<int> arg : count(5));
 
 // Checked array of 10 function pointers
 ptr<fn> dispatch_table checked[10];
-\end{verbatim}
+\end{lstlisting}
 
 Compatibility of function types is extended to take into account
 bounds declarations.  Two function types are compatible if
@@ -1206,7 +1213,7 @@ declared in the same scope.
 Canonical forms place semantically equivalent but syntactically distinct
 expressions into the same form.  This allows things like commutativity and constant
 folding to be taken into account:
-\begin{verbatim}
+\begin{lstlisting}
 // These function types are equivalent taking into account commutativity.
 int (array_ptr<int> arr : count(i + j), int i, int j)
 int (array_ptr<int> arr : count(j + i), int i, int j)
@@ -1215,9 +1222,9 @@ int (array_ptr<int> arr : count(j + i), int i, int j)
 int (array_ptr<int> arr : count(5))
 int (array_ptr<int> arr : count(2 + 3))
 int (array_ptr<int> arr : count(4 + 1))
-\end{verbatim}
+\end{lstlisting}
 
-\section{Bounds declarations for results of casts between \arrayptr\ types}
+\section{Bounds declarations for results of casts between \plainarrayptr\ types}
 \label{section:pointer-cast-results}
 
 Typically \arrayptr\ pointers and their bounds are relatively
@@ -1225,18 +1232,18 @@ aligned. Together, they represent a view of an array of \var{T}, where
 the pointer has type
 \arrayptrT. The
 bounds specify a range of memory that is exactly the size of some array
-of T and the pointer points exactly at an element of that array. For
+of \var{T} and the pointer points exactly at an element of that array. For
 example, suppose short ints are 2 bytes in size and 
-{\texttt{\boundsdecl{x}{\bounds{y}{z}}}}, where the types of \texttt{x},
-\texttt{y}, \texttt{z} are \arrayptrinst{\texttt{short int}} .
+{\boundsdecl{\code{x}}{\bounds{\code{y}}{\code{z}}}}, where the types of \code{x},
+\code{y}, \code{z} are \arrayptrinst{\code{short int}} .
 
 This illustration shows 12 consecutive bytes in memory beginning at
-address a\textsubscript{0}, where \texttt{y} and \texttt{z} bound a
-3-element array and \texttt{x} points to the middle of the array. The
+address \code{a}\textsubscript{0}, where \code{y} and \code{z} bound a
+3-element array and \code{x} points to the middle of the array. The
 memory occuped by the 3-element array is shaded in light blue, and the
 element pointed to by x is also cross-hatched. The distances in bytes
-between \texttt{x}, \texttt{y}, and \texttt{z} are all multiples of 2,
-the size of \texttt{short int}.
+between \code{x}, \code{y}, and \code{z} are all multiples of 2,
+the size of \code{short int}.
 \begin{center}
 \relalignpic{4}
 \end{center}
@@ -1244,21 +1251,21 @@ the size of \texttt{short int}.
 This simplifies bounds checking because there is no concern during a
 bounds check that a pointer will access memory at the end or beginning
 of the array that partially overlaps with the bounds. Suppose, for
-example, that \texttt{x} was not relatively aligned to \texttt{y} and
-\texttt{z} and points at a\textsubscript{7}. The object pointed to by
-\texttt{x} now straddles the array bounds. This illustration shows this:
+example, that \code{x} was not relatively aligned to \code{y} and
+\code{z} and points at a\textsubscript{7}. The object pointed to by
+\code{x} now straddles the array bounds. This illustration shows this:
 \begin{center}
 \relalignpic{7}
 \end{center}
 
-When \texttt{x} is not relatively aligned, the bounds check for x
+When \code{x} is not relatively aligned, the bounds check for x
 becomes more expensive. With relative alignment, the bounds check is
-\texttt{y <= x} and \texttt{x < z}. Without relative
+\code{y <= x} and \code{x < z}. Without relative
 alignment, the check for the upper bound needs to compute the highest
 address that will be accessed using x. For this example, the highest
 address accessed will be
-\texttt{(\arrayptrchar) x + \sizeof{short int} - 1}, so the check becomes 
-\texttt{y <= x} and \texttt{x + 1 < z}.
+\lstinline|(|\arrayptrchar\lstinline|) x + sizeof(short int) - 1|, so the check becomes 
+\code{y <= x} and \code{x + 1 < z}.
 
 A pointer cast can create a pointer that is not relatively aligned to
 the referent type of the pointer type. This can happen when:
@@ -1266,12 +1273,12 @@ the referent type of the pointer type. This can happen when:
 \begin{enumerate}
 \item
   A pointer is cast to be a pointer to a larger type. For example, if an
-  \arrayptrinst{\texttt{short int}}\ is cast to be an
+  \arrayptrinst{\code{short int}}\ is cast to be an
   \arrayptrint , the resulting pointer
-  may not be relatively aligned to its bounds for \texttt{int}. In the
-  first illustration where \texttt{x} points to a4,
-  \arrayptrint\ \texttt{x} is not relatively
-  aligned to \texttt{y} for \texttt{int}.
+  may not be relatively aligned to its bounds for \code{int}. In the
+  first illustration where \code{x} points to \code{a}\textsubscript{4},
+  \arrayptrint\ \code{x} is not relatively
+  aligned to \code{y} for \code{int}.
 \item
   A pointer is cast to be a pointer to a smaller type, and the size of
   the original referent type is not a multiple of the size of the
@@ -1296,8 +1303,8 @@ when \sizeof{\var{S}} is a common factor of
 supply additional information using program invariants to show that an
 \arrayptr\ pointer is relatively aligned to its bounds. Of
 course, programmers who are doing casts to use operations on larger
-types instead of operations on smaller types (for example, \texttt{int}
-instead of \texttt{char}) usually already are doing these checks.
+types instead of operations on smaller types (for example, \code{int}
+instead of \code{char}) usually already are doing these checks.
 
 \subsection{Representing relative alignment in bounds declarations}
 \label{section:representing-relative-alignment}
@@ -1319,27 +1326,28 @@ aligned to its bounds for type \var{T}:
 
 This clause is only added to bounds pairs because (by definition) count
 expressions always describe pointers that are relatively aligned to
-their bounds.  \texttt{rel\_align} and \texttt{rel\_align\_value} are
+their bounds.  \code{rel_align} and \code{rel_align_value} are
 identifiers.  The optional clause specifies a
 relative alignment type \var{T} or the required relative alignment in
 bytes.  Given
 \boundsdecl{\var{x}}{\boundsrel{\var{e1}}{\var{e2}}{\var{T}}},
-\texttt{((\arrayptrchar) \var{x} - (\arrayptrchar) \var{e1}) \%
-        \sizeof{\var{T}} == 0} and
-\texttt{((\arrayptrchar) \var{e2} - (\arrayptrchar) \var{x}) \%
-sizeof(\var{T}) == 0} must be true. If the number of bytes is
+\lstinline|((|\arrayptrchar\lstinline|)| \var{x} \lstinline|- (|\arrayptrchar\lstinline|)| \var{e1}) 
+        \lstinline|%| \sizeof{\var{T}}\lstinline|== 0| and
+\lstinline|((|\arrayptrchar\lstinline|)| \var{e2} \lstinline|- (|\arrayptrchar\lstinline|)| \var{x}) 
+        \lstinline|% sizeof(|\var{T}\lstinline|) == 0| must be true. If the number of bytes is
 specified, \sizeof{\var{T}} is replaced by the
 constant expression.  The relative alignment clause \relalign{\var{type}}
-is just short-hand for \relalignval{\texttt{sizeof(\var{type})}}.
+is just short-hand for \relalignval{\sizeof{\var{type}}}.
 
 \subsection{Effect on bounds checks}
 
 If the default relative alignment has been overridden and
 \boundsdecl{\var{e1}}{\boundsrel{\var{e2}}{\var{e3}}{\var{T}}}, the compiler checks whether
-\texttt{sizeof(referent-type(\var{e1}))} is a common factor of \texttt{sizeof(\var{T})}. 
+\sizeof{referent-type(\var{e1})} is a common factor of \sizeof{\var{T}}
 If it is, it inserts the same
 runtime check as before. Otherwise, it inserts a runtime check that
-\texttt{\var{e2} <= \var{e1} \&\& \var{e1} + sizeof(\var{T}) - 1 < \var{e3}}
+\var{e2} \lstinline|<=| \var{e1} \lstinline|&&| 
+\var{e1} \lstinline|+ sizeof(|\var{T}) \lstinline|- 1 <| \var{e3}.
 
 \subsection{Examples of uses of bounds declarations that specify relative alignment}
 
@@ -1347,101 +1355,101 @@ Here are examples of the use of relative alignment clauses in
 conjunction with pointer casts. In the first example, there is an
 \arrayptr\ to raw data consisting of characters. The pointer is
 cast to be an \arrayptrint . However,
-the relative alignment remains \texttt{char}:
+the relative alignment remains \code{char}:
 
-\begin{verbatim}
+\begin{lstlisting}
 // cast data to be an array_ptr<int> instead
 array_ptr<char> raw_data : bounds(lower, upper) = ...
 array_ptr<int> data : bounds(lower, upper) rel_align(char) =
     (array_ptr<int>) raw_data;
-\end{verbatim}
+\end{lstlisting}
 
 In the second example, the code starts with an
 \arrayptrint. The pointer is cast to
 be an \arrayptrchar. That
 \arrayptr\ is then cast back to be an
 \arrayptrint . In the second cast, the
-\texttt{rel\_align} clause is omitted because the default relative
+\code{rel_align} clause is omitted because the default relative
 alignment for an \arrayptrint\ is
-\texttt{int}.
+\code{int}.
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> data : bounds(lower, upper) = ...
 array_ptr<char> byte_data : bounds(lower, upper) rel_align(int) = (array_ptr<char>) data;
 array_ptr<int> finish : bounds(lower, upper) = (array_ptr(int>) byte_data;
-\end{verbatim}
+\end{lstlisting}
 
 The third example illustrates a subtlety when an
 \arrayptrT\ has a
 relative alignment that is larger than the actual size of \var{T}. The
 use of pointer arithmetic may require that relative alignment be
-lowered. Suppose that the size of \texttt{short int} is 2 bytes and the
-size of an \texttt{int} is 4 bytes:
+lowered. Suppose that the size of \code{short int} is 2 bytes and the
+size of an \code{int} is 4 bytes:
 
-\begin{verbatim}
+\begin{lstlisting}
 array_ptr<int> d : bounds(lower, upper) = ...
 array_ptr<short int> e : bounds(lower, upper) rel_align(int) = (array_ptr<short int>) d;
 array_ptr<short int> f : bounds(lower, upper) rel_align(short int) = e + 1;
-\end{verbatim}
+\end{lstlisting}
 
-While \texttt{e} can have relative alignment of \texttt{int}, \texttt{f}
+While \code{e} can have relative alignment of \code{int}, \code{f}
 cannot because pointer arithmetic is done at the granularity of
-\texttt{short int}.
+\code{short int}.
 
 The final example illustrates the use of a dynamic check to allow an
 \arrayptrchar\ to be cast to a larger type with a larger relative alignment.
 It is a function that does a memory copy and uses an optimized aligned copy if
 possible.  For simplicity, it is assumed that the memory pointed to by
-\texttt{dest} and \texttt{src} does not overlap and that \texttt{sizeof(int)} is 4:
-\begin{verbatim}
-void copy(array_ptr<char> dest : bounds(dest, dest + num),
+\code{dst} and \code{src} does not overlap and that \code{sizeof(int)} is 4:
+\begin{lstlisting}
+void copy(array_ptr<char> dst : bounds(dst, dst + num),
           array_ptr<char> src : bounds(src, src + num), 
           size_t num)
 {
   if (num % 4 == 0) {
-    array_ptr<int> aligned_dest : bounds(dest, dest + num) rel_align(char) =
-        (array_ptr<int>) dest;
+    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(char) =
+        (array_ptr<int>) dst;
     array_ptr<int> aligned_src : bounds(src, src + num) rel_align(char) =
         (array_ptr<int>) src;
     int n = num / 4;
     for (int i = 0; i < n; i++) {
-       aligned_dest[i] = aligned_src[i];
+      aligned_dst[i] = aligned_src[i];
     }
  }
  else {
     for (int i = 0; i < num; i++) {
-        dest[i] = src[i];
+      dst[i] = src[i];
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
-However, \texttt{num \% 4 == 0} implies that \texttt{aligned\_dest} and
-\texttt{align\_src} are relatively aligned to their bounds, so the
+However, \lstinline|num % 4 == 0| implies that \code{aligned_dst} and
+\code{align_src} are relatively aligned to their bounds, so the
 relative alignment can be changed:
 
-\begin{verbatim}
-void copy(array_ptr<char> dest : bounds(dest, dest + num),
+\begin{lstlisting}
+void copy(array_ptr<char> dst : bounds(dst, dst + num),
           array_ptr<char> src : bounds(src, src + num), 
           size_t num)
 {
   if (num % 4 == 0) {
-    // num % 4 == 0 implies that aligned_dest and aligned_src are relatively
-    // aligned to their bounds.
-    array_ptr<int> aligned_dest : bounds(dest, dest + num) rel_align(int) =
-        (array_ptr<int>) dest;
+    // num % 4 == 0 implies that aligned_dst and aligned_src are
+    // relatively aligned to their bounds.
+    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(int) =
+        (array_ptr<int>) dst;
     array_ptr<int> aligned_src : bounds(src, src + num) rel_align(int) =
         (array_ptr<int>) src;
     int n = num / 4;
     for (int i = 0; i<n; i++) {
-       aligned_dest[i] = aligned_src[i];
+      aligned_dst[i] = aligned_src[i];
     }
  }
  else  
    ...
 }
-\end{verbatim}
+\end{lstlisting}
 
-Of course, the \texttt{rel\_align(int)} is redundant and can be omitted.
+Of course, the \code{rel_align(int)} is redundant and can be omitted.
 
 \subsection{Relative alignment and constant counts}
 
@@ -1452,11 +1460,11 @@ easily be cast to be a pointer to a larger type. Suppose in the
 following example that the size of integers is 4 bytes. A pointer to 8
 bytes of characters can be converted easily a pointer to 2 integers:
 
-\begin{verbatim}
+\begin{lstlisting}
 char a[] = "0123456";
 array_ptr<char> p : count(8) = a;
 array_ptr<int> r : count(2) = (array_ptr<int>) p;
-\end{verbatim}
+\end{lstlisting}
 
 \section{Extent of bounds declared at statements}
 \label{section:extent-of-declarations}
@@ -1480,8 +1488,8 @@ If an assignment
 
 \begin{compactitem}
 \item
-  increments or decrements a pointer variable (\texttt{++},
-  \texttt{-\/-}, \texttt{+=}, \texttt{-=}), and
+  increments or decrements a pointer variable (\code{++},
+  \code{--}, \code{+=}, \code{-=}), and
 \item
   the bounds expression for the pointer variable has the form
   \bounds{\var{e1}}{\var{e2}}, and
@@ -1565,12 +1573,12 @@ These conditions ensure the consistency of bounds declarations:
 \subsection{Examples}
 \label{examples:consistency}
 
-In the following example, a function modifies a variable \texttt{end}
-used in the bounds expression for the variable \texttt{start} and then
-uses the variable \texttt{start} after that. This function will be
+In the following example, a function modifies a variable \code{end}
+used in the bounds expression for the variable \code{start} and then
+uses the variable \code{start} after that. This function will be
 rejected by the compiler.
 
-\begin{verbatim}
+\begin{lstlisting}
 /* buggy function */
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
@@ -1580,88 +1588,82 @@ int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
     start[5] = 0;
    ...
 }
-\end{verbatim}
+\end{lstlisting}
 
-A correct function declares new bounds for \texttt{start}:
+A correct function declares new bounds for \code{start}:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
 { 
-    end = end + 1 where start : bounds(start, end - 1);
-    start[5] = 0; // program accepted by compiler; may fail bounds check at 
-                  // run time
-    ...
+  end = end + 1 where start : bounds(start, end - 1);
+  start[5] = 0; // program accepted by compiler; may fail bounds check 
+                // at run time
+  ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 The following example shows the extents of the two bounds declarations for
-\texttt{start}.  The bounds declaration at the declaration of \texttt{start} and 
+\code{start}.  The bounds declaration at the declaration of \code{start} and 
 its extent is highlighted in blue. The bounds declaration at the assignment 
-to \texttt{end} and its extent is highlighted in yellow:
+to \code{end} and its extent is highlighted in yellow:
 
-% The package for highlighting does not work well with the alltt
-% package, so just use a teletype font and handle spacing and line
-% breaking manually.
-\begin{tt}
 \sethlcolor{lightblue}
-/* sum integers stored between start and end, where end is not included */ \\  
-int sum(array\_ptr<int> start~:~\hl{bounds(start, end)}, array\_ptr<int> end)\\
-\hl{\{\\
-~~~~start[5] = 0; // bounds checked using (start, end)}\\
-\mbox{~~~~end} = \hl{end + 1} where \sethlcolor{lightyellow}\hl{start : bounds(start, end - 1);\\
-~~~~start[5] = 0; // bounds checked using (start, end - 1)\\
-\mbox{~~~~}...\\
-}\}
-\end{tt}
+\begin{lstlisting}[escapechar=\|]
+/* sum integers stored between start and end, where end is not included */  
+int sum(array_ptr<int> start : |\hl{bounds(start, end)}|, array_ptr<int> end)
+|\hl{\{\\
+ start[5] = 0; // bounds checked using (start, end)}\\
+\mbox{end} = \hl{end + 1}| where |\sethlcolor{lightyellow}\hl{start : bounds(start, end - 1);\\
+start[5] = 0; // bounds checked using (start, end - 1)\\
+...}|
+}
+\end{lstlisting}
 
-Figure~\ref{fig:bounds-extent:choose} expands on the \texttt{choose} function earlier. 
-There are 4 explicit bounds declarations for \texttt{c}. The bounds declarations
-and their extents are also color-coded. Three bounds declarations for c
-have the form \boundsdecl{c}{\boundscount{clen}}. They must be syntactically
+Figure~\ref{fig:bounds-extent:choose} expands on the \code{choose} function earlier. 
+There are 4 explicit bounds declarations for \code{c}. The bounds declarations
+and their extents are also color-coded. Three bounds declarations for \code{c}
+have the form \boundsdecl{\code{c}}{\boundscount{\code{clen}}}. They must be syntactically
 identical because there are statements that they cover in common. Their
 extents are highlighted in blue.  Another bounds declaration has
-the form \boundsdecl{c}{\boundscount{clen - 1}}.   Its extent is highlighted
-in yellow. It covers code where \texttt{c} is incremented and the 
+the form \boundsdecl{\code{c}}{\boundscount{\code{clen - 1}}}.   Its extent is highlighted
+in yellow. It covers code where \code{c} is incremented and the 
 length is decremented.  The increment invalidates the bounds declaration
-\boundsdecl{c}{\boundscount{clen}}.  A different bounds declaration for \texttt{c}
+\boundsdecl{\code{c}}{\boundscount{\code{clen}}}.  A different bounds declaration for \code{c}
 is needed after the increment.
 
 \begin{figure}
-% The package for highlighting does not work well with the alltt
-% package, so just use a teletype font and handle spacing and line
-% breaking manually.
-\begin{tt}
-/* use either a or b depending on val */\\
-int choose(int val, array\_ptr<int> a~:~count(alen), int alen,\\
-\mbox{~~~~~~~~~~~~~~~~~~~~}array\_ptr<int> b~:~count(blen), int blen)\\
-\{\\
-\mbox{~~~~}array\_ptr<int> c;\\
-\mbox{~~~~}int clen;\\
-\mbox{~~~~}int result = 0;\\
-\\
-\mbox{~~~~}if (val) \{\\
-\mbox{~~~~~~~~}clen = alen;\\
-\mbox{~~~~~~~~}c = a where \sethlcolor{lightblue}\hl{c : count(clen);\\
-\mbox{~~~~}\}}\\
-\mbox{~~~~}else \{\\
-\mbox{~~~~~~~~}clen = blen;\\
-\mbox{~~~~~~~~}c = b where \hl{c : count(clen);\\
-\mbox{~~~~}\}\\
-\mbox{~~~~}if (clen > 1) \{\\
-\mbox{~~~~~~~~}result = c[0];\\
-\mbox{~~~~}\}\\
-\\
-\mbox{~~~~}if (cond  \&\& clen > 1) \{}\\
-\mbox{~~~~~~~~}c = \hl{c + 1} where \sethlcolor{lightyellow}\hl{c : count(clen - 1);}\\
-\mbox{~~~~~~~~}clen = \hl{clen - 1} where \sethlcolor{lightblue}\hl{c : count(clen);\\
-\mbox{~~~~~~~~}result += c[0];\\
-\mbox{~~~~}\}\\
-\\ 
-\mbox{~~~~}...\\
-\mbox{~~~~}return result;\\
-}\}\\
-\end{tt}
+\begin{lstlisting}[escapechar=\|]
+/* use either a or b depending on val */
+int choose(int val, array_ptr<int> a: count(alen), int alen,
+           array_ptr<int> b : count(blen), int blen)
+{
+  array_ptr<int> c;
+  int clen;
+  int result = 0;
+
+  if (val) {
+    clen = alen;
+    c = a where |\sethlcolor{lightblue}\hl{c : count(clen);}|
+  |\hl{\}}|
+  else {
+    clen = blen;
+    c = b where |\hl{c : count(clen);}|
+  |\hl{\}}|
+  
+  |\hl{if (clen > 1) \{}|
+    |\hl{result = c[0];}|
+  |\hl{\}}|
+  
+  |\hl{if (cond \&\& clen > 1) \{}|
+    c = |\hl{c + 1}| where |\sethlcolor{lightyellow}\hl{c : count(clen - 1);}|
+    clen = |\sethlcolor{lightyellow}\hl{clen - 1}| where |\sethlcolor{lightblue}\hl{c : count(clen);}|
+    |\hl{result += c[0];}|
+  |\hl{\}}| 
+  |\hl{...}|
+  |\hl{return result;}|
+}
+\end{lstlisting}
 \caption{An expanded version of the choose function from earlier, with extents of different bounds declarations color-coded.}
 \label{fig:bounds-extent:choose}
 \end{figure}
@@ -1690,7 +1692,7 @@ Figure~\ref{fig:extent-dataflow-lattice} shows the lattice of values.
 It includes singleton values consisting of the bounds
 expressions in the flow-sensitive bounds declaration for variables in
 the function, \boundsunknown\ (indicating absence of bounds
-information), and \texttt{Top} (indicating contradiction or error):
+information), and \code{Top} (indicating contradiction or error):
 
 \begin{figure}
 \begin{center}
@@ -1739,12 +1741,12 @@ are \arrayptr\ variables they must have bounds and the bound
 must be loop invariants.
 
 The common case is that the bounds expression is invariant across all
-iterations of the loop. The earlier \texttt{sum} example illustrates
-this. The variable \texttt{current} is declared with bounds before a
-loop. The loop modifies \texttt{current}, but the bounds for
-\texttt{current} do not change:
+iterations of the loop. The earlier \code{sum} example illustrates
+this. The variable \code{current} is declared with bounds before a
+loop. The loop modifies \code{current}, but the bounds for
+\code{current} do not change:
 
-\begin{verbatim}
+\begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> end)
 { 
@@ -1756,7 +1758,7 @@ int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> en
        current += 1; // bounds do not need to be redeclared here.
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 A programmer can declare bounds expressions that change on each
 iteration of the loop. This may be necessary if an \arrayptr\
@@ -1772,34 +1774,36 @@ itself, to reduce register pressure in the loop. This can enable
 compilers to generate better code. Note that an optimizing compiler will
 eliminate the runtime bounds checks easily.
 
-\begin{verbatim}
+\begin{lstlisting}
 /* lexicographic comparison of two arrays of integers */
 int compare(array_ptr<int> x : bounds(x, x_end), 
             array_ptr<int> y : bounds(y, y_end)
             array_ptr<int> x_end, array_ptr<int> y_end)
 { 
-    while (x < x_end && y < y_end) {
-        if (*x == *y) {  // bounds check: x >= x && x < x_end; easily optimizable
-                         // bounds check: y >= y && y < y_end; easily optimizable
-            x++;
-            y++;
-        }
-        else if (*x < *y) {  // bounds checks here are easily optimizable as well
-            return -1;
-        }
-        else {
-            return 1;
-        }
+  while (x < x_end && y < y_end) {
+    if (*x == *y) { // bounds check: x >= x && x < x_end; easily
+                    // optimizable.
+                    // bounds check: y >= y && y < y_end; easily
+                    // optimizable.
+      x++;
+      y++;
     }
-    if (x == x_end && y == y_end) {
-        return 0;
-    }
-    else if (x != x_end) {
-        return 1;
+    else if (*x < *y) { // bounds checks here are easily optimizable too.
+      return -1;
     }
     else {
-        return -1; 
+      return 1;
     }
+  }
+  if (x == x_end && y == y_end) {
+    return 0;
+  }
+  else if (x != x_end) {
+    return 1;
+  }
+  else {
+    return -1; 
+  }
 }
-\end{verbatim}
+\end{lstlisting}
 

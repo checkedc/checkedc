@@ -1,6 +1,5 @@
 \documentclass[11pt]{report}
 \usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
-\usepackage{alltt}
 \usepackage{amssymb,amsmath}
 \usepackage{fancyhdr}
 \pagestyle{fancy}\pagestyle{fancy}\pagestyle{fancy}
@@ -10,6 +9,7 @@
 \usepackage{tikz} % drawing support
 \usepackage{soul} % provide highlighting support
 \usepackage{color}
+\usepackage{listings}
 \usetikzlibrary{patterns, positioning}
 
 % use upquote if available, for straight quotes in verbatim environments
@@ -54,6 +54,40 @@
 \definecolor{lightyellow}{rgb}{1.0,1.0,0.6}
 \sethlcolor{lightyellow}
 
+\lstdefinelanguage[checked]{C}[]{C}
+{morekeywords={array_ptr,_Array_ptr,
+               assume_bounds_cast, _Assume_bounds_cast,
+               bool, _Bool, % C11
+               bounds,
+               byte_count,
+               checked,_Checked,
+               count,
+               dynamic_bounds_cast, _Dynamic_bounds_cast,
+               dynamic_check, _Dynamic_check,
+               nt_array_ptr, _Nt_array_ptr,
+               nt_checked, _Nt_checked,               
+               ptr,_Ptr,
+               rel_align, rel_align_value,
+               unchecked,_Unchecked,
+               where, _Where},
+ moredelim=[is][\it \color{purple}]{|-}{-|}
+}
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  % frame=L,
+  xleftmargin=\parindent,
+  language=[checked]C,
+  showstringspaces=false,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\bfseries\color{green!40!black},
+  identifierstyle=\color{teal}, % \color{purple!40!black},
+  stringstyle=\color{brown},
+}
+\lstset{language=C,style=customc}
+
+
 %
 % meta variables are italicized.  Use the macro name var
 % to save on typing.
@@ -61,62 +95,64 @@
 %
 % macro for font for keywords
 %
-\newcommand{\keyword}[1]{\texttt{#1}}
-\newcommand{\sizeof}[1]{\texttt{sizeof(#1)}}
+\newcommand{\keyword}[1]{\lstinline|#1|}
+\newcommand{\code}[1]{\lstinline|#1|}
+
 %
 
 %
 % type macros
 %
-\newcommand{\void}{\texttt{void}}
+\newcommand{\void}{\lstinline{void}}
 % array_ptr type macros
 %
-\newcommand{\arrayptr}{\texttt{array\_ptr}}
-\newcommand{\arrayptrinst}[1]{\texttt{array\_ptr<#1>}}
+\newcommand{\arrayptr}{\lstinline|array_ptr|}
+\newcommand{\plainarrayptr}{\texttt{array\_ptr}}
+\newcommand{\arrayptrinst}[1]{\lstinline|array_ptr<|{#1}\lstinline|>|}
 \newcommand{\arrayptrT}{\arrayptrinst{\var{T}}}
-\newcommand{\arrayptrchar}{\arrayptrinst{\texttt{char}}}
-\newcommand{\arrayptrint}{\arrayptrinst{\texttt{int}}}
-\newcommand{\arrayptrvoid}{\arrayptrinst{\texttt{void}}}
+\newcommand{\arrayptrchar}{\arrayptrinst{\keyword{char}}}
+\newcommand{\arrayptrint}{\arrayptrinst{\keyword{int}}}
+\newcommand{\arrayptrvoid}{\arrayptrinst{\keyword{void}}}
 
-\newcommand{\ntarrayptr}{\texttt{nt\_array\_ptr}}
-\newcommand{\ntarrayptrinst}[1]{\texttt{nt\_array\_ptr<#1>}}
+\newcommand{\ntarrayptr}{\lstinline|nt_array_ptr|}
+\newcommand{\ntarrayptrinst}[1]{\lstinline|nt_array_ptr<|{#1}\lstinline|>|}
 \newcommand{\ntarrayptrT}{\ntarrayptrinst{\var{T}}}
-\newcommand{\ntarrayptrchar}{\ntarrayptrinst{\texttt{char}}}
-\newcommand{\ntarrayptrvoid}{\ntarrayptrinst{\texttt{void}}}
+\newcommand{\ntarrayptrchar}{\ntarrayptrinst{\keyword{char}}}
+\newcommand{\ntarrayptrvoid}{\ntarrayptrinst{\keyword{void}}}
 
 % use the name spanptr because span is already a command
 % in tex
-\newcommand{\spanptr}{\texttt{span}}
-\newcommand{\spanptrinst}[1]{\texttt{span<#1>}}
+\newcommand{\spanptr}{\lstinline|span|}
+\newcommand{\spanptrinst}[1]{\lstinline|span<|{#1}\lstinline|>|}
 \newcommand{\spanptrT}{\spanptrinst{\var{T}}}
-\newcommand{\spanptrchar}{\spanptrinst{\texttt{char}}}
-\newcommand{\spanptrint}{\spanptrinst{\texttt{int}}}
-\newcommand{\spanptrvoid}{\spanptrinst{\texttt{void}}}
+\newcommand{\spanptrchar}{\spanptrinst{\keyword{char}}}
+\newcommand{\spanptrint}{\spanptrinst{\keyword{int}}}
+\newcommand{\spanptrvoid}{\spanptrinst{\keyword{void}}}
 
-\newcommand{\ptr}{\texttt{ptr}}
-\newcommand{\ptrinst}[1]{\texttt{ptr<#1>}}
+\newcommand{\ptr}{\lstinline|ptr|}
+\newcommand{\ptrinst}[1]{\lstinline|ptr<|{#1}\lstinline|>|}
 \newcommand{\ptrT}{\ptrinst{\var{T}}}
-\newcommand{\ptrchar}{\ptrinst{\texttt{char}}}
-\newcommand{\ptrint}{\ptrinst{\texttt{int}}}
-\newcommand{\ptrvoid}{\ptrinst{\texttt{void}}}
+\newcommand{\ptrchar}{\ptrinst{\keyword{char}}}
+\newcommand{\ptrint}{\ptrinst{\keyword{int}}}
+\newcommand{\ptrvoid}{\ptrinst{\keyword{void}}}
 
-\newcommand{\uncheckedptr}{\texttt{*}}
-\newcommand{\uncheckedptrinst}[1]{\texttt{#1 *}}
-\newcommand{\uncheckedptrT}{\texttt{\var{T} *}}
-\newcommand{\uncheckedptrvoid}{\uncheckedptrinst{void}}
+\newcommand{\uncheckedptr}{\lstinline|*|}
+\newcommand{\uncheckedptrinst}[1]{{#1} \lstinline|*|}
+\newcommand{\uncheckedptrT}{\uncheckedptrinst{\var{T}}}
+\newcommand{\uncheckedptrvoid}{\uncheckedptrinst{\keyword{void}}}
 
 %
 % bounds expression macros
 %
-\newcommand{\relalign}[1]{\texttt{rel\_align(#1)}}
-\newcommand{\relalignval}[1]{\texttt{rel\_align\_value(#1)}}
-\newcommand{\bounds}[2]{\texttt{bounds(#1, #2)}}
-\newcommand{\boundsrel}[3]{\texttt{bounds(#1, #2) \relalign{#3}}}
-\newcommand{\boundsrelval}[3]{\texttt{bounds(#1\, #2)} \relalignval{#3}}
-\newcommand{\boundsany}{\texttt{bounds(any)}}
-\newcommand{\boundsunknown}{\texttt{bounds(unknown)}}
-\newcommand{\boundscount}[1]{\texttt{count(#1)}}
-\newcommand{\boundsbytecount}[1]{\texttt{byte\_count(#1)}}
+\newcommand{\relalign}[1]{\lstinline|rel_align(|{#1}\lstinline|)|}
+\newcommand{\relalignval}[1]{\lstinline|rel_align_value(|{#1}\lstinline|)|}
+\newcommand{\bounds}[2]{\lstinline|bounds(|{#1}\lstinline|, |{#2}\lstinline|)|}
+\newcommand{\boundsrel}[3]{\bounds{#1}{#2} \relalign{#3}}
+\newcommand{\boundsrelval}[3]{\bounds{#1}{#2} \relalignval{#3}}
+\newcommand{\boundsany}{\lstinline|bounds(any)|}
+\newcommand{\boundsunknown}{\lstinline|bounds(unknown)|}
+\newcommand{\boundscount}[1]{\lstinline|count(|{#1}\lstinline|)|}
+\newcommand{\boundsbytecount}[1]{\lstinline|byte_count(|{#1}\lstinline|)|}
 
 %
 % bounds declaration macros
@@ -125,11 +161,16 @@
 %
 % computed bounds for expressions
 %
-\newcommand{\boundsinfer}[2]{\texttt{#1}~$\vdash$~\texttt{#2}}
+\newcommand{\boundsinfer}[2]{#1~$\vdash$~#2}
 
 % expression macros
-\newcommand{\inbounds}[1]{\texttt{in\_bounds(#1)}}
-\newcommand{\exprcurrentvalue}{\texttt{expr\_current\_value}}
+\newcommand{\sizeof}[1]{\lstinline|sizeof(|#1\lstinline|)|}
+\newcommand{\cast}[2]{\lstinline|(|#1\lstinline|)| #2}
+\newcommand{\inbounds}[1]{\lstinline|in_bounds(|{#1}\lstinline|)|}
+\newcommand{\exprcurrentvalue}{\lstinline|expr_current_value|}
+\newcommand{\plusovf}{\lstinline|+|\textsubscript{ovf}}
+\newcommand{\minusovf}{\lstinline|-|\textsubscript{ovf}}
+\newcommand{\mulovf}{\lstinline|*|\textsubscript{ovf}}
 
 \begin{document}
 

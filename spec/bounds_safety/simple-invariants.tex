@@ -95,9 +95,9 @@ precondition that must be true at the call site. The compiler will check this pr
 A \keyword{where} clause may be used as a stand-alone statement, 
 in which case it stands on its own as a set of invariants and bounds
 declaration:
-\begin{verbatim}
-where x>=0 && x<=10;
-\end{verbatim}
+\begin{lstlisting}
+where x >= 0 && x <= 10;
+\end{lstlisting}
 This is just a special case of an expression statement
 that omits the expression but still has \keyword{where} clause.
 
@@ -112,7 +112,7 @@ a non-modifying expression.
 Here are some simple examples where the fact created by a control-flow
 statement is explicitly declared using redundant \keyword{where} clauses:
 
-\begin{verbatim}
+\begin{lstlisting}
 if (x < 5) {
     where x < 5;
 }
@@ -134,12 +134,12 @@ switch (x) {
         break;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
-Here is a simple example that introduces the fact that \texttt{i} is always
-\texttt{>=} 0:
+Here is a simple example that introduces the fact that \code{i} is always
+\code{>= 0}:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
@@ -150,12 +150,12 @@ int sum10(array_ptr<int> buf : count(10)) {
         where i >= 0;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
-From this fact, it can be deduced that the access to \texttt{buf} is always in
-range. A \texttt{where} clause can be used double check this:
+From this fact, it can be deduced that the access to \code{buf} is always in
+range. A \code{where} clause can be used double check this:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
@@ -167,7 +167,7 @@ int sum10(array_ptr<int> buf : count(10)) {
         where i >= 0;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Checking facts}
 
@@ -224,9 +224,9 @@ applies this substitution to both the set of facts and the fact that is
 being checked.
 
 The compiler then reduces the set of relational operators to the set
-\texttt{<}, \texttt{<=}, \texttt{==},  and \texttt{!=}
-by swapping operands and replacing \texttt{>} and \texttt{>=} 
-with \texttt{<=} and \texttt{<} instead.
+\code{<}, \code{<=}, \code{==}, and \code{!=}
+by swapping operands and replacing \code{>} and \code{>=} 
+with \code{<=} and \code{<} instead.
 
 The compiler then puts each bounds declaration into a normal form so
 that syntactic identity can be used to compare facts. For example,
@@ -238,10 +238,10 @@ addition and subtraction such as x + 0 are applied
 
 The compiler next checks if the fact being checked is in the set of
 facts. If it is not, it applies transitivity rules involving
-\texttt{<}, \texttt{<=}, and \texttt{==}.
-It also checks to see if \texttt{<}
-implies \texttt{!=} is true, and if \texttt{<=} and
-\texttt{>=} imply \texttt{==}.
+\code{<}, \code{<=}, and \code{==}.
+It also checks to see if \code{<}
+implies \code{!=} is true, and if \code{<=} and
+\code{>=} imply \code{==}.
 
 \subsection{Bounds declarations and facts}
 
@@ -253,17 +253,17 @@ expressions that make up a bounds expression into normal forms.
 
 The rules for checking bounds declarations include rules for
 transitivity. For \boundsdecl{\var{x}}{\bounds{\var{e1}}{\var{e2}}}, if
-\texttt{\var{e1} <= \var{e3}}, then \var{e3} can
+\var{e1} \code{<=} \var{e3}, then \var{e3} can
 be substituted for \var{e1}. 
-If \texttt{\var{e4} <= \var{e2}}, \var{e4} can be substituted for
-\var{e2}.  For \boundsdecl{\var{x}}{\boundscount{\var{e1}}}, if \
-\texttt{\var{e2} <= \var{e1} and \var{e2} >= 0}, 
+If \var{e4} \code{<=} \var{e2}, \var{e4} can be substituted for
+\var{e2}.  For \boundsdecl{\var{x}}{\boundscount{\var{e1}}}, if
+\var{e2} \code{<=} \var{e1} and \var{e2} \code{>= 0},
 \var{e2} can be substituted for \var{e1}.
 
 \subsection{Pointer arithmetic and facts}
 
-The rules used to check facts include the identities \texttt{\var{x} < \var{x} + \var{k}}
-for positive \var{k} and \texttt{\var{x} + \var{k} < \var{k}} for
+The rules used to check facts include the identities \var{x} \code{<} \var{x} \code{+} \var{k}
+for positive \var{k} and \var{x} \code{+} \var{k} \code{<} \var{k} for
 negative \var{k}, where \var{k} is a
 constant and \var{x} is a variable that has a new pointer type (\ptr or \arrayptr).
 These identities are true
@@ -276,33 +276,34 @@ an in-range value or a runtime error (no value).
 
 Integral arithmetic may overflow or wraparound. A consequence of that is
 that the rules used to check facts do not include the identities 
-\texttt{\var{x} < \var{x} + \var{k}} 
-for positive \var{k} and \texttt{\var{x} + \var{k} < \var{x}} for 
+\var{x} \code{<} \var{x} \code{+} \var{k} 
+for positive \var{k} and \var{x} \code{+} \var{k} \code{<} \var{x} for 
 negative \var{k}, where \var{k} is a
-constant and \var{x} has an integral type. These identities are not true in C.  For signed integer types, the computation \texttt{\var{x} + \var{k}}
+constant and \var{x} has an integral type. These identities are not true in C.  For signed integer types, the computation \var{x} \code{+} \var{k}
 may overflow.   According to C language
 rules, program behavior is undefined in that case.  For unsigned
 integer types, computations are performed modulo one plus
 the maximum unsigned integer.
 
 To use these identities for integers, the compiler needs to prove for
-positive \var{k} that \texttt{\var{x} + \var{k} <= MAXINT} and for negative \var{k} that \texttt{MININT <= \var{x} + \var{k}}.  There are four rules that can be used to prove this:
+positive \var{k} that \var{x} \code{+} \var{k} \code{<= MAXINT} and for negative \var{k} that
+\code{MININT <=} \var{x} \code{+} \var{k}.  There are four rules that can be used to prove this:
 
 \begin{itemize}
 \item
   Given an integer \var{c} and a positive integer \var{k}, if 
-  \texttt{\var{x} <= \var{c}} and \texttt{\var{c} + \var{k} <= MAXINT},
-  then \texttt{\var{x} + \var{c} <= MAXINT}.
+  \var{x} \code{<=} \var{c} and \var{c} \code{+} \var{k} \code{<= MAXINT},
+  then \var{x} \code{+} \var{c} \code{<= MAXINT}.
 \item
   Conversely, given an integer \var{c} and a negative integer 
-  \var{k}, if \texttt{\var{c} <= \var{x}} and \texttt{\var{c} +
-   \var{k} >= MININT}, then \texttt{\var{x} + \var{k} >= MININT}
+  \var{k}, if \var{c} \code{<=} \var{x} and \var{c} \code{+}
+   \var{k} \code{>= MININT}, then var{x} \code{+} \var{k} \code{>= MININT}
 \item
-  Given \texttt{\var{x} < \var{y}}, where \var{y} is any variable, 
-  then \texttt{\var{x} + 1 <= MAXINT}.
+  Given \var{x} \code{<} \var{y}, where \var{y} is any variable, 
+  then \var{x} \code{+ 1 <= MAXINT}.
 \item
-  Conversely, given \texttt{\var{x} > \var{y}}, where \var{y}
-  is any variable, then \texttt{\var{x} - 1 >= MININT}.
+  Conversely, given \var{x} \code{>} \var{y}, where \var{y}
+  is any variable, then \var{x} \code{- 1 >= MININT}.
 \end{itemize}
 
 \subsection{Checking function calls}
@@ -323,11 +324,11 @@ built-in method \inbounds{\var{e}} can be used to do this. It can be applied
 to expressions of type \arrayptr. At compile time, the compiler
 checks that the bounds expressions for \var{e} are always true given the
 facts true before the evaluation of \var{e}. At runtime, \inbounds{\var{e}}
-simply returns the value of \var{e}. The compilers generates code for
-\texttt{*\inbounds{\var{e}}} with no dynamic bounds checks. The prior example
+simply returns the value of \var{e}. The compiler generates code for
+\code{*}\inbounds{\var{e}} with no dynamic bounds checks. The prior example
 can be written as:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum10(array_ptr<int> buf : count(10)) {
     int sum = 0;
     int i = 0
@@ -338,14 +339,14 @@ int sum10(array_ptr<int> buf : count(10)) {
         where i >= 0;
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{Examples}
 
 Here is a simple example of capturing the lower bounds of an
 \arrayptr\ variable using another variable:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     array_ptr<int> tmp = buf;
     where buf : bounds(tmp, end); // substitute tmp for buf
@@ -356,12 +357,12 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
-Here is a more complicated example where \texttt{buf} is incremented
-\emph{and} \texttt{buf} is the lower bound:
+Here is a more complicated example where \code{buf} is incremented
+\emph{and} \code{buf} is the lower bound:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     int sum = 0;
     while (buf < end) {
@@ -371,17 +372,17 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Here are the steps that the compiler goes through, illustrated using 
 \keyword{where} clauses. First, the compiler computes the facts true after
-\texttt{buf = buf + 1}. The compiler computes the inverse expression for
-\texttt{buf + 1}, which is \texttt{buf - 1}. It substitutes it into the
+\code{buf = buf + 1}. The compiler computes the inverse expression for
+\code{buf + 1}, which is \code{buf - 1}. It substitutes it into the
 bounds expression that is true before the increment, producing the set
 of facts after the increment of 
-\texttt{\boundsdecl{buf}{\bounds{buf-1}{end}}}:
+\boundsdecl{buf}{\bounds{\code{buf - 1}}{\code{end}}}:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     int sum = 0;
     while (buf < end) {
@@ -391,15 +392,16 @@ int sum(array_ptr<int> buf : bounds(buf, end), array_ptr<int> end) {
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
 
-The next step is for the compiler to show that that \texttt{buf :
-bounds(buf - 1, end)} implies \texttt{buf : bounds(buf, end)}. The
+The next step is for the compiler to show that that \code{buf :
+bounds(buf - 1, end)} implies \code{buf : bounds(buf, end)}. The
 transitivity rule for bounds expressions implies that the compiler must
-show \texttt{buf - 1 <= buf}. This follows from the identity
-\texttt{\var{x} - \var{k} < \var{x}}, completing the validation of the bounds expression:
+show \code{buf - 1 <= buf}. This follows from the
+identity \var{x} \code{-} \var{k} \code{<} \var{x},
+completing the validation of the bounds expression:
 
-\begin{verbatim}
+\begin{lstlisting}
 int sum(array_ptr<int> buf where bounds(buf) == (buf, end), 
         array_ptr<int> end) {
     int sum = 0;
@@ -410,4 +412,4 @@ int sum(array_ptr<int> buf where bounds(buf) == (buf, end),
     }
     return sum;
 }
-\end{verbatim}
+\end{lstlisting}
