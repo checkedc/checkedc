@@ -210,7 +210,8 @@ is needed.
    Expand \var{bounds-exp} to the standard
    form \boundsrelval{\var{target-lb}}{\var{target-ub}}{\var{v}}.
    Check that \var{lb}  \code{<=} \var{target-lb} \code{&&} \var{target-ub} \code{<=} \var{ub}.
-   Also check that \var{e1}, \var{target-lb}, and \var{target-lb} are relatively aligned to \var{v}.
+   Also check that \var{e1}, \var{target-lb}, and \var{target-lb} are relatively aligned 
+   with respect to\var{v}.
 \end{itemize}
 \end{itemize}
 The \dynamicboundscast\ operator is not strictly needed.
@@ -249,7 +250,7 @@ involving variables and uses of array variables.
 
 Here are examples of uses of C cast operators to cast unchecked
 pointers to checked pointers.  The static checking rules are straightforward
-to apply here.  The examples assume that integers are
+to apply.  The examples assume that integers are
 4 bytes in size:
 \begin{lstlisting}
 int x = 0;
@@ -268,7 +269,7 @@ void swizzle(ptr<int> p) {
 }
 \end{lstlisting}
 The \dynamicboundscast\ operator is used typically when converting
-existing code to Checked C.  The existing code may make assumptions
+code to Checked C.  The existing code may make assumptions
 about buffers being large enough that are potentially wrong.
 It would be better to check for errors directly, but the code may not
 be structured to handle errors:
