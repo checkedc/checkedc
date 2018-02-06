@@ -54,7 +54,7 @@ where cond1 ...
 
 This syntax might lead to confusion. We might want to adopt an alternate
 syntax that makes this clearer. Some suggestions are the keywords
-\texttt{on\_return} or \texttt{after}:
+\keyword{on_return} or \keyword{after}:
 
 \begin{lstlisting}
 f(...)
@@ -77,7 +77,7 @@ This could be provided by adding a clause to bounds-exp that uses the
 same syntax as C conditional expressions:
 \begin{tabbing}
 \var{bounds}\=\var{-exp:} \\
-\>\texttt{\var{non-modifying-exp} ? \var{bounds-exp} : \var{bounds-exp}}
+\>\var{non-modifying-exp} \code{?} \var{bounds-exp} \code{:} \var{bounds-exp}
 \end{tabbing}
 
 We would need to add descriptions of introduction and elimination

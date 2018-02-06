@@ -1496,21 +1496,20 @@ from zero or more expressions, statements, and declarations:
   \code{default :} \var{statement}, and \var{identifier} :
   \var{statement}.
 \item
-  Selection statements of the form \code{if (}
-  \var{expression}\code{)} \var{statement} \code{else}
-  \var{statement} and \code{switch (} \var{expression} \code{)}
+  Selection statements of the form \code{if (}\var{expression}\code{)} 
+  \var{statement} \code{else}
+  \var{statement} and \code{switch (}\var{expression}\code{)}
   \var{statement}.
 \item
-  Iteration statements such as \code{while (} \var{expression} )
-  \var{statement} and \code{for
-  (}\var{declaration\textsubscript{opt}}
-  \var{expression\textsubscript{opt} ; expression\textsubscript{opt}
-  statement}\code{)}.
+  Iteration statements such as \code{while (}\var{expression}\code{)}
+  \var{statement} and \code{for (}\var{declaration\textsubscript{opt}}
+  \var{expression\textsubscript{opt}}\code{;} \var{expression\textsubscript{opt}} \code{;} 
+   \var{expression\textsubscript{opt}}\code{)} \var{statement}.
 \item
   Jump statements of the from \code{goto} \var{identifier},
   \code{continue}, and \code{break}.
 \item
-  Compound statements of the form \texttt{\{ ... \}} where \texttt{...}
+  Compound statements of the form \lstinline|{ ... }| where \lstinline|...|
   are zero or more declarations or statements.
 \end{itemize}
 
