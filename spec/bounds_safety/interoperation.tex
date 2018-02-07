@@ -896,50 +896,6 @@ interface.  For example, an expression will not be
 coerced implicitly from \ptrinst{\var{S}} to \uncheckedptrvoid\ to
 \uncheckedptrinst{\var{T}}, where \var{S} and \var{T} are different types.
 
-\subsection{Writing Checked C code that still compiles everywhere}
-
-One of the big selling points of C is that C compilers are available for almost
-all systems.  This presents a problem for adopting Checked C.  
-While Checked C is backward compatible with C and makes it easy to convert
-code incrementally, what if your code has to be compiled by a variety
-of C compilers, including C compilers that are unaware of Checked C?
-
-We propose using macros combined with bounds-safe interfaces to address this
-issue.
-Checked C-aware compilers will define the macro variable \code{__CHECKEDC}. The header file \code{stdchecked.h} will define
-macros for Checked C extensions that evaluate to nothing if \code{__CHECKEDC} is undefined,
-and otherwise evaluate to the actual Checked C syntax
-
-A potential problem with this scheme is the pointer type syntax change in Checked C,
-where Checked C moved from C's infix notation for pointer types to one similar to C++ templates:
-\code{int *} became \code{ptr<int>}.
-While we could use macros for constructing pointer types, that seems intrusive.
-It would make C programs harder to read and understand.   A better alternative would
-be if we could declare the new checked type and {\em erase} them from programs that need
-to be compiled with compilers unaware of Checked C.
-
-Bounds-safe interfaces can be combined with \keyword{checked} to do this.
-Recall that in \keyword{checked} scopes, bounds-safe interface types are used in place
-of the declared type:
-\begin{lstlisting}
-int *p : itype(ptr<int>)
-checked {
-   ... p ...  // p is treated as having type ptr<int>
-}
-\end{lstlisting}
-Bounds-safe interface types can be placed on any kind of variable in a C program. The \keyword{stdchecked.h} will define a macro
-\code{ITYPE(T)} that maps to \code{ : itype(T)}.  One can add this macro
-to all declarators that need to use checked pointer types and set the \code{BOUNDS_CHECKED}
-pragma at global scope (to prevent misuse):
-\begin{lstlisting}
-#pragma BOUNDS_CHECKED ON
-
-int *p ITYPE(ptr<int>);
-\end{lstlisting}
-Here is the full list of macros that we propose adding {\em note that list is currently
-under development and may change}:
-\begin{lstlisting}
-\end{lstlisting}
 
 \subsection{Checking bounds declarations}
 \label{section:checking-bounds-interfaces}
@@ -1005,6 +961,52 @@ to have valid bounds.   It is also possible to mix argument expressions with
 checked and unchecked  pointer types in one function call.  The checking of bounds
 for function arguments is done for all arguments, so this also implies that the unchecked
 pointer-typed expressions will need to have valid bounds.
+
+
+\section{Writing Checked C code that still compiles everywhere}
+
+One of the big selling points of C is that C compilers are available for almost
+all systems.  This presents a problem for adopting Checked C.  
+While Checked C is backward compatible with C and makes it easy to convert
+code incrementally, what if your code has to be compiled by a variety
+of C compilers, including C compilers that are unaware of Checked C?
+
+We propose using macros combined with bounds-safe interfaces to address this
+issue.
+Checked C-aware compilers will define the macro variable \code{__CHECKEDC}. The header file \code{stdchecked.h} will define
+macros for Checked C extensions that evaluate to nothing if \code{__CHECKEDC} is undefined,
+and otherwise evaluate to the actual Checked C syntax
+
+A potential problem with this scheme is the pointer type syntax change in Checked C,
+where Checked C moved from C's infix notation for pointer types to one similar to C++ templates:
+\code{int *} became \code{ptr<int>}.
+While we could use macros for constructing pointer types, that seems intrusive.
+It would make C programs harder to read and understand.   A better alternative would
+be if we could declare the new checked type and {\em erase} them from programs that need
+to be compiled with compilers unaware of Checked C.
+
+Bounds-safe interfaces can be combined with \keyword{checked} to do this.
+Recall that in \keyword{checked} scopes, bounds-safe interface types are used in place
+of the declared type:
+\begin{lstlisting}
+int *p : itype(ptr<int>)
+checked {
+   ... p ...  // p is treated as having type ptr<int>
+}
+\end{lstlisting}
+Bounds-safe interface types can be placed on any kind of variable in a C program. The \keyword{stdchecked.h} will define a macro
+\code{ITYPE(T)} that maps to \code{ : itype(T)}.  One can add this macro
+to all declarators that need to use checked pointer types and set the \code{BOUNDS_CHECKED}
+pragma at global scope (to prevent misuse):
+\begin{lstlisting}
+#pragma BOUNDS_CHECKED ON
+
+int *p ITYPE(ptr<int>);
+\end{lstlisting}
+Here is the full list of macros that we propose adding {\em note that list is currently
+under development and may change}:
+\begin{lstlisting}
+\end{lstlisting}
 
 
 \section{Conversions between pointers and integers}
