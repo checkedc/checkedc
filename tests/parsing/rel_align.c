@@ -234,7 +234,7 @@ extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds() 
 extern void f28(void) {
   array_ptr<int> arg : bo0unds(arg, arg + 5) rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
   array_ptr<int> arg1 : bo0unds rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
-  array_ptr<int> arg2 : bo0unds rel_align(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}  expected-error {{expected a type}}
+  array_ptr<int> arg2 : bo0unds rel_align(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
 }
 
 struct S1 {

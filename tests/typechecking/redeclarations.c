@@ -89,7 +89,10 @@ void f33(int *p, int len);
 void f33(int *p : bounds(p, p + len + 1), int len);  // expected-error {{conflicting parameter bounds}}
 
 void f34(int *p : itype(ptr<int>), int len);
-void f34(int *p : count(len), int len);  // expected-error {{conflicting parameter bounds}}
+void f34(int *p : count(len), int len);  // expected-error {{added bounds for parameter}}
+
+void f35(int *p : count(len), int len);
+void f35(int *p : itype(ptr<int>), int len); // expected-error {{dropped bounds for parameter}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have parameters that have bounds         //
@@ -145,7 +148,7 @@ int *f53(int *p, int len);
 int *f53(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // expected-error {{conflicting return bounds}}
 
 int *f54(int len) : itype(ptr<int>);
-int *f54(int len) : count(len);  // expected-error {{conflicting return bounds}}
+int *f54(int len) : count(len);  // expected-error {{added return bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds declarations for returns     //
@@ -320,7 +323,7 @@ int *g33;
 int *g33 : bounds(g33, g33 + len + 1);  // expected-error {{conflicting bounds}}
 
 int *g34 : itype(ptr<int>);
-int *g34 : count(1);      // expected-error {{conflicting bounds}}
+int *g34 : count(1);      // expected-error {{added bounds}}
 
 // Unchecked arrays
 extern int g35[] : count(len);
@@ -346,7 +349,7 @@ int g38[];
 int g38[] : bounds(g38, g38 + 6);  // expected-error {{conflicting bounds}}
 
 int g39[5] : itype(int checked[5]);
-int g39[5] : count(5);             // expected-error {{conflicting bounds}}
+int g39[5] : count(5);             // expected-error {{added bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of variables that have bounds declarations must have       //
