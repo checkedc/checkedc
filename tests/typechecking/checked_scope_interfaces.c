@@ -82,6 +82,38 @@ checked int f5(int *s : itype(int checked[])) {
   return 0;
 }
 
+// Test cases where a bounds-safe interface type is implied by a bounds
+// expression on an unchecked type
+checked int f6(int *s : count(4)) {
+  array_ptr<int> t1 = s + 3;
+  int t2 = *s;
+  int t3 = s[3];
+  *(s + 3) = 0;
+  s[3] = 0;
+
+  return 0;
+}
+
+checked int f7(int *s : bounds(s, s + 4)) {
+  array_ptr<int> t1 = s + 3;
+  int t2 = *s;
+  int t3 = s[3];
+  *(s + 3) = 0;
+  s[3] = 0;
+
+  return 0;
+}
+
+checked int f8(int *s : byte_count(4 * sizeof(int))) {
+  array_ptr<int> t1 = s + 3;
+  int t2 = *s;
+  int t3 = s[3];
+  *(s + 3) = 0;
+  s[3] = 0;
+
+  return 0;
+}
+
 checked int* func10(ptr<int> p, int *q : itype(ptr<int>)) : itype(ptr<int>) {
   int a = 5;
   ptr<int> pa = &a;
@@ -160,6 +192,7 @@ void f13(int *p : itype(int checked[]));
 void f14(int *p : itype(int checked[4]));
 void f15(ptr<int> p, int *q : itype(ptr<int>));
 
+
 extern int empty_global_arr[] : itype(int checked[]);
 
 // Check calls to those functions.
@@ -201,6 +234,20 @@ checked int test_call_parameters(void) {
   f15(param1, param2);
 }
 
+// Function declarations in checked scopes
+checked void f10a(int *p : itype(ptr<int>));
+checked void f11a(int *p : count(4));
+checked void f11b(int *p : bounds(p, p + 4));
+checked void f11c(int *p : byte_count(4 * sizeof(int)));
+checked void f12d(int *lower : itype(array_ptr<int>),
+                  int *upper : itype(array_ptr<int>),
+                  int buf : bounds(lower, upper));
+checked void f12a(int *p : itype(array_ptr<int>));
+checked void f13a(int *p : itype(int checked[]));
+checked void f14a(int *p : itype(int checked[4]));
+checked void f15a(ptr<int> p, int *q : itype(ptr<int>));
+
+
 //
 // Function declarations with bounds-safe interfaces on return values.
 //
@@ -216,6 +263,27 @@ checked int* f21(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : ity
   int *upa = f20(e, e);     // expected-error {{local variable in a checked scope must have a checked type}}
   ptr<int> pb = f20(e, e);
   return pb;
+}
+
+checked int *f21a(int *b : count(4)) : count(4) {
+  return b;
+}
+
+checked int *f21b(int *b : count(4)) : byte_count(4 * sizeof(int)) {
+  return b;
+}
+
+// Test checked return types implied by a bounds-safe interface
+checked void test_checked_returns(void) {
+  int arr1 checked[5][5];
+  ptr<int> t1 = f20(arr1, arr1);
+
+  int arr2 checked[4];
+  array_ptr<int> t2 = f21(0, arr2);
+
+  array_ptr<int> t3 = 0;
+  t3 = f21a(arr2);
+  t3 = f21b(arr2);
 }
 
 // No-prototype functions with a bounds-safe interface on the return type
@@ -323,8 +391,11 @@ struct S1 {
   int *f1 : itype(ptr<int>);
   int *f2 : count(5);
   int *f3 : count(len);
+  int *f4 : bounds(f5, f5 + 5);  // use of f5 here is intentional.
+  int *f5 : bounds(f5, f5 + len);
   int len;
-  int *f4 : itype(array_ptr<int>);
+  int *f6 : itype(array_ptr<int>);
+
   int arr[5] : itype(int checked[5]);
   void ((*fp1)(int *param : itype(ptr<int>))) :
     itype(ptr<void(int *param : itype(ptr<int>))>);
@@ -336,8 +407,10 @@ checked int test_struct1(struct S1 *p : itype(ptr<struct S1>)) {
   int t1 = *(p->f1 + 4);   // expected-error {{arithmetic on _Ptr type}}
   int t2 = *(p->f2 + 4);
   int t3 = *(p->f3 + 4);
-  int t4 = *(p->f4 + 4);   // expected-error {{expression has unknown bounds}}
-  int t5 = *(p->arr + 4);
+  int t4 = *(p->f4 + 4);
+  int t5 = *(p->f5 + 4);
+  int t6 = *(p->f6 + 4);   // expected-error {{expression has unknown bounds}}
+  int t7 = *(p->arr + 4);
   (*(p->fp1))(p->f1);
   (*(p->fp1))(0x5000);     // expected-error {{passing 'int' to parameter of incompatible type '_Ptr<int>'}}
   return 0;
@@ -349,7 +422,9 @@ int test_struct2(struct S1 *p : itype(ptr<struct S1>)) {
   int t2 = *(p->f2 + 4);
   int t3 = *(p->f3 + 4);
   int t4 = *(p->f4 + 4);
-  int t5 = *(p->arr + 4);
+  int t5 = *(p->f5 + 4);
+  int t6 = *(p->f6 + 4);
+  int t7 = *(p->arr + 4);
   (*(p->fp1))(p->f1);
   (*(p->fp1))(0x5000);    // expected-warning {{incompatible integer to pointer conversion passing 'int' to parameter of type 'int *'}}
   return 0;
@@ -386,7 +461,7 @@ checked int f50(int **s : itype(ptr<ptr<int>>)) {
 
 // Bounds-safe interfaces for checked pointers to function types,
 // where the function types have bounds-safe interfaces on returns.
-// that themselves has bounds-safe interfaces.
+// that themselves have bounds-safe interfaces.
 
 //
 // Given a pointer to a function type with bounds-safe interfaces on its parameters,
