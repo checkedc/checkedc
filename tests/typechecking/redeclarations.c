@@ -24,6 +24,8 @@ void f3(int *p : byte_count(len * sizeof(int)), int len);
 void f4(int *p, int len);
 void f4(int *p : itype(ptr<int>), int len);
 
+void f4a(char *p : itype(nt_array_ptr<char>), int len);
+
 // Order doesn't matter for declarations
 void f5(int *p : count(len), int len);
 void f5(int *p, int len);
@@ -36,6 +38,9 @@ void f7(int *p, int len);
 
 void f8(int *p : itype(ptr<int>), int len);
 void f8(int *p, int len);
+
+void f8a(char * : itype(nt_array_ptr<char>), int len);
+void f8a(char *, int len);
 
 //---------------------------------------------------------------------------//
 // Declarations of functions that return unchecked types are compatible      //
@@ -51,6 +56,9 @@ int *f21(int len) : byte_count(len * sizeof(int));
 int *f22(int len);
 int *f22(int len) : itype(ptr<int>);
 
+char *f22a(int len);
+char *f22a(int len) : itype(nt_array_ptr<char>);
+
 // Order doesn't matter
 int *f23(int len) : count(len);
 int *f23(int len);
@@ -61,10 +69,17 @@ int *f24(int len);
 int *f25(int len) : itype(ptr<int>);
 int *f25(int len);
 
+char *f25a(int len) : itype(nt_array_ptr<char>);
+char *f25a(int len);
+
 //---------------------------------------------------------------------------//
-// Redeclarations of functions that have parameters that have bounds-safe    //
-// interfaces must have matching interfaces.                                 //
+// Redeclarations of functions that have parameters with unchecked types     //
+// that have bounds-safe interfaces must have matching interfaces.            //
 //---------------------------------------------------------------------------//
+
+//
+// Only bounds declarations
+//
 
 void f30(int *p : count(len), int len);
 void f30(int *p : count(len), int len);
@@ -93,6 +108,53 @@ void f34(int *p : count(len), int len);  // expected-error {{added bounds for pa
 
 void f35(int *p : count(len), int len);
 void f35(int *p : itype(ptr<int>), int len); // expected-error {{dropped bounds for parameter}}
+
+//
+// Bounds declarations plus interface types
+//
+
+// Identical declarations and interface types.
+void f30a(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
+void f30a(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
+
+void f30b(int **p : count(len) itype(nt_array_ptr<ptr<int>>), int len);
+void f30b(int **p : count(len) itype(nt_array_ptr<ptr<int>>), int len);
+
+// Implied interface type.
+void f30c(int **p : count(len) itype(array_ptr<int *>), int len);
+void f30c(int **p : count(len), int len);
+
+void f30d(int **p : count(len), int len);
+void f30d(int **p : count(len) itype(array_ptr<int *>), int len);
+
+// Mismatched bounds declaration.
+void f30e(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
+void f30e(int **p : count(len + 1) itype(array_ptr<ptr<int>>), int len);  // expected-error {{conflicting parameter bounds}}
+
+// Mismatched interface type declaration.
+void f30f(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
+void f30f(int **p : count(len) itype(array_ptr<int *>), int len);  // expected-error {{conflicting parameter interop type}}
+
+// Dropped bounds declaration.
+void f30g(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
+void f30g(int **p : itype(array_ptr<ptr<int>>), int len);  // expected-error {{dropped bounds for parameter}}
+
+// Added bounds declaration.
+void f30h(int **p : itype(array_ptr<ptr<int>>), int len);
+void f30h(int **p : count(len) itype(array_ptr<ptr<int>>), int len);  // expected-error {{added bounds for parameter}}
+
+// Dropped interface type.
+void f30i(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
+void f30i(int **p : count(len), int len);  // expected-error {{conflicting parameter interop type}}
+
+// Added interface type.
+void f30j(int **p : count(len), int len);
+void f30j(int **p : count(len) itype(array_ptr<ptr<int>>), int len);    // expected-error {{conflicting parameter interop type}}
+
+// nt_array_ptr type implies count(0)
+void f30k(char *p : itype(nt_array_ptr<char>));
+void f30k(char *p : itype(nt_array_ptr<char>) count(0));
+void f30k(char *p : itype(nt_array_ptr<char>) count(1));  // expected-error {{conflicting parameter bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have parameters that have bounds         //
@@ -150,6 +212,54 @@ int *f53(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // exp
 int *f54(int len) : itype(ptr<int>);
 int *f54(int len) : count(len);  // expected-error {{added return bounds}}
 
+//
+// Bounds declarations plus interface types
+//
+
+// Identical declarations and interface types.
+int **f50a(int len) : count(len) itype(array_ptr<ptr<int>>);
+int **f50a(int len) : count(len) itype(array_ptr<ptr<int>>);
+
+int **f50b(int len) : count(len) itype(nt_array_ptr<ptr<int>>);
+int **f50b(int len) : count(len) itype(nt_array_ptr<ptr<int>>);
+
+// Implied interface type.
+int **f50c(int len) : count(len);
+int **f50c(int len) : count(len) itype(array_ptr<int *>);
+
+int **f50d(int len) : count(len) itype(array_ptr<int *>);
+int **f50d(int len) : count(len);
+
+// Mismatched bounds declaration.
+int **f50e(int len) : count(len) itype(array_ptr<ptr<int>>);
+int **f50e(int len) : count(len+1) itype(array_ptr<ptr<int>>);  // expected-error {{conflicting return bounds}}
+
+// Mismatched interface type declaration.
+int **f50f(int len) : count(len) itype(array_ptr<ptr<int>>);
+int **f50f(int len) : count(len) itype(array_ptr<int *>);  // expected-error {{conflicting return interop type}}
+
+// Dropped bounds declaration.
+int **f50g(int len) : count(len) itype(array_ptr<ptr<int>>);
+int **f50g(int len) : itype(array_ptr<ptr<int>>);  // expected-error {{dropped return bounds}}
+
+// Added bounds declaration.
+int **f50h(int len) : itype(array_ptr<ptr<int>>);
+int **f50h(int len) : count(len) itype(array_ptr<ptr<int>>);  // expected-error {{added return bounds}}
+
+// Dropped interface type.
+int **f50i(int len) : count(len) itype(array_ptr<ptr<int>>);
+int **f50i(int len) : count(len);  // expected-error {{conflicting return interop type}}
+
+// Added interface type.
+int **f50j(int len) : count(len);
+int **f50j(int len) : count(len) itype(array_ptr<ptr<int>>); // expected-error {{conflicting return interop type}}
+
+// nt_array_ptr type implies count(0)
+char *f50k(int len) : itype(nt_array_ptr<char>) count(0);
+// TODO: inference of inferring return bounds isn't working properly.
+// char *f50k(int len) : itype(nt_array_ptr<char>);
+char *f50k(int len) : itype(nt_array_ptr<char>) count(1);  // expected-error {{conflicting return bounds}}
+
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds declarations for returns     //
 // must have matching declarations.                                          //
@@ -170,7 +280,6 @@ array_ptr<int> f62(int len) : count(len);   // expected-error {{function redecla
 array_ptr<int> f63(int len) : count(len);
 array_ptr<int> f63(int len);                // expected-error {{function redeclaration dropped return bound}}
 
-
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have parameters with function pointer    //
 // types that have bounds-safe interfaces must have matching bounds-safe     //
@@ -188,14 +297,14 @@ void f70(int * (fn(int *, int *)) :
 void f70(int * (fn(int * : itype(ptr<int>), int * : itype(ptr<int>))) :
   itype(array_ptr<int>(ptr<int>, ptr<int>)));
 // return type of itype differs.
-void f70(int (*fn(int *, int *)) : itype(ptr<int> (ptr<int>, ptr<int>))); // expected-error {{function redeclaration has conflicting parameter bounds}}
+void f70(int (*fn(int *, int *)) : itype(ptr<int> (ptr<int>, ptr<int>))); // expected-error {{function redeclaration has conflicting parameter interop type}}
 // changed interface types for parameters of function pointer
 void f70(int * (fn(int * : itype(array_ptr<int>), int * : itype(array_ptr<int>)))); // expected-error {{conflicting bounds}}
 
 // Interface type on parameters of a function pointer type
 void f71(int * fn(int *, int *));
 void f71(int * fn(int * : count(5), int *: count(5)));
-void f71(int * fn(int * : count(6), int * : count(6))); // expected-error {{conflicting bounds for 'f71'}}
+void f71(int * fn(int * : count(6), int * : count(6))); // expected-error {{conflicting bounds annotations for 'f71'}}
 
 // Interface type on return value of a function pointer type
 void f72(int * fn(int *, int *));
@@ -222,19 +331,19 @@ void f81(int *p : bounds(p, p + len), int len);  // expected-error {{conflicting
 
 void f90(void (*fnptr)(array_ptr<int> p1 : count(5)));
 void f90(void (*fnptr)(array_ptr<int> p2 : count(5)));
-void f90(void (*fnptr)(array_ptr<int> p1 : count(6)));  // expected-error {{conflicting bounds for 'f90'}}
+void f90(void (*fnptr)(array_ptr<int> p1 : count(6)));  // expected-error {{conflicting bounds annotations for 'f90'}}
 
 void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
 void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
-void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 6), array_ptr<int> p1)> fnptr);  // expected-error {{conflicting bounds for 'f91'}}
+void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 6), array_ptr<int> p1)> fnptr);  // expected-error {{conflicting bounds annotations for 'f91'}}
 
 void f92(array_ptr<int>(*fnptr)(int i, int k) : count(i));
 void f92(array_ptr<int>(*fnptr)(int j, int k) : count(j));
-void f92(array_ptr<int>(*fnptr)(int j, int k) : count(k)); // expected-error {{conflicting bounds for 'f92'}}
+void f92(array_ptr<int>(*fnptr)(int j, int k) : count(k)); // expected-error {{conflicting bounds annotations for 'f92'}}
 
 void f93(array_ptr<int>(*fnptr)(void) : count(5));
 void f93(array_ptr<int>(*f)(void) : count(5));
-void f93(array_ptr<int>(*f)(void) : count(6));          // expected-error {{conflicting bounds for 'f93'}}
+void f93(array_ptr<int>(*f)(void) : count(6));          // expected-error {{conflicting bounds annotations for 'f93'}}
 
 //---------------------------------------------------------------------------//
 // Declarations of variables with unchecked pointer or array types are       //
@@ -331,6 +440,9 @@ extern int g35[] : count(len);
 extern int g35[] : count(len + 1);  // expected-error {{conflicting bounds}}
 
 extern int g36[] : count(len);
+
+
+
 // A redeclaration without a bounds-safe interface is compatible with the
 // original declaration, but the variable retains its original bounds-safe
 // interface.
@@ -350,6 +462,53 @@ int g38[] : bounds(g38, g38 + 6);  // expected-error {{conflicting bounds}}
 
 int g39[5] : itype(int checked[5]);
 int g39[5] : count(5);             // expected-error {{added bounds}}
+
+//
+// Bounds declarations plus interface types
+//
+
+// Identical declarations and interface types.
+int **g31a : count(len) itype(array_ptr<ptr<int>>);
+int **g31a : count(len) itype(array_ptr<ptr<int>>);
+
+char *g31b : count(len) itype(nt_array_ptr<char>);
+char *g31b : count(len) itype(nt_array_ptr<char>);
+
+// Implied interface type.
+int **g31c : count(len);
+int **g31c : count(len) itype(array_ptr<int *>);
+
+int **g31d : bounds(g31c, g31c + len) itype(array_ptr<int *>);
+int **g31d : bounds(g31c, g31c + len);
+
+// Mismatched bounds declaration.
+int **g31e : count(len) itype(array_ptr<ptr<int>>);
+int **g31e : count(len+1) itype(array_ptr<ptr<int>>);  // expected-error {{conflicting bounds}}
+
+// Mismatched interface type declaration.
+int **g31f : bounds(g31e, g31e + len) itype(array_ptr<ptr<int>>);
+int **g31f : bounds(g31e, g31e + len) itype(array_ptr<int *>);  // expected-error {{conflicting interop type}}
+
+// Dropped bounds declaration.
+int **g31g : byte_count(len * sizeof(int *)) itype(array_ptr<ptr<int>>);
+int **g31g : itype(array_ptr<ptr<int>>);  // expected-error {{dropped bounds}}
+
+// Added bounds declaration.
+int **g31h : itype(array_ptr<ptr<int>>);
+int **g31h: count(len) itype(array_ptr<ptr<int>>);  // expected-error {{added bounds}}
+
+// Dropped interface type.
+int **g31i : count(len) itype(array_ptr<ptr<int>>);
+int **g31i : count(len);  // expected-error {{conflicting interop type}}
+
+// Added interface type.
+int **g31j : count(len);
+int **g31j : count(len) itype(array_ptr<ptr<int>>); // expected-error {{conflicting interop type}}
+
+// nt_array_ptr type implies count(0)
+char *g31k : itype(nt_array_ptr<char>);
+char *g31k : itype(nt_array_ptr<char>) count(0);
+char *g31k : itype(nt_array_ptr<char>) count(1);  // expected-error {{conflicting bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of variables that have bounds declarations must have       //
