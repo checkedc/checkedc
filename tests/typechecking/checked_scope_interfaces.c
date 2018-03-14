@@ -239,9 +239,11 @@ checked void f10a(int *p : itype(ptr<int>));
 checked void f11a(int *p : count(4));
 checked void f11b(int *p : bounds(p, p + 4));
 checked void f11c(int *p : byte_count(4 * sizeof(int)));
-checked void f12d(int *lower : itype(array_ptr<int>),
+checked void f11d(int *lower : itype(array_ptr<int>),
                   int *upper : itype(array_ptr<int>),
                   int buf : bounds(lower, upper));
+checked void f11e(char *buf : bounds(buf, end),
+                  char *end : itype(_Array_ptr<char>));
 checked void f12a(int *p : itype(array_ptr<int>));
 checked void f13a(int *p : itype(int checked[]));
 checked void f14a(int *p : itype(int checked[4]));
