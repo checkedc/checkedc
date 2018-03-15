@@ -20,7 +20,7 @@ typedef float t2;
 
 //-------------------------------------------------------------
 //
-// Tests for returns types with interface type annotations.
+// Tests for parameters with interface type annotations.
 //
 //-------------------------------------------------------------
 
@@ -185,7 +185,7 @@ void f71(int a[10][10] : itype(int checked[10][10])) {
 
 // First dimension size is discarded by C type checking rules. 
 // The type of ``array of T'' is turned into ``'pointer to T''
-// We might to warn about the situation where the 1st dimension
+// We might want to warn about the situation where the 1st dimension
 // sizes disagree between the declared type and the annotated type.
 void f72(int a[10][10] : itype(int checked[11][10])) {
 }
@@ -210,6 +210,25 @@ void f81(int((*f)(int *, int *)) : itype(ptr<int(ptr<int>, ptr<int>)>)) {
 
 void f82(int((*f)(int *, int *)) : itype(ptr<int (int checked[10], int checked[10])>)) {
 }
+
+
+// Combinations of interface types and bounds expressions
+
+void f90(int **p : count(10) itype(array_ptr<ptr<int>>)) {
+}
+
+void f91(int **p : bounds(p, p + 10) itype(array_ptr<ptr<int>>)) {
+}
+
+void f92(int **p : itype(array_ptr<ptr<int>>) byte_count(4 * sizeof(int *))) {
+}
+
+void f93(int **p : itype(ptr<int> checked[]) count(10)) {
+}
+
+void f94(int **p : itype(ptr<int> checked[10]) count(10)) {
+}
+
 
 // Spot check uses of type qualifiers.  They must be identical for the declared type
 // and the bound-safe interface type.
@@ -259,18 +278,16 @@ void f213(int a[const 10] : itype(int checked[const 10])) {
 void f214(int a[volatile 10] : itype(int checked[volatile 10])) {
 }
 
-// TODO: add bounds declaration
-void f216(int a[const 10] : itype(const array_ptr<int>)) {
+void f216(int a[const 10] : itype(const array_ptr<int>) count(10)) {
 }
 
-void f217(int a[volatile 10] : itype(volatile array_ptr<int>)) {
+void f217(int a[volatile 10] : count(10) itype(volatile array_ptr<int>)) {
 }
 
-void f218(const int a[10] : itype(const int checked[10])) {
+void f218(const int a[10] : itype(const int checked[10]) count(10)) {
 }
 
-// TODO: add bounds declaration
-void f219(const int a[10] : itype(array_ptr<const int>)) {
+void f219(const int a[10] : count(10) itype(array_ptr<const int>)) {
 }
 
 // The C standard allows the first dimension of an array parameter to have the
@@ -305,8 +322,7 @@ void f234(int a[10][10] : itype(int checked[static 10][10])) {
 void f235(int a[static 10][10] : itype(int checked[static 11][10])) {
 }
 
-// TODO: add bounds decalaration for a.
-void f236(int a[static 10][10] : itype(array_ptr<int checked[10]>)) {
+void f236(int a[static 10][10] : count(10) itype(array_ptr<int checked[10]>)) {
 }
 
 // TODO: this will be an error once bounds declarations are checked.
@@ -387,9 +403,29 @@ void f282(int ((*f)(int checked[10])) : itype(ptr<int (int[10])>)) { // expected
 void f283(ptr<int> ((*f)(int[10])) : itype(ptr<int *(int[10])>)) { // expected-error {{loses checking of declared type}}
 }
 
+// Declaring bounds for a _Ptr interface type
+
+void f284(int **p : itype(ptr<ptr<int>>) count(10)) { // expected-error {{cannot declare bounds with a _Ptr interface type}}
+}
+
+void f285(int **p : count(10) itype(ptr<ptr<int>>)) { // expected-error {{cannot declare bounds with a _Ptr interface type}}
+}
+
+void f286(int **p : itype(ptr<ptr<int>>) bounds(p, p + 10)) {  // expected-error {{cannot declare bounds with a _Ptr interface type}}
+}
+
+void f287(int **p :  bounds(p, p + 10) itype(ptr<ptr<int>>)) {  // expected-error {{cannot declare bounds with a _Ptr interface type}}
+}
+
+void f288(int **p : itype(ptr<ptr<int>>) byte_count(10 * sizeof(int *))) {  // expected-error {{cannot declare bounds with a _Ptr interface type}}
+}
+
+void f289(int **p : byte_count(10 * sizeof(int *)) itype(ptr<ptr<int>>)) {  // expected-error {{cannot declare bounds with a _Ptr interface type}}
+}
+
 //------------------------------------------------------------ -
 //
-// Tests for parameter types with interface type annotations.
+// Tests for return types with interface type annotations.
 //
 //-------------------------------------------------------------
 
@@ -579,6 +615,34 @@ ptr<int> *r59(void) : itype(ptr<ptr<int>>) {
   return 0;
 }
 
+
+// Combinations of interface types and bounds expressions
+
+int **r70(void) : itype(array_ptr<ptr<int>>) count(10) {
+  return 0;
+}
+
+int **r71(void) : count(10) itype(array_ptr<ptr<int>>) {
+  return 0;
+}
+
+int **r72(array_ptr<int> p : count(10)) : itype(array_ptr<ptr<int>>) bounds(p, p + 10) {
+  return 0;
+}
+
+int **r73(array_ptr<int> p : count(10)) : bounds(p, p + 10) itype(array_ptr<ptr<int>>) {
+  return 0;
+}
+
+int **r74(void) : itype(array_ptr<ptr<int>>) byte_count(10 * sizeof(int *)) {
+  return 0;
+}
+
+int **r75(void) : byte_count(10 * sizeof(int *)) itype(array_ptr<ptr<int>>)  {
+  return 0;
+}
+
+
 // Function pointers
 
 int (*r80(void) : itype(ptr<int(int *, int *)>))(int *,int *) {
@@ -702,6 +766,27 @@ int (*r281(void) : itype(ptr<int[10][10]>))checked[10][10] { // expected-error {
 int (*r282(void) : itype(ptr<int[10]>)) checked[10] { // expected-error {{loses checking of declared type}}
 }
 
+// Declaring bounds for a _Ptr interface type
+
+int *r290(void) : itype(ptr<int>) count(5);        // expected-error {{cannot declare bounds with a _Ptr interface type}}
+
+int **r291(void) : count(5) itype(ptr<ptr<int>>);  // expected-error {{cannot declare bounds with a _Ptr interface type}}
+
+int **r292(int **p : count(5)) : itype(ptr<ptr<int>>) bounds(p, p + 5) {  // expected-error {{cannot declare bounds with a _Ptr interface type}}
+  return 0;
+}
+int **r293(int **p : count(5))  :  bounds(p, p + 5) itype(ptr<ptr<int>>)  { // expected-error {{cannot declare bounds with a _Ptr interface type}}
+  return 0;
+}
+
+int **r294(int **p : count(5)) : itype(ptr<ptr<int>>) byte_count(5 * sizeof(ptr<int>)) { // expected-error {{cannot declare bounds with a _Ptr interface type}}
+  return 0;
+}
+
+int **r294(int **p : count(5)) : byte_count(5 * sizeof(ptr<int>)) itype(ptr<ptr<int>>) { // expected-error {{cannot declare bounds with a _Ptr interface type}}
+  return 0;
+}
+
 //-------------------------------------------------------------
 //
 // Tests for global variables with interface type annotations.
@@ -795,6 +880,22 @@ int * volatile g207 : itype(volatile ptr<int>);
 int * restrict g208  : itype(restrict ptr<int>);
 int * const g209 : itype(const array_ptr<int>);
 const int g218[10] : itype(const int checked[10]);
+
+// Combinations of interface types and bounsd.
+
+int global_len;
+int *g301 : itype(array_ptr<int>) count(5);
+int *g302 : count(5) itype(array_ptr<int>);
+int **g303 : itype(array_ptr<ptr<int>>) bounds(g303, g303 + global_len);
+int **g304 : bounds(g304, g304 + global_len) itype(array_ptr<ptr<int>>);
+int **g305 : itype(array_ptr<ptr<int>>) byte_count(global_len * sizeof(ptr<int>));
+int **g306 : byte_count(global_len * sizeof(ptr<int>)) itype(array_ptr<ptr<int>>);
+int global_len;
+int g307[10][10] : itype(int checked[10][10]) count(10);
+int g308[10][10] : count(10) itype(int checked[10][10]);
+
+// Incomplete array
+extern int g309[][10] : itype(int checked[][10]) count(global_len);
  
 //
 // Incorrect type annotations.
@@ -860,6 +961,15 @@ int (*g281) checked[10][10] : itype(ptr<int[10][10]>);    // expected-error {{lo
 int ((*g282)(int checked[10])) : itype(ptr<int (int[10])>); // expected-error {{loses checking of declared type}}
 
 
+// Declaring bounds for a _Ptr type.
+
+int *g320 : itype(ptr<int>) count(5); //expected-error {{cannot declare bounds with a _Ptr interface type}}
+int *g321 : count(5) itype(ptr<int>);  //expected-error {{cannot declare bounds with a _Ptr interface type}}
+int **g322 : itype(ptr<ptr<int>>) bounds(g322, g322 + global_len);  //expected-error {{cannot declare bounds with a _Ptr interface type}}
+int **g323 : bounds(g323, g323 + global_len) itype(ptr<ptr<int>>);  //expected-error {{cannot declare bounds with a _Ptr interface type}}
+int **g324 : itype(ptr<ptr<int>>) byte_count(global_len * sizeof(ptr<int>));   //expected-error {{cannot declare bounds with a _Ptr interface type}}
+int **g325 : byte_count(global_len * sizeof(ptr<int>)) itype(ptr<ptr<int>>);    //expected-error {{cannot declare bounds with a _Ptr interface type}}
+
 //-------------------------------------------------------------
 //
 // Tests for local variables with interface type annotations.
@@ -916,6 +1026,7 @@ extern void test_locals() {
   const int *x200 : itype(ptr<const int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
   volatile int *x201 : itype(ptr<volatile int>);  // expected-error {{bounds-safe interface type annotation not allowed for local variable}}
 }
+
 
 //-------------------------------------------------------------
 //
@@ -1009,6 +1120,24 @@ struct S4 {
   int g70[][10] : itype(int checked[][10]);
 };
 
+// Conbinations of interfaces and bounds expressions.
+
+struct Combo1 {
+   int *g301 : itype(array_ptr<int>) count(5);
+   int *g302 : count(5) itype(array_ptr<int>);
+   int **g303 : itype(array_ptr<ptr<int>>) bounds(g303, g303 + len);
+   int **g304 : bounds(g304, g304 + len) itype(array_ptr<ptr<int>>);
+   int **g305 : itype(array_ptr<ptr<int>>) byte_count(len * sizeof(ptr<int>));
+   int **g306 : byte_count(len * sizeof(ptr<int>)) itype(array_ptr<ptr<int>>);
+   int len;
+   int g307[10][10] : itype(int checked[10][10]) count(10);
+   int g308[10][10] : count(10) itype(int checked[10][10]);
+
+   // Incomplete array type allowed for the last member of a structure.
+   int g309[][10] : itype(int checked[][10]) count(len);
+};
+
+
 // Spot check uses of type qualifiers.  They must be identical for the declared type
 // and the bounds-safe interface type.
 
@@ -1030,7 +1159,7 @@ struct S5 {
 // Incorrect type annotations.
 // 
 
-// Array/pointer types are must be compatible for structure mebers
+// Array/pointer types are must be compatible for structure members
 
 struct S6 {
   int *g232 : itype(int checked[]);           // expected-error {{mismatch between interface type}}
@@ -1110,6 +1239,19 @@ struct S13 {
   int (*g281) checked[10][10] : itype(ptr<int[10][10]>);    // expected-error {{loses checking of declared type}}
   int ((*g282)(int checked[10])) : itype(ptr<int (int[10])>); // expected-error {{loses checking of declared type}}
 };
+
+
+// Declaring bounds for a _Ptr interface type
+struct Combo2 {
+   int *g320 : itype(ptr<int>) count(5); //expected-error {{cannot declare bounds with a _Ptr interface type}}
+   int *g321 : count(5) itype(ptr<int>);  //expected-error {{cannot declare bounds with a _Ptr interface type}}
+   int **g322 : itype(ptr<ptr<int>>) bounds(g322, g322 + len);  //expected-error {{cannot declare bounds with a _Ptr interface type}}
+   int **g323 : bounds(g323, g323 + len) itype(ptr<ptr<int>>);  //expected-error {{cannot declare bounds with a _Ptr interface type}}
+   int **g324 : itype(ptr<ptr<int>>) byte_count(len * sizeof(ptr<int>));   //expected-error {{cannot declare bounds with a _Ptr interface type}}
+   int **g325 : byte_count(len * sizeof(ptr<int>)) itype(ptr<ptr<int>>);    //expected-error {{cannot declare bounds with a _Ptr interface type}}
+   int len;
+};
+
 
 //-------------------------------------------------------------
 //
@@ -1256,4 +1398,3 @@ union U13 {
   int(*g281) checked[10][10] : itype(ptr<int[10][10]>);    // expected-error {{loses checking of declared type}}
   int((*g282)(int checked[10])) : itype(ptr<int(int[10])>); // expected-error {{loses checking of declared type}}
 };
-
