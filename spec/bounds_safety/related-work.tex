@@ -273,7 +273,11 @@ region contains objects of some size $k$ that are aligned to $k$.
 A table maps regions to their sizes.  They measure the performance of 
 SPEC 2006 programs and find that checking all pointer reads and writes
 increases average program execution time by 56\% and checking only writes 
-increases average execution time by 13\%.
+increases average execution time by 13\%. In \cite{Duck2017}, the authors extended 
+Low Fat Pointers to also provide stack bounds protection, incurring a 17\% overhead when checking 
+only writes. Low Fat Pointers for heap \cite{Duck2016} and stack {Duck2017} bounds protection were
+integrated and released as an open source research prototype available at 
+\url{https://github.com/GJDuck/LowFat}.
 
 Finally, we describe shadow memory approaches.
 Patil and Fischer \cite{Patil1997}
