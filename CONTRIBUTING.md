@@ -5,12 +5,14 @@ on your level of interest:
 
 * Participating in [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) and discussions
   of proposed changes to the specification.
-* Making improvements to the specification.  This can include adding new features, improving the existing discussion
-of features, adding exaples, clarifying wording, and fixing errors.
+* Helping out with the [Checked C clang compiler implementation](https://github.com/Microsoft/checkedc-clang). We could
+ particularly use code reviewers for compiler changes.  There are also a number of self-contained small features that 
+ you could implement.
+ * Adding test code and samples.
+* Making improvements to the specification.  This can include fixing typographical errors or
+clarifying wording, adding examples, adding related work, improving the existing discussion of features, or adding new features.
 * Proposing significant new functionality.  We have focused on bounds checking so far, and welcome proposals
 for checking type casts and memory management.
-* Adding test code and samples.
-* Extending existing compilers to implement Checked C.
 
 ## Workflow
 
