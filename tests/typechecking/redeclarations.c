@@ -120,12 +120,19 @@ void f30a(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
 void f30b(int **p : count(len) itype(nt_array_ptr<ptr<int>>), int len);
 void f30b(int **p : count(len) itype(nt_array_ptr<ptr<int>>), int len);
 
-// Implied interface type.
-void f30c(int **p : count(len) itype(array_ptr<int *>), int len);
-void f30c(int **p : count(len), int len);
+// Implied interface types.
+void f30b1(int **p : count(len) itype(array_ptr<int *>), int len);
+void f30b1(int **p : count(len), int len);
 
-void f30d(int **p : count(len), int len);
-void f30d(int **p : count(len) itype(array_ptr<int *>), int len);
+void f30b2(int **p : count(len), int len);
+void f30b2(int **p : count(len) itype(array_ptr<int *>), int len);
+
+// TODO: these should be semantically identical (see Github issue #462).
+void f30b3(int *p[5] : count(5));
+void f30b3(int *p[5] : count(5) itype(int * checked[5])); // expected-error {{conflicting parameter interop type}}
+
+void f30b4(int *p[5] : count(5) itype(int * checked[5]));
+void f30b4(int *p[5] : count(5) itype(array_ptr<int>));   // expected-error {{mismatch between interface type}}
 
 // Mismatched bounds declaration.
 void f30e(int **p : count(len) itype(array_ptr<ptr<int>>), int len);
@@ -151,10 +158,36 @@ void f30i(int **p : count(len), int len);  // expected-error {{conflicting param
 void f30j(int **p : count(len), int len);
 void f30j(int **p : count(len) itype(array_ptr<ptr<int>>), int len);    // expected-error {{conflicting parameter interop type}}
 
-// nt_array_ptr type implies count(0)
-void f30k(char *p : itype(nt_array_ptr<char>));
-void f30k(char *p : itype(nt_array_ptr<char>) count(0));
-void f30k(char *p : itype(nt_array_ptr<char>) count(1));  // expected-error {{conflicting parameter bounds}}
+// Bounds implied by interface types.
+
+// A parameter with an interface type that is a checked array implies
+// a bounds of the first dimension.
+void f30k(int **p : itype(ptr<int> checked[5]));
+void f30k(int **p : itype(ptr<int> checked[5]) count(5));
+void f30k(int **p : itype(ptr<int> checked[5]) count(6));   // expected-error {{conflicting parameter bounds}}
+
+void f30l(int **p : itype(ptr<int> checked[5]) count(5));
+void f30l(int **p : itype(ptr<int> checked[5]));
+void f30l(int **p : itype(ptr<int> checked[5]) count(6));   // expected-error {{conflicting parameter bounds}}
+
+void f30m(int *p[5] : itype(ptr<int> checked[5]) count(5));
+void f30m(int *p[5] : itype(ptr<int> checked[5]));
+void f30m(int *p[5] : itype(ptr<int> checked[5]) count(6)); // expected-error {{conflicting parameter bounds}}
+
+// nt_array_ptr type implies count(0) if no bounds specified
+void f30n(char *p : itype(nt_array_ptr<char>));
+void f30n(char *p : itype(nt_array_ptr<char>) count(0));
+void f30n(char *p : itype(nt_array_ptr<char>) count(1));  // expected-error {{conflicting parameter bounds}}
+
+void f30p(char *p : itype(nt_array_ptr<char>) count(5));
+void f30p(char *p : itype(nt_array_ptr<char>) count(1));  // expected-error {{conflicting parameter bounds}}
+
+void f30q(char *p : itype(char nt_checked[5]));
+void f30q(char *p : itype(char nt_checked[5]) count(4));
+void f30q(char *p : itype(char nt_checked[5]) count(5));  // expected-error {{conflicting parameter bounds}}
+
+void f30r(char *p : itype(char nt_checked[]));
+void f30r(char *p : itype(char nt_checked[]) count(0));
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have parameters that have bounds         //
@@ -179,10 +212,13 @@ void f43(array_ptr<int> p, int len);               // expected-error {{function 
 void f44(array_ptr<int> p);
 void f44(array_ptr<int> p : bounds(unknown));
 
+void f45(int p checked[5]);
+void f45(int p  checked[5] : count(5));
+
 // Pointers with a null-terminated pointer type have a default bounds of count(0)
-void f45(nt_array_ptr<int> p);
-void f45(nt_array_ptr<int> p : count(0));
-void f45(nt_array_ptr<int> p : count(1));   // expected-error {{conflicting parameter bounds}}
+void f46(nt_array_ptr<int> p);
+void f46(nt_array_ptr<int> p : count(0));
+void f46(nt_array_ptr<int> p : count(1));   // expected-error {{conflicting parameter bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds-safe interfaces for returns  //
@@ -256,9 +292,12 @@ int **f50j(int len) : count(len) itype(array_ptr<ptr<int>>); // expected-error {
 
 // nt_array_ptr type implies count(0)
 char *f50k(int len) : itype(nt_array_ptr<char>) count(0);
-// TODO: inference of inferring return bounds isn't working properly.
-// char *f50k(int len) : itype(nt_array_ptr<char>);
+char *f50k(int len) : itype(nt_array_ptr<char>);
 char *f50k(int len) : itype(nt_array_ptr<char>) count(1);  // expected-error {{conflicting return bounds}}
+
+char *f50l(int len) : itype(nt_array_ptr<char>);
+char *f50l(int len) : itype(nt_array_ptr<char>) count(0);
+char *f50l(int len) : itype(nt_array_ptr<char>) count(1);  // expected-error {{conflicting return bounds}}
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have bounds declarations for returns     //
@@ -460,8 +499,8 @@ int g38[];
 // interface
 int g38[] : bounds(g38, g38 + 6);  // expected-error {{conflicting bounds}}
 
-int g39[5] : itype(int checked[5]);
-int g39[5] : count(5);             // expected-error {{added bounds}}
+int g39[5] : itype(int checked[5]);  // Implies count(5)
+int g39[5] : count(5);               // Implies itype(int checked[5]);
 
 //
 // Bounds declarations plus interface types
