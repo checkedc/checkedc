@@ -3,10 +3,14 @@
 // RUN: %clang -fcheckedc-extension %s -o %t -Werror -Wno-check-memory-accesses
 // RUN: %t pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
 // RUN: %t pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
+// RUN: %t pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-3
 // RUN: %t fail1 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-1
 // RUN: %t fail2 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-2
 // RUN: %t fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-3
 // RUN: %t fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-4
+// RUN: %t fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-5
+// RUN: %t fail6 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-6
+// RUN: %t fail7 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-7
 
 #include <assert.h>
 #include <signal.h>
@@ -17,11 +21,15 @@
 
 void passing_test_1(void);
 void passing_test_2(void);
+void passing_test_3(void);
 
 void failing_test_1(void);
 void failing_test_2(void);
 void failing_test_3(void);
 void failing_test_4(void);
+void failing_test_5(array_ptr<char> pc : count(len), unsigned len);
+void failing_test_6(array_ptr<char> pc : count(len), unsigned len);
+void failing_test_7(array_ptr<char> pc : count(len), unsigned len);
 
 // Handle an out-of-bounds reference by immediately exiting. This causes
 // some output to be missing.
@@ -74,7 +82,14 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-PASS-2: Expected Success
     passing_test_2();
   }
-  else if (strcmp(argv[1], "fail1") == 0) {
+  else if (strcmp(argv[1], "pass3") == 0) {
+    // CHECK-PASS-3: Passed p1
+    // CHECK-PASS-3: Passed p2
+    // CHECK-PASS-3: Passed p3
+    // CHECK-PASS-3: Passed p4
+    // CHECK-PASS-3: Expected Success
+    passing_test_3();
+  } else if (strcmp(argv[1], "fail1") == 0) {
     // CHECK-FAIL-1-NOT: Unprintable
     // CHECK-FAIL-1-NOT: Unexpected Success
     failing_test_1();
@@ -91,14 +106,31 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-FAIL-3-NOT: Unprintable
     // CHECK-FAIL-3-NOT: Unexpected Success
     failing_test_3();
-  }
-  else if (strcmp(argv[1], "fail4") == 0) {
+  } else if (strcmp(argv[1], "fail4") == 0) {
     // CHECK-FAIL-4 : Printable1
     // CHECK-FAIL-4-NOT: Unprintable2
     // CHECK-FAIL-4-NOT: Unexpected Success
     failing_test_4();
-  }
-  else {
+  } else if (strcmp(argv[1], "fail5") == 0) {
+    array_ptr<char> p : count(12) = "\0\0\0\0\0\0\0\0abcd";
+    // CHECK-FAIL-5: Successful pointer conversion
+    // CHECK-FAIL-5-NOT: Unexpected Success
+    _Static_assert(sizeof(int) <= 8, "update test for integers larger than 64 bits.");
+    failing_test_5(p, sizeof(int) + 1);
+    failing_test_5(p, sizeof(int) - 1);
+  } else if (strcmp(argv[1], "fail6") == 0) {
+    array_ptr<char> p : count(4) = "abcd";
+    // CHECK-FAIL-6: Successful conversion to ptr<void>
+    // CHECK-FAIL-6-NOT: Unexpected Success
+    failing_test_6(p, 1);
+    failing_test_6(p, 0);
+  } else if (strcmp(argv[1], "fail7") == 0) {
+    array_ptr<char> p : count(4) = "abcd";
+    // CHECK-FAIL-7: Successful conversion to void *
+    // CHECK-FAIL-7-NOT: Unexpected Success
+    failing_test_7(p, 1);
+    failing_test_7(p, 0);
+  } else {
     // CHECK-NOT: Unexpected Test Name
     puts("Unexpected Test Name");
     return EXIT_FAILURE;
@@ -159,6 +191,25 @@ void passing_test_2(void) {
   puts("Expected Success");
 }
 
+// Test dynamic checks involving conversions to void pointers.
+void passing_test_3(void) {
+  int i = 10;
+  ptr<int> pi = &i;
+  ptr<void> pv = pi;
+  void *unchecked_pv = 0;
+  ptr<void> p1 = _Dynamic_bounds_cast<ptr<void>>(pi);
+  printf("Passed p1");
+  ptr<void> p2 = _Dynamic_bounds_cast<ptr<void>>(pv);
+  printf("Passed p2");
+  unchecked_pv = _Dynamic_bounds_cast<void *>(pi);
+  printf("Passed unchecked_pv");
+  ptr<void> p3 = _Assume_bounds_cast<ptr<void>>(unchecked_pv);
+  printf("Passed p3");
+  void *p4 = _Assume_bounds_cast<void *>(unchecked_pv);
+  printf("Passed p4");
+  puts("Expected Success");
+}
+
 // dynamic_check(r != NULL) && dynamic_check(r <= r && r+15 <= r+10) -> FAIL
 void failing_test_1(void) {
   ptr<int> q = 0;
@@ -214,5 +265,32 @@ void failing_test_4(void) {
   printf("Unprintable2: %d\n", *(s+5));
   
   puts("Unexpected Success");
+}
+
+// TEst dynamic checks involving possibly failig conversions to ptr<int>.
+void failing_test_5(array_ptr<char> pc : count(len), unsigned len) {
+  ptr<int> pi = _Dynamic_bounds_cast<ptr<int>>(pc);
+  if (len < sizeof(int))
+    puts("Unexpected Success");
+  else if (*pi == 0)
+    puts("Successful pointer conversion");
+}
+
+// Test dynamic checks involving possibly failing conversions to ptr<void>.
+void failing_test_6(array_ptr<char> pc : count(len), unsigned len) {
+  ptr<void> pv = _Dynamic_bounds_cast<ptr<void>>(pc);
+  if (len == 0)
+    puts("Unexpected Success");
+  else if (pv != 0)
+    puts("Successful conversion to ptr<void>");
+}
+
+// Test dynamic checks involving possibly failing conversions to void *.
+void failing_test_7(array_ptr<char> pc : count(len), unsigned len) {
+ void *pv = _Dynamic_bounds_cast<void *>(pc);
+  if (len == 0)
+    puts("Unexpected Success");
+  else if (pv != 0)
+    puts("Successful conversion to void *");
 }
 
