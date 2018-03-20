@@ -139,7 +139,7 @@ char *strstr(const char *s1 : itype(_Nt_array_ptr<const char>),
 // https://github.com/Microsoft/checkedc-clang/issues/424 is addressed
 char *strtok(char * restrict s1 : itype(restrict _Nt_array_ptr<char>),
              const char * restrict s2 : itype(restrict _Nt_array_ptr<const char>)) :
-  itype(_Nt_array_ptr<char>) count(0);
+  itype(_Nt_array_ptr<char>);
 
 char *strerror(int errnum) : itype(_Nt_array_ptr<char>);
 size_t strlen(const char *s : itype(_Nt_array_ptr<const char>));
