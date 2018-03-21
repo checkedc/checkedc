@@ -207,14 +207,13 @@ int main(int argc, nt_array_ptr<char> argv checked[] : count(argc)) {
     printf("Usage: %s arg1 arg2 <integer> ... arg6", argv[0]);
     return 0;
   }
-  // Temporary scaffolding pending Checked C compiler change to
-  // set default bounds for nt_array_ptr<char> to count(0);
-  nt_array_ptr<char> arg1 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[1], 0);
-  nt_array_ptr<char> arg2 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[2], 0);
-  nt_array_ptr<char> arg3 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[3], 0);
-  nt_array_ptr<char> arg4 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[4], 0);
-  nt_array_ptr<char> arg5 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[5], 0);
-  nt_array_ptr<char> arg6 : count(0) = assume_bounds_cast<nt_array_ptr<char>>(argv[6], 0);
+
+  nt_array_ptr<char> arg1 = assume_bounds_cast<nt_array_ptr<char>>(argv[1], count(0));
+  nt_array_ptr<char> arg2 = assume_bounds_cast<nt_array_ptr<char>>(argv[2], count(0));
+  nt_array_ptr<char> arg3 = assume_bounds_cast<nt_array_ptr<char>>(argv[3], count(0));
+  nt_array_ptr<char> arg4 = assume_bounds_cast<nt_array_ptr<char>>(argv[4], count(0));
+  nt_array_ptr<char> arg5 = assume_bounds_cast<nt_array_ptr<char>>(argv[5], count(0));
+  nt_array_ptr<char> arg6 = assume_bounds_cast<nt_array_ptr<char>>(argv[6], count(0));
   printf("strlen(\"%s\") = %d\n", arg1, my_strlen(arg1));
   printf("squeeze(\"%s\",'e') = ", arg2);
   squeeze(arg2, 'e');

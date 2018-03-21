@@ -155,13 +155,13 @@ void passing_test_1(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(r);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, 3);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(3));
   printf("Printable1\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r+3, 3);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r+3, count(3));
   printf("Printable2\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, s, s+3);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
   printf("Printable3\n");
 
   puts("Expected Success");
@@ -178,14 +178,14 @@ void passing_test_2(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(NULL);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(NULL, r, r+5);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(NULL, bounds(r, r+5));
   printf("Printable1\n");
 
   s = NULL;
   q = _Dynamic_bounds_cast<ptr<int>>(s);
   printf("Printable2\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(s, r, r+5);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(s, bounds(r, r+5));
   printf("Printable3\n");
 
   puts("Expected Success");
@@ -214,7 +214,7 @@ void passing_test_3(void) {
 void failing_test_1(void) {
   ptr<int> q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, 15);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(15));
   
   printf("Unprintable\n");
   
@@ -225,7 +225,7 @@ void failing_test_1(void) {
 void failing_test_2(void) {
   ptr<int> q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r+8, 3);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r+8, count(3));
 
   printf("Unprintable\n");
   
@@ -241,14 +241,14 @@ void failing_test_3(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(r);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, 5);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
   printf("Printable1\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, s, s+3);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
   printf("Printable2\n");
 
   s = 0;
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, s, s+3);
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
   
   printf("Unprintable\n");
   
@@ -259,7 +259,7 @@ void failing_test_3(void) {
 // dereference insert dynamic_check(s <= s+5 && (s+5) < s+3) -> FAIL
 void failing_test_4(void) {
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
-  array_ptr<int> s : count(3) = _Dynamic_bounds_cast<array_ptr<int>>(r, 5);
+  array_ptr<int> s : count(3) = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
   
   printf("Printable1\n");
   printf("Unprintable2: %d\n", *(s+5));
