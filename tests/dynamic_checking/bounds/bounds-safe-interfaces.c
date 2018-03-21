@@ -74,9 +74,9 @@ void write_driver(int failure_point, int *a1 : count(10),
                   struct S *s1 : itype(ptr<struct S>));
 void write_test(int failure_point, int *p : count(p_len), int p_len,
                 int *q : itype(array_ptr<int>) count(q_len), int q_len,
-                int *t : itype(int checked[5]), int t_pos,
-                char *u : itype(nt_array_ptr<char>) count(u_len), int u_len,
-                char *r : itype(nt_array_ptr<char>), int r_pos,
+                int *r : itype(int checked[5]), int r_pos,
+                char *t : itype(nt_array_ptr<char>) count(t_len), int t_len,
+                char *u : itype(nt_array_ptr<char>), int u_pos,
                 struct S *s : itype(ptr<struct S>));
 void read_driver(int failure_point, int *a1 : count(10),
                  int *a2 : count(10),
@@ -86,9 +86,9 @@ void read_driver(int failure_point, int *a1 : count(10),
                  struct S *s1 : itype(ptr<struct S>));
 void read_test(int failure_point, int *p : count(p_len), int p_len,
                int *q : itype(array_ptr<int>) count(q_len), int q_len,
-               int *t : itype(int checked[5]), int t_pos,
-               char *u : itype(nt_array_ptr<char>) count(u_len), int u_len,
-               char *r : itype(nt_array_ptr<char>), int r_pos,
+               int *r : itype(int checked[5]), int r_pos,
+               char *t : itype(nt_array_ptr<char>) count(t_len), int t_len,
+               char *u : itype(nt_array_ptr<char>), int u_pos,
                struct S *s : itype(ptr<struct S>));
 
 // This signature for main is exactly what we want here,
@@ -266,9 +266,9 @@ void write_driver(int failure_point, int *a1 : count(10),
 // we vary the position instead of the size to force a failure.
 void write_test(int failure_point, int *p : count(p_len), int p_len,
                 int *q : itype(array_ptr<int>) count(q_len), int q_len,
-                int *t : itype(int checked[5]), int t_pos,
-                char *u : itype(nt_array_ptr<char>) count(u_len), int u_len,
-                char *r : itype(nt_array_ptr<char>), int r_pos,
+                int *r : itype(int checked[5]), int r_pos,
+                char *t : itype(nt_array_ptr<char>) count(t_len), int t_len,
+                char *u : itype(nt_array_ptr<char>), int u_pos,
                 struct S *s : itype(ptr<struct S>)) checked {
   *global_arr = 100;
   if (failure_point == 1) goto unexpected_success;
@@ -315,25 +315,25 @@ void write_test(int failure_point, int *p : count(p_len), int p_len,
   s->f[2] = 402;
   if (failure_point == 15) goto unexpected_success;
 
-  t[0] = 500;
-  t[4] = 501;
-  t[t_pos] = -1;
+  r[0] = 500;
+  r[4] = 501;
+  r[r_pos] = -1;
   if (failure_point == 16) goto unexpected_success;
 
-  *u = 'z';
-  *(u + 1) = 'a';
+  *t = 'z';
+  *(t + 1) = 'a';
   if (failure_point == 17) goto unexpected_success;
 
-  *(u + 2) = 'b';
+  *(t + 2) = 'b';
   if (failure_point == 18) goto unexpected_success;
 
-  u[3] = 'c';
+  t[3] = 'c';
   if (failure_point == 19) goto unexpected_success;
 
-  (u + 1)[3] = 'd';
+  (t + 1)[3] = 'd';
   if (failure_point == 20) goto unexpected_success;
 
-  r[r_pos] = '\0';
+  u[u_pos] = '\0';
   if (failure_point == 21) goto unexpected_success;
 
   return;
@@ -452,9 +452,9 @@ void read_driver(int failure_point, int *a1 : count(10),
 // if it succeeds.
 void read_test(int failure_point, int *p : count(p_len), int p_len,
                int *q : itype(array_ptr<int>) count(q_len), int q_len,
-               int *t : itype(int checked[5]), int t_pos,
-               char *u : itype(nt_array_ptr<char>) count(u_len), int u_len,
-               char *r : itype(nt_array_ptr<char>), int r_pos,
+               int *r : itype(int checked[5]), int r_pos,
+               char *t : itype(nt_array_ptr<char>) count(t_len), int t_len,
+               char *u : itype(nt_array_ptr<char>), int u_pos,
                struct S *s : itype(ptr<struct S>)) checked {
   if (*global_arr != 100) goto fail;
   if (failure_point == 1) goto unexpected_success;
@@ -501,23 +501,23 @@ void read_test(int failure_point, int *p : count(p_len), int p_len,
   if (s->f[2] != 402) goto fail;
   if (failure_point == 15) goto unexpected_success;
 
-  if (t[0] != 500 || t[4] != 501 || t[t_pos] != -1) goto fail;
+  if (r[0] != 500 || r[4] != 501 || r[r_pos] != -1) goto fail;
   if (failure_point == 16) goto unexpected_success;
 
-  if (*u != 'z') goto fail;
-  if (*(u + 1) != 'a') goto fail;
+  if (*t != 'z') goto fail;
+  if (*(t + 1) != 'a') goto fail;
   if (failure_point == 17) goto unexpected_success;
 
-  if (*(u + 2) != 'b') goto fail;
+  if (*(t + 2) != 'b') goto fail;
   if (failure_point == 18) goto unexpected_success;
 
-  if (u[3] != 'c') goto fail;
+  if (t[3] != 'c') goto fail;
   if (failure_point == 19) goto unexpected_success;
 
-  if ((u + 1)[3] != 'd') goto fail;
+  if ((t + 1)[3] != 'd') goto fail;
   if (failure_point == 20) goto unexpected_success;
 
-  if (r[r_pos] != 0) goto fail;
+  if (u[u_pos] != 0) goto fail;
   if (failure_point == 21) goto unexpected_success;
 
   return;
