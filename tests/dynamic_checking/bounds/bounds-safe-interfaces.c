@@ -19,6 +19,7 @@
 // RUN:  %t1 14 0 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 15 0 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 16 0 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 17 0 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 0 1 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 0 2 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 0 3 | FileCheck %s --check-prefixes=CHECK
@@ -35,6 +36,7 @@
 // RUN:  %t1 0 14 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 0 15 | FileCheck %s --check-prefixes=CHECK
 // RUN:  %t1 0 16 | FileCheck %s --check-prefixes=CHECK
+// RUN:  %t1 0 17 | FileCheck %s --check-prefixes=CHECK
 
 #include <assert.h>
 #include <signal.h>
@@ -58,18 +60,22 @@ struct S {
 
 void write_driver(int failure_point, int *a : count(10),
                   int *a2 : count(10),
+                  int *a3 : count(5),
                   char *b : itype(nt_array_ptr<char>),
                   struct S *s1 : itype(ptr<struct S>));
 void write_test(int failure_point, int *p : count(p_len), int p_len,
-               int *q : itype(array_ptr<int>) count(q_len), int q_len,
+                int *q : itype(array_ptr<int>) count(q_len), int q_len,
+                int *t : itype(int checked[5]), int t_pos,
                 char *r : itype(nt_array_ptr<char>), int r_pos,
                 struct S *s : itype(ptr<struct S>));
 void read_driver(int failure_point, int *a : count(10),
                  int *a2 : count(10),
+                 int *a3 : count(5),
                  char *b : itype(nt_array_ptr<char>),
                  struct S *s1 : itype(ptr<struct S>));
 void read_test(int failure_point, int *p : count(p_len), int p_len,
                int *q : itype(array_ptr<int>) count(q_len), int q_len,
+               int *t : itype(int checked[5]), int t_pos,
                char *r : itype(nt_array_ptr<char>), int r_pos,
                struct S *s : itype(ptr<struct S>));
 
@@ -102,13 +108,14 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   int a[10] = { 0, 1, 2, 4, 5, 6, 7, 8, 9 };
   int a2[10] = {0 , 1, 2, 4, 5, 6, 7, 8, 9 };
+  int a3[5] = { 4, 3, 2, 1, 0 };
   char b nt_checked[5] = "abcd";
   int tmp[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
   struct S s1 = { tmp, 10 };
 
   // CHECK: Starting Test
   puts("Starting Test");
-  write_driver(write_target, a, a2, b, &s1);
+  write_driver(write_target, a, a2, a3, b, &s1);
   if (write_target == 0) {
     // NO-BOUNDS-FAILURES: No bounds failure on write
     puts("No bounds failure on write");
@@ -118,7 +125,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     puts("Expected bounds failure");
   }
 
-  read_driver(read_target, a, a2, b, &s1);
+  read_driver(read_target, a, a2, a3, b, &s1);
   if (read_target == 0) {
     // NO-BOUNDS-FAILURES: No bounds failure on read
     puts("No bounds failure on read");
@@ -136,72 +143,77 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 // When failure_point is 0, all tests in write_test should pass.
 void write_driver(int failure_point, int *a : count(10),
                   int *a2 : count(10),
+                  int *a3 : count(5),
                   char *b : itype(nt_array_ptr<char>),
                   struct S *s1 : itype(ptr<struct S>)) {
   dynamic_check(s1->len >= 5);
   switch (failure_point) {
     // Vary global variable.
     case 0: 
-      write_test(17, a, 10, a2, 10, b, 0, s1);
+      write_test(18, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 1:
       global_arr_len = 0;
-      write_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 2: 
       global_arr_len = 1;
-      write_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 3:
       global_arr_len = 2;
-      write_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 4:
       global_arr_len = 3;
-      write_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     // Vary bounds of a (3rd parameter).
     case 5:
-      write_test(failure_point, a, 0, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 0, a2, 10, a3, 2, b, 0, s1);
       break;
     case 6:
-      write_test(failure_point, a, 1, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 1, a2, 10, a3, 2, b, 0, s1);
       break;
     case 7:
-      write_test(failure_point, a, 2, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 2, a2, 10, a3, 2, b, 0, s1);
       break;
     case 8:
-      write_test(failure_point, a, 3, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 3, a2, 10, a3, 2, b, 0, s1);
       break;
     // Vary bounds of a2 (5th parameter).
     case 9:
-      write_test(failure_point, a, 10, a2, 0, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 0, a3, 2, b, 0, s1);
       break;
     case 10:
-      write_test(failure_point, a, 10, a2, 1, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 1, a3, 2, b, 0, s1);
       break;
     case 11:
-      write_test(failure_point, a, 10, a2, 2, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 2, a3, 2, b, 0, s1);
       break;
     case 12:
-      write_test(failure_point, a, 10, a2, 3, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 3, a3, 2, b, 0, s1);
       break;
     // Vary structure lengths.
     case 13:
       s1->len = 0;
-      write_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 10,  a3, 2, b, 0, s1);
       break;
     case 14:
       s1->len = 1;
-      write_test(failure_point, a, 10, a2, 10, b,  0, s1);
+      write_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break; 
     case 15:
       s1->len = 2;
-      write_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      write_test(failure_point, a, 10, a2, 10,  a3, 2, b, 0, s1);
       break;
-   // Vary write position for b (7th parameter)
+   // Vary write position for a3 (7th parameter)
     case 16:
-      write_test(failure_point, a, 10, a2, 10, b, 1, s1);
+      write_test(failure_point, a, 10, a2, 10, a3, -5, b, 1, s1);
+      break;
+   // Vary write position for b (9th parameter)
+    case 17:
+      write_test(failure_point, a, 10, a2, 10, a3, 2, b, 1, s1);
       break;
     default:
       // CHECK-NOT Unexpected test case
@@ -226,6 +238,7 @@ void write_driver(int failure_point, int *a : count(10),
 // we vary the position instead of the size to force a failure.
 void write_test(int failure_point, int *p : count(p_len), int p_len,
                 int *q : itype(array_ptr<int>) count(q_len), int q_len,
+                int *t : itype(int checked[5]), int t_pos,
                 char *r : itype(nt_array_ptr<char>), int r_pos,
                 struct S *s : itype(ptr<struct S>)) checked {
   *global_arr = 100;
@@ -273,8 +286,13 @@ void write_test(int failure_point, int *p : count(p_len), int p_len,
   s->f[2] = 402;
   if (failure_point == 15) goto unexpected_success;
 
-  r[r_pos] = '\0';
+  t[0] = 500;
+  t[4] = 501;
+  t[t_pos] = -1;
   if (failure_point == 16) goto unexpected_success;
+
+  r[r_pos] = '\0';
+  if (failure_point == 17) goto unexpected_success;
 
   return;
 
@@ -291,71 +309,76 @@ unexpected_success:
 // a failure at the test specified by failure_point.
 void read_driver(int failure_point, int *a : count(10),
                  int *a2 : count(10),
+                 int *a3 : count(5),
                  char *b : itype(nt_array_ptr<char>),
                  struct S *s1 : itype(ptr<struct S>)) {
   dynamic_check(s1->len >= 5);
   switch (failure_point) {
     // Vary global variable.
     case 0:
-      read_test(17, a, 10, a2, 10, b, 0, s1);
+      read_test(18, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 1:
       global_arr_len = 0;
-      read_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 2:
       global_arr_len = 1;
-      read_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 3:
       global_arr_len = 2;
-      read_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 4:
       global_arr_len = 3;
-      read_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     // Vary bounds of a (3rd parameter).
     case 5:
-      read_test(failure_point, a, 0, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 0, a2, 10, a3, 2, b, 0, s1);
       break;
     case 6:
-      read_test(failure_point, a, 1, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 1, a2, 10, a3, 2, b, 0, s1);
       break;
     case 7:
-      read_test(failure_point, a, 2, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 2, a2, 10, a3, 2, b, 0, s1);
       break;
     case 8:
-      read_test(failure_point, a, 3, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 3, a2, 10, a3, 2, b, 0, s1);
       break;
     case 9:
-      read_test(failure_point, a, 0, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 0, a2, 10, a3, 2, b, 0, s1);
       break;
     case 10:
-      read_test(failure_point, a, 1, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 1, a2, 10, a3, 2, b, 0, s1);
       break;
     case 11:
-      read_test(failure_point, a, 2, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 2, a2, 10, a3, 2, b, 0, s1);
       break;
     case 12:
-      read_test(failure_point, a, 3, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 3, a2, 10, a3, 2, b, 0, s1);
       break;
     // Vary structure lengths.
     case 13:
       s1->len = 0;
-      read_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 14:
       s1->len = 1;
-      read_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
     case 15:
       s1->len = 2;
-      read_test(failure_point, a, 10, a2, 10, b, 0, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 0, s1);
       break;
-   // Vary write position for b (7th parameter)
+    // Vary read position for a3 (7th parameter)
     case 16:
-      read_test(failure_point, a, 10, a2, 10, b, 1, s1);
+      read_test(failure_point, a, 10, a2, 10, a3, -5, b, 1, s1);
+      break;
+    // Vary read position for b (9th parameter)
+    case 17:
+      read_test(failure_point, a, 10, a2, 10, a3, 2, b, 1, s1);
       break;
     default:
       // CHECK-NOT Unexpected test case
@@ -370,6 +393,7 @@ void read_driver(int failure_point, int *a : count(10),
 // if it succeeds.
 void read_test(int failure_point, int *p : count(p_len), int p_len,
                int *q : itype(array_ptr<int>) count(q_len), int q_len,
+               int *t : itype(int checked[5]), int t_pos,
                char *r : itype(nt_array_ptr<char>), int r_pos,
                struct S *s : itype(ptr<struct S>)) checked {
   if (*global_arr != 100) goto fail;
@@ -417,8 +441,11 @@ void read_test(int failure_point, int *p : count(p_len), int p_len,
   if (s->f[2] != 402) goto fail;
   if (failure_point == 15) goto unexpected_success;
 
-  if (r[r_pos] != 0) goto fail;
+  if (t[0] != 500 || t[4] != 501 || t[t_pos] != -1) goto fail;
   if (failure_point == 16) goto unexpected_success;
+
+  if (r[r_pos] != 0) goto fail;
+  if (failure_point == 17) goto unexpected_success;
 
   return;
 
