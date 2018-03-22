@@ -1545,8 +1545,8 @@ checked void check_cast_operator(void) {
                                                 // expected-error {{type in a checked scope must be a checked pointer or array type}} \
 
   q = _Assume_bounds_cast<ptr<int>>(r);             // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
-  r = _Assume_bounds_cast<array_ptr<int>>(r,4);     // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
-  r = _Assume_bounds_cast<array_ptr<int>>(r,r,r+1); // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+  r = _Assume_bounds_cast<array_ptr<int>>(r,count(4));     // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
+  r = _Assume_bounds_cast<array_ptr<int>>(r,bounds(r,r+1)); // expected-error {{_Assume_bounds_cast not allowed in a checked scope or function}}
 
   vpa = _Dynamic_bounds_cast<ptr<int(int,...)>>(r);   // expected-error {{type in a checked scope cannot have variable arguments}}
   vpa = _Dynamic_bounds_cast<ptr<int(int,ptr<int(int, ...)>)>>(r);  // expected-error {{type in a checked scope cannot have variable arguments}}
