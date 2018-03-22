@@ -8,28 +8,28 @@
 extern void f1() {
   array_ptr<int> a : count(1) = 0;
   int b[10];
-  a = _Dynamic_bounds_cast<array_ptr<int>>(b, 10);
+  a = _Dynamic_bounds_cast<array_ptr<int>>(b, count(10));
 }
 
 extern void f2() {
   char p[10];
   array_ptr<int> a : count(1) = 0;
-  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, 5); // expected-error {{declared bounds for 'd' are invalid after initialization}}
-  a = _Assume_bounds_cast<array_ptr<int>) (p, p, p+1); // expected-error {{expected '>'}}
+  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, count(5)); // expected-error {{declared bounds for 'd' are invalid after initialization}}
+  a = _Assume_bounds_cast<array_ptr<int>) (p, bounds(p, p+1)); // expected-error {{expected '>'}}
 }
 
 extern void f3() {
   array_ptr<int> a : count(2) = 0;
   array_ptr<char> b : count(2) = 0;
 
-  b = _Assume_bounds_cast<array_ptr<char>>(a, 2);
+  b = _Assume_bounds_cast<array_ptr<char>>(a, count(2));
 }
 
 extern void f4() {
   array_ptr<int> a : count(2) = 0;
   array_ptr<char> b : count(2) = 0;
 
-  a = _Asume_bounds_cast<array_ptr<int>>(b, 2); // expected-error{{use of undeclared identifier}} expected-error {{expected expression}}
+  a = _Asume_bounds_cast<array_ptr<int>>(b, count(2)); // expected-error{{use of undeclared identifier}} expected-error {{expected expression}}
   a = _Dssume_bounds_cast<int>(b); // expected-error{{use of undeclared identifier}} expected-error {{expected expression}}
 }
 
@@ -67,7 +67,7 @@ extern array_ptr<int> h4(void) : count(3) {
 extern void f7() {
   array_ptr<int> r : count(3) = 0;
   ptr<int> q = 0;
-  r = _Assume_bounds_cast<array_ptr<int>>(h4(), 3);
+  r = _Assume_bounds_cast<array_ptr<int>>(h4(), count(3));
   q = _Assume_bounds_cast<ptr<int>>(h4());
 }
 
@@ -97,8 +97,8 @@ extern void f10() {
 extern void f11() {
   array_ptr<int> r : count(3) = 0;
   ptr<int> q = 0;
-  r = _Assume_bounds_cast<array_ptr<int>, rel_align(int)>(h4(), r, r + 4);
-  q = _Assume_bounds_cast<ptr<int>, rel_align_value(sizeof(int))>(h4());
+  r = _Assume_bounds_cast<array_ptr<int>>(h4(), bounds(r, r + 4)  rel_align(int));
+  q = _Assume_bounds_cast<ptr<int>>(h4());
 }
 
 extern void f12() {
@@ -108,30 +108,17 @@ extern void f12() {
   ptr<int *> s = 0;
   ptr<ptr<int>> t = 0;
   array_ptr<int> qq : count(4) = 0;
-  r = _Assume_bounds_cast<ptr<int>, rel_align(int)>(q);
-  p = _Assume_bounds_cast<int *, rel_align_value(sizeof(int))>(q);
+  r = _Assume_bounds_cast<ptr<int>>(q);
+  p = _Assume_bounds_cast<int *>(q);
 
-  s = _Assume_bounds_cast<ptr<int *>, rel_align(int)>(q);
-  t = _Assume_bounds_cast<ptr<ptr<int>>, rel_align_value(sizeof(int))>(q);
+  s = _Assume_bounds_cast<ptr<int *>>(q);
+  t = _Assume_bounds_cast<ptr<ptr<int>>>(q);
 
-  qq = _Assume_bounds_cast<array_ptr<int>, rel_align(int)>(q, q, q + 4);
-  p = _Assume_bounds_cast<int *, rel_align_value(sizeof(int))>(q);
+  qq = _Assume_bounds_cast<array_ptr<int>>(q, bounds(q, q + 4) rel_align(int));
+  p = _Assume_bounds_cast<int *>(q);
 }
 
-extern void f13() {
-  int *p;
-  int len = 5;
-  array_ptr<int> q : count(2) = 0;
-  ptr<int> r = 0;
-  r = _Dynamic_bounds_cast<ptr<int>, rel_align(len)>(q); // expected-error {{unknown type name 'len'}}
-  p = _Dynamic_bounds_cast<int *, rel_align_value(len)>(q); // expected-error {{expression is not an integer constant expression}}
-  p = _Dynamic_bounds_cast<int *, rel_align_value(1)>(q);
-
-  p = _Dynamic_bounds_cast<int *, rel_align_value(1)>(q);
-  p = _Dynamic_bounds_cast<int *, rel_align(int)>(q);
-}
-
-extern void f14(array_ptr<int> arr : count(5)) {
+extern void f13(array_ptr<int> arr : count(5)) {
   int p[10];
   array_ptr<int> x : count(10) = 0;
   array_ptr<int> q : count(10) = 0;
