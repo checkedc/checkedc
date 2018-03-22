@@ -216,7 +216,7 @@ void write_driver(int failure_point, int *a1 : count(10),
     case 14:
       s1->len = 1;
       write_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
-      break; 
+      break;
     case 15:
       s1->len = 2;
       write_test(failure_point, a1, 10, a2, 10,  a3, 2, b1, 10, b2, 0, s1);
@@ -479,7 +479,7 @@ void read_test(int failure_point, int *p : count(p_len), int p_len,
 
   if ((p + 1)[2] != 203) goto fail;
   if (failure_point == 8) goto unexpected_success;
- 
+
   if (*q != 300) goto fail;
   if (failure_point == 9) goto unexpected_success;
 
