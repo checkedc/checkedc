@@ -153,12 +153,12 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   nt_array_ptr<int> t12b = u;      // expected-error {{expression of incompatible type 'int _Checked[10]'}}
   array_ptr<int> t13 = s2d[0];
   array_ptr<int> t13a = w2d[0];
-  nt_array_ptr<int> t13b = w2d[0];
+  nt_array_ptr<int> t13b : bounds(unknown) = w2d[0];
   nt_array_ptr<int> t13c = s2d[0]; // expected-error {{expression of incompatible type 'int _Checked[10]'}}
   array_ptr<int> t14 = t2d[0];
   array_ptr<int> t15 = u2d[0];
   array_ptr<int> t15a = x2d[0];
-  nt_array_ptr<int> t15b = x2d[0];
+  nt_array_ptr<int> t15b : bounds(unknown) = x2d[0];
   nt_array_ptr<int> t15c = u2d[0]; // expected-error {{expression of incompatible type 'int _Checked[10]'}}
 
   // Multi-dimensional array type conversions to pointer types.
@@ -1316,7 +1316,9 @@ void check_pointer_arithmetic(void) {
 
   int *p_tmp;
   array_ptr<int> r_tmp;
-  nt_array_ptr<int> s_tmp = 0;
+  // s_tmp has default bounds of count(0).  We don't to test bounds
+  // declaration checking here, so set the bounds to unknown.
+  nt_array_ptr<int> s_tmp : bounds(unknown) = 0;
 
   p_tmp = p + 5;
   p_tmp = 5 + p;

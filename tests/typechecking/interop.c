@@ -3,7 +3,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
+// RUN: %clang_cc1 -Wno-check-bounds-decls -verify -verify-ignore-unexpected=note %s
 
 #include <stdchecked.h>
 

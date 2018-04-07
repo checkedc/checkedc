@@ -1164,7 +1164,9 @@ void check_pointer_arithmetic(void)
    // nt_array_ptr<void> is not allowed, so we don't have to test it.
    int *p_tmp;
    array_ptr<int> r_tmp;
-   nt_array_ptr<int> s_tmp = 0;
+   // By default, s_tmp has bounds of count(0).  We don't want to test checking
+   // of bounds declarations here, so set the bounds to unknown.
+   nt_array_ptr<int> s_tmp : bounds(unknown) = 0;
 
    p_tmp = p + 5;
    p_tmp = 5 + p;

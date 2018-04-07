@@ -38,7 +38,11 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   arg4 = &s.f;
   ptr<struct S1> ps = &s;
   arg4 = &(ps->f);
-  arg4 = &arr[5];
+  // TODO: 
+  // - Simplification of &e1[e2] to e1 + e2 during checking of bounds declaration.
+  // - Re-expressing bounds for arg4 in terms of the rhs and checking those bounds.
+  // - Possibly reassociation.
+  arg4 = &arr[4];         // expected-warning {{cannot prove declared bounds for arg4 are valid after assignment}}
 
   // variables
 
@@ -147,8 +151,10 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
 
   // nested assignments
   array_ptr<int> t5 : count(1) = 0;
-  t5 = (arg4 = t4);
-  t5 = (t4 = arg4);
+  // TODO: handle equalities created by nested assignments during checking of
+  // bounds declarations.
+  t5 = (arg4 = t4);   // expected-warning {{cannot prove declared bounds for t5 are valid after assignment}}
+  t5 = (t4 = arg4);   // expected-warning {{cannot prove declared bounds for t5 are valid after assignment}}
   t5 = (t4 = t3);     // expected-error 2 {{expression has unknown bounds}}
 
   // assignment through pointer
@@ -304,10 +310,12 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   // expressions
 
   // nested assignments
+   // TODO: handle equalities created by nested assignments during checking of
+  // bounds declarations.
   nt_array_ptr<int> t4 : count(1) = 0;
-  t4 = (arg3 = t3);
-  t4 = (t3 = arg3);
-  t4 = (t2 = arg3);
+  t4 = (arg3 = t3);   // expected-warning {{cannot prove declared bounds for t4 are valid after assignment}}
+  t4 = (t3 = arg3);   // expected-warning {{cannot prove declared bounds for t4 are valid after assignment}}
+  t4 = (t2 = arg3);   // expected-warning {{cannot prove declared bounds for t4 are valid after assignment}}
   t4 = (t2 = t1);     // expected-error 2 {{expression has unknown bounds}}
 
   // assignment through pointer
@@ -420,8 +428,8 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_f1(arg5);     // expected-error {{incompatible type}}
   test_f2(arg5);
   test_f3(arg5);
-  test_f4(arg5);
-  test_f5(arg5, 1); // TODO: issue a bounds error.  arglen might not be >= 1.
+  test_f4(arg5);    // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_f5(arg5, 1); // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
   test_f5(arg5, arglen);
 
   int count = arglen - 1;
@@ -455,9 +463,9 @@ extern void check_nullterm_call_args(
   test_nullterm_f4(arg3, 1);
 
   test_nullterm_f1(arg4);
-  test_nullterm_f2(arg4);     // TODO: issue an error for incorrect bounds
-  test_nullterm_f3(arg4);     // TODO: issue an error for incorrect bounds
-  test_nullterm_f4(arg4, 1);  // TODO: issue an error for incorrect bounds
+  test_nullterm_f2(arg4);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_nullterm_f3(arg4);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_nullterm_f4(arg4, 1);  // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
   test_nullterm_f4(arg4,  arglen);
 
   int count = arglen - 1;
@@ -507,10 +515,10 @@ extern void check_call_bsi(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_bsi_f5(arg4, 1);
 
   test_bsi_f1(arg5);     // expected-error {{incompatible type}}
-  test_bsi_f2(arg5);
+  test_bsi_f2(arg5);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
   test_bsi_f3(arg5);
-  test_bsi_f4(arg5);
-  test_bsi_f5(arg5, 1);
+  test_bsi_f4(arg5);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_bsi_f5(arg5, 1);  // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
   _Checked {
     test_bsi_f6(test_cmp);
   }
@@ -556,7 +564,7 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
   test_nullterm_bsi_f2(arg4);
 
   test_nullterm_bsi_f1(arg5);    // expected-error {{incompatible type}}
-  test_nullterm_bsi_f2(arg5);    // TODO: issue an error for incorrect bounds.
+  test_nullterm_bsi_f2(arg5);    // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
 
   test_nullterm_bsi_f3(arg6);    // no checking expected when passing unchecked pointers
   test_nullterm_bsi_f3(arg7);    // no checking expected when passing unchecked pointers
@@ -573,14 +581,13 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
     arg2 = *arg7;
     arg2 = *arg8;
 
-    // TODO: bounds declaration checking needs to understand equality after assignment
-    arg1 = arg3;                 // expected-warning {{cannot prove declared bounds for arg1 are valid after assignment}}
-    *arg7 = arg3;                // expected-warning {{cannot prove declared bounds for *arg7 are valid after assignment}}
-    *arg8 = arg3;                // expected-warning {{cannot prove declared bounds for *arg8 are valid after assignment}}
+    arg1 = arg3;
+    *arg7 = arg3;
+    *arg8 = arg3;
 
-    arg3 = arg1;                 // expected-warning {{cannot prove declared bounds for arg3 are valid after assignment}}
-    arg3 = *arg7;                // expected-warning {{cannot prove declared bounds for arg3 are valid after assignment}}
-    arg3 = *arg8;                // expected-warning {{cannot prove declared bounds for arg3 are valid after assignment}}
+    arg3 = arg1;
+    arg3 = *arg7;
+    arg3 = *arg8;
 
     arg4 = *arg7;               // expected-error {{declared bounds for arg4 are invalid after assignment}}
   }
