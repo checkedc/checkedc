@@ -1072,8 +1072,7 @@ extern int f211_1(_Array_ptr<int> b : bounds(*&(arr), arr + 5));
 extern int f211_1(_Array_ptr<int> b : bounds(*(&arr), arr + 5));
 
 // address-of an array does nothing at runtime  However, we have to make sure
-// the types match.
+// the types are compatible.
 extern int f211_2(_Array_ptr<int> b : bounds(&arr, &arr));
 extern int f211_2(_Array_ptr<int> b : bounds((int (*) _Checked[10]) arr, (int (*) _Checked[10]) arr));
-// TODO: this gives a type error when it shouldn't.
-// extern int f211_2(_Array_ptr<int> b : bounds(&arr, (int (*) _Checked[10]) arr));
+extern int f211_2(_Array_ptr<int> b : bounds(&arr, (int (*) _Checked[10]) arr));
