@@ -1165,7 +1165,8 @@ void check_pointer_arithmetic(void)
    int *p_tmp;
    array_ptr<int> r_tmp;
    // By default, s_tmp has bounds of count(0).  We don't want to test checking
-   // of bounds declarations here, so set the bounds to unknown.
+   // of bounds declarations at assignments to s_tmp below, so set the bounds to
+   // unknown.
    nt_array_ptr<int> s_tmp : bounds(unknown) = 0;
 
    p_tmp = p + 5;
