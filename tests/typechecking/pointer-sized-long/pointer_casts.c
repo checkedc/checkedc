@@ -58,3 +58,17 @@ long int g26 : bounds(s1, s1 + 5) = (long)s1;
 unsigned long int g27 : bounds(s1, s1 + 5) = (long)s1;
 // TODO: Enum size is implementation-defined
 // enum E1 g28 : bounds(s1, s1 + 5) = (int)s1;
+
+// Check that casts between pointers and long ints do not affect
+// equivalence of bounds
+
+extern int f10(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
+extern int f10(int a, _Array_ptr<int> b,
+                _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (long) b + a));
+extern int f10(int a, _Array_ptr<int> b,
+               _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (short) b + a)); // expected-error {{function redeclaration has conflicting parameter bounds}} \
+                                                                                 // expected-warning 2 {{cast to '_Array_ptr<int>' from smaller integer type 'short'}}
+
+extern int f11(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
+extern int f11(int a, _Array_ptr<int> b,
+                _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (void *) (long) b + a));

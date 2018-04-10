@@ -33,11 +33,6 @@ extern void f4();
 // a checked value.
 //
 
-// I don't understand the cast here either.
-struct S20 {
-  ptr<int>(*f)(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
-};
-
 enum E1 {
   EnumVal1,
   EnumVal2
@@ -62,3 +57,14 @@ long long int g26 : bounds(s1, s1 + 5) = (long long)s1;
 unsigned long long int g27 : bounds(s1, s1 + 5) = (long long)s1;
 // TODO: Enum size is implementation-defined
 // enum E1 g28 : bounds(s1, s1 + 5) = (int)s1;
+
+extern int f10(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
+extern int f10(int a, _Array_ptr<int> b,
+                _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (long long) b + a));
+extern int f10(int a, _Array_ptr<int> b,
+               _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (short) b + a)); // expected-error {{function redeclaration has conflicting parameter bounds}} \
+                                                                                 // expected-warning 2 {{cast to '_Array_ptr<int>' from smaller integer type 'short'}}
+
+extern int f11(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
+extern int f11(int a, _Array_ptr<int> b,
+                _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (void *) (long long) b + a));
