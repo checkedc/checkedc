@@ -64,10 +64,10 @@ extern array_ptr<int> h4(void) : count(3) {
   return p;
 }
 
-extern void f7() {
+extern void f7(void *p) {
   array_ptr<int> r : count(3) = 0;
   ptr<int> q = 0;
-  r = _Assume_bounds_cast<array_ptr<int>>(h4(), count(3));
+  r = _Assume_bounds_cast<array_ptr<int>>(p, count(3));
   q = _Assume_bounds_cast<ptr<int>>(h4());
 }
 
@@ -128,8 +128,8 @@ extern void f13(array_ptr<int> arr : count(5)) {
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, count(10));
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 10));
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3)); // expected-error {{declared bounds for x are invalid after assignment}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));  // expected-warning {{cannot prove declared bounds for x are valid after assignment}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr)); // expected-error {{expected ','}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(3 + 2));// expected-error {{declared bounds for x are invalid after assignment}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(len));
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(len));  // expected-warning {{cannot prove declared bounds for x are valid after assignment}}
 }

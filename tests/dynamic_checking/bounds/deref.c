@@ -179,7 +179,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 // Bounds Describe Valid Pointer, within array, deref is fine
 void passing_test_1(void) {
   int a checked[10] = { 9, 8, 7, 6, 5, 4, 3, 2, 1};
-  array_ptr<int> b : count(5) = &a[2];
+  array_ptr<int> b : bounds(a, a + 10) = &a[2];
 
   TEST_OP(*b, 1);
   printf("Result: %d\n", *b);

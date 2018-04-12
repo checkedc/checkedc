@@ -351,14 +351,14 @@ void f72(int * fn(int *, int *) : itype(ptr<int>));
 
 //---------------------------------------------------------------------------//
 // The bounds declarations must be syntactically identical for now, modulo   //
-// parameter names.                                                          //
+// parameter names and ignoring value-preserving operations                  //
 //---------------------------------------------------------------------------//
 
 void f80(int *p : count(len), int len);
 // Rename parameters
 void f80(int *p : count(mylen), int mylen);
 void f80(int *r : count(i), int i);
-void f80(int *p : count((len)), int len); // expected-error {{conflicting parameter bounds}}
+void f80(int *p : count((len)), int len);
 
 void f81(int *p : count(len), int len);
 void f81(int *p : bounds(p, p + len), int len);  // expected-error {{conflicting parameter bounds}}

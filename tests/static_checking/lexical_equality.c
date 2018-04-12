@@ -913,7 +913,7 @@ extern int f80_2(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds((_Array_p
 // cast expression so that the function declaration type checks.
 
 extern int f80_3(int a, _Array_ptr<int> b,
-                 _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) ((_Array_ptr<int>) b + a))); 
+                 _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) ((_Array_ptr<int>) b + a)));
 extern int f80_3(int a, _Array_ptr<int> b,
                  _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) ((_Array_ptr<char>) b + a))); // expected-error {{conflicting parameter bounds}}
 
@@ -994,3 +994,85 @@ extern int f93_2(struct S *a, _Array_ptr<int> b : count(c->f1), struct S *c);  /
 extern int f93_3(struct S *a, _Array_ptr<int> b : count(a->f1), struct S *c);
 extern int f93_3(struct S *a, _Array_ptr<int> b : count(c->f2), struct S *c);  // expected-error {{conflicting parameter bounds}}
 
+//
+// Check equality of canonicalized expressions
+//
+
+// Casts that preserve values are ignored.
+
+// Identity casts to/from the same type.
+extern int f200_1(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, b + a));
+extern int f200_1(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) b + a));
+
+extern int f200_2(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, b + a));
+extern int f200_2(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, b + (int) a));
+
+// Casts between pointer types.
+extern int f201_1(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, b + a));
+extern int f201_1(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (int *) b + a));
+
+extern int f201_2(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (void *) b + a));
+extern int f201_2(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (int *) b + a));
+
+// Casts between signed/unsigned integers that have the same bit size.
+//
+// Note: it is an implementation-specific assumption that casts between signed
+// and unsigned integers with the same bit size preserve values.  It's correct
+// in the following cases:
+// - signed-to-unsigned conversions, and integers are represented in
+//   two's complement (based on the C specification).
+// - unsigned-to-signed, and integers are represented in two's complement,
+//   and the implementation chooses to preserve the bits for unsigned integers
+//   too large to fit into the signed integer.
+// C does not require that integers be two's complement.  It allows 1's complement
+// and sign/magnitude representations.  We don't have an implementation of Checked C
+// that uses these representations. If we did we'd likely have to make these
+// tests implementation specific.
+extern int f202_1(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, b + a));
+extern int f202_1(int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, b + (int) (unsigned) a));
+
+extern int f202_2(unsigned int a,
+                   _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
+extern int f202_2(unsigned int a, _Array_ptr<int> b,
+                  _Array_ptr<char> p : bounds(b, b + (unsigned) (int) a));
+
+// C-style casts and implicit casts to/from the same types.
+extern int f203_1(short int a, _Array_ptr<int> b : count(a + 1));
+extern int f203_1(short int a, _Array_ptr<int> b : count((int) a + 1));
+
+extern int f203_2(short int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
+extern int f203_2(short int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + (int) a));
+
+//
+// & and * operations that cancel are ignored.
+//
+// & of an lvalue
+extern int f210_1(int a, _Array_ptr<int> b : count(*&a));
+extern int f210_1(int a, _Array_ptr<int> b : count(a));
+
+extern _Checked int f210_2(_Ptr<int> lb, _Ptr<int> ub,
+                           _Array_ptr<int> b : bounds(lb, ub));
+extern _Checked int f210_2(_Ptr<int> lb, _Ptr<int> ub,
+                           _Array_ptr<int> b : bounds(&*lb, ub));
+// & of an array.
+int arr _Checked[10];
+extern int f211_1(_Array_ptr<int> b : bounds(arr, arr + 5));
+extern int f211_1(_Array_ptr<int> b : bounds(*&arr, arr + 5));
+extern int f211_1(_Array_ptr<int> b : bounds(*&(arr), arr + 5));
+extern int f211_1(_Array_ptr<int> b : bounds(*(&arr), arr + 5));
+
+// address-of an array does nothing at runtime  However, we have to make sure
+// the types are compatible.
+extern int f211_2(_Array_ptr<int> b : bounds(&arr, &arr));
+extern int f211_2(_Array_ptr<int> b : bounds((int (*) _Checked[10]) arr, (int (*) _Checked[10]) arr));
+extern int f211_2(_Array_ptr<int> b : bounds(&arr, (int (*) _Checked[10]) arr));

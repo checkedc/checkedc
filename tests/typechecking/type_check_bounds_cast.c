@@ -86,10 +86,10 @@ extern void f6() {
         _Assume_bounds_cast<array_ptr<int>>(i, bounds(int_ptr_lb, int_array_ptr_ub));
 }
 
-extern void f7() {
+extern void f7(void *p) {
   array_ptr<int> r : count(3) = 0;
   ptr<int> q = 0;
-  r = _Assume_bounds_cast<array_ptr<int>>(h4(), count(3));
+  r = _Assume_bounds_cast<array_ptr<int>>(p, count(3));
   q = _Assume_bounds_cast<ptr<int>>(h4());
 }
 
