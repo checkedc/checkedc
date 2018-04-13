@@ -7,15 +7,16 @@ draft of the next PDF version, see the [Checked C releases page](https://github.
 We are creating a modified version of the LLVM/clang compiler that supports
 Checked C.  For more information on the compiler, see the
 [Checked C clang repo](https://github.com/Microsoft/checkedc-clang).
+
 For developers who wish try out Checked C as it is being implemented, 
 an experimental compiler installer is available  on the Checked C clang
 [releases page](https://github.com/Microsoft/checkedc-clang/releases).
 The compiler is **not ready  for production use**.  Core features of the
-language extension are not completely implemented yet, including 
+language extension are not implemented completely yet, including 
 [some](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
 of the runtime checks and
 [important parts](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
-of the static checking of bounds declaration.  For details on the core language
+of the static checking of bounds declaration.  For details on the language
 features that are implemented, see the 
 [roadmap and status](https://github.com/Microsoft/checkedc-clang/wiki/Implementation-roadmap-and-status).
 
