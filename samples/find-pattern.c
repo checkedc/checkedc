@@ -16,7 +16,7 @@
 // and {your file name}.
 //
 // This file illustrates two important points about using strings in Checked C.
-// - Sometime you need to allocate a fixed size buffer that will be treated
+// - Sometimes you need to allocate a fixed size buffer that will be treated
 //   as both a null-terminated string and a regular array.  The buffer should
 //   be given a null-terminated array type, not a regular array type.
 // - You will need to either allocate an extra character, or avoid writes to the
