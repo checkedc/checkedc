@@ -12,7 +12,7 @@ For developers who want to try out Checked C as it is being implemented,
 an experimental compiler installer is available  on the Checked C clang
 [releases page](https://github.com/Microsoft/checkedc-clang/releases).
 The compiler is **not ready  for production use**.  Core features of the
-language extension are not implemented completely yet, including 
+language extension are not implemented yet, including 
 [some](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
 of the runtime checks and
 [important parts](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
