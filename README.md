@@ -16,9 +16,10 @@ language extension are not implemented completely yet, including
 [some](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
 of the runtime checks and
 [important parts](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
-of the static checking of bounds declaration.  For details on the language
+of the static checking of bounds declarations.  For details on the language
 features that are implemented, see the 
-[roadmap and status](https://github.com/Microsoft/checkedc-clang/wiki/Implementation-roadmap-and-status).
+[implementation roadmap and status]
+(https://github.com/Microsoft/checkedc-clang/wiki/Implementation-roadmap-and-status).
 
 # Getting involved
 You can join the [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) for
