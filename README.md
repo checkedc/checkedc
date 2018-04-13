@@ -1,13 +1,23 @@
 # Checked C
 Checked C is an extension to C that adds static and dynamic checking to detect or prevent common programming
 errors such as buffer overruns, out-of-bounds memory accesses, and incorrect type casts.   This repo contains the
-specification for the extension, test code, and samples. For the latest version of the specification and the 
-draft of the next version, see the [Checked C releases page](https://github.com/Microsoft/checkedc/releases).
+specification for the extension, test code, and samples. For the latest PDF version of the specification and the 
+draft of the next PDF version, see the [Checked C releases page](https://github.com/Microsoft/checkedc/releases).
 
-We are creating a modified version of LLVM/clang that supports Checked C.   The code for the modified
-version of LLVM/clang lives in the 
-[Checked C clang repo](https://github.com/Microsoft/checkedc-clang)
-and the [Checked C LLVM repo](https://github.com/Microsoft/checkedc-llvm).
+We are creating a modified version of the LLVM/clang compiler that supports
+Checked C.  For more information on the compiler, see the
+[Checked C clang repo](https://github.com/Microsoft/checkedc-clang).
+For developers who wish try out Checked C as it is being implemented, 
+an experimental compiler installer is available  on the Checked C clang
+[releases page](https://github.com/Microsoft/checkedc-clang/releases).
+The compiler is **not ready  for production use**.  Core features of the
+language extension are not completely implemented yet, including 
+[some](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
+of the runtime checks and
+[important parts](https://github.com/Microsoft/checkedc-clang/wiki/Missing-runtime-and-static-checks)
+of the static checking of bounds declaration.  For details on the core language
+features that are implemented, see the 
+[roadmap and status](https://github.com/Microsoft/checkedc-clang/wiki/Implementation-roadmap-and-status).
 
 # Getting involved
 You can join the [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) for
