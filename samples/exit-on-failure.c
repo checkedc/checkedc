@@ -1,6 +1,6 @@
-// This program shows to use a signal handle to catch a runtime fault and exit
-// gracefully.  The program reads an integer between 0 and 9 and prints out the
-// corresponding argument.  If the integer is larger than the number of
+// This program shows how to use a signal handler to catch a runtime fault and
+// exit gracefully.  The program reads an integer between 0 and 9 and prints
+// out the corresponding argument.  If the integer is larger than the number of
 // arguments, the program will crash.
 
 #include <signal_checked.h>

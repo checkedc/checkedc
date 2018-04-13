@@ -7,9 +7,12 @@
 
 int main(int argc, nt_array_ptr<char> argv checked[] : count(argc)) {
   for (int i = 1; i < argc; i++) {
-    fputc(' ', stdout);
+    if (i > 1) {
+      fputc(' ', stdout);
+    }
     fputs(argv[i], stdout);
   }
   fputc('\n', stdout);
   return 0;
 }
+

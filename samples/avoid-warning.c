@@ -1,6 +1,6 @@
 // This example illustrates how to use dynamic_bounds_cast
 // to avoid a compile-time warning about being unable to 
-// prove declare bounds.
+// prove declared bounds.
 #include <stdio_checked.h>
 #include <stdchecked.h>
 
