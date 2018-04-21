@@ -2,7 +2,7 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang_cc1 -verify %s
+// RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
 #include <stdchecked.h>
 
@@ -253,4 +253,51 @@ void f2(int i, int* loc) {
   array_ptr<int> as28b : byte_count(ps1->m1) = 0;
   array_ptr<int> as28c : bounds(ps1->m2, loc) = 0;
   array_ptr<int> as28d : bounds(loc, ps1->m2) = 0;
+}
+
+
+// Expressions that result in inferred bounds containing modifying expressions.
+
+struct S2 {
+  array_ptr<int> p : count(5);
+};
+
+void f3_helper(array_ptr<int> p : count(5));
+
+void f3(void) {
+  struct S2 arr[10] = { 0 };
+  int i = 0;
+  // TODO: this will eventually be allowed when we add support for current_expr_value.
+  (arr[i++]).p = 0;                         // expected-error {{contain a modifying expression}}
+  // TODO: this will eventually be allowed when we add support for current_expr_value.
+  array_ptr<int> a : count(5) = arr[i++].p; // expected-error {{contain a modifying expression}}
+  // TODO: this will eventually be allowed when we add support for current_expr_value.
+  f3_helper(arr[i++].p);                    // expected-error {{contain a modifying expression}}
+}
+
+struct S3 {
+  array_ptr<int> p : count(len);
+  int len;
+};
+
+void f4(void) {
+  struct S3 arr[10] = { 0 };
+  int i = 0;
+  int j = arr[i++].p[0];   // expected-error {{contain a modifying expression}}
+                           // There is no way to write down the bounds for arr[i++].p.  The bounds of
+                           // arr[i++].p need to refer to a temporary holding the value of the subexpression
+                           // arr[i++].  We have no way of describing this.
+}
+
+void f4_helper(array_ptr<int> p : count(1));
+
+void f5(void) {
+  int i = 0;
+  ptr<int> p = &i;
+  array_ptr<ptr<int>> r : count(1) = &p;
+  array_ptr<ptr<int>> s : count(1) = &p;
+// TODO: this will eventually be allowed when we add support for current_expr_value.
+  _Array_ptr<int> t : count(1) = *(r = s);  // expected-error {{contain a modifying expression}}
+// TODO: this will eventually be allowed when we add support for current_expr_value.
+  f4_helper(*(r = s));     // expected-error {{contain a modifying expression}}
 }
