@@ -313,7 +313,7 @@ struct myops {
 };
 
 struct mystruct {
-	const struct myops *ops : itype(_Ptr<const struct myops>);
+	const struct myops *ops : itype(ptr<const struct myops>);
 };
 
 void myfunc(struct mystruct *s) {
@@ -325,13 +325,19 @@ void myfunc(struct mystruct *s) {
 #pragma BOUNDS_CHECKED ON
 
 struct myops_checked {
-   void ((*myfptr)(void)) : itype(_Ptr<void (void)>);
+  void ((*myfptr)(void)) : itype(ptr<void (void)>);
 };
 
 struct mystruct_checked {
-	const struct myops_checked *ops : itype(_Ptr<const struct myops_checked>);
+	const struct myops_checked *ops : itype(ptr<const struct myops_checked>);
 };
 
-void myfunc_checked(struct mystruct_checked *s : itype(_Ptr<struct mystruct_checked>)) {
-	s->ops->myfptr();
+void myfunc_checked(struct mystruct_checked *s : itype(ptr<struct mystruct_checked>)) {
+  s->ops->myfptr();
+}
+
+#pragma BOUNDS_CHECKED OFF
+
+void bounds_safe_interface_assign(struct myops_checked s1, ptr<void(void)> p) {
+  s1.myfptr = p;
 }
