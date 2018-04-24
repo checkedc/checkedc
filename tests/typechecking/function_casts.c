@@ -199,7 +199,7 @@ void local_convert(int(*f1)(int), ptr<int(int)> f2) {
   ptr<int(int)> bad_cast_3 = (ptr<int(int)>)(*bad_f0);                 // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
   ptr<int(int)> bad_cast_4 = (ptr<int(int)>)(***bad_f0);               // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
   ptr<int(int)> bad_cast_5 = (ptr<int(int)>)(void_ptr1);               // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' from incompatible checked pointer type '_Ptr<void>'}}
-  ptr<int(int)> bad_cast_6 = (ptr<int(int)>)(void_array_ptr1);         // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int)>' is a function pointer}}
+  ptr<int(int)> bad_cast_6 = (ptr<int(int)>)(void_array_ptr1);         // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' from incompatible type '_Array_ptr<void>'}}
 
   //
   // Weird Casts
@@ -234,11 +234,104 @@ union U1 {
   int(*f2)(int, int);
 };
 
-void field_access(struct S1 s1, union U1 u1) {
+void field_read(struct S1 s1, union U1 u1) {
   ptr<int(int, int)> safe1 = s1.f1;
   ptr<int(int, int)> unsafe1 = s1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
 
   // safe2 should probably not be allowed, but it is.
   ptr<int(int, int)> safe2 = u1.f1;
   ptr<int(int, int)> unsafe2 = u1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+}
+
+void field_write(struct S1 s1, union U1 u1, ptr<int(int, int)> f1, int(*f2)(int, int)) {
+  s1.f1 = f1;
+  s1.f1 = f2;  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+  s1.f2 = f1;  // expected-error {{assigning to 'int (*)(int, int)' from incompatible type '_Ptr<int (int, int)>'}}
+  s1.f2 = f2;
+
+  u1.f1 = f1;
+  u1.f1 = f2;  // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+  u1.f2 = f1;  // expected-error {{assigning to 'int (*)(int, int)' from incompatible type '_Ptr<int (int, int)>'}}
+  u1.f2 = f2;
+}
+
+void field_call(struct S1 s1, union U1 u1) {
+  s1.f1(0, 0);
+  s1.f2(0, 0);
+  u1.f1(0, 0);
+  u1.f2(0, 0);
+}
+
+// Check const function pointers
+struct S1_Const {
+  const ptr<int(int, int)> f1;
+  int(*const f2)(int, int);
+};
+
+union U1_Const {
+  const ptr<int(int, int)> f1;
+  int(*const f2)(int, int);
+};
+
+void const_field_read(struct S1_Const s1, union U1_Const u1) {
+  ptr<int(int, int)> safe1 = s1.f1;
+  ptr<int(int, int)> unsafe1 = s1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+
+  const ptr<int(int, int)> safe1_const = s1.f1;
+  const ptr<int(int, int)> unsafe1_const = s1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+
+  // safe2 should probably not be allowed, but it is.
+  ptr<int(int, int)> safe2 = u1.f1;
+  ptr<int(int, int)> unsafe2 = u1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+
+  const ptr<int(int, int)> safe2_const = u1.f1;
+  const ptr<int(int, int)> unsafe2_const = u1.f2; // expected-error {{cannot guarantee operand of cast to checked function pointer type '_Ptr<int (int, int)>' is a function pointer}}
+}
+
+void const_field_write(struct S1_Const s1, union U1_Const u1, ptr<int(int, int)> f1, int(*f2)(int, int)) {
+  s1.f1 = f1;  // expected-error {{cannot assign to non-static data member 'f1' with const-qualified type '_Ptr<int (int, int)> const'}}
+  s1.f1 = f2;  // expected-error {{cannot assign to non-static data member 'f1' with const-qualified type '_Ptr<int (int, int)> const'}}
+  s1.f2 = f1;  // expected-error {{cannot assign to non-static data member 'f2' with const-qualified type 'int (*const)(int, int)'}}
+  s1.f2 = f2;  // expected-error {{cannot assign to non-static data member 'f2' with const-qualified type 'int (*const)(int, int)'}}
+
+  u1.f1 = f1;  // expected-error {{cannot assign to non-static data member 'f1' with const-qualified type '_Ptr<int (int, int)> const'}}
+  u1.f1 = f2;  // expected-error {{cannot assign to non-static data member 'f1' with const-qualified type '_Ptr<int (int, int)> const'}}
+  u1.f2 = f1;  // expected-error {{cannot assign to non-static data member 'f2' with const-qualified type 'int (*const)(int, int)'}}
+  u1.f2 = f2;  //  expected-error {{cannot assign to non-static data member 'f2' with const-qualified type 'int (*const)(int, int)'}}
+}
+
+void const_field_call(struct S1_Const s1, union U1_Const u1) {
+  s1.f1(0, 0);
+  s1.f2(0, 0);
+  u1.f1(0, 0);
+  u1.f2(0, 0);
+}
+
+// Constness propagated via member access.
+struct myops {
+  _Ptr<void (void)> myfptr;
+};
+
+struct mystruct {
+	const struct myops *ops : itype(_Ptr<const struct myops>);
+};
+
+void myfunc(struct mystruct *s) {
+	s->ops->myfptr();
+}
+
+// Spot check use of bounds-safe interfaces for function pointers
+// in checked scopes.
+#pragma BOUNDS_CHECKED ON
+
+struct myops_checked {
+   void ((*myfptr)(void)) : itype(_Ptr<void (void)>);
+};
+
+struct mystruct_checked {
+	const struct myops_checked *ops : itype(_Ptr<const struct myops_checked>);
+};
+
+void myfunc_checked(struct mystruct_checked *s : itype(_Ptr<struct mystruct_checked>)) {
+	s->ops->myfptr();
 }
