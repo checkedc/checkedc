@@ -23,7 +23,7 @@ struct timespec;
 #include <threads.h>
 #endif
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 void call_once(once_flag *flag : itype(_Ptr<once_flag>),
                void ((*fn)(void)) : itype(_Ptr<void (void)>));
@@ -63,4 +63,4 @@ int tss_create(tss_t *key : itype(_Ptr<tss_t>),
 void *tss_get(tss_t key) : itype(_Ptr<void>);
 int tss_set(tss_t key, void *value : itype(_Ptr<void>));
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF

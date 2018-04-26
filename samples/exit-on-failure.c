@@ -8,7 +8,7 @@
 #include <stdlib_checked.h>
 #include <stdchecked.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 // The signal handling function.
 void handle_error(int err) {

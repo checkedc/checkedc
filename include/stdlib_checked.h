@@ -7,7 +7,7 @@
 /////////////////////////////////////////////////////////////////////////
 #include <stdlib.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 double atof(const char *s : itype(_Nt_array_ptr<const char>));
 int atoi(const char *s : itype(_Nt_array_ptr<const char>));
@@ -107,4 +107,4 @@ size_t wcstombs(char * restrict output : count(n),
                   itype(restrict _Nt_array_ptr<const wchar_t>),
                 size_t n);
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF

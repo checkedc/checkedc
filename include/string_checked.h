@@ -13,7 +13,7 @@
 
 #include <string.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 // GCC has macros that it uses as part of its string implementation to optimize cases
 // where one or both strings are compile-time constants.  I'm not sure
@@ -146,4 +146,4 @@ size_t strlen(const char *s : itype(_Nt_array_ptr<const char>));
 
 #include "_builtin_string_checked.h"
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF

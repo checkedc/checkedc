@@ -5,7 +5,7 @@
 
 #include <signal.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 _Unchecked
 void (*signal(int sig,
@@ -14,4 +14,4 @@ void (*signal(int sig,
               ) : itype(_Ptr<void (int)>) // bounds-safe interface for signal return
      )(int);
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF

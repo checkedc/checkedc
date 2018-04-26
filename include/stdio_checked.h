@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 #if defined(_WIN32) || defined(_WIN64)
 // stdin, stdout, and stderr only have to be expressions that have
@@ -182,4 +182,4 @@ void perror(const char *s : itype(_Nt_array_ptr<const char>));
 
 #include "_builtin_stdio_checked.h"
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF

@@ -7,7 +7,7 @@
 
 #include <unistd.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 #if _POSIX_VERSION >= 200112L
 
@@ -15,4 +15,4 @@ extern char ** environ : itype(_Nt_array_ptr<_Nt_array_ptr<char>>);
 
 #endif
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
