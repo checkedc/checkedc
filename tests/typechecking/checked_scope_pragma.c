@@ -16,9 +16,9 @@
 #include <stdchecked.h>
 
 // Test for pragma set/clear/set.
-#pragma BOUNDS_CHECKED ON
-#pragma BOUNDS_CHECKED OFF
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE ON
 
 // Test for checked function in top-level checked scope.
 // Check if paremeter, return, local variable is checked type
@@ -51,7 +51,7 @@ array_ptr<int> checked_func1_checked_body(int *x, int *y) {   // expected-error 
 }
 
 unchecked array_ptr<int> unchecked_func1_checked_body(int *x, int *y) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   int *upa = x; // expected-error {{local variable in a checked scope must have a checked type}} \
                 // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
   int *upb = y; // expected-error {{local variable in a checked scope must have a checked type}} \
@@ -66,7 +66,7 @@ unchecked array_ptr<int> unchecked_func1_unchecked_body(int *x, int *y) {
 }
 
 array_ptr<int> checked_func1_unchecked_body(int *x, int *y) {  // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   int *upa = x;
   int *upb = y;
   return upb;
@@ -116,7 +116,7 @@ int * checked_func_u(int *p, int *q) unchecked {// expected-error {{return in a 
 
 int * checked_func_u_pragma(int *p, int *q) { // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}} \
                                               // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   int a = 5;
   *p = *q = 0;
   ptr<int> pa = &a;
@@ -148,9 +148,9 @@ int * checked_func_uc(int *p, int *q) unchecked { // expected-error {{return in 
 
 int * checked_func_uc_pragma(int *p, int *q) {// expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}} \
                                               // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   int *upa;
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   int a = 5;
   *p = *q = 0;
   ptr<int> pa = &a;
@@ -160,7 +160,7 @@ int * checked_func_uc_pragma(int *p, int *q) {// expected-error {{return in a ch
       b[i][j] = -1;
     }
   }
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   return upa;
 }
 
@@ -183,7 +183,7 @@ int * checked_func_uc1(int *p, int *q) unchecked {// expected-error {{return in 
 
 int * checked_func_uc1_pragma(int *p, int *q) { // expected-error {{return in a checked scope must have a checked type or a bounds-safe interface}} \
                                                 // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   int *upa;
   int a = 5;
   *p = *q = 0;
@@ -191,11 +191,11 @@ int * checked_func_uc1_pragma(int *p, int *q) { // expected-error {{return in a 
   int b[5][5];
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
       b[i][j] = -1; // expected-error {{local variable used in a checked scope must have a checked type}}
     }
   }
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   return upa; // expected-error {{local variable used in a checked scope must have a checked type}}
 }
 
@@ -224,18 +224,18 @@ ptr<int> checked_func_u1_pragma(int *p, ptr<int> q, array_ptr<int> r, array_ptr<
   *q = 2;
   *r = 3; // expected-error {{expression has unknown bounds}}
   *s = 4;
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   ptr<int> pa = &a;
   int b checked[5][5];
   for (int i = 0; i < 5; i++) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
     for (int j = 0; j < 5; j++) {
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
       b[i][j] += *q + *r; // expected-error {{expression has unknown bounds}}
     }
     b[i][4] += *p + *q + *r + *s;
   }
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   return q;
 }
 
@@ -260,11 +260,11 @@ int * checked_func_uc(void) : itype(array_ptr<int>) unchecked {
 }
 
 int * checked_func_uc_pragma(void) : itype(array_ptr<int>) {
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   int a = 5;
   int *upa = &a;
   int b[5][5];
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   int c checked[5][5];
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
@@ -273,11 +273,11 @@ int * checked_func_uc_pragma(void) : itype(array_ptr<int>) {
   }
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
       c[i][j] += b[i][j];
     }
   }
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   return upa;
 }
 
@@ -296,16 +296,16 @@ int checked_func_ucu1(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(a
 }
 
 int checked_func_ucu1_pragma(int *p, int *q, int *r : itype(ptr<int>), int *s : itype(array_ptr<int>)) { // expected-error 2 {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   int sum = 0;
   int a = 5;
   int *upa = &a;
   int b[5][5];
   for (int i = 0; i < 5; i++) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
     sum += b[i][0] + *upa; // expected-error 2 {{local variable used in a checked scope must have a checked type}}
     for (int j = 1; j < 5; j++) {
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
       sum += b[i][j];
     }
   }
@@ -334,21 +334,21 @@ int checked_func_ucu2(ptr<int> p, int *q) unchecked {  // expected-error {{param
 }
 
 int checked_func_ucu2_pragma(ptr<int> p, int *q) {// expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   int a = 5;
   int *upa;
   array_ptr<int> pc;
   upa = pc; // expected-error {{assigning to 'int *' from incompatible type '_Array_ptr<int>'}}
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   upa = &a; // expected-error {{local variable used in a checked scope must have a checked type}}
   pc = &a;
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   upa = &a;
   pc = &a;
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   upa = &a; // expected-error {{local variable used in a checked scope must have a checked type}}
   pc = &a;
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   ptr<int> pb = p;
   int *upc;
   int *upd;
@@ -370,7 +370,7 @@ unchecked int * unchecked_func3_unchecked_body(int *p, int q[]) {
 }
 
 unchecked int * unchecked_func3_checked_body(int *p, int q[]) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   int a = 5;
   *p = *q = 0;  // expected-error 2 {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
   ptr<int> pa = &a;
@@ -396,7 +396,7 @@ unchecked array_ptr<int> unchecked_func4_unchecked_body(int p[], int q[10], int 
 }
 
 unchecked array_ptr<int> unchecked_func4_checked_body(int p[], int q[10], int r[][10]) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   int *upa;   // expected-error {{local variable in a checked scope must have a checked type}}
   int *upb;   // expected-error {{local variable in a checked scope must have a checked type}}
   array_ptr<int> pb;
@@ -409,13 +409,13 @@ unchecked array_ptr<int> unchecked_func4_checked_body(int p[], int q[10], int r[
 }
 
 unchecked int * unchecked_func_cu(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : count(2)) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   int a = 5;
   *p = 1; // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
   *q = 2;
   *r = 3; // expected-error {{expression has unknown bounds}}
   *s = 4;
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   ptr<int> pa = &a;
   int b checked[5][5];
   int c[5][5];
@@ -433,10 +433,10 @@ unchecked int unchecked_func_cu2(int *p, int *q, int *r : itype(ptr<int>), int *
   int *upa = &a;
   int b[5][5];
   for (int i = 0; i < 5; i++) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
     sum += b[i][0] + *upa; // expected-error 2 {{local variable used in a checked scope must have a checked type}}
     for (int j = 1; j < 5; j++) {
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
       sum += b[i][j];
     }
   }
@@ -456,18 +456,18 @@ int **a6 : itype(array_ptr<array_ptr<int>>) = 0;
 int ***a7 : itype(ptr<ptr<ptr<int>>>) = 0;
 int a8[10] : itype(int checked[10]);
 extern int a9[] : itype(int checked[]);
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 int *a10;
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 int **a11;        // expected-error {{global variable in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 int ***a12;
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 int a13[10];      // expected-error {{global variable in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 extern int a14[];
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 int global[10]; // expected-error {{global variable in a checked scope must have a checked type or a bounds-safe interface}}
 int checked_global checked[10];
 int global_arr1[10];  // expected-error {{global variable in a checked scope must have a checked type or a bounds-safe interface}}
@@ -491,24 +491,24 @@ struct S0 {
 };
 
 typedef struct _S1 {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   int *a;       // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
-#pragma BOUNDS_CHECKED OFF
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE ON
   char *b;      // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   ptr<int> pc;
   array_ptr<int> pd : count(len);
-#pragma BOUNDS_CHECKED OFF
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE ON
   short e[10];  // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   char f[10];   // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   int len;
 } S1;
 
 typedef struct _S2 {
-#pragma BOUNDS_CHECKED OFF
-#pragma BOUNDS_CHECKED ON
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE OFF
   int *a;
   char *b;
   ptr<int> pc;
@@ -520,8 +520,8 @@ typedef struct _S2 {
 
 int checked_func_with_checked_struct(void) {
   struct local_checked_s {
-#pragma BOUNDS_CHECKED OFF
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE ON
     int *a;       // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     char *b;      // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     ptr<int> pc;
@@ -535,7 +535,7 @@ int checked_func_with_checked_struct(void) {
 
 int checked_func_with_unchecked_struct(void) {
   struct local_unchecked_s {
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
     int *a;
     char *b;
     ptr<int> pc;
@@ -545,11 +545,11 @@ int checked_func_with_unchecked_struct(void) {
     int len;
   } a;
   typedef struct _S {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
     int *a; // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
   } S;
   typedef struct _SS {
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
     int *a;
   } *SS;
   S b;
@@ -557,7 +557,7 @@ int checked_func_with_unchecked_struct(void) {
   return 0;
 }
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 extern void variadic_func0(int cnt, ...) {
   for (int i = 0; i < cnt; i++) {}
 }
@@ -568,7 +568,7 @@ extern void variadic_func1(int cnt, ptr<int> p, array_ptr<int> q, ...) {
 extern void variadic_func2(int cnt, ptr<int> p, ...) {
 }
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 extern void variadic_func3(int cnt, ...) {  // expected-error {{variable arguments function cannot be made}}
 }
 
@@ -579,33 +579,33 @@ extern void variadic_func5(int cnt, ptr<int> p, ...) {  // expected-error {{vari
 }
 
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 void checked_func_call_variadic(void) {
   ptr<int> a = 0;
   array_ptr<int> b;
   printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}} \
                                                     // expected-warning {{implicitly declaring library function}}
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   printf("check function call variadic %d\n", *a);
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}}
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   variadic_func0(10);  // expected-error {{cannot use a variable arguments function}}
   variadic_func1(10, a, b);  // expected-error {{cannot use a variable arguments function}}
   variadic_func2(10, a, a, a);  // expected-error {{cannot use a variable arguments function}}
 }
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 ptr<void(int , ...)> fptr0;                             // expected-error {{variable in a checked scope cannot have variable arguments}}
 ptr<void(int , ptr<int>, array_ptr<int> , ...)> fptr1;  // expected-error {{variable in a checked scope cannot have variable arguments}}
 void (*fptr2)(int , ...); // expected-error {{global variable in a checked scope must have a checked type or a bounds-safe interface}} \
                           // expected-error {{global variable in a checked scope cannot have variable arguments}}
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 typedef struct _S3 {
-#pragma BOUNDS_CHECKED ON
-#pragma BOUNDS_CHECKED OFF
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE ON
   int ((*gptr0)(int, ...));                               // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}} \
                                                           // expected-error {{member in a checked scope cannot have variable arguments}}
   ptr<int*(int, ptr<int>, array_ptr<int>, ...)> gptr1;    // expected-error {{member in a checked scope must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interfaces}} \
@@ -615,7 +615,7 @@ typedef struct _S3 {
   ptr<int(int, ptr<int(int, ptr<int(int, ...)>)>)> gptr4; // expected-error {{member in a checked scope cannot have variable arguments}}
 } S3;
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 void checked_check_variadic(void) {
   ptr<int> a = 0;
   array_ptr<int> b;
@@ -628,7 +628,7 @@ void checked_check_variadic(void) {
 }
 
 void check_checked_constructed_type_variadic(void) {
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   ptr<int> pa = 0;
   array_ptr<int> apa;
 
@@ -642,7 +642,7 @@ void check_checked_constructed_type_variadic(void) {
                                                 // expected-error {{local variable in a checked scope cannot have variable arguments}}
   ptr<int*(int, int)> h = 0;                    // expected-error {{local variable in a checked scope must have a pointer, array or function type that uses only checked types or parameter/return types with bounds-safe interface}}
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   {
   ptr<int(int,...)> var_b = 0;
   ptr<int(int,ptr<int>,...)> var_c = 0;
@@ -656,7 +656,7 @@ void check_checked_constructed_type_variadic(void) {
   (*var_e)(4, var_c, var_d);
   (*var_f)(6, var_d, var_e, a, b, g, h);
   (*h)(10,10);
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   (*var_c)(2, pa, pa);  // expected-error {{variable used in a checked scope cannot have variable arguments}}
   (*var_d)(3, var_b);   // expected-error 2 {{variable used in a checked scope cannot have variable arguments}}
   (*var_e)(4, var_c, var_d);  // expected-error 3 {{variable used in a checked scope cannot have variable arguments}}

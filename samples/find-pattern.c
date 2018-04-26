@@ -31,7 +31,7 @@
 // exceeding the maximum number of characters allowed in a line.
 #define MAXLINE 50
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 int getline(char line checked[] : count(max), int max);
 int strindex(char source nt_checked[], char searchfor nt_checked[]);

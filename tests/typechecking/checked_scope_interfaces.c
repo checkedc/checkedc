@@ -386,7 +386,7 @@ checked int * func38(void) : itype(ptr<int>) _Unchecked {
   }
 }
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 struct S1 {
   int *f1 : itype(ptr<int>);
   int *f2 : count(5);
@@ -400,7 +400,7 @@ struct S1 {
   void ((*fp1)(int *param : itype(ptr<int>))) :
     itype(ptr<void(int *param : itype(ptr<int>))>);
 };
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 
 // Use in checked scope
 checked int test_struct1(struct S1 *p : itype(ptr<struct S1>)) {
@@ -627,9 +627,9 @@ void test_bounds_safe_interface(void) {
     checked_malloc(arr0[i]);
   }
   ptr<int> arr1 = checked_malloc(10);
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
   void *unchecked_ptr;
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
   array_ptr<int> arr2 = checked_realloc(arr1, 20);
   array_ptr<int> arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{local variable used in a checked scope must have a checked type}}
 
@@ -648,4 +648,4 @@ void test_bounds_safe_interface(void) {
   wrong_fn wrong = signal(0, handler);   // expected-error {{incompatible type}}
 
 }
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF

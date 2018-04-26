@@ -536,10 +536,10 @@ Variables and functions used in checked scopes are
 allowed to have or use checked pointer types, checked array types, or
 unchecked pointer types and unchecked array types with bounds declarations.
 
-A new pragma directive \lstinline|BOUNDS_CHECKED| is introduced to control whether
+A new pragma directive \lstinline|CHECKED_SCOPE| is introduced to control whether
 the top-level scope is a checked scope:
 \begin{lstlisting}[escapechar=\|]
-#pragma BOUNDS_CHECKED |\textit{on-off-switch}|
+#pragma CHECKED_SCOPE |\textit{on-off-switch}|
 \end{lstlisting}
 
 Where \textit{on-off-switch} is one of \lstinline|ON OFF DEFAULT|

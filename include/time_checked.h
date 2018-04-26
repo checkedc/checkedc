@@ -8,7 +8,7 @@
 
 #include <time.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 time_t mktime(struct tm *timeptr : itype(_Ptr<struct tm>));
 
@@ -33,4 +33,4 @@ size_t strftime(char * restrict output : count(maxsize),
                 const struct tm * restrict timeptr :
                    itype(restrict _Ptr<const struct tm>));
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF

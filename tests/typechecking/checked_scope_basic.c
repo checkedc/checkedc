@@ -197,7 +197,7 @@ checked int func16() {               // expected-error {{function without a prot
 // to uncaught errors at runtime.  We only allow such definitions
 // in checked scopes when they are preceded by prototype declarations.
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 // First test definitions without preceding prototypes.
 int KNR_func1(a, b, c) // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
   int a, b, c;
@@ -234,7 +234,7 @@ int b;
 {
   return 1;
 }
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 
 // Now test uses within checked scopes.
 // First we have to declared some K&R style functions.
@@ -259,7 +259,7 @@ ptr<int> b;
   return 1;
 }
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 void KNR_test(void) {
   ptr<int> px = 0;
   ptr<char> py = 0;
@@ -268,7 +268,7 @@ void KNR_test(void) {
   KNR_func5(px,a);  // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
   KNR_func6(py,px); // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
 }
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 
 // Test for checked block.
 // - check if compound statments are checked.

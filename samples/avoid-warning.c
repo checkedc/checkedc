@@ -4,7 +4,7 @@
 #include <stdio_checked.h>
 #include <stdchecked.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 extern void test(array_ptr<int> p : count(len), int len);
 

@@ -322,7 +322,7 @@ void myfunc(struct mystruct *s) {
 
 // Spot check use of bounds-safe interfaces for function pointers
 // in checked scopes.
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 struct myops_checked {
   void ((*myfptr)(void)) : itype(ptr<void (void)>);
@@ -336,7 +336,7 @@ void myfunc_checked(struct mystruct_checked *s : itype(ptr<struct mystruct_check
   s->ops->myfptr();
 }
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
 
 void bounds_safe_interface_assign(struct myops_checked s1, ptr<void(void)> p) {
   s1.myfptr = p;

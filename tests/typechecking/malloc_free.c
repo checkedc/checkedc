@@ -8,7 +8,7 @@
 #include <stdchecked.h>
 #include <stdlib_checked.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 // Test you can always `free` a `malloc`d unchecked pointer
 void f1(void) unchecked {

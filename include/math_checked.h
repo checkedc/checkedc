@@ -8,7 +8,7 @@
 
 #include <math.h>
 
-#pragma BOUNDS_CHECKED ON
+#pragma CHECKED_SCOPE ON
 
 double frexp(double value, int *exp : itype(_Ptr<int>));
 float frexpf(float value, int *exp : itype(_Ptr<int>));
@@ -27,4 +27,4 @@ double nan(const char *t : itype(_Nt_array_ptr<const char>));
 float nanf(const char *t : itype(_Nt_array_ptr<const char>));
 long double nanl(const char *t : itype(_Nt_array_ptr<const char>));
 
-#pragma BOUNDS_CHECKED OFF
+#pragma CHECKED_SCOPE OFF
