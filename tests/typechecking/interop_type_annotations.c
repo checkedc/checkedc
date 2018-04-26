@@ -202,6 +202,7 @@ void f75(int(*a)checked[10][10]: itype(ptr<int checked[10][10]>)) {
 
 // Function pointers
 
+
 void f80(int ((*f)(int *, int *)) : itype(ptr<int (int *, int *)>)) {
 }
 
@@ -615,6 +616,10 @@ ptr<int> *r59(void) : itype(ptr<ptr<int>>) {
   return 0;
 }
 
+// Returning a function pointer with a bounds-safe interface.
+
+
+
 
 // Combinations of interface types and bounds expressions
 
@@ -645,6 +650,9 @@ int **r75(void) : byte_count(10 * sizeof(int *)) itype(array_ptr<ptr<int>>)  {
 
 // Function pointers
 
+// r80 is a function that takes no arguments and returns a function
+// pointer that takes two integer pointers and returns an integer.
+
 int (*r80(void) : itype(ptr<int(int *, int *)>))(int *,int *) {
   return 0;
 }
@@ -654,6 +662,26 @@ int (*r81(void) : itype(ptr<int(ptr<int>, ptr<int>)>))(int *, int *) {
 }
 
 int (*r82(void) : itype(ptr<int(int checked[10], int checked[10])>))(int *, int *) {
+  return 0;
+}
+
+// r83 is a function that takes an integer and returns a function pointer that
+// takes two integer pointer parameters and return a pointer to a float.
+
+float *(*r83(int) : itype(ptr<float *(int *, int *)>) // bounds-safe interface for return
+     )(int *,int *);
+
+float *(*r84(int) : itype(ptr<ptr<float> (int *, int *)>) // bounds-safe interface for return
+     )(int *,int *);
+
+float *(*r85(int) : itype(ptr<float *(ptr<int>, ptr<int>)>) // bounds-safe interface for return
+     )(int *,int *);
+
+float *(*r86(int) : itype(ptr<ptr<float> (ptr<int>, ptr<int>)>) // bounds-safe interface for return
+     )(int *,int *);
+
+// r90 is a functon that takes an integer and a returns a pointer to an array of 10 function pointers.
+int (**r90(void) : itype(array_ptr<ptr<int (ptr<int>, ptr<int>)>>) count(10))(int *, int *) {
   return 0;
 }
 

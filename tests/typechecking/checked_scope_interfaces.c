@@ -480,8 +480,24 @@ checked void test_function_pointer_parameter(callback_fn1 fn) {
 
 typedef ptr<int *(void) : itype(ptr<int>)> callback_fn2;
 
-checked void test_function_pointer_return(callback_fn2 fn) {
+checked void test_function_return_of_ptr(callback_fn2 fn) {
   ptr<int> p = (*fn)();
+}
+
+// Test calls to returned function pointers
+
+// Unchecked function pointer type.
+typedef int (*callback_fn3)(int *a : count(n), int n);
+// Corresponding version with bounds-safe interface.
+typedef  ptr<int (int *a : count(n), int n)> bsi_callback_fn3;
+
+checked callback_fn3 return_function_pointer(void) : itype(bsi_callback_fn3);
+
+checked void test_function_pointer_return(void) {
+  int arr checked[10];
+  (*return_function_pointer())(arr, 10);
+  ptr<int> p = 0;
+  (*return_function_pointer())(p, 1);
 }
 
 // Test call through a function pointer with a bounds-safe interface,
@@ -595,6 +611,14 @@ void qsort(void *base : byte_count(nmemb * size),
 
 int mblen(const char *s : count(n), size_t n);
 
+void (*signal(int sig,
+              void ((*func)(int)) :
+                itype(_Ptr<void (int)>) // bound-safe interface for func
+              ) : itype(_Ptr<void (int)>) // bounds-safe interface for signal return
+     )(int);
+
+void handler(int);  // for testing signal.
+
 void test_bounds_safe_interface(void) {
   array_ptr<int> arr0 : count(4) = checked_calloc(4, sizeof(size_t));
 
@@ -608,5 +632,20 @@ void test_bounds_safe_interface(void) {
 #pragma BOUNDS_CHECKED ON
   array_ptr<int> arr2 = checked_realloc(arr1, 20);
   array_ptr<int> arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{local variable used in a checked scope must have a checked type}}
+
+  _Unchecked {
+    typedef void (*return_fn)(int);
+    return_fn rfn = signal(0, handler);
+
+    typedef void (*wrong_fn)(int, int);
+    wrong_fn wrong = signal(0, handler);   // expected-warning {{incompatible function pointer types}}
+  }
+
+  typedef ptr<void (int)> checked_return_fn;
+  checked_return_fn rfn = signal(0, handler);
+
+  typedef ptr<void (int, int)> wrong_fn;
+  wrong_fn wrong = signal(0, handler);   // expected-error {{incompatible type}}
+
 }
 #pragma BOUNDS_CHECKED OFF
