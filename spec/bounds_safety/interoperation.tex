@@ -749,12 +749,13 @@ value that is a valid \lstinline+ptr+ to \lstinline+count_char+:
 \begin{lstlisting}
 int count_char(S *str : itype(ptr<S>), char arg);
 \end{lstlisting}
-It can also be used to declare that an unchecked array member should
+A type annotation can be used to declare that an unchecked array member should
 be treated as a checked array in checked code:
 \begin{lstlisting}
 struct S {
    int a[5] : itype(int checked[5]);
-}
+};
+\end{lstlisting}
 
 Here are functions from the C Standard Library with type annotations.
 In the examples, type annotations for return types are placed 
