@@ -868,8 +868,8 @@ annotation.  This allows programmers to declare bounds-safe interfaces for decla
 nested pointer types.
 
 Consider a bounds-safe interface for \lstinline{char **p}.
-The checked type for the variable can be declared using a type annotation and
-the bounds for the first level of pointer can be declared using a bounds expression:
+The checked type for the variable can be declared using a type annotation
+and the bounds for the variable can be declared using a bounds expression.
 \begin{lstlisting}
 char **p : itype(ptr<ptr<char>>);
 char **p : itype(ptr<nt_array_ptr<char>>);

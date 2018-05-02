@@ -1152,8 +1152,7 @@ for these reasons:
 \end{itemize}
 
 The expression being checked must be non-modifying because
-\code{dynamic_check} exists to allow programmers to express and check
-program invariants.  An invariant is a statement about program state and
+\code{dynamic_check} checks if an invariant holds.  An invariant
 should not modify program state.
 
 The following example illustrates why having an escape hatch from static
