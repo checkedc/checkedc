@@ -165,15 +165,18 @@ void f55(int **p : itype(array_ptr<int *>)) {
 void f56(int **p : itype(ptr<int> checked[10])) {
 }
 
-
-void f57(int **p : itype(array_ptr<int> checked[10])) {
+void f57(int **p : itype(ptr<int> checked[])) {
 }
 
-void f58(int **p : itype(int *checked[20])) {
+void f58(int **p : itype(array_ptr<int> checked[10])) {
 }
 
-void f59(ptr<int> *p : itype(ptr<ptr<int>>)) {
+void f59(int **p : itype(int *checked[20])) {
 }
+
+void f60(ptr<int> *p : itype(ptr<ptr<int>>)) {
+}
+
 
 // Multi-dimensional arrays
 
