@@ -643,13 +643,15 @@ Bounds-safe interfaces for declarations are specified by adding bounds
 declarations or type annotations to declarations.  They can be added to
 function declarations, function types, globally-scoped variables, and
 declarations of members of structure and union types.
+A declaration can have both a bounds declaration and a type annotation,
+although it is less common to need both.
 
 We describe adding bounds declarations first and then  describe adding type
 annotations.  Functions that have parameters with unchecked pointer
-types or that return values with unchecked pointer types can have bounds
-declared for the parameters and return values.  At calls to
+or array types or that return values with unchecked pointer types can have bounds
+or type annotations declared for the parameters and return values.  At calls to
 these functions, implicit conversions from checked types to unchecked
-pointer types are inserted for the corresponding argument expressions
+pointer types are inserted for the corresponding argument expressions.
   
 Here is a bounds-safe interface for \code{memcpy}:
 \begin{lstlisting}
@@ -663,25 +665,30 @@ The correctness of bounds information is enforced at compile-time when
 \code{memcpy} is passed checked pointer arguments. It is not enforced when 
 \code{memcpy} is passed unchecked pointer arguments.
 
-Variables at external scope with unchecked pointer types can have
-bounds declared for them.   The declarations must follow the 
+Variables at external scope with unchecked pointer or array types
+can have bounds or type annotations declared for them.
+The declarations must follow the
 rules in Section~\ref{section:external-scope-variables}.
 
-For data structures, members with unchecked pointer types can
-have bounds declared for them.   Implicit conversions from \arrayptr\ 
-type to unchecked pointer type are inserted at assignments to the members.
+For data structures, members with unchecked pointer type or array types
+can have bounds or type annotations declared for them.   Implicit conversions from
+\arrayptr\ type to unchecked pointer type are inserted at assignments to unchecked
+pointer type members.
 
-Bounds-safe interfaces for functions and members must be
-declared on an ``all-or-nothing'' basis.
-For a function, if any parameter (or the return value) has an unchecked pointer
-type and has a bounds declaration or type annotation, all the
-the other parameters (or the return value) that have unchecked
-pointer types must also have bounds declarations or type
-annotations.  Similarly, for a structure or union type,
-if any member with unchecked pointer type
-has a bounds declaration or type annotation, all other members
-that have unchecked pointer types must also have bounds declarations
-or type annotations.
+% Comment out because this isn't what the implementations does and it
+% isn't clear these requireements are needed.
+%
+% Bounds-safe interfaces for functions and members must be
+% declared on an ``all-or-nothing'' basis.
+% For a function, if any parameter (or the return value) has an unchecked pointer
+% or array type and has a bounds declaration or type annotation, all the
+% the other parameters (or the return value) that have unchecked
+% pointer or array types must also have bounds declarations or type
+% annotations.  Similarly, for a structure or union type,
+% if any member with unchecked pointer or array type
+% has a bounds declaration or type annotation, all other members
+% that have unchecked pointer types must also have bounds declarations
+% or type annotations.
 
 Here are the bounds for a structure that is a counted buffer of
 characters.
@@ -693,19 +700,22 @@ struct S {
 \end{lstlisting}
 
 It is important to understand that the \emph{semantics of unchecked
-pointers does not change in unchecked scopes even when bounds are
-declared for the pointers}. The declared bounds are used  for expressions
+pointers and arrays do not change in unchecked scopes even when bounds
+or type annotations are declared for the pointers and arrays}. The declared bounds
+or type annotations are used for expressions
 that mix checked and unchecked pointer types. Unchecked pointer dereferences do not
-have bounds checks added to them. A function that has a bounds-safe
-interface and whose body does not use checked pointer
+have bounds checks added to them.  Similarly, uses unchecked arrays still convert to
+unchecked pointer types.   A function that has a bounds-safe
+interface and whose body does not use checked pointer or array
 types is compiled as though the bounds-safe interface has been
 stripped from its source code.
 
 A type annotation describes an alternate checked type to use in checked code
 in place of an unchecked type. It is used, for example, when a variable with
 an unchecked pointer type should be treated as having
-a \code{ptr} type.  Syntactically, it can
-be used in place of the  bounds expression in a bounds declaration.
+a \code{ptr} type.  Syntactically, a bounds declaration can have
+a bounds expression, a type annotation, or both a bounds expression
+and a type annotation.
 
 A type annotation is specified using the following syntax:
 
@@ -713,14 +723,20 @@ A type annotation is specified using the following syntax:
 \var{type-}\=\var{annotation:} \\
 \>\code{itype (}\var{type name}\code{)}\\
 \\
-The syntax for inline bounds specifiers is extended to include
-type annotations:\\
+The keyword \code{itype} is short for bounds-safe  interface type.
+\\
+\\
+The syntax for an inline bounds specifier is extended to
+allow a type annotation or a bounds\\
+expression and a type annotation:
+\\
 \\
 \var{inline-bounds-specifier:}\\
-\> \var{\ldots{}}\\
-\>\code{:} \var{type-annotation}
+\> \lstinline|:| \var{bounds-exp} \\
+\>\code{:} \var{type-annotation} \\
+\>\code{:} \var{bounds-exp} \var{type-annotation} \\
+\>\code{:} \var{type-annotation} \var{bounds-exp}
 \end{tabbing}
-The keyword \code{itype} is short for bounds-safe  interface type.
 
 A type annotation can be used to declare that an unchecked
 pointer to a structure should be treated as a \lstinline+ptr+ in
@@ -732,6 +748,13 @@ of occurrences of \lstinline+arg+ in \lstinline+S+. Checked code must pass a
 value that is a valid \lstinline+ptr+ to \lstinline+count_char+:
 \begin{lstlisting}
 int count_char(S *str : itype(ptr<S>), char arg);
+\end{lstlisting}
+A type annotation can be used to declare that an unchecked array member should
+be treated as a checked array in checked code:
+\begin{lstlisting}
+struct S {
+   int a[5] : itype(int checked[5]);
+};
 \end{lstlisting}
 
 Here are functions from the C Standard Library with type annotations.
@@ -746,8 +769,9 @@ struct tm *gmtime(const time_t *timer : itype(ptr<const time_t>)) :
     itype(ptr<struct tm>);
 \end{lstlisting}
 
+A set of rules define interface type compatibility.
 The \var{type name} in a type annotation must be compatible
-with the original unchecked pointer type when checkedness
+with the original unchecked type when checkedness
 of pointers and arrays is ignored. The \var{type name} cannot
 lose checking.  It must be at least as checked as the
 original type.  Finally, the \var{type name} must be
@@ -756,6 +780,7 @@ checked pointer and array types are checked types,
 array and pointer types constructed from checked types
 are checked types, and function types constructed from
 at least one checked type are checked types.
+
 
 \subsection{Examples}
 \label{section:bounds-safe-interface-examples}
@@ -809,6 +834,56 @@ void subtle_copy(int *dest, array_ptr<int> src : count(len), int len)
     memcpy(dest, (void *) src, len * sizeof(int));
 }
 \end{lstlisting}
+
+\subsection{Parameter array types}
+
+In C, arrays are passed by reference as arguments.  During
+type checking, the type of parameters with type ``array of \var{T}'' are
+altered to \uncheckedptrT.  Before checking interface type
+compatibility for a parameter, if the interface type is an array type,
+it is altered to be a pointer type following the rules in
+Section~\ref{section:array-to-pointer-conversion}.   The checking is
+then done using the alted parameter type and altered interface type.
+The original unaltered interface type is used when inferring bounds
+and bounds requirements.
+
+The following examples illustrate some possible bounds-safe interface
+declarations for a parameter of type \lstinline{int **}:
+\begin{lstlisting}
+void f(int **p : itype(ptr<ptr<int>>));
+void f(int **p : itype(ptr<array_ptr<int>>));
+void f(int **p : itype(array_ptr<ptr<int>>));
+void f(int **p : itype(array_ptr<array_ptr<int>>));
+void f(int **p : itype(ptr<int *>));
+void f(int **p : itype(array_ptr<int *>));
+void f(int **p : itype(ptr<int> checked[10]));
+void f(int **p : itype(ptr<int> checked[]));
+void f(int **p : itype(array_ptr<int> checked[10]));
+void f(int **p : itype(int *checked[20]));
+\end{lstlisting}
+
+\subsection{Bounds expression and type annotations}
+A bounds-safe interface declaration can have both a bounds expression and a type
+annotation.  This allows programmers to declare bounds-safe interfaces for declarations involving
+nested pointer types.
+
+Consider a bounds-safe interface for \lstinline{char **p}.
+The checked type for the variable can be declared using a type annotation
+and the bounds for the variable can be declared using a bounds expression.
+\begin{lstlisting}
+char **p : itype(ptr<ptr<char>>);
+char **p : itype(ptr<nt_array_ptr<char>>);
+char **p : count(len) itype(array_ptr<ptr<char>>)
+char **p : count(len) itype(array_ptr<nt_array_ptr<char>>);
+char **p : itype(nt_array_ptr<ptr<char>>);
+char **p : count(4) itype(nt_array_ptr<nt_array_ptr<char>>);
+\end{lstlisting}
+
+If only a bounds expression is placed on a declaration of a variable with type \uncheckedptrinst{T},
+it implies that the type annotation is \arrayptrinst{T}.   If it is placed on a variable with an
+array type \lstinline{T[D]}, it implies that the type annotation is \lstinline{T checked[D]}.   If
+an interface type and a bounds expression are both specified, the interface type must
+be an \arrayptr\ type or checked array type.
 
 \subsection{Redeclaring existing functions and variables with bounds-safe interfaces}
 \label{section:bounds-safe-interface-redeclaration}

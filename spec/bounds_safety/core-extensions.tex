@@ -445,6 +445,7 @@ of type \var{T}, the following rules apply:
 \end{itemize}
 
 \subsection{Rules for conversion of checked array types to pointer types}
+\label{section:array-to-pointer-conversion}
 
 If the type of an expression is ``checked array of
 \var{T}'', the type of the expression is altered to be
@@ -1125,7 +1126,8 @@ evaluated. If the result is \code{0} (false), a runtime error occurs.
 If the result is non-zero (true), no runtime error occurs. Just as with
 a bounds check, if a runtime error occurs and a C implementation
 provides an error-handling facility, the error-handling facility may be
-invoked.
+invoked.  \var{e1} must be a non-modifying expression that does not modify
+program state (see Section~\ref{section:non-modifying-expressions}).
 
 The \code{dynamic_check} expression is similar to an assertion, but
 unlike an assertion, it is expected to be used in production or release
@@ -1148,6 +1150,10 @@ for these reasons:
   from dynamic bounds checks, without having to restructure the
   control-flow of the program.
 \end{itemize}
+
+The expression being checked must be non-modifying because
+\code{dynamic_check} checks if an invariant holds.  An invariant
+should not modify program state.
 
 The following example illustrates why having an escape hatch from static
 checking is useful. Suppose a decoder from a compressed representation
