@@ -1,21 +1,29 @@
 # Checked C
-Checked C is an extension to C that adds static and dynamic checking to detect or prevent common programming
-errors such as buffer overruns, out-of-bounds memory accesses, and incorrect type casts.   This repo contains the
-specification for the extension, test code, and samples. For the latest PDF version of the specification and the 
-draft of the next PDF version, see the [Checked C releases page](https://github.com/Microsoft/checkedc/releases).
+Checked C adds static and dynamic checking to C to detect or prevent common programming
+errors such as buffer overruns and out-of-bounds memory accesses. 
+The goal of the project is to improve systems programming by making fundamental improvements to C.
+This repo contains
+sample code, the [extension specification](https://github.com/Microsoft/checkedc/releases),
+and test code.
 
-We are creating a modified version of the LLVM/clang compiler that supports
-Checked C.  For more information on the compiler, see the
-[Checked C clang repo](https://github.com/Microsoft/checkedc-clang).
-Pre-built compilers are available on the Checked C clang 
-[releases page](https://github.com/Microsoft/checkedc-clang/releases), if you want to
-try out the extension while it is being implemented.
+- For a quick overview of Checked C and more information, see our [Wiki](https://github.com/Microsoft/checkedc/wiki).
+- The PDF of the specifcation is available [here](https://github.com/Microsoft/checkedc/releases).
+- Compiler are available [here](https://github.com/Microsoft/checkedc-clang/releases).
 
-# Getting involved
+# Build Status
+
+|Configuration|Testing|Status|
+|--------|---------------|-------|
+|Debug X86 Windows| Checked C and clang regression tests|![Debug X86 Windows status](https://msresearch.visualstudio.com/_apis/public/build/definitions/f6454e27-a46c-49d9-8453-29d89d53d2f9/211/badge)|
+|Debug X64 Windows| Checked C and clang regression tests| ![Debug X64 Windows status](https://msresearch.visualstudio.com/_apis/public/build/definitions/f6454e27-a46c-49d9-8453-29d89d53d2f9/205/badge)|
+|Debug X64 Linux  | Checked C and clang regression tests| ![Debug X64 Linux status](https://msresearch.visualstudio.com/_apis/public/build/definitions/f6454e27-a46c-49d9-8453-29d89d53d2f9/217/badge)|
+|Release X64 Linux| Checked C, clang, and LLVM nightly tests|![Release X64 Linux status](https://msresearch.visualstudio.com/_apis/public/build/definitions/f6454e27-a46c-49d9-8453-29d89d53d2f9/238/badge)|
+
+# Participating
+We're happy to have the help! You can contribute by trying out Checked C, 
+reporting bugs, and giving us feedback. There are other ways to [contribute](CONTRIBUTING.md) too.
 You can join the [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) for
-announcements and weekly status updates about the project.  There are a variety of ways to get involved
-in the project, including opening issues, contributing changes to the specification, or helping out with
-the compiler and tools implementation. See [contributing](CONTRIBUTING.md) for more information.
+announcements about the project.
 
 # Licensing
 The software in this repository is covered by the MIT license.  See the file LICENSE.TXT for the license.   The
@@ -32,6 +40,3 @@ For more information see the
 [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any
 additional questions or comments.
-
-
-
