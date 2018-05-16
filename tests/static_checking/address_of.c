@@ -84,7 +84,7 @@ extern checked void f6(_Ptr<struct S3> s3, _Ptr<struct S4> s4) {
 // Spot check bounds for a flexible array member.
 struct S5 {
   int len;
-  int _Checked arr[] : count(len);
+  int arr _Checked[] : count(len);
 };
 
 extern void f30(struct S5 *s5) {
