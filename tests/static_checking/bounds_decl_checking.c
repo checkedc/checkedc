@@ -383,13 +383,17 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   t3 = s.f3;
 
   nt_array_ptr<int> ntp = (int nt_checked[]) { 0, 1, 2, 3, 0 };
+/* HACK:
+  Taking the address of pointers with bounds is not allowed.  Disable this code and
+  stop the verification checking by converting "expected-error" to "expected error".
   ptr<nt_array_ptr<int>> pntp = &ntp;
-  *pntp = arg1;       // expected-error {{expression has unknown bounds}}
+  *pntp = arg1;       // expected error {{expression has unknown bounds}}
   *pntp = arg2;
   *pntp = arg3;
   arg1 = *pntp;
   arg2 = *pntp;
-  arg3 = *pntp;        // expected-error {{declared bounds for arg3 are invalid after assignment}}
+  arg3 = *pntp;        // expected error {{declared bounds for arg3 are invalid after assignment}}
+*/
 }
 
 extern void test_f1(int *p);
