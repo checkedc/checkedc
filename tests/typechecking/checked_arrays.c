@@ -115,11 +115,11 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   int t[10];
   int t2d[10][10];
   int u checked[10];
-  int u2d checked[10][10]; // This is a checked array of checked arrays. checked propagates
+  int u2d checked[10][10] = {0}; // This is a checked array of checked arrays. checked propagates
                             // to immediately nested array types in array declarators.  It does
                             // not propagate through typedefs
   int x nt_checked[10];
-  int x2d checked[10]nt_checked[10];
+  int x2d checked[10]nt_checked[10] = {0};
 
   // Single-dimensional array type conversions to pointer types.
   int *t1 = p;          // T *  = T[constant] OK
@@ -223,9 +223,9 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
 
 // Test that dimensions in multi-dimensional arrays are either all checked or unchecked arrays.
 extern void check_dimensions1(void) {
-  int t1 checked[10][5]checked[5];     // multiple checked modifiers are allowed
-  int t1a checked[10][5]nt_checked[5];
-  int t2 checked[10][5][5]checked[5];
+  int t1 checked[10][5]checked[5] = {0};     // multiple checked modifiers are allowed
+  int t1a checked[10][5]nt_checked[5] = {0};
+  int t2 checked[10][5][5]checked[5] = {0};
 
   // checked mixing of checked/unchecked array dimensions
   int t3[10]checked[10];               // expected-error {{unchecked array of checked array not allowed}}
@@ -241,11 +241,11 @@ extern void check_dimensions1(void) {
 ('dim_checked' is a checked array)}}
 
   // checked parenthesized declarators
-  int (t6 checked[10])[10];            // checked propagates to enclosing array declarators
-  int(t7 checked[10])[5][5]checked[5]; // multiple checked modifiers are allowed
+  int(t6 checked[10])[10] = {0};            // checked propagates to enclosing array declarators
+  int(t7 checked[10])[5][5]checked[5] = {0}; // multiple checked modifiers are allowed
   int (t8[10])checked[10];             // expected-error {{unchecked array of checked array not allowed}}
   int ((t9[10]))checked[10];           // expected-error {{unchecked array of checked array not allowed}}
-  dim_unchecked (t10 checked[10])[10]; // expected-error {{checked array of unchecked array not allowed \
+  dim_unchecked(t10 checked[10])[10] = {0}; // expected-error {{checked array of unchecked array not allowed \
 ('dim_unchecked' is an unchecked array)}}
   dim_checked (t11[10])[10];           // expected-error {{unchecked array of checked array not allowed \
 ('dim_checked' is a checked array)}}
@@ -521,11 +521,11 @@ extern void check_condexpr(int val) {
 
 extern void check_condexpr_2d(int val) {
   int p[5][6];
-  int r checked[5][6];
+  int r checked[5][6] = {0};
   float s[5][6];
-  float u checked[5][6];
-  int y checked[5][20];
-  int z checked[5]nt_checked[6];
+  float u checked[5][6] = {0};
+  int y checked[5][20] = {0};
+  int z checked[5]nt_checked[6] = {0};
 
   int (*t1)[6] = val ? p : p;                  // T[5][6] and T[5][6] OK;
   array_ptr<int checked[6]> t2 = val ? p : r;  // T[5][6] and T checked[5][6] OK
@@ -864,9 +864,9 @@ extern void check_call(void) {
   int x[10];
   int y checked[10];
   int x2d[10][10];
-  int y2d checked[10][10];
+  int y2d checked[10][10] = {0};
   int z nt_checked[10];
-  int z2d checked[10]nt_checked[10];
+  int z2d checked[10]nt_checked[10] = {0};
 
 
   // f1(int *p, int y)

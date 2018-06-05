@@ -87,7 +87,7 @@ int* checked_func2_unchecked_parm_unchecked_ret(int a [][5], int b [][5]) { // e
 }
 
 int* checked_func_check_call(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) {
-  int e checked[5][5];
+  int e checked[5][5] = {0};
   int f[5][5];                // expected-error {{local variable in a checked scope must have a checked type}}
   int *upa = checked_func2_checked_parm_checked_ret(e, e);    // expected-error {{local variable in a checked scope must have a checked type}}
   ptr<int> pb = checked_func2_checked_parm_checked_ret(e, e);
@@ -207,7 +207,7 @@ ptr<int> checked_func_u1(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s 
   *s = 4;
   unchecked {
     ptr<int> pa = &a;
-    int b checked[5][5];
+    int b checked[5][5] = {0};
     for (int i = 0; i < 5; i++) checked {
       for (int j = 0; j < 5; j++) unchecked {
         b[i][j] += *q + *r; // expected-error {{expression has unknown bounds}}
@@ -226,7 +226,7 @@ ptr<int> checked_func_u1_pragma(int *p, ptr<int> q, array_ptr<int> r, array_ptr<
   *s = 4;
 #pragma CHECKED_SCOPE OFF
   ptr<int> pa = &a;
-  int b checked[5][5];
+  int b checked[5][5] = {0};
   for (int i = 0; i < 5; i++) {
 #pragma CHECKED_SCOPE ON
     for (int j = 0; j < 5; j++) {
@@ -244,7 +244,7 @@ int * checked_func_uc(void) : itype(array_ptr<int>) unchecked {
   int *upa = &a;
   int b[5][5];
   checked {
-    int c checked[5][5];
+	int c checked[5][5] = {0};
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] += c[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -265,7 +265,7 @@ int * checked_func_uc_pragma(void) : itype(array_ptr<int>) {
   int *upa = &a;
   int b[5][5];
 #pragma CHECKED_SCOPE ON
-  int c checked[5][5];
+  int c checked[5][5] = {0};
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
       b[i][j] += c[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -417,7 +417,7 @@ unchecked int * unchecked_func_cu(int *p, ptr<int> q, array_ptr<int> r, array_pt
   *s = 4;
 #pragma CHECKED_SCOPE OFF
   ptr<int> pa = &a;
-  int b checked[5][5];
+  int b checked[5][5] = {0};
   int c[5][5];
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
@@ -529,12 +529,12 @@ int checked_func_with_checked_struct(void) {
     short e[10];  // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     char f[10];   // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     int len;
-  } a;
+  } a = {0};
   return 0;
 }
 
 int checked_func_with_unchecked_struct(void) {
-  struct local_unchecked_s {
+	struct local_unchecked_s {
 #pragma CHECKED_SCOPE OFF
     int *a;
     char *b;
@@ -543,7 +543,7 @@ int checked_func_with_unchecked_struct(void) {
     short e[10];
     char f[10];
     int len;
-  } a;
+	} a;     // expected-error {{checked pointer member must have initializer}}
   typedef struct _S {
 #pragma CHECKED_SCOPE ON
     int *a; // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}

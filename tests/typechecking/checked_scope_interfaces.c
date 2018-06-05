@@ -256,7 +256,7 @@ checked int* f20(int a checked[][5], int b checked[][5]) : itype(ptr<int>) {
 }
 
 checked int* f21(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) checked {
-  int e checked[5][5];
+  int e checked[5][5] = {0};
   _Unchecked {
     int *upa = f20(e, e);
   }
@@ -275,7 +275,7 @@ checked int *f21b(int *b : count(4)) : byte_count(4 * sizeof(int)) {
 
 // Test checked return types implied by a bounds-safe interface
 checked void test_checked_returns(void) {
-  int arr1 checked[5][5];
+  int arr1 checked[5][5] = {0};
   ptr<int> t1 = f20(arr1, arr1);
 
   int arr2 checked[4];

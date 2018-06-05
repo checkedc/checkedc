@@ -199,7 +199,7 @@ void g2_complete_md_array_param(int ap checked[10][10]) {
 }
 
 void g2_complete_md_array_arg(void) {
-  int arr checked[10][10];
+  int arr checked[10][10] = {0};
 
   f1_complete_md_arr(arr);
   f2_complete_md_arr(arr);
@@ -604,6 +604,6 @@ void g81(callback_fn3 fn, int arr checked[10][11]) {
 }
 
 void g82(callback_fn3 fn) {
-  int arr checked[10][10];
+  int arr checked[10][10] = {0};
   (*fn)(arr);
 }

@@ -166,9 +166,9 @@ void f6(void) {
   ptr<int> data checked[10] = { 0 };  // initializer for array required.
   struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
 
-  struct VariableBuffer buf_missing_init;  // TODO: checkedc-clang issue #445.
+  //struct VariableBuffer buf_missing_init;  // TODO: checkedc-clang issue #445.
                                            // This should produce a compiler error.
-  ptr<int> data_missing_init checked[10];  // TODO: checkedc-clang issue #445.
+  //ptr<int> data_missing_init checked[10];  // TODO: checkedc-clang issue #445.
                                            // This should produce a compiler error.
 
  // Check { 0 } initialization idiom where first member is a floating point number.
@@ -179,4 +179,112 @@ void f6(void) {
   };
 
   struct FloatWithVariableBuffer w = { 0 };
+
+
+
+  //Shen's testcases
+
+//  ptr<int> uninitialized_ptr ; //should report error here...
+
+  //array with/without initializers
+  ptr<int> data_with_init checked[10] = {0};  	   // initialized, pass.
+	
+  //ptr<char> data_no_init checked[20];             //report a compiler error
+
+  struct has_uninitialized_ptr_member {
+	  int x;
+	  ptr<int> uninitialized_ptr_member;
+	  float y;
+//	  array_ptr<int> q :count(5);
+  };
+  struct has_uninitialized_ptr_member uninit_S;        //initializer not required, pass
+
+  struct checked_value_no_bounds {
+	  int x;
+	  array_ptr<int> lower;
+	  array_ptr<int> upper;
+	  float y;
+  };
+
+  struct checked_value_no_bounds init_S2 = {0}; // no bounds; initializer not required, should pass
+  struct checked_value_no_bounds uninit_S2; // no bounds; initializer not required, should pass
+
+  ptr<struct checked_value_no_bounds> arr_init   checked[20] = {0}; //initialized arry, should pass
+  //ptr<struct checked_value_no_bounds> arr_uninit checked[20]; //uninitialized array, report a compiler error
+
+  struct checked_value_has_bounds {
+	  int x;
+	  array_ptr<char> lower :count(5);
+	  array_ptr<char> upper :count(5);
+	  float y;
+  };
+
+  struct checked_value_has_bounds init_S3 = {0}; // has bounds; initializer required and we did, should pass
+  //struct checked_value_has_bounds uninit_S3; // has bounds; initializer required, should report a compile error
+
+  struct struct_with_checked_field_has_bounds {
+	  int x;
+	  struct checked_value_has_bounds s;
+  };
+  struct struct_with_checked_field_has_bounds init_nested_S = { 0 }; // has bounds, initializer required and we did, should pass
+  //struct struct_with_checked_field_has_bounds uninit_nested_S; //field has bounds, initializer required, should report a compile error
+
+  union u_checked_value_no_bounds {
+	  int x;
+	  array_ptr<int> lower;
+	  array_ptr<int> upper;
+	  float y;
+  };
+  union u_checked_value_no_bounds init_U = { 0 }; // no bounds; initializer not required, should pass
+  union u_checked_value_no_bounds uninit_U; // no bounds; initializer not required, should pass
+
+  union u_checked_value_has_bounds {
+	  int x;
+	  array_ptr<char> lower :count(5);
+	  array_ptr<char> upper :count(5);
+	  float y;
+  };
+  union u_checked_value_has_bounds init_U2 = { 0 }; // has bounds; initializer required and we did, should pass
+  //union u_checked_value_has_bounds uninit_U2; // has bounds; initializer required, should report a compile error
+
+
+  struct struct_with_checked_union_field_has_bounds {
+	  int x;
+	  union u_checked_value_has_bounds u;
+  };
+  struct struct_with_checked_union_field_has_bounds init_SU = { 0 }; // has bounds, initializer required and we did, should pass
+  //struct struct_with_checked_union_field_has_bounds uninit_SU; //union field has bounds, initializer required, should report a compile error
+
+
+  typedef struct{
+	  int data;
+//	  array_ptr<char> tmp;
+	  array_ptr<char> name :count(20);
+	  struct Node* next;
+  }Node;
+
+//  Node n_err; //initializer required, error
+  Node n = { 0 };
+
+ 
+  typedef struct {
+	  struct Range r;
+	  Node center;
+  }Circle;
+
+//  Circle C_err; //initializer required, error
+  Circle C = { 0 };
+
+  typedef struct {
+	  Circle Outer;
+	  Circle Inner;
+  }Annulus;
+
+//  Annulus a_err;
+  Annulus a = { 0 };
+
+  //array of struct with array_ptr member with bounds
+  //Annulus anls_arr checked[100]; //initializer required, error
+  Annulus anls checked[100] = {0};
+
 }
