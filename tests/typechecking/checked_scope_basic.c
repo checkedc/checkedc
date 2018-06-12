@@ -170,7 +170,7 @@ void func14(int checked[5][5], int b checked[5][5]);
 // Declaring checked/unchecked multi-dimensional arrays in a checked scope and attempting to pass them
 // as parameter.
 void func15(void) {
-  int e _Checked[5][5] = {0};
+  int e _Checked[5][5];
   int f[5][5];
   _Checked {
     int g[5][5];                 // expected-error {{local variable in a checked scope must have a checked type}}
@@ -288,7 +288,7 @@ int func21(void) {
   checked {
     int a = 5;
     ptr<int> pa = &a;
-	int b checked[5][5] = {0};
+	int b checked[5][5];
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] = -1;
@@ -319,7 +319,7 @@ int func23(void) checked {
   {
     int b[5][5];    // expected-error {{local variable in a checked scope must have a checked type}}
   {
-	int c checked[5][5] = {0};
+	int c checked[5][5];
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] += c[i][j];
@@ -431,7 +431,7 @@ checked int * func41(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : co
   *s = 4;
   unchecked {
     ptr<int> pa = &a;
-    int b checked[5][5] = {0};
+    int b checked[5][5];
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] += *q + *r; // expected-error {{expression has unknown bounds}}
@@ -469,7 +469,7 @@ int * func43(void) unchecked {
       unchecked {
         int b[5][5];
         checked {
-		  int c checked[5][5] = {0};
+		  int c checked[5][5];
           for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
               b[i][j] += c[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -494,7 +494,7 @@ checked int * func44(void) unchecked {  // expected-error {{return in a checked 
   unchecked {
     int b[5][5];
     checked {
-	  int c checked[5][5] = {0};
+	  int c checked[5][5];
       int d[5][5];  // expected-error {{local variable in a checked scope must have a checked type}}
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
@@ -605,7 +605,7 @@ unchecked int * func51(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : 
     *s = 4;
     unchecked {
       ptr<int> pa = &a;
-	  int b checked[5][5] = {0};
+	  int b checked[5][5];
       for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 5; j++) {
           b[i][j] = *p + *q +  *s;
@@ -642,7 +642,7 @@ unchecked int * func53(void) unchecked {
       unchecked {
         int b[5][5];
         checked {
-		  int c checked[5][5] = {0};
+		  int c checked[5][5];
           for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
               b[i][j] += c[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -667,8 +667,8 @@ unchecked int * func54(void) unchecked {
   unchecked {
     int b[5][5];
     checked {
-	  int c checked[5][5] = {0};
-      int d[5][5];  // expected-error {{local variable in a checked scope must have a checked type}}
+	  int c checked[5][5];
+    int d[5][5];  // expected-error {{local variable in a checked scope must have a checked type}}
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] += c[i][j] - d[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -960,7 +960,7 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   int t[10];
   int t2d[10][10];
   int u checked[10];
-  int u2d checked[10][10] = {0};  // This is a checked array of checked arrays. checked propagates
+  int u2d checked[10][10];  // This is a checked array of checked arrays. checked propagates
                             // to immediately nested array types in array declarators.  It does
                             // not propagate through typedefs
 
@@ -1136,7 +1136,7 @@ extern void check_call(void) {
   int x[10];
   int y checked[10];
   int x2d[10][10];
-  int y2d checked[10][10] = {0};
+  int y2d checked[10][10];
 
   checked {
   // checked scope error precedes function call type error/warning

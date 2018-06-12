@@ -46,7 +46,7 @@ char g23 checked[3]nt_checked[4] = { "abc", "def", "fgh" };
 //
 
 nt_array_ptr<int> g30 : count(4) = (int[]) { 0, [2] = 2, 3, 5, 0 };
-nt_array_ptr<int> g31 : count(0)  = (int checked[]) { 0, [2] = 2, 3, 5, 0};
+nt_array_ptr<int> g31 : count(0) = (int checked[]) { 0, [2] = 2, 3, 5, 0 };
 nt_array_ptr<char> g32 : count(5) = "abcde";
 array_ptr<char> g33 : count(5) = "abcde";
 array_ptr<char> g34 : count(5) = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
@@ -61,7 +61,7 @@ nt_array_ptr<char> g37 nt_checked[] = { "the", "brown", "fox", "jumped",
 
 void callback1(int a);
 void callback2(int a);
-nt_array_ptr<ptr<void (int)>> callback_table = (ptr<void (int)>[]) { callback1, callback2, 0 };
+nt_array_ptr<ptr<void(int)>> callback_table = (ptr<void(int)>[]) { callback1, callback2, 0 };
 
 void f3(char *escape) {
 }
@@ -69,7 +69,7 @@ void f3(char *escape) {
 // Checked that the arrays and pointers have checked type.
 void f4(void) checked {
   char t1 = g1[0];
-  int t2  = g2[0];
+  int t2 = g2[0];
   int t3 = g3[0][1];
   char t4 = g4[0];
   char t5 = g5[0];
@@ -166,11 +166,9 @@ void f6(void) {
   ptr<int> data checked[10] = { 0 };  // initializer for array required.
   struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
 
-  //struct VariableBuffer buf_missing_init;  // TODO: checkedc-clang issue #445.
-                                           // This should produce a compiler error.
-  //ptr<int> data_missing_init checked[10];  // TODO: checkedc-clang issue #445.
-                                           // This should produce a compiler error.
-
+  struct VariableBuffer buf_missing_init;  // expected-error {{checked pointer member must have initializer}}
+  ptr<int> data_missing_init checked[10];  // expected-error {{checked pointer member must have initializer}}
+  
  // Check { 0 } initialization idiom where first member is a floating point number.
   struct FloatWithVariableBuffer {
     float weight;
@@ -180,111 +178,110 @@ void f6(void) {
 
   struct FloatWithVariableBuffer w = { 0 };
 
+  // test cases for checking the array/struct/union variables initializers
+  // array with/without initializers
+  ptr<int> data_with_init checked[10] = { 0 };  	  // initialized, pass.
 
-
-  //Shen's testcases
-
-//  ptr<int> uninitialized_ptr ; //should report error here...
-
-  //array with/without initializers
-  ptr<int> data_with_init checked[10] = {0};  	   // initialized, pass.
-	
-  //ptr<char> data_no_init checked[20];             //report a compiler error
+  ptr<char> data_no_init checked[20];             // expected-error {{checked pointer member must have initializer}}
 
   struct has_uninitialized_ptr_member {
-	  int x;
-	  ptr<int> uninitialized_ptr_member;
-	  float y;
-//	  array_ptr<int> q :count(5);
+    int x;
+    ptr<int> uninitialized_ptr_member;
+    float y;
   };
-  struct has_uninitialized_ptr_member uninit_S;        //initializer not required, pass
+  struct has_uninitialized_ptr_member uninit_S;     // initializer not required, pass
 
   struct checked_value_no_bounds {
-	  int x;
-	  array_ptr<int> lower;
-	  array_ptr<int> upper;
-	  float y;
+    int x;
+    array_ptr<int> lower;
+    array_ptr<int> upper;
+    float y;
   };
 
-  struct checked_value_no_bounds init_S2 = {0}; // no bounds; initializer not required, should pass
+  struct checked_value_no_bounds init_S2 = { 0 }; // no bounds; initializer not required, should pass
   struct checked_value_no_bounds uninit_S2; // no bounds; initializer not required, should pass
 
-  ptr<struct checked_value_no_bounds> arr_init   checked[20] = {0}; //initialized arry, should pass
-  //ptr<struct checked_value_no_bounds> arr_uninit checked[20]; //uninitialized array, report a compiler error
+  ptr<struct checked_value_no_bounds> arr_init   checked[20] = { 0 }; // initialized arry, should pass
+  ptr<struct checked_value_no_bounds> arr_uninit checked[20]; // expected-error {{checked pointer member must have initializer}}
 
   struct checked_value_has_bounds {
-	  int x;
-	  array_ptr<char> lower :count(5);
-	  array_ptr<char> upper :count(5);
-	  float y;
+    int x;
+    array_ptr<char> lower :count(5);
+    array_ptr<char> upper :count(5);
+    float y;
   };
 
-  struct checked_value_has_bounds init_S3 = {0}; // has bounds; initializer required and we did, should pass
-  //struct checked_value_has_bounds uninit_S3; // has bounds; initializer required, should report a compile error
+  struct checked_value_has_bounds init_S3 = { 0 }; // has bounds; initializer required and we did, should pass
+  struct checked_value_has_bounds uninit_S3; // expected-error {{checked pointer member must have initializer}}
 
   struct struct_with_checked_field_has_bounds {
-	  int x;
-	  struct checked_value_has_bounds s;
+    int x;
+    struct checked_value_has_bounds s;
   };
   struct struct_with_checked_field_has_bounds init_nested_S = { 0 }; // has bounds, initializer required and we did, should pass
-  //struct struct_with_checked_field_has_bounds uninit_nested_S; //field has bounds, initializer required, should report a compile error
+  struct struct_with_checked_field_has_bounds uninit_nested_S; // expected-error {{checked pointer member must have initializer}}
 
   union u_checked_value_no_bounds {
-	  int x;
-	  array_ptr<int> lower;
-	  array_ptr<int> upper;
-	  float y;
+    int x;
+    array_ptr<int> lower;
+    array_ptr<int> upper;
+    float y;
   };
   union u_checked_value_no_bounds init_U = { 0 }; // no bounds; initializer not required, should pass
   union u_checked_value_no_bounds uninit_U; // no bounds; initializer not required, should pass
 
   union u_checked_value_has_bounds {
-	  int x;
-	  array_ptr<char> lower :count(5);
-	  array_ptr<char> upper :count(5);
-	  float y;
+    int x;
+    array_ptr<char> lower :count(5);
+    array_ptr<char> upper :count(5);
+    float y;
   };
   union u_checked_value_has_bounds init_U2 = { 0 }; // has bounds; initializer required and we did, should pass
-  //union u_checked_value_has_bounds uninit_U2; // has bounds; initializer required, should report a compile error
+  union u_checked_value_has_bounds uninit_U2; // expected-error {{checked pointer member must have initializer}}
 
 
   struct struct_with_checked_union_field_has_bounds {
-	  int x;
-	  union u_checked_value_has_bounds u;
+    int x;
+    union u_checked_value_has_bounds u;
   };
   struct struct_with_checked_union_field_has_bounds init_SU = { 0 }; // has bounds, initializer required and we did, should pass
-  //struct struct_with_checked_union_field_has_bounds uninit_SU; //union field has bounds, initializer required, should report a compile error
+  struct struct_with_checked_union_field_has_bounds uninit_SU; // expected-error {{checked pointer member must have initializer}}
 
 
-  typedef struct{
-	  int data;
-//	  array_ptr<char> tmp;
-	  array_ptr<char> name :count(20);
-	  struct Node* next;
+  typedef struct {
+    int data;
+    array_ptr<char> name :count(20);
+    struct Node* next;
   }Node;
 
-//  Node n_err; //initializer required, error
+  Node n_err; // expected-error {{checked pointer member must have initializer}}
   Node n = { 0 };
 
- 
+
   typedef struct {
-	  struct Range r;
-	  Node center;
+    struct Range r;
+    Node center;
   }Circle;
 
-//  Circle C_err; //initializer required, error
+  Circle C_err; // expected-error {{checked pointer member must have initializer}}
   Circle C = { 0 };
 
   typedef struct {
-	  Circle Outer;
-	  Circle Inner;
+    Circle Outer;
+    Circle Inner;
   }Annulus;
 
-//  Annulus a_err;
+  Annulus a_err; // expected-error {{checked pointer member must have initializer}}
   Annulus a = { 0 };
 
-  //array of struct with array_ptr member with bounds
-  //Annulus anls_arr checked[100]; //initializer required, error
-  Annulus anls checked[100] = {0};
+  // array of struct with array_ptr member with bounds
+  Annulus anls_arr checked[100]; // expected-error {{checked pointer member must have initializer}}
+  Annulus anls checked[100] = { 0 };
+
+  // nested structs
+typedef struct NA {
+  int data;
+  struct NA *next;
+} NA;
 
 }
