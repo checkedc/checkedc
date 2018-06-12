@@ -288,7 +288,7 @@ int func21(void) {
   checked {
     int a = 5;
     ptr<int> pa = &a;
-	int b checked[5][5];
+    int b checked[5][5];
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] = -1;
@@ -319,7 +319,7 @@ int func23(void) checked {
   {
     int b[5][5];    // expected-error {{local variable in a checked scope must have a checked type}}
   {
-	int c checked[5][5];
+    int c checked[5][5];
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] += c[i][j];
@@ -391,7 +391,7 @@ int func29(void) {
         short e[10];  // expected-error {{member in a checked scope must have a checked type}}
         int *f : itype(ptr<int>);
         char *g : itype(array_ptr<char>);
-	  } a = {0};
+      } a = {0};
     }
   }
 }
@@ -469,7 +469,7 @@ int * func43(void) unchecked {
       unchecked {
         int b[5][5];
         checked {
-		  int c checked[5][5];
+          int c checked[5][5];
           for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
               b[i][j] += c[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -494,7 +494,7 @@ checked int * func44(void) unchecked {  // expected-error {{return in a checked 
   unchecked {
     int b[5][5];
     checked {
-	  int c checked[5][5];
+      int c checked[5][5];
       int d[5][5];  // expected-error {{local variable in a checked scope must have a checked type}}
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
@@ -565,7 +565,7 @@ int func49(void) {
         char f[10];   // expected-error {{member in a checked scope must have a checked type}}
         int *g : itype(ptr<int>);
         char *h : itype(array_ptr<char>);
-	  } a = {0};
+      } a = {0};
       struct s1 unchecked {
         int *a;
         char *b;
@@ -576,7 +576,7 @@ int func49(void) {
         char f[10];
         int *g : itype(ptr<int>);
         char *h : itype(array_ptr<char>);
-	  } b;           // expected-error {{checked pointer member must have initializer}}
+      } b; // expected-error {{checked pointer member must have initializer}}
 
     }
   }
@@ -605,7 +605,7 @@ unchecked int * func51(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s : 
     *s = 4;
     unchecked {
       ptr<int> pa = &a;
-	  int b checked[5][5];
+      int b checked[5][5];
       for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 5; j++) {
           b[i][j] = *p + *q +  *s;
@@ -642,7 +642,7 @@ unchecked int * func53(void) unchecked {
       unchecked {
         int b[5][5];
         checked {
-		  int c checked[5][5];
+          int c checked[5][5];
           for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
               b[i][j] += c[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -667,8 +667,8 @@ unchecked int * func54(void) unchecked {
   unchecked {
     int b[5][5];
     checked {
-	  int c checked[5][5];
-    int d[5][5];  // expected-error {{local variable in a checked scope must have a checked type}}
+      int c checked[5][5];
+      int d[5][5];  // expected-error {{local variable in a checked scope must have a checked type}}
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] += c[i][j] - d[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -745,7 +745,7 @@ unchecked int func59(void) {
         int len;
         short e[10];  // expected-error {{member in a checked scope must have a checked type}}
         char f[10];   // expected-error {{member in a checked scope must have a checked type}}
-	  } a = {0};
+      } a = {0};
       struct s1 unchecked {
         int *a;
         char *b;
@@ -754,7 +754,7 @@ unchecked int func59(void) {
         int len;
         short e[10];
         char f[10];
-	  } b;             // expected-error {{checked pointer member must have initializer}}
+      } b; // expected-error {{checked pointer member must have initializer}}
 
     }
   }
@@ -803,7 +803,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st0->pd) + *(st1->pd);
   sum += *(st0->e) + *(st1->e);   // expected-error {{expression has unknown bounds}}
 
-  struct s2 sta;                  // expected-error {{checked pointer member must have initializer}}
+  struct s2 sta; // expected-error {{checked pointer member must have initializer}}
   ptr<struct s2> pstb = 0;
   sum += *(sta.a) + *(sta.b) + *(sta.pc) + *(sta.pd); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
   sum += *(sta.e);

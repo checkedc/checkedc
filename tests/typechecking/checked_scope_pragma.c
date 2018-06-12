@@ -244,7 +244,7 @@ int * checked_func_uc(void) : itype(array_ptr<int>) unchecked {
   int *upa = &a;
   int b[5][5];
   checked {
-	int c checked[5][5];
+    int c checked[5][5];
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         b[i][j] += c[i][j];   // expected-error {{local variable used in a checked scope must have a checked type}}
@@ -529,12 +529,12 @@ int checked_func_with_checked_struct(void) {
     short e[10];  // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     char f[10];   // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     int len;
-  } a = {0};
+  } a; // expected-error {{checked pointer member must have initializer}}
   return 0;
 }
 
 int checked_func_with_unchecked_struct(void) {
-	struct local_unchecked_s {
+  struct local_unchecked_s {
 #pragma CHECKED_SCOPE OFF
     int *a;
     char *b;
@@ -543,7 +543,7 @@ int checked_func_with_unchecked_struct(void) {
     short e[10];
     char f[10];
     int len;
-	} a;     // expected-error {{checked pointer member must have initializer}}
+  } a; // expected-error {{checked pointer member must have initializer}}
   typedef struct _S {
 #pragma CHECKED_SCOPE ON
     int *a; // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
