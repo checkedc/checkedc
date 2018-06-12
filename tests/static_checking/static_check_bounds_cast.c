@@ -76,8 +76,8 @@ checked int *f5(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s: count(2)
     *q = 2;
     *(_Dynamic_bounds_cast<ptr<int>>(r, count(1))) = 3; // expected-error{{expected _Array_ptr type}}
     *s = 4;
-    unchecked {
-	  int b checked[5][5] = {0};
+    unchecked{
+      int b checked[5][5] = {0};
       for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 5; j++) {
           b[i][j] += *q + *(_Dynamic_bounds_cast<array_ptr<int>>(r, count(1))); // expected-error {{expression has unknown bounds}}
