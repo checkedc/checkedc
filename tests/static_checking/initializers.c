@@ -166,8 +166,8 @@ void f6(void) {
   ptr<int> data checked[10] = { 0 };  // initializer for array required.
   struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
 
-  struct VariableBuffer buf_missing_init;  // expected-error {{checked pointer member must have initializer}}
-  ptr<int> data_missing_init checked[10];  // expected-error {{checked pointer member must have initializer}}
+  struct VariableBuffer buf_missing_init;  // expected-error {{containing a checked pointer must have an initializer}}
+  ptr<int> data_missing_init checked[10];  // expected-error {{elements containing checked pointers must have an initializer}}
   
  // Check { 0 } initialization idiom where first member is a floating point number.
   struct FloatWithVariableBuffer {
@@ -182,7 +182,7 @@ void f6(void) {
   // array with/without initializers
   ptr<int> data_with_init checked[10] = { 0 };  	  // initialized, pass.
 
-  ptr<char> data_no_init checked[20];             // expected-error {{checked pointer member must have initializer}}
+  ptr<char> data_no_init checked[20];             // expected-error {{elements containing checked pointers must have an initializer}}
 
   struct has_uninitialized_ptr_member {
     int x;
@@ -202,7 +202,7 @@ void f6(void) {
   struct checked_value_no_bounds uninit_S2; // no bounds; initializer not required, should pass
 
   ptr<struct checked_value_no_bounds> arr_init   checked[20] = { 0 }; // initialized arry, should pass
-  ptr<struct checked_value_no_bounds> arr_uninit checked[20]; // expected-error {{checked pointer member must have initializer}}
+  ptr<struct checked_value_no_bounds> arr_uninit checked[20]; // expected-error {{elements containing checked pointers must have an initializer}}
 
   struct checked_value_has_bounds {
     int x;
@@ -212,14 +212,14 @@ void f6(void) {
   };
 
   struct checked_value_has_bounds init_S3 = { 0 }; // has bounds; initializer required and we did, should pass
-  struct checked_value_has_bounds uninit_S3; // expected-error {{checked pointer member must have initializer}}
+  struct checked_value_has_bounds uninit_S3; // expected-error {{containing a checked pointer must have an initializer}}
 
   struct struct_with_checked_field_has_bounds {
     int x;
     struct checked_value_has_bounds s;
   };
   struct struct_with_checked_field_has_bounds init_nested_S = { 0 }; // has bounds, initializer required and we did, should pass
-  struct struct_with_checked_field_has_bounds uninit_nested_S; // expected-error {{checked pointer member must have initializer}}
+  struct struct_with_checked_field_has_bounds uninit_nested_S; // expected-error {{containing a checked pointer must have an initializer}}
 
   union u_checked_value_no_bounds {
     int x;
@@ -237,7 +237,7 @@ void f6(void) {
     float y;
   };
   union u_checked_value_has_bounds init_U2 = { 0 }; // has bounds; initializer required and we did, should pass
-  union u_checked_value_has_bounds uninit_U2; // expected-error {{checked pointer member must have initializer}}
+  union u_checked_value_has_bounds uninit_U2; // expected-error {{containing a checked pointer must have an initializer}}
 
 
   struct struct_with_checked_union_field_has_bounds {
@@ -245,7 +245,7 @@ void f6(void) {
     union u_checked_value_has_bounds u;
   };
   struct struct_with_checked_union_field_has_bounds init_SU = { 0 }; // has bounds, initializer required and we did, should pass
-  struct struct_with_checked_union_field_has_bounds uninit_SU; // expected-error {{checked pointer member must have initializer}}
+  struct struct_with_checked_union_field_has_bounds uninit_SU; // expected-error {{containing a checked pointer must have an initializer}}
 
 
   typedef struct {
@@ -254,7 +254,7 @@ void f6(void) {
     struct Node* next;
   }Node;
 
-  Node n_err; // expected-error {{checked pointer member must have initializer}}
+  Node n_err; // expected-error {{containing a checked pointer must have an initializer}}
   Node n = { 0 };
 
 
@@ -263,7 +263,7 @@ void f6(void) {
     Node center;
   }Circle;
 
-  Circle C_err; // expected-error {{checked pointer member must have initializer}}
+  Circle C_err; // expected-error {{containing a checked pointer must have an initializer}}
   Circle C = { 0 };
 
   typedef struct {
@@ -271,11 +271,11 @@ void f6(void) {
     Circle Inner;
   }Annulus;
 
-  Annulus a_err; // expected-error {{checked pointer member must have initializer}}
+  Annulus a_err; // expected-error {{containing a checked pointer must have an initializer}}
   Annulus a = { 0 };
 
   // array of struct with array_ptr member with bounds
-  Annulus anls_arr checked[100]; // expected-error {{checked pointer member must have initializer}}
+  Annulus anls_arr checked[100]; // expected-error {{elements containing checked pointers must have an initializer}}
   Annulus anls checked[100] = { 0 };
 
   // nested structs

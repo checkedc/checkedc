@@ -576,7 +576,7 @@ int func49(void) {
         char f[10];
         int *g : itype(ptr<int>);
         char *h : itype(array_ptr<char>);
-      } b; // expected-error {{checked pointer member must have initializer}}
+      } b; // expected-error {{containing a checked pointer must have an initializer}}
 
     }
   }
@@ -754,7 +754,7 @@ unchecked int func59(void) {
         int len;
         short e[10];
         char f[10];
-      } b; // expected-error {{checked pointer member must have initializer}}
+      } b; // expected-error {{containing a checked pointer must have an initializer}}
 
     }
   }
@@ -803,7 +803,7 @@ checked int func60(ptr<struct s0> st0, ptr<struct s1> st1) {
   sum += *(st0->pd) + *(st1->pd);
   sum += *(st0->e) + *(st1->e);   // expected-error {{expression has unknown bounds}}
 
-  struct s2 sta; // expected-error {{checked pointer member must have initializer}}
+  struct s2 sta; // expected-error {{containing a checked pointer must have an initializer}}
   ptr<struct s2> pstb = 0;
   sum += *(sta.a) + *(sta.b) + *(sta.pc) + *(sta.pd); // expected-error 2 {{member used in a checked scope must have a checked type or a bounds-safe interface}}
   sum += *(sta.e);
