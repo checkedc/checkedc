@@ -189,7 +189,7 @@ void f6(void) {
     ptr<int> uninitialized_ptr_member;
     float y;
   };
-  struct has_uninitialized_ptr_member uninit_S;     // initializer not required, pass
+  struct has_uninitialized_ptr_member uninit_S;   // expected-error {{containing a checked pointer must have an initializer}}
 
   struct checked_value_no_bounds {
     int x;
