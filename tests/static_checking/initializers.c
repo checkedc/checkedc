@@ -276,7 +276,7 @@ void f6(void) {
 
   // array of struct with array_ptr member with bounds
   Annulus anls_arr checked[100]; // expected-error {{elements containing checked pointers must have an initializer}}
-  Annulus anls checked[100] = { 0 };
+  Annulus anls checked[100] = {0};
 
   // nested structs
 typedef struct NA {
@@ -284,4 +284,78 @@ typedef struct NA {
   struct NA *next;
 } NA;
 
+}
+
+void f7() {
+  int a;
+  float b;
+  // integer with a bounds expression must have an initializer 
+  int x : count(5); // expected-error {{with a bounds expression must have an initializer}} expected-error {{have a pointer or array type}}
+  int y : count(6) = 0; // expected-error {{have a pointer or array type}}
+}
+
+// integer with bounds expression needs to be checked
+void f8 (void) {
+
+  typedef struct {
+    int a;
+    int b : count(10);  // expected-error {{have a pointer or array type}} 
+  }S;
+  
+  S s1; // expected-error {{containing a checked pointer must have an initializer}}
+
+  typedef struct {
+    int aa;
+    float ff;
+    S s;
+  }SS;
+  SS ss; // expected-error {{containing a checked pointer must have an initializer}}
+
+  typedef struct {
+    int aaa;
+    float fff;
+    SS ss;
+  }SSS;
+  SSS sss; // expected-error {{containing a checked pointer must have an initializer}}
+}
+
+// An unchecked pointer with a bounds expression in a checked scope must have an initializer
+// TODO: remove the restriction to allow local variables with unchecked pointer type to be declared
+void f9 (void) checked {
+  int a;
+  float b;
+  int* p : count(1) = &a; // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
+  char* s : count(10); // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
+}
+
+// test unchecked pointer with bounds expression, in a checked scope
+void f10 (void) checked {
+  char* p : count(5); // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
+}
+
+// For unchecked_pointer_with_bounds_expr_in_checked_scope, we need to consider struct also
+void f11 (void) checked {
+  int a;
+  int* p : count(5); // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
+  void* src : count(10);  // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
+
+   //a struct with unchecked pointers with bounds exprs in a checked scope
+  typedef struct {
+    int x;
+    int* p : count(1);
+    char* cp : count(5);
+  }S;
+  S s1; // expected-error {{containing an unchecked pointer with a bounds expression must have an initializer}}
+  
+  typedef struct {
+    int x;
+    S s; // contains an unchecked pointer with bounds expr
+  }SS;
+  SS ss; // expected-error {{containing an unchecked pointer with a bounds expression must have an initializer}}
+
+  typedef struct {
+    int x;
+    SS ss;
+  }SSS;
+  SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression must have an initializer}} 
 }
