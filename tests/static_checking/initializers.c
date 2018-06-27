@@ -198,7 +198,7 @@ void f6(void) {
     float y;
   };
 
-  struct checked_value_no_bounds init_S2 = { 0 }; // no bounds; initializer not required, should pass
+  struct checked_value_no_bounds init_S2; // no bounds; initializer not required, should pass
   struct checked_value_no_bounds uninit_S2; // no bounds; initializer not required, should pass
 
   ptr<struct checked_value_no_bounds> arr_init   checked[20] = { 0 }; // initialized arry, should pass
@@ -206,8 +206,8 @@ void f6(void) {
 
   struct checked_value_has_bounds {
     int x;
-    array_ptr<char> lower :count(5);
-    array_ptr<char> upper :count(5);
+    array_ptr<char> lower : count(5);
+    array_ptr<char> upper : count(5);
     float y;
   };
 
@@ -227,13 +227,13 @@ void f6(void) {
     array_ptr<int> upper;
     float y;
   };
-  union u_checked_value_no_bounds init_U = { 0 }; // no bounds; initializer not required, should pass
+  union u_checked_value_no_bounds init_U; // no bounds; initializer not required, should pass
   union u_checked_value_no_bounds uninit_U; // no bounds; initializer not required, should pass
 
   union u_checked_value_has_bounds {
     int x;
-    array_ptr<char> lower :count(5);
-    array_ptr<char> upper :count(5);
+    array_ptr<char> lower : count(5);
+    array_ptr<char> upper : count(5);
     float y;
   };
   union u_checked_value_has_bounds init_U2 = { 0 }; // has bounds; initializer required and we did, should pass
@@ -250,9 +250,9 @@ void f6(void) {
 
   typedef struct {
     int data;
-    array_ptr<char> name :count(20);
+    array_ptr<char> name : count(20);
     struct Node* next;
-  }Node;
+  } Node;
 
   Node n_err; // expected-error {{containing a checked pointer must have an initializer}}
   Node n = { 0 };
@@ -261,7 +261,7 @@ void f6(void) {
   typedef struct {
     struct Range r;
     Node center;
-  }Circle;
+  } Circle;
 
   Circle C_err; // expected-error {{containing a checked pointer must have an initializer}}
   Circle C = { 0 };
@@ -269,7 +269,7 @@ void f6(void) {
   typedef struct {
     Circle Outer;
     Circle Inner;
-  }Annulus;
+  } Annulus;
 
   Annulus a_err; // expected-error {{containing a checked pointer must have an initializer}}
   Annulus a = { 0 };
@@ -296,26 +296,38 @@ void f7() {
 
 // integer with bounds expression needs to be checked
 void f8 (void) {
+  // for bounds expr kind like "bounds((array_ptr) i, (array_ptr) i + 10)"
+  typedef struct {
+    int a;
+    int b : bounds( (array_ptr<int>) b, (array_ptr<int>) b + 10); // expected-warning 2 {{cast to '_Array_ptr<int>' from smaller integer type 'int'}}
+  } S0;
+  S0 s0; // expected-error {{containing a checked pointer must have an initializer}}
 
   typedef struct {
     int a;
+    S0 s;
+  } SS0;
+  SS0 ss0; // expected-error {{containing a checked pointer must have an initializer}}
+
+  // for bounds expr kind like "int i : count(len)"
+  typedef struct {
+    int a;
     int b : count(10);  // expected-error {{have a pointer or array type}} 
-  }S;
-  
+  } S;
   S s1; // expected-error {{containing a checked pointer must have an initializer}}
 
   typedef struct {
     int aa;
     float ff;
     S s;
-  }SS;
+  } SS;
   SS ss; // expected-error {{containing a checked pointer must have an initializer}}
 
   typedef struct {
     int aaa;
     float fff;
     SS ss;
-  }SSS;
+  } SSS;
   SSS sss; // expected-error {{containing a checked pointer must have an initializer}}
 }
 
@@ -344,18 +356,18 @@ void f11 (void) checked {
     int x;
     int* p : count(1);
     char* cp : count(5);
-  }S;
-  S s1; // expected-error {{containing an unchecked pointer with a bounds expression must have an initializer}}
+  } S;
+  S s1; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}}
   
   typedef struct {
     int x;
     S s; // contains an unchecked pointer with bounds expr
-  }SS;
-  SS ss; // expected-error {{containing an unchecked pointer with a bounds expression must have an initializer}}
+  } SS;
+  SS ss; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}}
 
   typedef struct {
     int x;
     SS ss;
-  }SSS;
-  SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression must have an initializer}} 
+  } SSS;
+  SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}} 
 }

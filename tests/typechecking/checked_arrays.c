@@ -241,7 +241,7 @@ extern void check_dimensions1(void) {
 ('dim_checked' is a checked array)}}
 
   // checked parenthesized declarators
-  int(t6 checked[10])[10];            // checked propagates to enclosing array declarators
+  int (t6 checked[10])[10];            // checked propagates to enclosing array declarators
   int(t7 checked[10])[5][5]checked[5]; // multiple checked modifiers are allowed
   int (t8[10])checked[10];             // expected-error {{unchecked array of checked array not allowed}}
   int ((t9[10]))checked[10];           // expected-error {{unchecked array of checked array not allowed}}

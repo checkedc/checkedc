@@ -1701,17 +1701,3 @@ extern void test_function_pointer(void) checked {
   array_ptr<int> apa = &val0;
 }
 
-void unchecked_pointer_with_bounds_expr_in_checked_scope(void) checked {
-  int a;
-  float b;
-  int* p : count(1) = &a; // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
-  int* q : bounds(p, p+5); 
-  char* s : count(10); // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
- // An unchecked pointer in a checked scope with a bounds expression must be initialized
-}
-
-//#pragma CHECKED_SCOPE ON
-
-void test_unchecked_pointer_in_checked_scope(void) checked {
-  char* p : count(5); // expected-error {{bounds declaration not allowed for local variable with unchecked pointer type}}
-}
