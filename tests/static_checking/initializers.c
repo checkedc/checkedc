@@ -301,34 +301,34 @@ void f8 (void) {
     int a;
     int b : bounds( (array_ptr<int>) b, (array_ptr<int>) b + 10); // expected-warning 2 {{cast to '_Array_ptr<int>' from smaller integer type 'int'}}
   } S0;
-  S0 s0; // expected-error {{containing a checked pointer must have an initializer}}
+  S0 s0; // expected-error {{containing an int variable with a bounds expression must have an initializer}}
 
   typedef struct {
     int a;
     S0 s;
   } SS0;
-  SS0 ss0; // expected-error {{containing a checked pointer must have an initializer}}
+  SS0 ss0; // expected-error {{containing an int variable with a bounds expression must have an initializer}}
 
   // for bounds expr kind like "int i : count(len)"
   typedef struct {
     int a;
     int b : count(10);  // expected-error {{have a pointer or array type}} 
   } S;
-  S s1; // expected-error {{containing a checked pointer must have an initializer}}
+  S s1; // expected-error {{containing an int variable with a bounds expression must have an initializer}}
 
   typedef struct {
     int aa;
     float ff;
     S s;
   } SS;
-  SS ss; // expected-error {{containing a checked pointer must have an initializer}}
+  SS ss; // expected-error {{containing an int variable with a bounds expression must have an initializer}}
 
   typedef struct {
     int aaa;
     float fff;
     SS ss;
   } SSS;
-  SSS sss; // expected-error {{containing a checked pointer must have an initializer}}
+  SSS sss; // expected-error {{containing an int variable with a bounds expression must have an initializer}}
 }
 
 // An unchecked pointer with a bounds expression in a checked scope must have an initializer
