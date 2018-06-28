@@ -357,7 +357,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   --(*t3);
 
   // operations involving struct members
-  struct S2 s;
+  struct S2 s = {0};
   s.f1 = t1;
   s.f1 = t2;
   s.f1 = t3;

@@ -85,8 +85,8 @@ extern void f6(int *arr checked[] : count(5)) {
   int((*arr1 checked[5])(int, int)) : bounds(arr, arr + len) rel_align(char);
   int((*arr2 checked[5])(int, int)) : bounds(arr2, arr2 + len) rel_align_value(len); // expected-error {{expression is not an integer constant expression}} 
 
-  ptr<int(int, int)> arr3 checked[5] : bounds(arr3, arr3 + 5) rel_align(char);
-  ptr<int(int, int)> arr4 checked[5] : bounds(arr4, arr4 + 5) rel_align_value(sizeof(char));
+  ptr<int(int, int)> arr3 checked[5] : bounds(arr3, arr3 + 5) rel_align(char) = {0};
+  ptr<int(int, int)> arr4 checked[5] : bounds(arr4, arr4 + 5) rel_align_value(sizeof(char)) = {0};
 
   array_ptr<ptr<int(int, int)>> v : bounds(v, v + 5) rel_align(char) = 0;
   array_ptr<ptr<int(int, int)>> w : bounds(v, v + 5) rel_align_value(sizeof(char)) = 0;

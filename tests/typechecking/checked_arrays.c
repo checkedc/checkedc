@@ -245,7 +245,7 @@ extern void check_dimensions1(void) {
   int(t7 checked[10])[5][5]checked[5]; // multiple checked modifiers are allowed
   int (t8[10])checked[10];             // expected-error {{unchecked array of checked array not allowed}}
   int ((t9[10]))checked[10];           // expected-error {{unchecked array of checked array not allowed}}
-  dim_unchecked (t10 checked[10])[10]; // expected-error {{checked array of unchecked array not allowed \
+  dim_unchecked(t10 checked[10])[10]; // expected-error {{checked array of unchecked array not allowed \
 ('dim_unchecked' is an unchecked array)}}
   dim_checked (t11[10])[10];           // expected-error {{unchecked array of checked array not allowed \
 ('dim_checked' is a checked array)}}

@@ -126,8 +126,8 @@ extern void f6(int *arr checked[] : count(5)) {
   int ((*arr5 checked[5])(int, int)) : count(len);
   int ((*arr6 checked[5])(int, int)) : bounds(arr5, arr5 + len);
   // Checked array of checked pointers to functions
-  ptr<int (int, int)> arr7 checked[5] : count(5);
-  ptr<int (int, int)> arr8 checked[5] : bounds(arr8, arr8 + 5);
+  ptr<int(int, int)> arr7 checked[5] : count(5) = {0};
+  ptr<int(int, int)> arr8 checked[5] : bounds(arr8, arr8 + 5) = {0};
   // Array_ptrs to checked pointers to functions.
   array_ptr<ptr<int (int, int)>> u : count(5) = 0;
   array_ptr<ptr<int (int, int)>> v : bounds(v, v + 5) = 0;

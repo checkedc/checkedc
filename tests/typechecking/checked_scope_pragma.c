@@ -529,7 +529,7 @@ int checked_func_with_checked_struct(void) {
     short e[10];  // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     char f[10];   // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
     int len;
-  } a;
+  } a; // expected-error {{containing a checked pointer must have an initializer}}
   return 0;
 }
 
@@ -543,7 +543,7 @@ int checked_func_with_unchecked_struct(void) {
     short e[10];
     char f[10];
     int len;
-  } a;
+  } a; // expected-error {{containing a checked pointer must have an initializer}}
   typedef struct _S {
 #pragma CHECKED_SCOPE ON
     int *a; // expected-error {{member in a checked scope must have a checked type or a bounds-safe interface}}
