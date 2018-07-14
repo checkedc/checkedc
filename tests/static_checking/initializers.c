@@ -36,10 +36,10 @@ char g4 checked[4] = "abc";
 int g5 checked[3] = { 0, 1, 2 };
 int g6 checked[2][2] = { { 0, 1 },{ 2, 3 } };
 
-char g20 nt_checked[] = "abc";
+char g20 nt_checked[] = "abc\0";
 int g21 nt_checked[] = { 0, 1, 2, 0 };
 char g22 checked[3]nt_checked[3] = { { 0, 1, 0}, { 1, 1, 0}, { 3, 1, 0 } };
-char g23 checked[3]nt_checked[4] = { "abc", "def", "fgh" };
+char g23 checked[3]nt_checked[4] = { "abc\0", "def\0", "fgh\0" };
 
 //
 // Checked pointers with initialized array literals
@@ -106,11 +106,11 @@ void f5(void) checked {
   int t5 checked[3] = { 0, 1, 2 };
   int t6 checked[2][2] = { { 0, 1 },{ 2, 3 } };
 
-  char t20 nt_checked[] = "abc";
+  char t20 nt_checked[] = "abc\0";
   int t21 nt_checked[] = { 0, 1, 2, 0 };
-  char t22 checked[3]nt_checked[3] = { { 0, 1, 0 },{ 1, 1, 0 },{ 3, 1, 0 } };
-  char t23 checked[3]nt_checked[4] = { "abc", "def", "fgh" };
-  char t24 checked[3]nt_checked[4] = { ("abc"), "def", ("fgh") };
+  char t22 checked[3]nt_checked[3] = { { 0, 1, 0 },{ 1, 1, 0 },{ 3, 1, 0 }};
+  char t23 checked[3]nt_checked[4] = { "abc\0", "def\0", "fgh\0" };
+  char t24 checked[3]nt_checked[4] = { ("abc\0"), "def\0", ("fgh\0") };
 
   //
   // Checked pointers with initialized array literals.
