@@ -17,8 +17,8 @@ static checking.  Uses include:
 API may provide a handle that is typed as \uncheckedptrvoid\ for 
 users the API, with the API implementation using a pointer to an actual
 type.
-\item As pointers to arrays of bytes.  This is encouraged by APIs such as \lstinline+memcpy+.
-\item In generic data structure or functions. For example, 
+\item As pointers to arrays of bytes.  This is done by APIs such as \lstinline+memcpy+.
+\item In generic data structures or functions. For example, 
 a program may have a data structure and functions for operating on lists. 
 The list may  have elements typed as \uncheckedptrvoid\ to allow the code
 to be used for many different types of list elements, 
@@ -34,18 +34,19 @@ with type-checked code that cannot cause type confusion.   These extensions
 are restricted so that code remains data-layout compatible and binary-code
 compatible with existing code.  We propose adding:
 \begin{itemize}
-\item Generic structs, functions, and type definitions:
-a struct or function is generic if it can be re-used for many types.  For example,
-we can re-use a generic structure for a  \lstinline+List+ for many different types of list
-elements.  Generic functions can implement generic list operations such as \lstinline+Append+.
-
-\item Opaque types: these are incomplete types with enough information to represent
+\item Opaque types: these allow different kinds of handles to be distinguished.
+They are incomplete types with enough information to represent
 the types, but nothing else.  They can be copied around and used, but the internal
 details remain unknown in the scope of the declaration.  No conversions to and 
 from opaque types are allowed.
 
+\item Generic structs, functions, and type definitions: these allow structs
+or functions to be re-used for many types.   For example,
+we can re-use a generic structure for a  \lstinline+List+ for many different types of list
+elements.  Generic functions can implement generic list operations such as \lstinline+Append+.
+
 \item Hidden types: these generalize opaque types to handle callbacks involving
-user-supplied data.  Hidden types allow us to package up a callback function and data and
+user-supplied data.  Hidden types allow programmers to package up a callback function and data and
 say that they use  some type \lstinline+T+ whose details are hidden from the code that does
 the callback.   Enough details about \lstinline+T+ are available that the callback can be 
 implemented in a type-safe fashion efficently.  Hidden types hide details of the type 
@@ -53,71 +54,94 @@ of user-supplied data, instead of erasing it like \uncheckedptrvoid{} does.
 \end{itemize}
 
 Generic structs and functions can be combined with the bounds-checking 
-to provide type-safe interfaces of functions that operate on arrays of bytes.
+to provide type-safe interfaces for functions that operate on arrays of bytes.
 Informally, bounds checking provides a way to guarantee that entire objects are handled,
-avoiding corruptions caused by operating only on partial objects.  Generic types
-can also be combined with opaque types to replace existing unsafe APIs with polymorphic
-equivalents.
+avoiding corruptions caused by operating only on partial objects.
 
-Generic structs, generic functions, and hidden types use type variables to represent
-unknown or partially-known types. Values with types given by type variables must
-have sizes in bytes equal to or smaller than the size in bytes of \lstinline+void *+. 
-Given a  type variable \lstinline+T+, \lstinline+sizeof(T) == sizeof(void *)+.  We 
-restrict the set of types to which generic structs and generic functions can be applied
-to  types whose sizes in bytes are less than or equal to the size in bytes 
-of \lstinline+void *+. For hidden types, only types whose sizes  in bytes are less than 
-or equal to the size in bytes of \lstinline+void *+ can be hidden.
-
-The C Definition is silent on calling conventions.  This means that C implementations
-are free to have calling conventions that depend on the type of a parameter.
-For example, floating-point arguments may be passed differently than integer 
-arguments.
-This can create problems for generic functions.  A generic
-function could be required to receive arguments differently or return
-values differently depending on their their types.  One solution for
-sovling this problem is to require cloning of code.  However, we wish to avoid
-that because it goes against C philosophy of providing low-level control.
-
-We assume instead that all C implementations that support Checked C pass and
-return all pointers the same way.  We also assume that integers whose sizes are less
-than or equal to pointer sizes are passed and returned the same way as pointers.  This
-is a pragmatic choice already supported by most C implementations.  If a generic
-function has an argument type or return type that has a type given by a type
-variable, it is implementation-defined whether that generic function applied to
-non-pointer and non-integer types can be converted to a non-generic function
-ponter type. If the calling conventions line up between the actual type for
-the type variable and pointers and integers, an implementation may allow this.
-
-We restrict the uses of type variables in Checked C to provide
-backward compatibility:
-\begin{itemize}
-\item Type variables cannot be used directly as the types of variables or members.
-This is so that the layout of stack frames and structures is known at compile-time 
-and efficent code can be generated.  For example, given a type variable \lstinline+T+, 
-a variable of \lstinline+T *+ can be declared, not a variable of \lstinline+T+.  
-\item If \lstinline+sizeof(T)+ is needed at runtime for pointer arithmetic,
-the programmer must supply its value.  A generic
-function that does pointer arithmetic on a \lstinline+T *+ must be passed 
-\lstinline+sizeof(T)+ as an additional argument.  We add a way to declare that
-a variable or member holds \lstinline+sizeof(T)+.
-This is in keeping with the low-level nature of C.
-In some approaches to generic code, the compiler adds runtime information behind the scenes 
-as additional data that is passed to a function. 
-\end{itemize}
-Code cloning is {\em not} needed to
-implement generic functions and structs in Checked C, unlike C++ templates.
-The Checked C extension of C continues to be a low-level language close
-to the hardware.
-
-\section{Language Extensions}
-This section explains the extensions to Checked C for 
-generic functions, generic structures, opaque types, and hidden types
-and provides examples that illustrate how the extensions can be used to
+Thre remaining sections of this chapter explain the extensions for 
+opaque types, generic functions, generic structures, and hidden types.  They also
+provide examples that illustrate how the extensions can be used to
 replace uses of \uncheckedptrvoid{}.
 
-\subsection{Generic functions}
+\section{Opaque types}
+
+We introduce the \keyword{type\_opaque} construct to declare 
+opaque types  The keyword \keyword{type\_opaque} can be used
+where the keyword \keyword{typedef} can be used:
+\begin{lstlisting}
+type_opaque void *ProcessHandle;
+type_opaque void *FileHandle;
+\end{lstlisting}
+It declares a new type given by the declared name.  
+Values of the new type are represented at runtime using the specified type.
+The new type, however, is distinct from the specified type and all other types.
+Conversions of values between this type and other types is not allowed, unless the actual
+implementation type is supplied.   
+
+The actual implementation type can be supplied using the \keyword{type\_impl}
+construct.   The keyword \keyword{type\_impl} can be used where the
+keyword \keyword{typedef} can be used:
+\begin{lstlisting}
+type_impl _Ptr<struct ProcessData> ProcessHandle;
+type_impl _Ptr<struct FileData> FileHandle;
+\end{lstlisting}
+This reveals the the actual type implementation in the current translation
+unit.  An opaque type declaration must precede the implementation type
+declaration.   It is an error for an opaque type with external linkage to have
+different representation or implementation types in the translation units that make up a
+program.
+
+It must be possible to convert the implementation type to the representation
+type and back to the implementation type without loss of information.  
+If the implementation type.  The rules for conversions as specified in
+the C specification are followed.
+
+Within the scope of type \keyword{type\_impl} declaration, we allow
+implicit conversions at assignments, function calls, and function returns
+between the implementation type and the opaque type.
+
+It is implementation-defined whether a pointer to a function type whose
+parameter or return value types are implementation types can be converted
+to a pointer to a function type whose parameter or return value types
+are the opaque type.  The calling convention must be the same for
+the implementation and representation type.
+In implementations where \lstinline+void *+ has the same representation
+as all other pointer types, these conversions would be allowed.
+
+\section{Generic functions}
 \label{sec:functions}
-We start with \lstinline+bsearch+, a C standard library function for binary
+
+When C programmers use \lstinline+void *+ pointer so that code
+can be re-used, they typically use it place of a pointer to some type \var{T}.
+In widely-used implementations of C, \lstiinline+void *+ pointers and regular
+pointers have the same representation and are passed the same way,
+although the C specification does not guarantee this.   Sometimes the code
+is re-used by casting integers toi \lstinline+void *+ pointers.
+
+Our goal in this design is to able to check these uses and ensure they
+do not cause type confusion.  We want to have single copies of generic
+functions and code that operates on generic data.  We want to avoid code cloning, 
+as is done in C++ templates.  Code cloning would violate two of our design
+principles: it would cause programmers to lose low-level control over code and
+also break binary compatibility.  We will restrict the usage of generic functions
+and structs to achieve this goal.   The primary restriction is that we want to have
+a uniform representation at runtime for generic data.  The data must fit in the
+space provided by the programmer and there are implementation-dependent
+restrictions on converting generic function pointers to other function pointer types,
+based on calling conventions.
+
+We begin with uses of \lstinline+void *+ to represent lstinline+T *+ pointers.
+The mechanism is simple: we introduce type variables to represent unknown types.
+These type variables will be treated as incomplete C types with an unknown
+representation (we will add a way to describe representations in a later
+section).   A generic function may be constructed by parameterizing a
+regular function over type variables.  The generic function may be applied
+to types to make it concrete again.  Only concrete functions can be called.
+A programmer may need to supply information at runtime about the size of T,
+so that pointer arithmetic may be done.
+
+We will illustrate these ideas by example, starting with \lstinline+bsearch+, 
+a C standard library function for binary
 searching an array of elements of some type \var{T}.  It
 takes a key that is a pointer to T, the array of elements, the number of elements of
 the array, the size of T, and a comparison function.  We provide the original declaration
@@ -166,7 +190,7 @@ To keep the example simple, we ignore that this function actually needs a
 bounds-safe interface.  We describe the bounds-safe interface in 
 Section~\ref{sec:bounds-safe-interfaces}.
 
-Other functions from the C standard library could be given generic types too:
+Other functions from the C standard library could be given generic function types too:
 \begin{lstlisting}
 // Generic versions (not correct)
 for_any(T) T *malloc(size_t size);
@@ -205,7 +229,55 @@ of the pointer could result in an invalid pointer.
 This is handled in the bounds-safe interface by requiring that the
 size be a multiple of the size of \lstinline+T+.
 
-\subsection{Generic structures}
+\subsection{Type variables with representation constraints}
+
+The code for \lstinline+bsearch+ can be re-used because \lstinline+bsearch+ is
+not making assumptions about the runtime representation of data with a type
+given by type variable \var+T+.  However, sometimes programmers do make assumptions 
+about the representation of T.  They may write a hash table that maps
+keys to pointers or integers.    A programmer may specify the representation type by
+adding a \it{representation} clause to the declaration of a type variable.  This
+is given by following the type variable with \lstlinine+: rep(+ \var{type name}\lstinline+)'+.
+For example, we may have an add function for hash table that maps integers to data:
+\begin{lstlisting}
+for_any (Data : rep(void *)) hash_add(struct HashTable<T> *table, int key, Data d);
+\end{lstlisting}
+The function \lstinline+hash\_add+ can only hold data that fits within a 
++lstline+void *| pointer.  When a type variable has a representation type specified, 
+there must be  a lossless conversion between the representation type and types supplied as
+a type argument for the type variable .  This is the same restriction placed on 
+representation vs. implementation types for opaque types.   In this example, on a
+32-bit architecture where \lstinline+int+ is the same size as +lstinline+void *+, 
+\lstinline+hash\_add+ could be applied to \lstinline+int+.  It could not be applied to
+to 64-bit integers:
+\begin{lstlisting}
+hash_add<int>(t, key, 314);            // allowed.
+hash_add<long long>(t, key, 314L); // not allowed.
+\end{lstlisting}
+The compiler will implicitly insert conversions to the type representation
+at calls to the generic function where the type of a parameter is given
+by a type variable.  It will insert conversions from the type representation
+when the return is given by a type variable.
+
+At uses other than as a call target, it is implementation-defined whether a pointer to a function type 
+created\ by applying a generic function to type arguments can be used where
+a pointer to a function type with the monomorphic type (the signature obtained
+by substituting the type arguments for the type variables) is expected.  If a type
+variable occurs as the type of a parameter or the return, the corresponding type argument
+must have the same calling convention as the type variable's representation
+type.   Non-generic and applied generic functions with the same function type
+need to agree on their calling conventions.
+
+As an example, floating-point types may have a different calling convention
+than integer or pointer types.  It makes sense for +hash\_add+ to allow
+hash tables that map keys to \keyword{float} values, if \keyword{float}
+values fit into a \keyword{void *}.  The compiler can insert appropriate 
+bitwise-conversions at calls and returns.   However, \lstinline+hash\_add<float>+
+is not interchangable with a function \lstinline+f(struct HashTable<T> *table, int key, float f)+.
+\lstinline+hash\_add+ expected its argument is expected to be passed the same that \lstinline+void *+ 
+is passed.
+
+\section{Generic structures}
 We use the example of a generic \lstinline+List+ structure.   In the case of structs,
 the \forany{} clause comes after the tag name of the structure.  
 Section~\ref{section:foranyalternatives} explains why the \forany{} clauses 
@@ -229,11 +301,9 @@ for_any(T) len(List<T> *head) {
 \end{lstlisting}
 Within the declaration of \lstinline+List+, we do not allow polymorphic recursion.
 
-\subsection{Opaque types}
+\section{Hidden types}
 
-\subsection{Hidden types}
-
-\subsection{Bounds-safe interfaces}
+\section{Bounds-safe interfaces}
 \label{sec:bounds-safe-interfaces}
 Checked C has the concept of bounds-safe interfaces, which allow programmers
 to describe the behavior of existing functions with respect to bounds.  Bounds-safe
