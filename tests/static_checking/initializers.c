@@ -371,3 +371,31 @@ void f11 (void) checked {
   } SSS;
   SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}} 
 }
+
+// Test if NT_CHECKED array initializers are null terminated
+void f12 (void) {
+  struct EmployeeNTChecker {
+    int age;
+    char name nt_checked[20];
+  };
+
+  struct EmployeeManagerNTChecker {
+    struct EmployeeNTChecker emp;
+    struct EmployeeNTChecker manager;
+  };
+
+  struct NumberListNTChecker {
+    int integer_list nt_checked[5];
+  };
+
+  typedef struct {
+      int integer_list nt_checked[5];
+  } ListChecker;
+  char string_literal_initializer nt_checked[] = "abcde\0";
+  char string_literal_initializer_with_braces nt_checked[] = {"abcde\0"};
+  struct EmployeeNTChecker struct_field_nt_check = {32, {"John\0"}};
+  int integer_array_checker nt_checked[] = {1, 2, 3, 4, 0};
+  struct EmployeeManagerNTChecker team =   {{32, {"John\0"}}, {32, {"Matt\0"}}};
+  struct NumberListNTChecker list1 = {{1,2,3,0}};
+  ListChecker list2 = {{1,2,3,4,0}};
+}
