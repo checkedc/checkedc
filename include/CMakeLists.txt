@@ -18,6 +18,7 @@ set(files
   string_checked.h
   threads_checked.h
   time_checked.h
+  unistd_checked.h
   _builtin_stdio_checked.h
   _builtin_string_checked.h
   _builtin_common.h
