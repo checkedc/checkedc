@@ -64,10 +64,13 @@
                count,
                dynamic_bounds_cast, _Dynamic_bounds_cast,
                dynamic_check, _Dynamic_check,
+               for_any, _For_any, 
                nt_array_ptr, _Nt_array_ptr,
-               nt_checked, _Nt_checked,               
+               nt_checked, _Nt_checked,
+               opaque, _Opaque,
                ptr,_Ptr,
                rel_align, rel_align_value,
+               reveal, _Reveal,
                unchecked,_Unchecked,
                where, _Where},
  moredelim=[is][\it \color{purple}]{|-}{-|}
@@ -180,15 +183,15 @@
 \begin{titlepage}
 {\center
 \mbox{ }\\
-\vspace{2in}
-{\huge Extending C with bounds safety \par}
+\vspace{1in}
+{\huge Extending C with bounds safety and better type safety\par}
 %{Version 0.7.1 (June 8, 2018) \par}
 {Version 0.8 - Draft as of \today \par}
-\vspace{0.5in}
-{Checked C Technical Report Number 1 \par}
 \vspace{0.25in}
+{Checked C Technical Report Number 1 \par}
+\vspace{0.125in}
 {Author: David Tarditi, Microsoft\par} 
-\vspace{1in}
+\vspace{0.5in}
 {\it Summary \par}
 \input{abstract}
 }
