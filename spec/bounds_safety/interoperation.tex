@@ -1038,7 +1038,7 @@ pointer-typed expressions will need to have valid bounds.
 
 \section{Bounds-safe interfaces for generic functions and struct types}
 \label{sec:generic-bounds-safe-interfaces}
-This section describe how to provide bounds-safe interface for existing functions
+This section describe how to provide bounds-safe interfaces for existing functions
 that are actually generic.   It extends the examples in Section~\ref{sec:generic-functions}.
 
 Here is the existing bounds-safe interface for \lstinline+bsearch+. 
@@ -1053,38 +1053,76 @@ void *bsearch(const void *key : byte_count(size),
                 itype(ptr<int(ptr<const void>, ptr<const void>)>)) :
                 byte_count(size);
 \end{lstlisting}
-Here is a version of \lstinline+bsearch+ with a generic bounds-safe interface:
+To declare that a bounds-safe interface for a function that is generic, we precede
+the function declaration with an \lstinline+itype(for_any(...))+ clause.
+Here is a version of \lstinline+bsearch+ modified this way:
 \begin{lstlisting}
 // Generic Checked C version
-itype(for_any(T)) 
-void *bsearch(const void *key : itype(ptr<T>),
-              const void *base : itype(array_ptr<T>) && byte_count(nmemb * size)),
+itype(for_any(T))
+void *bsearch(const void *key : itype(ptr<const T>),
+              const void *base : itype(array_ptr<const T>) byte_count(nmemb * size),
               size_t nmemb, size_t size,
               int ((*compar)(const void *, const void *)) :
-              itype(ptr<int (ptr<const T>, ptr<const T>)>)) : ptr<T>;
+              itype(ptr<int (ptr<const T>, ptr<const T>)>)) : itype(ptr<T>);
 \end{lstlisting}
-The \lstinline+itype(for_any(T))+ indicates that the bounds-safe interface for
-the function is generic.  The type variable \lstinline+T+ is available in the
+The \lstinline+itype(for_any(T))+ indicates that \lstinline+bsearch+ has a generic
+bounds-safe interface.   The type variable \lstinline+T+ is available in the
 bounds-safe interface declarations for parameters and return values.  The parameter 
-\lstinline+base+ has both a new type and a bounds declaration.
+\lstinline+base+ has both an itype and a bounds declaration.
 
 Here are bounds safe-interfaces for other C standard library
 functions:
 \begin{lstlisting}
-itype(for_any(T)) void *malloc(size_t) : 
+itype(for_any(T)) void *malloc(size_t) :
                     itype(array_ptr<T>) byte_count(size)
 
-itype(for_any(T)) void *calloc(size_t nmemb, size_t size : sizeof(T)) : 
-                    itype(array_ptr<T>) && byte_count(nmemb * size);
+itype(for_any(T)) void *calloc(size_t nmemb, size_t size : sizeof(T)) :
+                    itype(array_ptr<T>) byte_count(nmemb * size);
 
 itype(for_any(T)) void free(void *pointer itype(array_ptr<T>) count(1));
 
-itype(for_any(T)) void *memcpy(void * restrict dest : 
+itype(for_any(T)) void *memcpy(void * restrict dest :
                                  itype(array_ptr<T>) byte_count(n),
-                               const void *T src : 
-                                 itype(array_ptr<T>) byte_count(n), 
+                               const void *T src :
+                                 itype(array_ptr<T>) byte_count(n),
                                size_t n where n % sizeof(T) == 0) :
-                           itype(array_ptr<T>) byte_count(n);
+                                 itype(array_ptr<T>) byte_count(n);
+\end{lstlisting}
+
+The bounds-safe interfaces act as follows.  When a function 
+is applied to type arguments, the type arguments are substituted
+for the type variables to construct the concrete function type.
+For parameters and returns that have bounds-safe interfaces, the
+bounds-safe interfaces are used for their types.
+
+When a function with a generic bounds-safe interface is not
+applied to type variables, the type variable is ignored and any
+interface types that use type variables are discarded.
+
+Consider as an example \lstinline+bsearch<int>+.  First a concrete
+function type is constructed:
+\begin{lstlisting}
+void *(const void *key : itype(ptr<const int>),
+       const void *base : itype(array_ptr<const int>) byte_count(nmemb * size)),
+       size_t nmemb, size_t size,
+       int ((*compar)(const void *, const void *)) :
+           itype(ptr<int (ptr<const int>, ptr<const int>)>)) : itype(ptr<int>);
+\end{lstlisting}
+Then, bounds-safe interfaces for parameters and returns are used as
+their types:
+\begin{lstlisting}
+ptr<int> (ptr<const int> key,
+               array_ptr<int> base : byte_count(nmemb * size),
+              size_t nmemb, size_t size,
+              ptr<int (ptr<const int>, ptr<const int>)> compar);
+\end{lstlisting}
+Now, suppose \lstinline+bsearch+ is called without applying it to type variables.
+In that case, any itypes that use type variable are discarded:
+\begin{lstlisting}-
+void *(const void *key,
+         const void *base : byte_count(nmemb * size),
+         size_t nmemb, size_t size,
+         int ((*compar)(const void *, const void *)));
 \end{lstlisting}
 
 \section{Conversions between pointers and integers}
