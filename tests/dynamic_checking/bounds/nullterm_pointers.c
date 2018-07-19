@@ -92,7 +92,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     return EXIT_FAILURE;
   }
 
-  char data1 nt_checked[6] = "abcde\0";
+  char data1 nt_checked[6] = "abcde";
   char data2 checked[6] = "abcde";
   struct CountedNullTermString nullterm = { data1, 5 };
   struct CountedString plain = { data2, 5 };
@@ -195,7 +195,7 @@ int test2(void) {
 // Write a non-zero character at the upper bound of a string.  This
 // should cause a runtime fault.
 void test3(void) {
-  char data nt_checked[6] = "hello\0";
+  char data nt_checked[6] = "hello";
   nt_array_ptr<char> s : count(0) = data;
   while (*s) {
     *s = 'd';
@@ -219,7 +219,7 @@ void test4(void) {
 // Write a zero character at the upper bound of a string.  This should
 // not cause a runtime fault.
 void test5(void) {
-  char data nt_checked[6] = "hello\0";
+  char data nt_checked[6] = "hello";
   nt_array_ptr<char> s : count(5) = data;
   s[5] = 0;
   // NO-BOUNDS-FAILURES-2: wrote nul at the upper bound of a string
@@ -243,7 +243,7 @@ void test6(void) {
 // Write 0 at memory location one past the upper bound of a string.
 // Expected to cause a runtime fault.
 void test7(void) {
-  char data nt_checked[6] = "hello\0";
+  char data nt_checked[6] = "hello";
   array_ptr<char> s : count(5) = data;
   char result = 0;
   s[5 + 1] = result;
@@ -267,7 +267,7 @@ void test8(void) {
 // Write 0 exactly at upper bound of a range for a null-terminated pointer,
 // when the lower bound == the upper bound.  Expected to succeed.
 void test9(void) {
-  char data nt_checked[6] = "hello\0";
+  char data nt_checked[6] = "hello";
   nt_array_ptr<char> s : bounds(data + 5, data + 5) = data;
   s[5] = 0;
   // NO-BOUNDS-FAILURES-3: expected write at range with lower == upper to succeed
@@ -279,7 +279,7 @@ void test9(void) {
 // Write 0 at the upper bound of a range for a null-terminated pointer,  where
 // the lower bound is above the upper bound.  Expected to cause a runtime fault.
 void test10(void) {
-  char data nt_checked[6] = "hello\0";
+  char data nt_checked[6] = "hello";
   nt_array_ptr<char> s : bounds(data + 6, data + 5) = data;
   s[6] = 0;
   // CHECK-NOT: expected bounds failure on write

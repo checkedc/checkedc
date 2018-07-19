@@ -36,10 +36,10 @@ char g4 checked[4] = "abc";
 int g5 checked[3] = { 0, 1, 2 };
 int g6 checked[2][2] = { { 0, 1 },{ 2, 3 } };
 
-char g20 nt_checked[] = "abc\0";
+char g20 nt_checked[] = "abc";
 int g21 nt_checked[] = { 0, 1, 2, 0 };
 char g22 checked[3]nt_checked[3] = { { 0, 1, 0}, { 1, 1, 0}, { 3, 1, 0 } };
-char g23 checked[3]nt_checked[4] = { "abc\0", "def\0", "fgh\0" };
+char g23 checked[3]nt_checked[4] = { "abc", "def", "fgh" };
 
 //
 // Checked pointers with initialized array literals
@@ -106,11 +106,11 @@ void f5(void) checked {
   int t5 checked[3] = { 0, 1, 2 };
   int t6 checked[2][2] = { { 0, 1 },{ 2, 3 } };
 
-  char t20 nt_checked[] = "abc\0";
+  char t20 nt_checked[] = "abc";
   int t21 nt_checked[] = { 0, 1, 2, 0 };
-  char t22 checked[3]nt_checked[3] = { { 0, 1, 0 },{ 1, 1, 0 },{ 3, 1, 0 }};
-  char t23 checked[3]nt_checked[4] = { "abc\0", "def\0", "fgh\0" };
-  char t24 checked[3]nt_checked[4] = { ("abc\0"), "def\0", ("fgh\0") };
+  char t22 checked[3]nt_checked[3] = { { 0, 1, 0 },{ 1, 1, 0 },{ 3, 1, 0 } };
+  char t23 checked[3]nt_checked[4] = { "abc", "def", "fgh" };
+  char t24 checked[3]nt_checked[4] = { ("abc"), "def", ("fgh") };
 
   //
   // Checked pointers with initialized array literals.
@@ -391,11 +391,18 @@ void f12 (void) {
   typedef struct {
       int integer_list nt_checked[5];
   } ListChecker;
-  char string_literal_initializer nt_checked[] = "abcde\0";
-  char string_literal_initializer_with_braces nt_checked[] = {"abcde\0"};
-  struct EmployeeNTChecker struct_field_nt_check = {32, {"John\0"}};
-  int integer_array_checker nt_checked[] = {1, 2, 3, 4, 0};
-  struct EmployeeManagerNTChecker team =   {{32, {"John\0"}}, {32, {"Matt\0"}}};
+
+  char string_literal_initializer nt_checked[] = "abcde";
+  char string_literal_initializer_with_braces nt_checked[] = {"abcde"};
+  char string_literal_initializer_with_braces_empty nt_checked[] = {};
+
+  char string_literal_initializer_by_chars nt_checked[6] = {'a', 'b', 'c', 'd', 'e', '\0'};
+  char string_literal_initializer_by_chars2 nt_checked[5] = {'a', '\0'};
+
+  struct EmployeeNTChecker struct_field_nt_check = {32, {"John"}};
+  struct EmployeeManagerNTChecker team =   {{32, {"John"}}, {32, {"Matt"}}};
   struct NumberListNTChecker list1 = {{1,2,3,0}};
   ListChecker list2 = {{1,2,3,4,0}};
+
+  int integer_array_checker nt_checked[] = {1, 2, 3, 4, 0};
 }

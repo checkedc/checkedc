@@ -121,8 +121,8 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   int a[10] = { 0, 1, 2, 4, 5, 6, 7, 8, 9 };
   int a2[10] = {0 , 1, 2, 4, 5, 6, 7, 8, 9 };
   int a3[5] = { 4, 3, 2, 1, 0 };
-  char b nt_checked[5] = "abcd\0";
-  char b1 nt_checked[11] = "0123456789\0";
+  char b nt_checked[5] = "abcd";
+  char b1 nt_checked[11] = "0123456789";
   int tmp[10] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
   struct S s1 = { tmp, 10 };
 
