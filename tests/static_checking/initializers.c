@@ -372,7 +372,7 @@ void f11 (void) checked {
   SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}} 
 }
 
-// Test if NT_CHECKED array initializers are null terminated
+// Test if _Nt_checked array initializers are null terminated
 void f12 (void) {
   struct EmployeeNTChecker {
     int age;
