@@ -1,11 +1,17 @@
 % !Tex root = checkedc.tex
 
-\chapter{Replacing uses of void pointers}
+\chapter{Type system extensions for improving type safety}
 
 \section{Introduction}
 
-Pointers to void are well-known to be sources of memory corruption in C
-programs. They are cast implicitly to and from other pointer types with no checking.
+C programs are well-known for taking a loose approach to type safety that
+can lead to memory corruption.   There are three C language features that
+allow this: pointers to void, casts between different pointer types or
+pointer types and integers, and union types.  In this chapter, 
+we describe language extensions for replacing  most uses of \uncheckedptrvoid{}
+with type-checked code that cannot cause type confusion.
+
+Pointers to void are cast implicitly to and from other pointer types with no checking.
 This can lead to type confusion problems, where pointers to objects of one type are mistakenly
 assumed to be pointers to objects of different types.  Storing through the pointers
 can corrupt memory directly and indirectly.
@@ -29,9 +35,7 @@ the user-suppled data can be cast to \uncheckedptrvoid{}.
 \item To provide a union of pointer types, without changing data representation
 \end{itemize}
 
-This chapter describes language extensions for replacing most uses of \uncheckedptrvoid{}
-with type-checked code that cannot cause type confusion.  These extensions
-are restricted so that code remains data-layout compatible and binary-code
+These extensions are restricted so that code remains data-layout compatible and binary-code
 compatible with existing code.  The extensions include:
 \begin{itemize}
 \item Opaque types: these allow different kinds of handles to be distinguished.
