@@ -108,8 +108,16 @@ int strcmp(const char *src1 : itype(_Nt_array_ptr<const char>),
 int strcoll(const char *src1 : itype(_Nt_array_ptr<const char>),
             const char *src2 : itype(_Nt_array_ptr<const  char>));
 
-
-int strncmp(const char *src : count(n), const char *s2 : count(n), size_t n);
+// strncmp takes possibly null-terminated strings as arguments and checks
+// up to n characters. For a bounds-safe interface, this means each string
+// needs to be EITHER null-terminated OR have bounds greater than or equal to
+// n. We cannot express them both in a single interface, so this is the
+// interface for null-terminated strings (assumed to be the most common case).
+// In the checkedc_extensions.h header there is a bounds-safe interface for
+// use of _Array_ptr rather than _Nt_array_ptr.
+int strncmp(const char *src : itype(_Nt_array_ptr<const char>),
+            const char *s2 : itype(_Nt_array_ptr<const char>),
+            size_t n);
 
 size_t strxfrm(char * restrict dest : count(n),
                const char * restrict src :
@@ -135,8 +143,6 @@ size_t strspn(const char *s1 : itype(_Nt_array_ptr<const char>),
 char *strstr(const char *s1 : itype(_Nt_array_ptr<const char>),
              const char *s2 : itype(_Nt_array_ptr<const char>)) :
   itype(_Nt_array_ptr<char>);
-// TODO: remove count(0) on return value after
-// https://github.com/Microsoft/checkedc-clang/issues/424 is addressed
 char *strtok(char * restrict s1 : itype(restrict _Nt_array_ptr<char>),
              const char * restrict s2 : itype(restrict _Nt_array_ptr<const char>)) :
   itype(_Nt_array_ptr<char>);
