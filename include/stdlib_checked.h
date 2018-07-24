@@ -56,7 +56,7 @@ unsigned long long int strtoull(const char * restrict nptr :
 // TODO: express alignment constraints once where clauses have been added.
 void *aligned_alloc(size_t alignment, size_t size) : byte_count(size);
 void *calloc(size_t nmemb, size_t size) : byte_count(nmemb * size);
-void free(void *pointer : byte_count(1));
+void free(void *pointer : byte_count(1)); // for _Array_ptr
 void *malloc(size_t size) : byte_count(size);
 void *realloc(void *pointer : byte_count(1), size_t size) : byte_count(size);
 

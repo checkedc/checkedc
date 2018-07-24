@@ -19,6 +19,7 @@
 #define _CHECKEDC_MOCKUP_THREADS 1
 #include "../../include/threads_checked.h"
 #include "../../include/time_checked.h"
+#include "../../include/checkedc_extensions.h"
 
 // Posix Headers
 //
