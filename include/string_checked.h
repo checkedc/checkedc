@@ -108,7 +108,13 @@ int strcmp(const char *src1 : itype(_Nt_array_ptr<const char>),
 int strcoll(const char *src1 : itype(_Nt_array_ptr<const char>),
             const char *src2 : itype(_Nt_array_ptr<const  char>));
 
-
+// strncmp takes possibly null-terminated strings as arguments and checks
+// up to n characters. For a bounds-safe interface, this means each string
+// needs to be EITHER null-terminated OR have bounds greater than or equal to
+// n. We cannot express them both in a single interface, so this is the
+// interface for null-terminated strings (assumed to be the most common case).
+// In the checkedc_extensions.h header there is a bounds-safe interface for
+// use of _Array_ptr rather than _Nt_array_ptr.
 int strncmp(const char *src : itype(_Nt_array_ptr<const char>),
             const char *s2 : itype(_Nt_array_ptr<const char>),
             size_t n);
