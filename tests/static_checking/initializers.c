@@ -371,3 +371,39 @@ void f11 (void) checked {
   } SSS;
   SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}} 
 }
+
+// Test if _Nt_checked array initializers are null terminated
+void f12 (void) {
+  struct EmployeeNTChecker {
+    int age;
+    char name nt_checked[10];
+  };
+
+  struct EmployeeManagerNTChecker {
+    struct EmployeeNTChecker emp;
+    struct EmployeeNTChecker manager;
+  };
+
+  struct NumberListNTChecker {
+    int integer_list nt_checked[5];
+  };
+
+  typedef struct {
+      int integer_list nt_checked[5];
+  } ListChecker;
+
+  char string_literal_initializer nt_checked[] = "abcde";
+  char string_literal_initializer_with_braces nt_checked[] = {"abcde"};
+  char string_literal_initializer_with_braces_empty nt_checked[] = {};
+  char string_literal_initializer_too_long nt_checked[3] = "abcde"; // expected-warning {{initializer-string for char array is too long}} expected-error {{initializer-string for _Nt_checked char array is too long}}
+  char string_literal_initializer_by_chars nt_checked[6] = {'a', 'b', 'c', 'd', 'e', '\0'};
+  char string_literal_initializer_by_chars2 nt_checked[5] = {'a', '\0'};
+  char string_literal_initializer_by_chars_no_null_term nt_checked[6] = {'a', 'b', 'c', 'd', 'e', 'f'}; // expected-error {{null terminator expected in _Nt_checked array initializer}}
+  struct EmployeeNTChecker struct_field_nt_check = {32, {"John"}};
+  struct EmployeeManagerNTChecker team =   {{32, {"John"}}, {32, {"Matt"}}};
+  struct EmployeeManagerNTChecker team2 =   {{32, {"John"}}, {32, {"Joseph Matthew Nash"}}}; // expected-warning {{initializer-string for char array is too long}} expected-error {{initializer-string for _Nt_checked char array is too long}}
+  struct NumberListNTChecker list1 = {{1,2,3,0}};
+  ListChecker list2 = {{1,2,3,4,0}};
+  ListChecker list3 = {{1,2,3,4}}; // expected-error {{null terminator expected in _Nt_checked array initializer}}
+  int integer_array_checker nt_checked[] = {1, 2, 3, 4, 0};
+}

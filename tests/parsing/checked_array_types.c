@@ -118,7 +118,7 @@ extern void k1(int y)
     int arr2 checked[5];
     int arr3 checked[][5] = { { 1 }, {2 } };
     int arr4 checked[5][5];
-    int arr5 nt_checked[] = { 0, 1 , 2 };
+    int arr5 nt_checked[] = { 0, 1, 2, 0 };
     int arr6 nt_checked[5];
 }
 
