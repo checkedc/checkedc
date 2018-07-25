@@ -5,6 +5,10 @@
 // These are listed in the same order that they occur in the C11       //
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
+
+#ifndef __STDLIB_CHECKED_H
+#define __STDLIB_CHECKED_H
+
 #include <stdlib.h>
 
 #pragma CHECKED_SCOPE ON
@@ -113,3 +117,5 @@ size_t wcstombs(char * restrict output : count(n),
                 size_t n);
 
 #pragma CHECKED_SCOPE OFF
+
+#endif

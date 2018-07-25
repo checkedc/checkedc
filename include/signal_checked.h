@@ -3,6 +3,9 @@
 // take pointer arguments.                                             //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __SIGNAL_CHECKED_H
+#define __SIGNAL_CHECKED_H
+
 #include <signal.h>
 
 #pragma CHECKED_SCOPE ON
@@ -15,3 +18,5 @@ void (*signal(int sig,
      )(int);
 
 #pragma CHECKED_SCOPE OFF
+
+#endif

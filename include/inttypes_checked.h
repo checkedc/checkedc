@@ -6,6 +6,9 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __INTTYPES_CHECKED_H
+#define __INTTYPES_CHECKED_H
+
 #include <stddef.h> // define wchar_t for wcstoimax and wcstoumax
 #include <inttypes.h>
 
@@ -39,3 +42,5 @@ uintmax_t wcstoumax(const wchar_t * restrict nptr :
                     int base);
 
 #pragma CHECKED_SCOPE OFF
+
+#endif

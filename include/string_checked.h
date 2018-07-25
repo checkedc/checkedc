@@ -11,6 +11,9 @@
 // TODO: Better Support for _FORTIFY_SOURCE > 0                        //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __STRING_CHECKED_H
+#define __STRING_CHECKED_H
+
 #include <string.h>
 
 #pragma CHECKED_SCOPE ON
@@ -153,3 +156,5 @@ size_t strlen(const char *s : itype(_Nt_array_ptr<const char>));
 #include "_builtin_string_checked.h"
 
 #pragma CHECKED_SCOPE OFF
+
+#endif

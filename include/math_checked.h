@@ -6,6 +6,9 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __MATH_CHECKED_H
+#define __MATH_CHECKED_H
+
 #include <math.h>
 
 #pragma CHECKED_SCOPE ON
@@ -28,3 +31,5 @@ float nanf(const char *t : itype(_Nt_array_ptr<const char>));
 long double nanl(const char *t : itype(_Nt_array_ptr<const char>));
 
 #pragma CHECKED_SCOPE OFF
+
+#endif
