@@ -7,7 +7,8 @@
 # library just to get the Checked C include wrpaper files.
 # So we place the header files with the compiler.
 
-set(files 
+set(files
+  errno_checked.h
   fenv_checked.h
   inttypes_checked.h
   math_checked.h
