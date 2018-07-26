@@ -5,6 +5,10 @@
 
 #include <signal.h>
 
+#ifndef __cplusplus
+#ifndef __SIGNAL_CHECKED_H
+#define __SIGNAL_CHECKED_H
+
 #pragma CHECKED_SCOPE ON
 
 _Unchecked
@@ -15,3 +19,6 @@ void (*signal(int sig,
      )(int);
 
 #pragma CHECKED_SCOPE OFF
+
+#endif
+#endif

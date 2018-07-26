@@ -8,6 +8,10 @@
 
 #include <math.h>
 
+#ifndef __cplusplus
+#ifndef __MATH_CHECKED_H
+#define __MATH_CHECKED_H
+
 #pragma CHECKED_SCOPE ON
 
 double frexp(double value, int *exp : itype(_Ptr<int>));
@@ -28,3 +32,6 @@ float nanf(const char *t : itype(_Nt_array_ptr<const char>));
 long double nanl(const char *t : itype(_Nt_array_ptr<const char>));
 
 #pragma CHECKED_SCOPE OFF
+
+#endif //guard
+#endif // no c++

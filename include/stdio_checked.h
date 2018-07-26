@@ -10,6 +10,10 @@
 
 #include <stdio.h>
 
+#ifndef __cplusplus
+#ifndef __STDIO_CHECKED_H
+#define __STDIO_CHECKED_H
+
 #pragma CHECKED_SCOPE ON
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -183,3 +187,6 @@ void perror(const char *s : itype(_Nt_array_ptr<const char>));
 #include "_builtin_stdio_checked.h"
 
 #pragma CHECKED_SCOPE OFF
+
+#endif // guard
+#endif // no C++

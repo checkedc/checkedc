@@ -8,6 +8,10 @@
 
 #include <time.h>
 
+#ifndef __cplusplus
+#ifndef __TIME_CHECKED_H
+#define __TIME_CHECKED_H
+
 #pragma CHECKED_SCOPE ON
 
 time_t mktime(struct tm *timeptr : itype(_Ptr<struct tm>));
@@ -34,3 +38,6 @@ size_t strftime(char * restrict output : count(maxsize),
                    itype(restrict _Ptr<const struct tm>));
 
 #pragma CHECKED_SCOPE OFF
+
+#endif
+#endif
