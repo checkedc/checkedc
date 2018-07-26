@@ -6,8 +6,7 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __THREADS_CHECKED_H
-#define __THREADS_CHECKED_H
+
 
 #ifdef _CHECKEDC_MOCKUP_THREADS
 // C implementations may not support the C11 threads package or even the
@@ -25,6 +24,10 @@ struct timespec;
 #else
 #include <threads.h>
 #endif
+
+#ifndef __cplusplus
+#ifndef __THREADS_CHECKED_H
+#define __THREADS_CHECKED_H
 
 #pragma CHECKED_SCOPE ON
 
@@ -68,4 +71,5 @@ int tss_set(tss_t key, void *value : itype(_Ptr<void>));
 
 #pragma CHECKED_SCOPE OFF
 
-#endif
+#endif // guard
+#endif // no C++

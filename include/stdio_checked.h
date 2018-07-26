@@ -8,10 +8,11 @@
 // TODO: Better Support for _FORTIFY_SOURCE > 0                        //
 /////////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>
+
+#ifndef __cplusplus
 #ifndef __STDIO_CHECKED_H
 #define __STDIO_CHECKED_H
-
-#include <stdio.h>
 
 #pragma CHECKED_SCOPE ON
 
@@ -187,4 +188,5 @@ void perror(const char *s : itype(_Nt_array_ptr<const char>));
 
 #pragma CHECKED_SCOPE OFF
 
-#endif
+#endif // guard
+#endif // no C++

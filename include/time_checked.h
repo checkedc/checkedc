@@ -6,10 +6,11 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+#include <time.h>
+
+#ifndef __cplusplus
 #ifndef __TIME_CHECKED_H
 #define __TIME_CHECKED_H
-
-#include <time.h>
 
 #pragma CHECKED_SCOPE ON
 
@@ -38,4 +39,5 @@ size_t strftime(char * restrict output : count(maxsize),
 
 #pragma CHECKED_SCOPE OFF
 
+#endif
 #endif

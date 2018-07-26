@@ -6,10 +6,13 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+
+#include <stdlib.h>
+
+#ifndef __cplusplus
 #ifndef __STDLIB_CHECKED_H
 #define __STDLIB_CHECKED_H
 
-#include <stdlib.h>
 
 #pragma CHECKED_SCOPE ON
 
@@ -118,4 +121,5 @@ size_t wcstombs(char * restrict output : count(n),
 
 #pragma CHECKED_SCOPE OFF
 
-#endif
+#endif  // guard
+#endif  // no c++

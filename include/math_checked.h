@@ -6,10 +6,11 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
+
+#ifndef __cplusplus
 #ifndef __MATH_CHECKED_H
 #define __MATH_CHECKED_H
-
-#include <math.h>
 
 #pragma CHECKED_SCOPE ON
 
@@ -32,4 +33,5 @@ long double nanl(const char *t : itype(_Nt_array_ptr<const char>));
 
 #pragma CHECKED_SCOPE OFF
 
-#endif
+#endif //guard
+#endif // no c++

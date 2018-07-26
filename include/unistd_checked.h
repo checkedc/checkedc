@@ -5,10 +5,11 @@
 // These are POSIX-only                                                //
 /////////////////////////////////////////////////////////////////////////
 
+#include <unistd.h>
+
+#ifndef __cplusplus
 #ifndef __UNISTD_CHECKED_H
 #define __UNISTD_CHECKED_H
-
-#include <unistd.h>
 
 #pragma CHECKED_SCOPE ON
 
@@ -20,4 +21,5 @@ extern char ** environ : itype(_Nt_array_ptr<_Nt_array_ptr<char>>);
 
 #pragma CHECKED_SCOPE OFF
 
+#endif
 #endif

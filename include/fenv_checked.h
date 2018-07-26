@@ -6,10 +6,11 @@
 // specification.                                                     //
 ////////////////////////////////////////////////////////////////////////
 
+#include <fenv.h>
+
+#ifndef __cplusplus
 #ifndef __FENV_CHECKED_H
 #define __FENV_CHECKED_H
-
-#include <fenv.h>
 
 #pragma CHECKED_SCOPE ON
 
@@ -22,4 +23,5 @@ int feupdateenv(const fenv_t *envp : itype(_Ptr<const fenv_t>));
 
 #pragma CHECKED_SCOPE OFF
 
+#endif
 #endif
