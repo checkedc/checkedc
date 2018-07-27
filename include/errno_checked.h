@@ -16,6 +16,7 @@
 __declspec(dllimport) int* __cdecl _errno(void) : itype(_Ptr<int>);
 #else
 extern int* __errno_location(void) : itype(_Ptr<int>) __THROW __attribute_const__;
+#endif
 
 #pragma CHECKED_SCOPE OFF
 
