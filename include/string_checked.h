@@ -59,8 +59,8 @@ void *memcpy(void * restrict dest : byte_count(n),
 
 #if _FORTIFY_SOURCE == 0 || !defined(memmove)
 #undef memmove
-void *memmove(void * restrict dest : byte_count(n),
-              const void * restrict src : byte_count(n),
+void *memmove(void * dest : byte_count(n),
+              const void * src : byte_count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 
