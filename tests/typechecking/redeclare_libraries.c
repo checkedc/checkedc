@@ -9,6 +9,7 @@
 // RUN: %clang -fsyntax-only -D_FORTIFY_SOURCE=2 %s
 
 // C Standard
+#include "../../include/assert_checked.h"
 #include "../../include/errno_checked.h"
 #include "../../include/fenv_checked.h"
 #include "../../include/inttypes_checked.h"

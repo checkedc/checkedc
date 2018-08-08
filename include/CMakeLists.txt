@@ -8,6 +8,7 @@
 # So we place the header files with the compiler.
 
 set(files
+  assert_checked.h
   errno_checked.h
   fenv_checked.h
   inttypes_checked.h
