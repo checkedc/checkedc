@@ -1,9 +1,7 @@
 //---------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in stdlib.h that               //
+// Bounds-safe interfaces for some functions in assert.h that          //
 // take pointer arguments.                                             //
 //                                                                     //
-// These are listed in the same order that they occur in the C11       //
-// specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
 
