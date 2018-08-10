@@ -22,6 +22,15 @@ extern array_ptr<int> f7(int start,
                          array_ptr<int> arr : bounds(arr - start, arr - start + 5))
                       : bounds(arr - start, arr - start + 5);
 extern array_ptr<char> f8(void) : bounds(unknown);
+
+// Parsing of return bounds expressions containing return_value.  Test this by
+// expanding count/byte_count expressions into bounds expressions.
+extern _Array_ptr<void> alloc2(unsigned size) :
+   bounds(return_value, (_Array_ptr<char>) return_value + size);
+
+extern array_ptr<int> f3a(int len, array_ptr<int> arr : count(len))
+                      : bounds(return_value, return_value + len);
+
 // count, bounds, and unknown are contextual keywords.  They are treated as keyword
 // only when they immediately follow a ':';
 extern array_ptr<char> f9(int count) : count(count);
@@ -141,6 +150,10 @@ extern ptr<array_ptr<int>(int len) : count(len)> f19(int len) {
   return 0;
 }
 
+// Check that return_value can be used.  Expand count to a bounds expression.
+extern ptr<array_ptr<int>(int len) : bounds(return_value, len + return_value)>
+f19a(int len) {  return 0; }
+
 // Like the prior function, but returns an unchecked pointer instead. The
 // unchecked pointer points to a function that takes in a length and returns an
 // array_ptr of that length.
@@ -161,6 +174,13 @@ extern array_ptr<ptr<array_ptr<int>(int len) : count(len)>> f21(int arg)
                                                             : count(arg) {
   return 0;
 }
+
+// Check that return_value can be used.  Expand count to a bounds expression.
+extern array_ptr<ptr<array_ptr<int>(int len) : bounds(return_value, return_value + len)>>
+f21a(int arg) : bounds(return_value, return_value + arg) {
+  return 0;
+}
+
 
 // Use unchecked pointers instead. This is a function that returns a pointer to
 // a pointer to a function that take in a length and return array_ptr<int>s of
@@ -227,12 +247,12 @@ extern array_ptr<int> f28(int len) : coount(len) { // expected-error {{expected 
 }
 
 // Omit an argument to bounds to cause a parsing error
-extern array_ptr<int> f29(int len, array_ptr<int> arr : count(len)) : bounds(arr)) { // expected-error {{expected ','}}
+extern array_ptr<int> f29(int len, array_ptr<int> arr : count(len)) : bounds(arr) { // expected-error {{expected ','}}
   return 0;
 }
 
 // Omit both arguments to bounds to cause a parsing error
-extern array_ptr<int> f30(int len, array_ptr<int> arr : count(len)) : bounds()) { // expected-error {{expected expression}}
+extern array_ptr<int> f30(int len, array_ptr<int> arr : count(len)) : bounds() { // expected-error {{expected expression}}
   return 0;
 }
 
@@ -258,3 +278,22 @@ int *(f33(int i)) : count(10); // expected-error {{unexpected bounds expression 
 int *(f33(int i)) : count(10) { // expected-error {{unexpected bounds expression after declarator}}
   return 0;
 }
+
+//
+// _Return value can only be used in a return bounds expression
+//
+
+int f40(array_ptr<int> a : bounds(return_value, return_value + 10)); // expected-error 2 {{_Return_value can be used only in a return bounds expression}}
+
+int f41(void) {
+  return_value = 0;  // expected-error {{_Return_value can be used only in a return bounds expression}}
+}
+
+// Make sure that presence of a return bounds expression doesn't cause
+// return_value to be allowed in the body of a function.
+array_ptr<int> f42(void) : bounds(return_value, 5 + return_value) {
+   return_value = 0; // expected-error {{_Return_value can be used only in a return bounds expression}}
+}
+
+// Make sure return_value is not allowed at top-level.
+int x = return_value; // expected-error {{_Return_value can be used only in a return bounds expression}}
