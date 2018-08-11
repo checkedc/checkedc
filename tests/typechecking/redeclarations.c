@@ -673,3 +673,14 @@ void f108(void) {
   extern int buf3_count;
   extern array_ptr<int> buf3 : count(buf3_count); // expected-error {{added bounds}}
 }
+
+//Checked C: redeclaration with conflicting function specifiers must throw error
+_Itype_for_any(T) void* f109(void *a);
+_For_any(T) void* f109(void *a) { // expected-error {{conflicting function specifiers for 'f109'. _Itype_for_any and _For_any are incompatible function specifiers}}
+}
+
+//Checked C: redeclaration of _Itype_for_any function with a normal declaration for backward compatibility
+void* f110(void *a);
+_Itype_for_any(T) void* f110(void *a : itype(_Ptr<T>)) : itype(_Ptr<T>) {
+  return a;
+}
