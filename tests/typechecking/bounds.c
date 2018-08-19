@@ -4,9 +4,6 @@
 //
 // RUN: %clang_cc1 -Wno-check-bounds-decls -verify -verify-ignore-unexpected=note %s
 
-// Test expressions with standard signed and unsigned integers types as
-// arguments to count and byte_count.
-
 #include <stdchecked.h>
 
 static int A = 8;
@@ -28,6 +25,9 @@ enum E1 {
   EnumVal1,
   EnumVal2
 };
+
+// Test expressions with standard signed and unsigned integers types as
+// arguments to count and byte_count.
 
 extern void count_exprs(void) {
   char c1 = 8;
@@ -1066,7 +1066,7 @@ void fn263(array_ptr<void> (*fnptr)(void) : count(5)); // expected-error {{count
 // Test bounds declarations for function pointers
 //
 
-void function_pointers() {
+void function_pointers(void) {
   // Assignments to function pointers with return bounds on array_ptr types
   array_ptr<int>(*t1)(void) : count(5) = fn1;
   nt_array_ptr<int>(*t1a)(void) : count(0) = fn1a;
@@ -1143,9 +1143,21 @@ void function_pointers() {
   fn231(fn111);
 }
 
-void invalid_function_pointers() {
+void invalid_function_pointers(void) {
   array_ptr<int>(*t1)(void) : count(4) = fn1;  // expected-error {{incompatible type}}
   ptr<array_ptr<int>(void) : count(4)> t1a = fn1;  // expected-error {{incompatible type}}
   array_ptr<int>(*t4)(void) : byte_count(6 * sizeof(int)) = fn4; // expected-error {{incompatible type}}
   array_ptr<int>(*t10)(void) : bounds(s1, s1 + 4) = fn10; // expected-error {{incompatible type}}
 }
+
+// Test type checking of return_value
+
+extern int arr[10];
+int f300(void) : bounds(arr, arr + return_value);
+array_ptr<int> f301(void) : bounds(return_value, return_value + 10);
+array_ptr<int> f302(void) : bounds(return_value - 5, return_value + 5);
+array_ptr<int> f303(void) : count(return_value); // expected-error {{invalid argument type}}
+array_ptr<int> f304(void) : bounds(arr, arr + (return_value << 5)); // expected-error {{invalid operands to binary expression}}
+// TODO: Github issue #543.  Duplicate error mesages issued for type checking
+// error in bounds expression.
+array_ptr<void> f305(void) : bounds(return_value, return_value + 5); // expected-error 2 {{arithmetic on a pointer to void}}

@@ -11,5 +11,6 @@
 #define dynamic_check _Dynamic_check
 #define dynamic_bounds_cast _Dynamic_bounds_cast
 #define assume_bounds_cast _Assume_bounds_cast
+#define return_value _Return_value
 
 #endif /* __STDCHECKED_H */
