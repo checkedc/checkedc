@@ -20,7 +20,8 @@ extern inline int strncmp_array_ptr(const char *src : count(n), const char *s2 :
 // this option is for array_ptr
 _Unchecked
 int snprintf_array_ptr(char * restrict s : _Array_ptr<char>) restrict count(n),
-             size_t n,
-             const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+                       size_t n, 
+                       const char * restrict format : itype(restrict    _Nt_array_ptr<const char>), 
+                       ...);
 
 #endif /* __CHECKED_C_EXTENSIONS_H */
