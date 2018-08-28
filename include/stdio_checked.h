@@ -98,8 +98,14 @@ int sscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
 
 #if _FORTIFY_SOURCE == 0 || !defined(snprintf)
 #undef snprintf
+
+// Since snprintf automatically adds the null terminator
+// and counts that number in n, s only needs count(n-1) per the 
+// definition of _Nt types. Additional declaration for arrays 
+// available in checkedc_extensions.h
 _Unchecked
-int snprintf(char * restrict s : count(n), size_t n,
+int snprintf(char * restrict s : itype(restrict _Nt_array_ptr<char>) count(n == 0 ? 0 : n-1),
+             size_t n,
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 #endif
 
