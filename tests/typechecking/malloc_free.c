@@ -37,50 +37,50 @@ void f4(void) unchecked {
 
 // Test you can always `free` a `malloc`d ptr
 void f11(void) {
-    ptr<int> x = malloc(sizeof(int));
-    free(x);
+    ptr<int> x = malloc<int>(sizeof(int));
+    free<int>(x);
 }
 
 // Test you can always `free` a `calloc`d ptr
 void f12(void) {
-    ptr<int> x = calloc(1, sizeof(int));
-    free(x);
+    ptr<int> x = calloc<int>(1, sizeof(int));
+    free<int>(x);
 }
 
 // Test you can always `free` a `realloc`d ptr
 void f13(void) {
-    ptr<int> x = malloc(sizeof(int));
+    ptr<int> x = malloc<int>(sizeof(int));
     ptr<int> y = realloc(x, 2 * sizeof(int));
-    free(y);
+    free<int>(y);
 }
 
 // Test you can always `free` a `aligned_alloc`d ptr
 void f14(void) {
     ptr<int> x = aligned_alloc(_Alignof(int), sizeof(int));
-    free(x);
+    free<int>(x);
 }
 
 // Test you can always `free` a `malloc`d array_ptr
 void f21(void) {
-    array_ptr<int> x : count(4) = malloc(4 * sizeof(int));
-    free(x);
+    array_ptr<int> x : count(4) = malloc<int>(4 * sizeof(int));
+    free<int>(x);
 }
 
 // Test you can always `free` a `calloc`d array_ptr
 void f22(void) {
-    array_ptr<int> x : count(4) = calloc(4, sizeof(int));
-    free(x);
+    array_ptr<int> x : count(4) = calloc<int>(4, sizeof(int));
+    free<int>(x);
 }
 
 // Test you can always `free` a `realloc`d array_ptr
 void f23(void) {
-    array_ptr<int> x : count(4) = malloc(4 * sizeof(int));
+    array_ptr<int> x : count(4) = malloc<int>(4 * sizeof(int));
     array_ptr<int> y : count(8) = realloc(x, 8 * sizeof(int));
-    free(y);
+    free<int>(y);
 }
 
 // Test you can always `free` a `aligned_alloc`d array_ptr
 void f24(void) {
     array_ptr<int> x : count(4) = aligned_alloc(_Alignof(int), 4 * sizeof(int));
-    free(x);
+    free<int>(x);
 }
