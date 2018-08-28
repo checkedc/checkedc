@@ -22,6 +22,11 @@ extern void __assert(const char *msg : itype(_Nt_array_ptr<const char>),
 					 const char *file : itype(_Nt_array_ptr<const char>), 
 					 int line);
 
+#undef __assert_fail
+extern void __assert_fail (const char *__assertion : itype(_Nt_array_ptr<const char>), const char *__file : itype(_Nt_array_ptr<const char>),
+        unsigned int __line, const char *__function : itype(const char _Nt_checked[]))
+__THROW __attribute__ ((__noreturn__));
+
 #endif
 
 #pragma CHECKED_SCOPE OFF
