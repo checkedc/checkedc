@@ -14,6 +14,7 @@ set(files
   inttypes_checked.h
   math_checked.h
   signal_checked.h
+  socket_checked.h
   stdchecked.h
   stdio_checked.h
   stdlib_checked.h

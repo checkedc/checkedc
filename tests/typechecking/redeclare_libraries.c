@@ -31,6 +31,11 @@
 #if __has_include(<unistd.h>)
 
 #include "../../include/unistd_checked.h"
+#endif
+
+#if __has_include(<socket.h>)
+
+#include "../../include/socket_checked.h"
 
 #endif
 #endif
