@@ -11,6 +11,7 @@ set(files
   assert_checked.h
   errno_checked.h
   fenv_checked.h
+  inet_checked.h
   inttypes_checked.h
   math_checked.h
   signal_checked.h

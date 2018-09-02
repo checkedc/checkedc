@@ -29,8 +29,15 @@
 // which is required by Posix Standard.
 #if defined(__has_include)
 #if __has_include(<unistd.h>)
-
 #include "../../include/unistd_checked.h"
-
 #endif
+
+#if __has_include(<sys/socket.h>)
+#include "../../include/socket_checked.h"
+#endif
+
+#if __has_include(<arpa/inet.h>)
+#include "../../include/inet_checked.h"
+#endif
+
 #endif
