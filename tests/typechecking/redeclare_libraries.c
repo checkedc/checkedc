@@ -33,7 +33,7 @@
 #include "../../include/unistd_checked.h"
 #endif
 
-#if __has_include(<socket.h>)
+#if __has_include(<sys/socket.h>)
 
 #include "../../include/socket_checked.h"
 
