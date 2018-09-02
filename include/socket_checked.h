@@ -25,21 +25,32 @@ extern int bind (
 
 extern int getsockname (
     int __fd, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr>), 
-    socklen_t *__restrict __len) __THROW;
+    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    socklen_t *__restrict __len : itype(_Ptr<socklen_t> __restrict)
+    ) __THROW;
 
 extern int connect (
     int __fd, 
     __CONST_SOCKADDR_ARG __addr : itype(_Ptr<const struct sockaddr>), 
     socklen_t __len);
 
-extern int getpeername (int __fd, __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr>),	socklen_t *__restrict __len : itype(_Ptr<socklen_t>)) __THROW;
+extern int getpeername (
+    int __fd, 
+    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    socklen_t *__restrict __len : itype(_Ptr<socklen_t> __restrict)
+    ) __THROW;
 
-Itype_for_any(T) extern ssize_t send(int __fd, const void *__buf : itype(_Array_ptr<T>) byte_count(__n), size_t __n, int __flags);
+_Itype_for_any(T) extern ssize_t send(
+    int __fd, 
+    const void *__buf : itype(_Array_ptr<T>) byte_count(__n), 
+    size_t __n, int __flags);
 
-Itype_for_any(T) extern ssize_t recv (int __fd, void *__buf : itype(_Array_ptr<T>) byte_count(__n), size_t __n, int __flags);
+_Itype_for_any(T) extern ssize_t recv (
+    int __fd, 
+    void *__buf : itype(_Array_ptr<T>) byte_count(__n), 
+    size_t __n, int __flags);
 
-Itype_for_any(T) extern ssize_t sendto (
+_Itype_for_any(T) extern ssize_t sendto (
     int __fd, 
     const void *__buf : itype(_Array_ptr<T>) byte_count(__n), 
     size_t __n, 
@@ -47,12 +58,12 @@ Itype_for_any(T) extern ssize_t sendto (
     __CONST_SOCKADDR_ARG __addr : itype(_Ptr<const struct sockaddr>), 
     socklen_t __addr_len);
 
-Itype_for_any(T) extern ssize_t recvfrom (
+_Itype_for_any(T) extern ssize_t recvfrom (
     int __fd, 
-    void *__restrict __buf : itype(_Array_ptr<T>) byte_count(__n), 
+    void *__restrict __buf : itype(_Array_ptr<T> __restrict) byte_count(__n), 
     size_t __n, int __flags, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr>), 
-    socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t>));
+    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict));
 
 extern ssize_t sendmsg (
     int __fd, 
@@ -81,27 +92,27 @@ extern int recvmmsg (
     struct timespec *__tmo : itype(_Ptr<struct timespec>));
 #endif
 
-Itype_for_any(T) extern int getsockopt (
+_Itype_for_any(T) extern int getsockopt (
     int __fd, int __level, int __optname, 
-    void *__restrict __optval : itype(_Array_ptr<T>) byte_count(*__optlen),
-    socklen_t *__restrict __optlen : itype(_Ptr<socklen_t>)
+    void *__restrict __optval : itype(_Array_ptr<T> __restrict) byte_count(*__optlen),
+    socklen_t *__restrict __optlen : itype(_Ptr<socklen_t> __restrict)
     ) __THROW;
 
-Itype_for_any(T) extern int setsockopt (
+_Itype_for_any(T) extern int setsockopt (
     int __fd, int __level, int __optname, 
     const void *__optval : itype(_Array_ptr<T>) byte_count(__optlen), 
     socklen_t __optlen) __THROW;
 
 extern int accept (
     int __fd, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr>), 
-    socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t>));
+    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict));
 
 #ifdef __USE_GNU
 extern int accept4 (
     int __fd, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr>), 
-    socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t>), 
+    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict), 
     int __flags);
 #endif
 
