@@ -52,8 +52,8 @@
 
 #if _FORTIFY_SOURCE == 0 || !defined(memcpy)
 #undef memcpy
-_Itype_for_any(T) void *memcpy(void * dest : itype(_Array_ptr<T>) byte_count(n),
-             const void * src : itype(_Array_ptr<T>) byte_count(n),
+_Itype_for_any(T) void *memcpy(void * restrict dest : itype(restrict _Array_ptr<T>) byte_count(n),
+             const void * restrict src : itype(restrict _Array_ptr<const T>) byte_count(n),
              size_t n) : itype(_Array_ptr<T>) byte_count(n);
 #endif
 

@@ -50,7 +50,7 @@ void f12(void) {
 // Test you can always `free` a `realloc`d ptr
 void f13(void) {
     ptr<int> x = malloc<int>(sizeof(int));
-    ptr<int> y = realloc(x, 2 * sizeof(int));
+    ptr<int> y = realloc<int>(x, 2 * sizeof(int));
     free<int>(y);
 }
 
@@ -75,7 +75,7 @@ void f22(void) {
 // Test you can always `free` a `realloc`d array_ptr
 void f23(void) {
     array_ptr<int> x : count(4) = malloc<int>(4 * sizeof(int));
-    array_ptr<int> y : count(8) = realloc(x, 8 * sizeof(int));
+    array_ptr<int> y : count(8) = realloc<int>(x, 8 * sizeof(int));
     free<int>(y);
 }
 
