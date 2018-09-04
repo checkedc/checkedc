@@ -42,7 +42,7 @@ extern int getpeername (
 
 _Itype_for_any(T) extern ssize_t send(
     int __fd, 
-    const void *__buf : itype(_Array_ptr<T>) byte_count(__n), 
+    const void *__buf : itype(_Array_ptr<const T>) byte_count(__n), 
     size_t __n, int __flags);
 
 _Itype_for_any(T) extern ssize_t recv (
@@ -52,7 +52,7 @@ _Itype_for_any(T) extern ssize_t recv (
 
 _Itype_for_any(T) extern ssize_t sendto (
     int __fd, 
-    const void *__buf : itype(_Array_ptr<T>) byte_count(__n), 
+    const void *__buf : itype(_Array_ptr<const T>) byte_count(__n), 
     size_t __n, 
     int __flags, 
     __CONST_SOCKADDR_ARG __addr : itype(_Ptr<const struct sockaddr>), 
@@ -100,7 +100,7 @@ _Itype_for_any(T) extern int getsockopt (
 
 _Itype_for_any(T) extern int setsockopt (
     int __fd, int __level, int __optname, 
-    const void *__optval : itype(_Array_ptr<T>) byte_count(__optlen), 
+    const void *__optval : itype(_Array_ptr<const T>) byte_count(__optlen), 
     socklen_t __optlen) __THROW;
 
 extern int accept (
