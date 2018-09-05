@@ -40,27 +40,27 @@ extern int getpeername (
     socklen_t *__restrict __len : itype(_Ptr<socklen_t> __restrict)
     ) __THROW;
 
-_Itype_for_any(T) extern ssize_t send(
+extern ssize_t send(
     int __fd, 
-    const void *__buf : itype(_Array_ptr<const T>) byte_count(__n), 
+    const void *__buf : itype(_Array_ptr<const void>) byte_count(__n), 
     size_t __n, int __flags);
 
-_Itype_for_any(T) extern ssize_t recv (
+extern ssize_t recv (
     int __fd, 
-    void *__buf : itype(_Array_ptr<T>) byte_count(__n), 
+    void *__buf : itype(_Array_ptr<void>) byte_count(__n), 
     size_t __n, int __flags);
 
-_Itype_for_any(T) extern ssize_t sendto (
+extern ssize_t sendto (
     int __fd, 
-    const void *__buf : itype(_Array_ptr<const T>) byte_count(__n), 
+    const void *__buf : itype(_Array_ptr<const void>) byte_count(__n), 
     size_t __n, 
     int __flags, 
     __CONST_SOCKADDR_ARG __addr : itype(_Ptr<const struct sockaddr>), 
     socklen_t __addr_len);
 
-_Itype_for_any(T) extern ssize_t recvfrom (
+extern ssize_t recvfrom (
     int __fd, 
-    void *__restrict __buf : itype(_Array_ptr<T> __restrict) byte_count(__n), 
+    void *__restrict __buf : itype(_Array_ptr<void> __restrict) byte_count(__n), 
     size_t __n, int __flags, 
     __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
     socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict));
@@ -92,15 +92,15 @@ extern int recvmmsg (
     struct timespec *__tmo : itype(_Ptr<struct timespec>));
 #endif
 
-_Itype_for_any(T) extern int getsockopt (
+extern int getsockopt (
     int __fd, int __level, int __optname, 
-    void *__restrict __optval : itype(_Array_ptr<T> __restrict) byte_count(*__optlen),
+    void *__restrict __optval : itype(_Array_ptr<void> __restrict) byte_count(*__optlen),
     socklen_t *__restrict __optlen : itype(_Ptr<socklen_t> __restrict)
     ) __THROW;
 
-_Itype_for_any(T) extern int setsockopt (
+extern int setsockopt (
     int __fd, int __level, int __optname, 
-    const void *__optval : itype(_Array_ptr<const T>) byte_count(__optlen), 
+    const void *__optval : itype(_Array_ptr<const void>) byte_count(__optlen), 
     socklen_t __optlen) __THROW;
 
 extern int accept (
