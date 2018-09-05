@@ -1160,4 +1160,4 @@ array_ptr<int> f303(void) : count(return_value); // expected-error {{invalid arg
 array_ptr<int> f304(void) : bounds(arr, arr + (return_value << 5)); // expected-error {{invalid operands to binary expression}}
 // TODO: Github issue #543.  Duplicate error mesages issued for type checking
 // error in bounds expression.
-array_ptr<void> f305(void) : bounds(return_value, return_value + 5); // expected-error 2 {{arithmetic on a pointer to void}}
+array_ptr<void> f305(void) : bounds(return_value, return_value + 5); // expected-error {{arithmetic on a pointer to void}}
