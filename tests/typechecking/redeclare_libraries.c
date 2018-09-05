@@ -32,6 +32,10 @@
 #include "../../include/unistd_checked.h"
 #endif
 
+#if __has_include(<sys/socket.h>)
+#include "../../include/sys/socket_checked.h"
+#endif
+
 #if __has_include(<arpa/inet.h>)
 #include "../../include/arpa/inet_checked.h"
 #endif

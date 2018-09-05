@@ -19,6 +19,7 @@ set(files
   stdio_checked.h
   stdlib_checked.h
   string_checked.h
+  sys/socket_checked.h
   threads_checked.h
   time_checked.h
   unistd_checked.h
