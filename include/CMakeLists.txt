@@ -14,11 +14,11 @@ set(files
   inttypes_checked.h
   math_checked.h
   signal_checked.h
-  socket_checked.h
   stdchecked.h
   stdio_checked.h
   stdlib_checked.h
   string_checked.h
+  sys/socket_checked.h
   threads_checked.h
   time_checked.h
   unistd_checked.h

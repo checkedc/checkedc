@@ -35,7 +35,7 @@
 
 #if __has_include(<sys/socket.h>)
 
-#include "../../include/socket_checked.h"
+#include "../../include/sys/socket_checked.h"
 
 #endif
 #endif
