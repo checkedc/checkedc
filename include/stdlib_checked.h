@@ -78,12 +78,12 @@ int system(const char *s : itype(_Nt_array_ptr<const char>));
 // on parameters based on size.  Currently we are requiring that
 // bounds in parameters lists be closed with respect to variables
 // in the parameter list.
-_Itype_for_any(T) void *bsearch(const void *key : itype(_Array_ptr<const T>) byte_count(size),
-              const void *base : itype(_Array_ptr<const T>) byte_count(nmemb * size),
-              size_t nmemb, size_t size,
-              int ((*compar)(const void *, const void *)) :
-                itype(_Ptr<int(_Ptr<const T>, _Ptr<const T>)>)) :
-                byte_count(size);
+_Itype_for_any(T) void *bsearch(const void *key : itype(_Ptr<const T>),
+                                const void *base : itype(_Array_ptr<const T>) byte_count(nmemb * size),
+                                size_t nmemb, size_t size,
+                                int ((*compar)(const void *, const void *)) :
+                                  itype(_Ptr<int(_Ptr<const T>, _Ptr<const T>)>)
+                                ) : itype(_Ptr<T>);
 
 // TODO: compar needs to have an itype that has bounds
 // on parameters based on size.  Currently we are requiring that
