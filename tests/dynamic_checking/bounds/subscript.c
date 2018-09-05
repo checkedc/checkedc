@@ -231,11 +231,13 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   TEST_OP_DIM1(a0, i, i);
   printf(format_dim1, "a0", i, ACCESS_DIM1(a0, i));
 
-#ifdef TEST_READ
-  // Test accesses to string literal reads.  These
-  // can only be read, and can't be written.
   i = atoi(argv[idx++]);
-  TEST_OP_DIM1("abcd", i, i);
+#ifdef TEST_READ
+  // Test accesses to checked string literal reads.  These
+  // can only be read, and can't be written.
+  _Checked {
+    TEST_OP_DIM1("abcd", i, i);
+  }
   printf(format_dim1, "\"abcd\"", i, ACCESS_DIM1("abcd", i));
 #endif
 
