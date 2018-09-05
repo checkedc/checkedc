@@ -1095,9 +1095,12 @@ for the type variables to construct the concrete function type.
 For parameters and returns that have bounds-safe interfaces, the
 bounds-safe interfaces are used for their types.
 
-When a function with a generic bounds-safe interface is not
-applied to type variables, the type variable is ignored and any
-interface types that use type variables are discarded.
+Type parameters are mandatory in calls
+to generic bounds-safe interface functions from checked scopes.
+Type parameters are optional in unchecked contexts. When a 
+function with a generic bounds-safe interface is called
+without type variables from unchecked code, we apply void type
+for the type variables.
 
 Consider as an example \lstinline+bsearch<int>+.  First a concrete
 function type is constructed:
