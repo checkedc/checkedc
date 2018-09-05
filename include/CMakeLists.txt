@@ -8,10 +8,10 @@
 # So we place the header files with the compiler.
 
 set(files
+  arpa/inet_checked.h
   assert_checked.h
   errno_checked.h
   fenv_checked.h
-  inet_checked.h
   inttypes_checked.h
   math_checked.h
   signal_checked.h

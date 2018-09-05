@@ -33,7 +33,7 @@
 #endif
 
 #if __has_include(<arpa/inet.h>)
-#include "../../include/inet_checked.h"
+#include "../../include/arpa/inet_checked.h"
 #endif
 
 #endif
