@@ -1,16 +1,17 @@
 % !Tex root = checkedc.tex
 
-\parbox{5in}{
+\parbox{5.5in}{
 System programmers need a system programming language that
 detects or prevents common programming errors involving pointers. This
 will improve the reliability and security of system software and
 the productivity of system programmers. This technical report describes
 Checked C, an extended version of C that provides a way to write C code that
-is guaranteed to be bounds-checked.
+is guaranteed to be bounds-checked and less prone to type confusion.
 }
+
 \vspace{11pt}
 
-\parbox{5in}{
+\parbox{5.5in}{
 Checked C adds new pointer types and array types that are
 bounds-checked, yet layout-compatible with existing pointer and array
 types. In keeping with the low-level nature of C, 
@@ -19,8 +20,29 @@ structures and the flow of bounds information through programs. Static
 checking enforces the integrity of the bounds information and allows the
 eliding of some dynamic checking. Dynamic checking enforces the
 integrity of memory accesses at runtime when static checking cannot.
+}
+
+\vspace{11pt}
+
+\parbox{5.5in}{
+Checked C also extends the C type system so that it provides
+improved type safety, focusing on reducing type
+confusion due to void pointers.  It adds opaque types, generic
+functions and structures, and hidden types.  This lets
+most void pointer uses be replaced with type-safe code.
+The use of generic functions and structures is constrained to avoid 
+the need for code cloning.
+}
+
+\vspace{11pt}
+
+\parbox{5.5in}{
 Checked C is backwards-compatible: existing C programs work
 ``as is''. Programmers incrementally opt-in to bounds checking, while
-maintaining binary compatibility.}
+maintaining binary compatibility.
+Checked C introduces the notion of checked scopes to ensure
+that regions of code do not use unchecked pointers or type casts
+involving void pointers.
+}
 
 

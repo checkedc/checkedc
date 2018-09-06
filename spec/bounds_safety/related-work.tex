@@ -9,8 +9,13 @@ bounds checking in C and related languages such as C++ has had
 serious practical consequences for computer security and software 
 reliability.   There has been extensive research and work in industry 
 addressing the lack of bounds checking in C. 
-In this section, we discuss related work and explain how
+In this chapter, we discuss related work and explain how
 Checked C relates to it. 
+
+C programs also make extensive use of void pointer types. This allows
+static typechecking to be bypassed and create the possibility of
+type confusion.  We also discuss related work on detecting or
+preventing type confusions due to void pointers and casts.
 
 The work falls into 5 categories:
 \begin{itemize}
@@ -755,6 +760,13 @@ Cyclone also changes memory management in C.  It extends C with regions
 to allow arena-based memory management.  Checked C is addressing the
 safety problems in C one at a time, starting with bounds checking. 
 
+Cyclone also proposed using polymorphic types to safely replace 
+uses of \uncheckedptrvoid{} and to allow re-use of code \cite{Grossman2006}.  Cyclone
+included polymorphic types that provided generic structs and functions, as well as hidden types.  
+It did not provide an equivalent of opaque types.  
+Grossman \cite{Grossman2006} thoroughly explores the theory of adding polymorphic types
+to a C-like language and the design choices made in Cyclone.
+
 CCured \cite{Necula2005} uses whole-program static analysis to identify 
 different uses of pointers in C programs. It identifies pointers that are used to
 read or write values only (safe pointers), pointers that are used in pointer
@@ -820,6 +832,15 @@ for function
 parameters.  The current support for variable-length arrays does not set a precedent 
 for using dependent types to represent bounds information in C.
 
+The CForAll project \cite{Ditchfield1994} proposed extending
+C with polymorphic types to provide generic functions.  It also proposed 
+adding opaque types, but did not require that the representations be known at declaration time.
+CForAll did not provide a way to retrofit existing C code that uses 
+\uncheckedptrvoid{} in a binary-compatible fashion.  Opaque types break binary
+compatibility by requiring that uses of variables of opaque type obtain size and alignment information
+at runtime \cite[page 97]{Ditchfield1994}.  The implementation of generic functions required complex techniques
+that break binary compatibility by cloning code or introducing box/unboxing coercions \cite{Bilson2003}.
+
 Havoc \cite{Condit2009} goes beyond Deputy and allows types to be combined with program
 verification. It allows a programmer to specify program invariants that
 imply type safety and can verify these invariants statically. It can
@@ -854,3 +875,4 @@ writes and converting out-of-bounds reads to small integer values, cycling
 through a sequence of small integer values.   They implement the runtime
 bounds checking suggested by \cite{Ruwase2004} and show that their approach
 improves the availablity of servers with memory corruption errors.
+
