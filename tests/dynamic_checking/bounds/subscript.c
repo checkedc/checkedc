@@ -19,38 +19,41 @@
 // The following lines are for the clang automated test suite.
 //
 // RUN: %clang %s -DTEST_READ -o %t1 -Werror -Wno-unused-value
-// RUN: %t1 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t1 1 2 4 4 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t1 2 4 8 8 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t1 2 4 8 8 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t1 2 4 8 8 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t1 2 4 8 8 3  2 -1  2 -1 2 | FileCheck %s
-// RUN: %t1 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t1 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %t1 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %t1 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %t1 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %t1 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t1 3            | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 -1           | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 5          | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 9        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 0 5    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t1 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t1 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t1 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
 // RUN: %clang %s -DTEST_WRITE -o %t2 -Werror
-// RUN: %t2 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t2 1 2 4 4 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t2 2 4 8 8 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t2 2 4 8 8 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t2 2 4 8 8 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t2 2 4 8 8 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t2 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t2 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %t2 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %t2 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %t2 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %t2 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
 // RUN: %t2 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t2 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t2 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
@@ -59,23 +62,26 @@
 // RUN: %t2 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t2 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t2 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// Skip the case for testing string literals.
+// RUN: %t2 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t2 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t2 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t2 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
 // RUN: %clang %s -DTEST_INCREMENT -o %t3 -Werror
-// RUN: %t3 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t3 1 2 4 4 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t3 2 4 8 8 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t3 2 4 8 8 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t3 2 4 8 8 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t3 2 4 8 8 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t3 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t3 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %t3 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %t3 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %t3 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %t3 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
 // RUN: %t3 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t3 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t3 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
@@ -84,23 +90,26 @@
 // RUN: %t3 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t3 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t3 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// Skip the case for testing string literals.
+// RUN: %t3 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t3 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t3 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t3 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
 // RUN: %clang %s -DTEST_COMPOUND_ASSIGN -o %t4 -Werror
-// RUN: %t4 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t4 1 2 4 4 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t4 2 4 8 8 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t4 2 4 8 8 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t4 2 4 8 8 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t4 2 4 8 8 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %t4 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %t4 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %t4 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %t4 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %t4 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %t4 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
 // RUN: %t4 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t4 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t4 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
@@ -109,15 +118,18 @@
 // RUN: %t4 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t4 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
 // RUN: %t4 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// Skip the case for testing string literals.
+// RUN: %t4 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %t4 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %t4 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %t4 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 
 #include <signal.h>
 #include <stdlib.h>
@@ -240,6 +252,14 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   }
   printf(format_dim1, "\"abcd\"", i, ACCESS_DIM1("abcd", i));
 #endif
+
+  i = atoi(argv[idx++]);
+  // Test accesses to compound array literals.  You can't
+  // access the compound array literal after you directly assign
+  // to an element of the array.  We'll still test that operation.
+  TEST_OP_DIM1(((int checked[]) { 0, 1, 2, 3, 4}), i, i);
+  printf(format_dim1, "(int[]) { 0, 1, 2, 3, 4}", i,
+         ACCESS_DIM1(((int checked[]) { 0, 1, 2, 3, 4}), i));
 
   // CHECK: 1-Dimensional Checks Passed
   // CHECK-FAIL-1-NOT: 1-Dimensional Checks Passed
