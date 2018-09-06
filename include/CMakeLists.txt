@@ -52,10 +52,11 @@ add_custom_target(checkedc-headers ALL DEPENDS ${out_files})
 set_target_properties(checkedc-headers PROPERTIES FOLDER "Misc")
 
 install(
-  FILES ${files}
+  DIRECTORY ${output_dir}/
+  DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include
+  USE_SOURCE_PERMISSIONS
   COMPONENT checkedc-headers
-  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include)
+  )
 
 if (NOT CMAKE_CONFIGURATION_TYPES) # don't add this for IDE's.
   add_custom_target(install-checkedc-headers
