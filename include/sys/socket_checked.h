@@ -12,8 +12,6 @@
 
 #pragma CHECKED_SCOPE ON
 
-#if _POSIX_VERSION >= 200112L
-
 extern int socketpair (int __domain, int __type, int __protocol, 
     int __fds[2] : itype(int _Checked[2])) __THROW;
 
@@ -115,8 +113,6 @@ extern int accept4 (
     socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict), 
     int __flags);
 #endif
-
-#endif // POSIX
 
 #pragma CHECKED_SCOPE OFF
 

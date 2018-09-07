@@ -13,11 +13,8 @@
 
 #pragma CHECKED_SCOPE ON
 
-#if _POSIX_VERSION >= 200112L
-
 extern in_addr_t inet_addr (const char *__cp : itype(_Nt_array_ptr<const char>)) __THROW;
 
-#endif // POSIX
 
 #pragma CHECKED_SCOPE OFF
 
