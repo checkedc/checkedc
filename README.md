@@ -7,7 +7,7 @@ sample code, the [extension specification](https://github.com/Microsoft/checkedc
 and test code.
 
 - For a quick overview of Checked C and more information, see our [Wiki](https://github.com/Microsoft/checkedc/wiki).
-- The PDF of the specifcation is available [here](https://github.com/Microsoft/checkedc/releases).
+- The PDF of the specification is available [here](https://github.com/Microsoft/checkedc/releases).
 - Compilers are available [here](https://github.com/Microsoft/checkedc-clang/releases).
 
 # Build Status
