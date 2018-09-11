@@ -8,7 +8,6 @@
 # So we place the header files with the compiler.
 
 set(files
-  arpa/inet_checked.h
   assert_checked.h
   errno_checked.h
   fenv_checked.h
@@ -19,7 +18,6 @@ set(files
   stdio_checked.h
   stdlib_checked.h
   string_checked.h
-  sys/socket_checked.h
   threads_checked.h
   time_checked.h
   unistd_checked.h
@@ -28,6 +26,14 @@ set(files
   _builtin_common.h
   checkedc_extensions.h
   )
+
+set(posix_arpa_files
+  arpa/inet_checked.h
+  )
+
+set(posix_sys_files
+  sys/socket_checked.h
+)
 
 # Hack - compute the CLANG version from the LLVM version.  The
 # CLANG_VERSION variable is not available at this point during the build.
@@ -38,7 +44,7 @@ string(REGEX MATCH "[0-9]+\\.[0-9]+(\\.[0-9]+)?" CHECKEDC_CLANG_VERSION
 set(output_dir ${LLVM_LIBRARY_OUTPUT_INTDIR}/clang/${CHECKEDC_CLANG_VERSION}/include)
 
 set(out_files)
-foreach( f ${files} )
+foreach( f ${files} ${posix_arpa_files} ${posix_sys_files} )
   set( src ${CMAKE_CURRENT_SOURCE_DIR}/${f} )
   set( dst ${output_dir}/${f} )
   add_custom_command(OUTPUT ${dst}
@@ -52,10 +58,24 @@ add_custom_target(checkedc-headers ALL DEPENDS ${out_files})
 set_target_properties(checkedc-headers PROPERTIES FOLDER "Misc")
 
 install(
-  DIRECTORY ${output_dir}/
-  DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include
-  USE_SOURCE_PERMISSIONS
+  FILES ${files}
   COMPONENT checkedc-headers
+  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include
+  )
+
+install(
+  FILES ${posix_arpa_files}
+  COMPONENT clang-headers
+  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include/arpa
+  )
+
+install(
+  FILES ${posix_sys_files}
+  COMPONENT clang-headers
+  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include/sys
   )
 
 if (NOT CMAKE_CONFIGURATION_TYPES) # don't add this for IDE's.
