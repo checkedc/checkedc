@@ -1,13 +1,42 @@
 % !Tex root = checkedc.tex
 
-\chapter{Checking validity of bounds declarations for variables}
+\chapter{Inferring bounds expressions and checking bounds declaration validity}
 \label{chapter:checking-bounds}
+
+Each expression in a Checked C program has a bounds expression
+that describes the range of memory, if any, that can be accessed using
+the values produced by the expression.  The bounds expression
+is inferred from the bounds expressions for subexpressions, with inference 
+ending at variables and constants.  At runtime, the value of the
+bounds expression determines what memory can be accessed using the
+value of the expression.
+This chapter describes the rules for inferring the bounds expressions for
+expressions, excluding those that access data structures. Those are covered in
+Chapters~\ref{chapter:structure-bounds} and 
+\ref{chapter:pointers-to-data-with-arrayptrs}.
+
+Checked C programs must maintain the validity of bounds declarations.
+When a variable is declared with bounds, it must have an initializer
+and the bounds expression for the initializer must {\em subsume} the declared bounds
+expression for the variable.   The memory accessible using the 
+initializing bounds expression must include memory access using the
+declare bounds expression. 
+Similarly, at assignments to variables with bounds, the 
+bounds for the expression being assigned to the variable 
+must subsume the declared bounds of the variable.
+Finally, assignments to variables used in bounds 
+declarations for in-scope variables must preserve
+the validity of bounds declarations.
+Bounds declarations are invariants about programs that are checked
+at compile time.
+The subsumption checking is done at compile time for
+the sake of runtime efficiency and to avoid introducing
+possible points-of-failure in programs.
 
 This chapter describes basic rules for determining the validity of
 bounds declarations in a C translation unit. In general, these rules do
 not include any inference steps. Inference steps for reasoning about
 bounds are described in Chapter~\ref{chapter:simple-invariants}.
-
 Section~\ref{section:inferring-expression-bounds}
 describes how to determine the bounds for an expression of
 type \arrayptr\ that does not have any assignments within it.
@@ -94,23 +123,15 @@ valid bounds for an expression. The notation \boundsinfer{\var{e}}{\var{bounds-e
 means that expression \var{e} has valid bounds \var{bounds-exp}.
 
 At times, we need to discuss bounds that are given in terms of the value
-of the current expression. For example, a function call expression may
+of an expression or a subexpression.   For example, a function call expression may
 return an \arrayptr\ pointer to an array of constant size
 \var{n}. The bounds for that pointer value would be (the
 \arrayptr\ pointer, the \arrayptr\ pointer +
-\var{n}). We use the special variable \exprcurrentvalue\ to
-denote the ``current value of the expression.''\footnote{We are open to
-  suggestions on the name for this special symbol. We considered the
-  term `self', but chose not to use because it is anthromorphic and not
-  particularly descriptive. We also considered the term `this', but that
-  has specific meaning to programmers who also use object-oriented
-  languages, so it is likely to cause confusion.} The bounds for an
-expression may involve using the bounds for a subexpression where the
-special variable \exprcurrentvalue\ occurs. If the ``current
-value'' of the expression changes, the uses of
-\exprcurrentvalue\ from subexpressions must be adjusted to
-counter the change. Bookkeeping rules for making this adjustment will be
-described in sections that treat expressions with subexpressions.
+\var{n}). We use temporary variables to denote the values
+of expressions or subexpressions.   The evaluation of
+expressions at runtime needs to store values in temporary
+variables, if the temporary variables are used in runtime
+bounds check.
 
 \subsection{Null pointers}
 
@@ -213,8 +234,10 @@ Suppose there is a function call expression of the form
 \end{enumerate}
 
 The special variable \lstinline|return_value| may appear in \var{exp1}. It
-is the value of the function call expression, so it is replaced with the
-special variable \exprcurrentvalue.
+is the value of the function call expression. If \lstinline|return_value|
+is used, a temporary variable is introduced to hold the result of the
+function call.  The occurrencs of \lstinlne|return_value| are replaced
+with the the temporary variable.
 
 There needs to be validation that the bounds for argument expressions
 match the required bounds for formal parameters. This is described in
@@ -298,10 +321,11 @@ expression. The formal parameter \lstinline|target| is not used by the
 return bounds expression.
 
 Next, the actual arguments are substituted for the formal parameters and
-\exprcurrentvalue\ is substituted for \lstinline|return_value|.
+a temporary variable \var{t1} is substituted for \lstinline|return_value.
+(\var{t1} is distinct from all program-level variables}.
 The argument \lstinline|size| is substituted for \lstinline|s|, producing
 \begin{lstlisting}[escapechar=\|]
-    init(alloc_helper(size), size) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size) rel_align(int)
+    init(alloc_helper(size), size) |\(\vdash\)| bounds(\var{t1}, \var{t1} + size) rel_align(int)
 \end{lstlisting}
 
 It would not be possible to represent the bounds if \lstinline|size| were a
@@ -313,7 +337,7 @@ function call too:
 Function calls are not valid in bounds expressions:
 
 \begin{lstlisting}
-    bounds(expr_current_value, current_expr_value + getsize())  // illegal
+    bounds(\var{t1}, \var{t1} + getsize())  // illegal
 \end{lstlisting}
 
 The solution would be to assign the result of \lstinline|getsize()| to a
@@ -335,9 +359,9 @@ First, there is a check that the actual arguments that correspond to
 formal parameters used in the return bounds are valid non-modifying
 expressions. The only argument is the variable size, so this check
 succeeds. Next, \lstinline|size| is substituted for \lstinline|n| and
-\exprcurrentvalue\ is substituted for \lstinline|return_value|, producing:
+a temporary variable \var{t2}is substituted for \lstinline|return_value|, producing:
 \begin{lstlisting}[escapechar=\|]
-   alloc_helper(size) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size) rel_align(int)
+   alloc_helper(size) |\(\vdash\)| bounds(\var{t2}, \var{t2} + size) rel_align(int)
 \end{lstlisting}
 
 \subsection{Pointer arithmetic}
@@ -424,105 +448,12 @@ Chapter~\ref{chapter:simple-invariants}
 provides a general framework for checking side-conditions as
 part of checking bounds declarations.
 
-\subsubsection{Treatment of expr\_current\_value}
-
-If the special variable \exprcurrentvalue\ occurs in
-\bounds{\var{e2}}{\var{e3}}, then
-\exprcurrentvalue\ must be adjusted as follows:
-
-\begin{itemize}
-\item
-  If \var{op} is \code{+}, substitute \exprcurrentvalue\ \code{-}
-  \var{e1} for all occurrences of \exprcurrentvalue\ in
-  \bounds{\var{e2}}{\var{e3}}
-\item
-  If \var{op} is \code{-}, substitute \exprcurrentvalue\ \code{+}
-  \var{e1} for all occurrences of \exprcurrentvalue\ in
-  \bounds{\var{e2}}{\var{e3}}.
-\end{itemize}
-
-The reasoning behind this is that the current value of the expression has
-changed as the result of \var{op} \var{e1}. An adjustment in the
-opposite direction of equal magnitude must be made for occurrences of
-\exprcurrentvalue.
-
-The following example illustrates the treatment of
-\exprcurrentvalue. Consider the prior example that had a
-function called \lstinline|alloc_helper| that returned some
-newly-allocated memory. Suppose there is an expression that offsets a
-pointer returned by a call to \lstinline|alloc_helper|:
-\begin{lstlisting}
-   alloc_helper(size) + 2
-\end{lstlisting}
-To compute the bounds for this expression, first the valid bounds for
-\lstinline|alloc_helper(size)| are computed:
-
-\begin{lstlisting}[escapechar=\|]
-   alloc_helper(size) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size)
-\end{lstlisting}
-
-Next, \exprcurrentvalue \lstinline| - 2| is substituted for
-\exprcurrentvalue\, yielding:
-
-\begin{lstlisting}[escapechar=\|]
-   alloc_helper(size) + 2 |\(\vdash\)| bounds(expr_current_value - 2, expr_current_value - 2 + size)
-\end{lstlisting}
-
-Now, suppose the pointer is being adjusted to insert some blank padding
-at the beginning of the newly-allocated object. We can remove the
-occurrence of \exprcurrentvalue \lstinline| - 2| in the upper bound by
-over-allocating in the expression:
-
-\begin{lstlisting}
-  alloc_helper(size + 2) + 2
-\end{lstlisting}
-
-The valid bounds for \lstinline|alloc_helper(size + 2)| are:
-
-\begin{lstlisting}[escapechar=\|]
-  alloc_helper(size + 2) |\(\vdash\)| bounds(expr_current_value, expr_current_value + size + 2)
-\end{lstlisting}
-
-The valid bounds for the entire expression are:
-
-\begin{lstlisting}[escapechar=\|]
-  alloc_helper(size + 2) + 2 |\(\vdash\)| bounds(expr_current_value - 2, expr_current_value - 2 + size + 2)
-\end{lstlisting}
-
-which can be simplified to:
-
-\begin{lstlisting}[escapechar=\|]
-  alloc_helper(size + 2) + 2 |\(\vdash\)| bounds(expr_current_value - 2, expr_current_value + size)
-\end{lstlisting}
-
-As we will explain in Chapter~\ref{chapter:simple-invariants}, 
-it is fine to narrow a bounds by
-adding a positive constant to the lower bounds. This allows us to adjust
-the bounds to what would be desired when extra padding is inserted:
-
-\begin{lstlisting}[escapechar=\|]
-    alloc_helper(size + 2) + 2 |\(\vdash\)| bounds(expr_current_value, expr_current_value + size)
-\end{lstlisting}
-
 \subsection{Cast expressions}
 \label{section:cast-expressions}
 
 Given a cast expression of the form \cast{\var{T}}{\var{e}},
 the bounds for \var{e} are determined. The bounds for
 \var{e} are used as the bounds for the entire expression.
-
-If the special variable \exprcurrentvalue\ appears in the
-bounds for \var{e},
-
-\begin{itemize}
-\item
-  If T is an integral type large enough to hold a pointer or a pointer
-  type, let \var{S} be the type of \var{e}. The expression
-  \cast{\var{S}}{\exprcurrentvalue} is substituted for
-  all occurrences of \exprcurrentvalue.
-\item
-  Otherwise, the bounds of \var{e} are  altered to \boundsunknown.
-\end{itemize}
   
 \subsection{Conditional expressions}
 
@@ -531,11 +462,6 @@ Given an expression of the form \var{e1} \code{?} \var{e2}
 determined. They must be syntactically identical (after putting the
 bounds into a normal form). The bounds for \var{e2} are used as the
 bounds for the entire expression.
-
-If the special variable \exprcurrentvalue\ occurs in the
-bounds for \var{e2}, it is left unchanged. The conditional expression
-does not change the value returned by one if its branches, so no
-adjustment to \exprcurrentvalue\ is needed.
 
 \emph{This is an expression where a conditional bounds expression could
 be used to represent the resulting range.  Another alternative that works
@@ -550,22 +476,24 @@ Given an expression of the form \var{e1} \code{,} \var{e2}, the
 bounds for \var{e2} are determined. The bounds for \var{e2} are used
 as the bounds for the entire expression.
 
-If the special variable \exprcurrentvalue\ occurs in the
-bounds for \var{e2}, it is left unchanged.
-
 \section{Bounds for assignment expressions}
 \label{section:checking-assignment-expressions}
 
 For an assignment expression of the form \var{x} \code{=} \var{e},
-where \var{x} is a variable and \var{e} is an expression, we start
-with a context that is true before the evaluation of the assignment
-expression. We determine the context that will be true after the
-evaluation of the assignment expression and the bounds for the value
-returned by the assignment expression.
+where \var{x} is a variable and \var{e} is an expression, there are
+three aspects to to computing bounds.   First, we compute the bounds
+of the assignment expression.  We determine the bounds of \var{e}.  
+These are the bounds for the entire expression.
 
-This seems straightforward at first. If \var{x} has type
-\arrayptr, compute the bounds for \var{e} and update the
-context so that the bounds for \var{x} is the bounds of \var{e}.
+Second, we determine the effect of the assignment on the context.
+Recall that the context is a mapping from variables to their bounds.
+We start with the context that is true before the expression
+is evaluated and determine the context that is true after
+the expression is evaluated.
+
+This seems straightforward.  If \var{x} has type
+\arrayptr, use the computed bounds for \var{e} to update the context
+context so that the bounds for \var{x} are the bounds of \var{e}.
 However, there is a problem. The bounds for \var{e} is determined
 \var{before} \var{x} changes value. When \var{x} changes value, the bounds
 for \var{e} may no longer be true if \var{x} appears in the bounds.
@@ -599,7 +527,7 @@ narrowed to satisfy loop bounds invariants. Invertible expressions
 include the addition and subtraction expressions that update loop
 induction variables.
 
-The updated context will be determined in three steps. First, if
+The updated context is determined in two steps. First, if
 \var{x} has type \arrayptr, the context is updated for
 \var{x} using bounds expressions that use the \emph{old} value of \var{x}:
 
@@ -624,16 +552,10 @@ Second, the context is updated to reflect the change in the value of
   Otherwise, any bounds expression that involves x is invalidated
 \end{itemize}
 
-An assignment expression in C has a value. The bounds of the assignment
-expression will be the bounds of \var{x} at this point.
-
-Third, the special variable \exprcurrentvalue\ is eliminated
-from the bounds of \var{x}, if it was introduced because it occurred in
-\boundsdecl{\var{e}}{\var{exp}}. Recall that
-\exprcurrentvalue\ stands for the current value of an
-expression whose bounds is being determined. Because the value of
-\var{e} has been assigned to \var{x}, \var{x} is substituted for
-\exprcurrentvalue\ in the bounds for x.
+Third, if a temporary variable for the value of \var{e} appears
+in the bounds of \var{x}, it is eliminated.  \var{x}
+will contain the same value as the temporary, so \var{x} is 
+substituted for the temporary in the bounds for \var{x}.
 
 \subsection{Invertibility}
 
@@ -1346,7 +1268,8 @@ each variable \var{v} in the list,
 
     \begin{itemize}
     \item
-      If \exprcurrentvalue\ appears in the bounds for
+      If a temporary variable has been introduced for the value 
+      of \var{e} and the temporary variable appears in the bounds for
       \var{e}, \var{v} is substituted for it.
     \item
       The context is updated to map v to the updated bounds.
@@ -1477,12 +1400,26 @@ parameters,
  \label{section:checking-return-statements}
 
 A return statement has the form \code{return} \var{e}, where \var{e}
-is optional. The bounds for \var{e} are computed. If the special
-variable \exprcurrentvalue\ occurs in the bounds, the special
-variable \keyword{return\_value} is substituted into the bounds in its
-place. It is then checked that the updated bounds for \var{e} imply the
-return bounds for the function using the rules in 
+is optional. If the special
+variable \keyword{return\_value} occurs in the return bounds
+for the function
+\begin{itemize}
+\item a new temporary is created and substituted for
+\keyword{return\_value} in the return bounds.
+\item  It is recorded that the new temporary and the result
+of evaluating \var{e} are equal.
+\end{itemize}
+The bounds for \var{e} are computed.   It is then checked that
+the bounds for \var{e} imply the (possibly updated) return
+bounds, using  the rules in 
 Section~\ref{section:checking-expression-statements}
+
+Note that if the bounds of \var{e} involve a temporary,
+the temporary does not occur in the (possibly updated) return bounds,
+and no equality facts have been recorded involving the temporary,
+the bounds of \var{e} cannot imply the return bounds are
+valid.  There will be no connection between the temporary
+and values used in the return bounds.
 
 \section{Other statements}
 
