@@ -1,7 +1,76 @@
 % !Tex root = checkedc.tex
 
-\chapter{Inferring bounds expressions and checking bounds declaration validity}
+\chapter{Bounds declaration checking}
 \label{chapter:checking-bounds}
+
+Bounds declarations are invariants about programs that are checked
+at compile time.    This checking is called ``bounds declaration checking'',
+analogous to the way that checking types is called type checking.
+Each expression in a Checked C program has a bounds expression
+that describes that range of memory that can be accessed using
+the values produced by the expression.   The bounds expression
+for an expression is inferred based on the expression and bounds 
+expressions for subexpressions.  The inference ends at variables
+and constants.   The bounds expressions for expressions are used to check 
+runtime accesses and during bounds declaration checking.
+
+When a variable has a bounds declaration, its initializer expression
+must have a bounds expression that {\it subsumes} the declared
+bounds expression.  
+The memory accessible using the initializer's bounds expression must include
+(subsume) all the memory accessible using the declared bounds expression.
+For assignments in C, the rules are more complicated.   Similarly, for
+an assignment to a variable with a bounds declaration, the bounds 
+expression for the right-hand side expression must subsume the declared
+bounds expression for the variable.
+Checking subsumption is the core idea of bounds declaration checking.
+
+C expressions are complex and some aspects of them can be problematic
+for static checking.  C has control-flow within expressions where only some
+subexpressions are evaluated.  C combines this with allowing nested assignments
+in expressions, which means that some assignments are only conditionally
+done.  C also only partially specifies the order of evaluation of subexpressions of an
+expression.
+
+To keep bounds declaration checking from becoming overly complex,
+we disallow some C expressions in the presence of bounds declarations.  
+Specifically, if a variable \var{v} with a bounds
+declaration has a bounds expression that uses multiple variables, assignments
+to those variables within conditional expressions in the scope of \var{v} are not allowed.  
+Assignments to variables  with constant-sized bounds are allowed because those are easy to check.
+We expect this restriction to rarely be encountered in practice.  It is straightforward to
+modify code to avoid this restriction.
+
+The C specification states that multiple assignments to the same scalar variables within an expression
+result in undefined behavior \cite[Section 6.5]{ISO2011} when the order of evaluation is not specified.
+Similarly, assigning a variable and reading from it within an expression is also undefined behavior
+when the order of evaluation is not specified.  With the restriction
+on nested assignments, it is straightforward to check for undefined behavior involving
+variables used in bounds: gather all the assignments in an expression to variables used
+by in-scope bounds declarations and construct the ``sequenced before'' ordering described in 
+\cite[Section 5.1.2.3]{ISO2011}.    If some pair of assignments is not ordered, the program is rejected
+as having undefined behavior with respect bounds.   
+% For an operator that does a bound check,
+% we also check that for any variables used by that bounds check, any assignments to those
+% variables are ordered with respect to that operation.
+
+Our goal with checking bounds declarations is to check them at the end
+of evaluation of a {\em top-level expression}.
+A top-level expression as an expression that is nested directly within a statement (and not
+nested in another expression).  However, we do have to deal with sequential control-flow
+within expressions.   We model this by having a {\em bounds declaration
+context} that we track and update during expression evaluation. 
+The bounds declaration context is a mapping from variables to 
+their bounds declarations.   We also have an {\em equality facts set}.   This is a set of sets
+of expressions that are known to be equal.   We traverse the assignment expressions in a top-level
+expression in any order legal under the the ``sequenced before'' ordering and update the context
+and equality facts as assignments occur.  It is possible for variables not occuring in a 
+bounds declaration to be swept up by this analysis.   If there is an assignment to such
+a variable, it could cause a problem because the assignment might happen anytime during evaluation
+of the top-level expression.     If the assignment is not ordered with respect to all other
+assignments in the expression, we discard any equality facts that use the variable and mark any
+bounds declaration that use the variable as unknown.   Chapter~{} provides
+details on this.
 
 Each expression in a Checked C program has a bounds expression
 that describes the range of memory, if any, that can be accessed using
@@ -14,24 +83,6 @@ This chapter describes the rules for inferring the bounds expressions for
 expressions, excluding those that access data structures. Those are covered in
 Chapters~\ref{chapter:structure-bounds} and 
 \ref{chapter:pointers-to-data-with-arrayptrs}.
-
-Checked C programs must maintain the validity of bounds declarations.
-When a variable is declared with bounds, it must have an initializer
-and the bounds expression for the initializer must {\em subsume} the declared bounds
-expression for the variable.   The memory accessible using the 
-initializing bounds expression must include memory access using the
-declare bounds expression. 
-Similarly, at assignments to variables with bounds, the 
-bounds for the expression being assigned to the variable 
-must subsume the declared bounds of the variable.
-Finally, assignments to variables used in bounds 
-declarations for in-scope variables must preserve
-the validity of bounds declarations.
-Bounds declarations are invariants about programs that are checked
-at compile time.
-The subsumption checking is done at compile time for
-the sake of runtime efficiency and to avoid introducing
-possible points-of-failure in programs.
 
 This chapter describes basic rules for determining the validity of
 bounds declarations in a C translation unit. In general, these rules do
