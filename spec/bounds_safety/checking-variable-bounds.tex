@@ -4,121 +4,93 @@
 \label{chapter:checking-bounds}
 
 Bounds declarations are invariants about programs that are checked
-at compile time.    This checking is called ``bounds declaration checking'',
-analogous to the way that checking types is called type checking.
-Each expression in a Checked C program has a bounds expression
-that describes that range of memory that can be accessed using
-the values produced by the expression.   The bounds expression
-for an expression is inferred based on the expression and bounds 
-expressions for subexpressions.  The inference ends at variables
+at compile time.  This checking is called ``bounds declaration checking'',
+similar to the way that checking types is called type checking.
+Each expression in a Checked C program also has a bounds expression
+that describes the range of memory that can be accessed using
+the values produced by the expression.   
+This chapter describes the rules for bounds declaration checking.
+as well the rules for for inferring the bounds expressions for
+expressions
+
+The bounds expression for an expression is inferred based on the expression and
+bounds expressions for subexpressions.  The inference ends at variables
 and constants.   The bounds expressions for expressions are used to check 
 runtime accesses and during bounds declaration checking.
+The inference is parameterized by a {\em bounds declaration context},
+a mapping from variables to  their bounds expressions.    This parameterization
+is used when handling expressions with control-flow within them.
+The inference may introduce temporaries for the values of expression
+in cases where an expression has a bounds that needs to be expressed in terms of its value 
+or a subepxression value.
+Section~\ref{section:inferring-expression-bounds}
+describes how to determine the bounds for an expression of type \arrayptr.
+It does not cover operations that access data structures, such as member
+access and pointer dereference. 
+Those are covered in Chapters~\ref{chapter:structure-bounds} and 
+\ref{chapter:pointers-to-data-with-arrayptrs}.
 
+The core idea of bounds declaration of checking is {\em subsumption checking}.
 When a variable has a bounds declaration, its initializer expression
 must have a bounds expression that {\it subsumes} the declared
 bounds expression.  
 The memory accessible using the initializer's bounds expression must include
 (subsume) all the memory accessible using the declared bounds expression.
-For assignments in C, the rules are more complicated.   Similarly, for
-an assignment to a variable with a bounds declaration, the bounds 
+Similarly, for an assignment to a variable with a bounds declaration, the bounds 
 expression for the right-hand side expression must subsume the declared
 bounds expression for the variable.
-Checking subsumption is the core idea of bounds declaration checking.
 
-C expressions are complex and some aspects of them can be problematic
-for static checking.  C has control-flow within expressions where only some
-subexpressions are evaluated.  C combines this with allowing nested assignments
-in expressions, which means that some assignments are only conditionally
-done.  C also only partially specifies the order of evaluation of subexpressions of an
-expression.
-
-To keep bounds declaration checking from becoming overly complex,
-we disallow some C expressions in the presence of bounds declarations.  
-Specifically, if a variable \var{v} with a bounds
-declaration has a bounds expression that uses multiple variables, assignments
-to those variables within conditional expressions in the scope of \var{v} are not allowed.  
-Assignments to variables  with constant-sized bounds are allowed because those are easy to check.
-We expect this restriction to rarely be encountered in practice.  It is straightforward to
-modify code to avoid this restriction.
-
-The C specification states that multiple assignments to the same scalar variables within an expression
-result in undefined behavior \cite[Section 6.5]{ISO2011} when the order of evaluation is not specified.
-Similarly, assigning a variable and reading from it within an expression is also undefined behavior
-when the order of evaluation is not specified.  With the restriction
-on nested assignments, it is straightforward to check for undefined behavior involving
-variables used in bounds: gather all the assignments in an expression to variables used
-by in-scope bounds declarations and construct the ``sequenced before'' ordering described in 
-\cite[Section 5.1.2.3]{ISO2011}.    If some pair of assignments is not ordered, the program is rejected
-as having undefined behavior with respect bounds.   
-% For an operator that does a bound check,
-% we also check that for any variables used by that bounds check, any assignments to those
-% variables are ordered with respect to that operation.
-
-Our goal with checking bounds declarations is to check them at the end
-of evaluation of a {\em top-level expression}.
+Bounds declaration checking for expressions is done for {\em top-level expressions}.
 A top-level expression as an expression that is nested directly within a statement (and not
-nested in another expression).  However, we do have to deal with sequential control-flow
-within expressions.   We model this by having a {\em bounds declaration
-context} that we track and update during expression evaluation. 
-The bounds declaration context is a mapping from variables to 
-their bounds declarations.   We also have an {\em equality facts set}.   This is a set of sets
-of expressions that are known to be equal.   We traverse the assignment expressions in a top-level
-expression in any order legal under the the ``sequenced before'' ordering and update the context
-and equality facts as assignments occur.  It is possible for variables not occuring in a 
-bounds declaration to be swept up by this analysis.   If there is an assignment to such
-a variable, it could cause a problem because the assignment might happen anytime during evaluation
-of the top-level expression.     If the assignment is not ordered with respect to all other
-assignments in the expression, we discard any equality facts that use the variable and mark any
-bounds declaration that use the variable as unknown.   Chapter~{} provides
-details on this.
+nested in another expression).   Any assignments within a top-level expression
+must be completed by the end of evaluation of the expression.  C expressions
+can contain multiple nested assignments and the rules regarding exactly when
+the assignments happen are complicated.
 
-Each expression in a Checked C program has a bounds expression
-that describes the range of memory, if any, that can be accessed using
-the values produced by the expression.  The bounds expression
-is inferred from the bounds expressions for subexpressions, with inference 
-ending at variables and constants.  At runtime, the value of the
-bounds expression determines what memory can be accessed using the
-value of the expression.
-This chapter describes the rules for inferring the bounds expressions for
-expressions, excluding those that access data structures. Those are covered in
-Chapters~\ref{chapter:structure-bounds} and 
-\ref{chapter:pointers-to-data-with-arrayptrs}.
+C expressions are complex, with nested assignments, control-flow and a partial-specified
+order of evaluation.    So that readers can understand the core concepts, we first
+cover the common (simpler) case where the top-level expression is an assignment
+expression and there are no nested assignments.   
+Section~\ref{section:checking-assignment-expressions} cover this case in detail.
 
-This chapter describes basic rules for determining the validity of
-bounds declarations in a C translation unit. In general, these rules do
-not include any inference steps. Inference steps for reasoning about
-bounds are described in Chapter~\ref{chapter:simple-invariants}.
-Section~\ref{section:inferring-expression-bounds}
-describes how to determine the bounds for an expression of
-type \arrayptr\ that does not have any assignments within it.
-We start with a set of bounds that are true about variables before the
-evaluation of the expression, called the context, and describe the
-bounds for the value of the expression.
-Section~\ref{section:checking-assignment-expressions}
-then describes handling assignment expressions, assuming
-that no assignments are nested within the expression. For an assignment
-expression, we must determine the updated context in addition to the
-value of the expression. The updated context contains new bounds for any
-variables assigned to by the expression.
-Section~\ref{section:checking-nested-assignment-expressions}
-combines the concepts and describes handling expressions
-with nested assignments expressions.
-Section~\ref{section:checking-expression-statements} 
-describes how to validate expression statements. 
+The bounds declaration
+checking starts with a bounds declaration context that is true before the assignment
+expression.   The context is based on the {\em declared} bounds for the
+variables.   There is also an {\em equality facts set}.   This is a set of sets of  expressions
+that are known to be  equal.    The equality facts set is used to reason about
+temporaries whose values are assigned to source-level variables.  It may
+also incorporate information computed using dataflow analysis.
+
+Given an assignment \var{v}\lstinline+=+\var{e}, the effect of the assignment to \var{v}
+is modelled by updating the context to contains new bound expressions that are true
+after the assignment.  If \var{v} has \arrayptr type, the bounds expression is updated
+to the inferred bounds expression for \var{e}.  We have to also model the change in \var{v}'s
+value for any bounds expressions in the context that use \var{v}.   If the result of \var{e}
+is bound to a temporary, we update the equality facts set is updated to record that the temporary
+is equal to \var{v} now.   We use the updated context and equality facts set to check
+that the new bounds expressions subsume the declared bounds expressions for variables.
+
+Section~\ref{section:checking-expression-statements} describes how to do
+subsumption checking on bounds expressions.   The subsumption checking puts expressions
+into a standard form.   The checking tthen uses syntactic equality, extended with
+simple identities about C expressions and taking into account equality facts.
+Inference steps for relational reasoning about bounds expressions 
+are described in Chapter~\ref{chapter:simple-invariants}.
+
+Section~\ref{section:checking-nested-assignment-expressions} covers the full case
+of nested assignments and control-flow within expressions (as introduced by 
+the \lstinline|? :|, \lstinline+||+ and \lstline+&&+  operators).  
+We disallow some C expressions with nested assignments to keep the checking
+from becoming inordinately complex and expensive. 
+If a variable \var{v} with a bounds
+declaration has a bounds expression that uses multiple variables, assignments
+to those variables in conditional expressions in the scope of \var{v} are not allowed.
+Note that assignments to variables with constant-sized bounds are allowed.
+We expect this restriction to rarely be encountered and it is straightforward to work around it
+if it is.
+
 Section~\ref{section:checking-function-call-arguments}
 describes validating function call arguments.
-
-Because this section covers bounds for \arrayptr\ variables,
-not data structures with \arrayptr\ data, certain expressions
-are not covered here. This includes member references and expressions
-that load or store \arrayptr\ values through pointers. These
-expressions are covered in Chapters~\ref{chapter:structure-bounds} and
-\ref{chapter:pointers-to-data-with-arrayptrs}.
-Section~\ref{section:bounds-checking-indirections} does discuss how to 
-insert bounds checking at uses of the
-indirection operator (\lstinline|*|). This is different than discussing the
-bounds of the values \emph{returned} or \emph{stored} through the
-indirection operator.
 
 \section{Preparing a translation unit for checking}
 
@@ -163,13 +135,13 @@ should be renamed to be distinct from other variables.  Similarly, parameter
 variables that have the same name as a variable with file scope or a
 variable with an enclosing block scope should be renamed.
 
-\section{Inferring valid bounds for expressions without nested assignment expressions}
+\section{Inferring bounds expressions for expressions}
 \label{section:inferring-expression-bounds}
 
-We first discuss determining valid bounds for expressions that do not
-have assignment expressions nested within them. The bounds for an
-expression is always determined with respect to a context (bounds for
-variables read by the expression). We will use $\vdash$ to denote the
+We first discuss inferring bounds expressions for experssion.e bounds for an
+expression is always determined with respect to a bounds
+declaration context, wich maps variables to the declared bounds
+expressions.  We will use $\vdash$ to denote the
 valid bounds for an expression. The notation \boundsinfer{\var{e}}{\var{bounds-exp}}
 means that expression \var{e} has valid bounds \var{bounds-exp}.
 
@@ -372,7 +344,7 @@ expression. The formal parameter \lstinline|target| is not used by the
 return bounds expression.
 
 Next, the actual arguments are substituted for the formal parameters and
-a temporary variable \var{t1} is substituted for \lstinline|return_value.
+a temporary variable \var{t1} is substituted for \lstinline|return_value|.
 (\var{t1} is distinct from all program-level variables}.
 The argument \lstinline|size| is substituted for \lstinline|s|, producing
 \begin{lstlisting}[escapechar=\|]
@@ -525,32 +497,42 @@ alternatives. }
 
 Given an expression of the form \var{e1} \code{,} \var{e2}, the
 bounds for \var{e2} are determined. The bounds for \var{e2} are used
+as the bounds for the entire expression.  
+
+\subsection{Assignment expressions}
+
+Given an expression of the form \var{e1} \code{ = } \var{e2}, the
+bounds for \var{e2} are determined. The bounds for \var{e2} are used
 as the bounds for the entire expression.
 
-\section{Bounds for assignment expressions}
+Note that if \var{e1} is a variable,
+there is an order of evaluation issue of \var{e1} appears in the bounds for
+\var{e2}.   Specifically, the bounds for \var{e2} cannot be used to
+check a memory access within the top-level expression being evaluated.
+
+\section{Bounds declaration checking for simple assignment expressions}
 \label{section:checking-assignment-expressions}
 
 For an assignment expression of the form \var{x} \code{=} \var{e},
 where \var{x} is a variable and \var{e} is an expression, there are
-three aspects to to computing bounds.   First, we compute the bounds
-of the assignment expression.  We determine the bounds of \var{e}.  
-These are the bounds for the entire expression.
+three aspects to to computing bounds.   First, we infer the
+bounds expression for \var{e}.
 
-Second, we determine the effect of the assignment on the context.
-Recall that the context is a mapping from variables to their bounds.
+Second, we determine the effect of the assignment on the
+bounds declaration context.
 We start with the context that is true before the expression
 is evaluated and determine the context that is true after
 the expression is evaluated.
 
 This seems straightforward.  If \var{x} has type
 \arrayptr, use the computed bounds for \var{e} to update the context
-context so that the bounds for \var{x} are the bounds of \var{e}.
+so that the bounds for \var{x} are the bounds of \var{e}.
 However, there is a problem. The bounds for \var{e} is determined
 \var{before} \var{x} changes value. When \var{x} changes value, the bounds
 for \var{e} may no longer be true if \var{x} appears in the bounds.
 The context could contain uses of \var{x} also in bounds expressions.
 
-A simple solution is to invalidate bounds expressions where x appears in
+A simple solution is to invalidate bounds expressions where \var{x} appears in
 the bounds. This does not work well when a variable that appears in its
 own bounds declaration is incremented or decremented. Consider the
 following example:
@@ -600,13 +582,12 @@ Second, the context is updated to reflect the change in the value of
   any bounds expression that uses \var{x} will be updated to use an
   expression that inverts the new value to compute the old value.
 \item
-  Otherwise, any bounds expression that involves x is invalidated
+  Otherwise, any bounds expression that involves \var{x} is invalidated
 \end{itemize}
 
-Third, if a temporary variable for the value of \var{e} appears
-in the bounds of \var{x}, it is eliminated.  \var{x}
-will contain the same value as the temporary, so \var{x} is 
-substituted for the temporary in the bounds for \var{x}.
+Third, if the value of \var{e} is also available in a temporary,
+we record in the set of equality facts that \var{x} equals that
+temporary (at the end of evaluating the expression).
 
 \subsection{Invertibility}
 
@@ -762,6 +743,33 @@ This means that the approach of
 Section~\ref{section:checking-assignment-expressions} has to be extended to walk
 expressions recursively and update the context during the walk.
 
+The C specification states that multiple assignments to the same scalar variables within an expression
+result in undefined behavior \cite[Section 6.5]{ISO2011} when the order of evaluation is not specified.
+Similarly, assigning a variable and reading from it within an expression is also undefined behavior
+when the order of evaluation is not specified.  With the restriction
+on nested assignments, it is straightforward to check for undefined behavior involving
+variables used in bounds: gather all the assignments in an expression to variables used
+by in-scope bounds declarations and construct the ``sequenced before'' ordering described in 
+\cite[Section 5.1.2.3]{ISO2011}.    If some pair of assignments is not ordered, the program is rejected
+as having undefined behavior with respect bounds.   
+% For an operator that does a bound check,
+% we also check that for any variables used by that bounds check, any assignments to those
+% variables are ordered with respect to that operation.
+
+However, we do have to deal with sequential control-flow
+within expressions.   We model this by having a {\em bounds declaration
+context} that we track and update during expression evaluation. 
+The bounds declaration context is a mapping from variables to 
+their bounds declarations.   We also have an {\em equality facts set}.   This is a set of sets
+of expressions that are known to be equal.   We traverse the assignment expressions in a top-level
+expression in any order legal under the the ``sequenced before'' ordering and update the context
+and equality facts as assignments occur.  It is possible for variables not occuring in a 
+bounds declaration to be swept up by this analysis.   If there is an assignment to such
+a variable, it could cause a problem because the assignment might happen anytime during evaluation
+of the top-level expression.     If the assignment is not ordered with respect to all other
+assignments in the expression, we discard any equality facts that use the variable and mark any
+bounds declaration that use the variable as unknown.
+
 Given some expression \var{e} that has subexpressions \var{e}\textsubscript{1}
 \ldots{}. \var{e}\textsubscript{n}, start with the context for \var{e}. Compute a
 new context and the bounds expression for \var{e} as follows:
@@ -770,7 +778,7 @@ new context and the bounds expression for \var{e} as follows:
 \item
   Traverse \var{e}\textsubscript{1} \ldots{} \var{e}\textsubscript{n} in an order
   that respect the sequence points of \cite{ISO2011}. For each subexpression, take the
-  context and compute the updated context and the bound expression (if
+  context and compute the updated context and the bounds expression (if
   any) for the subexpression.
 \item
   If \var{e} is an assignment expression, 
