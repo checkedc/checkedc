@@ -5,24 +5,26 @@
 
 Bounds declarations are invariants about programs that are checked
 at compile time.  This checking is called ``bounds declaration checking'',
-similar to the way that checking types is called type checking.
+similar to the way that checking programs with types is called type checking.
 Each expression in a Checked C program also has a bounds expression
 that describes the range of memory that can be accessed using
 the values produced by the expression.   
 This chapter describes the rules for bounds declaration checking.
-as well the rules for for inferring the bounds expressions for
-expressions
+as well the rules for inferring the bounds expressions for
+expressions.  This section provides an overview of the checking and inference
+and introduces some key concepts and terminology.
 
 The bounds expression for an expression is inferred based on the expression and
 bounds expressions for subexpressions.  The inference ends at variables
 and constants.   The bounds expressions for expressions are used to check 
 runtime accesses and during bounds declaration checking.
 The inference is parameterized by a {\em bounds declaration context},
-a mapping from variables to  their bounds expressions.    This parameterization
-is used when handling expressions with control-flow within them.
+a mapping from variables to  their bounds expressions.   
+% This parameterization
+% is used when handling expressions with control-flow within them.
 The inference may introduce temporaries for the values of expression
 in cases where an expression has a bounds that needs to be expressed in terms of its value 
-or a subepxression value.
+or a subexpression value.
 Section~\ref{section:inferring-expression-bounds}
 describes how to determine the bounds for an expression of type \arrayptr.
 It does not cover operations that access data structures, such as member
@@ -42,46 +44,54 @@ bounds expression for the variable.
 
 Bounds declaration checking for expressions is done for {\em top-level expressions}.
 A top-level expression as an expression that is nested directly within a statement (and not
-nested in another expression).   Any assignments within a top-level expression
+nested in another expression).   According to the C specification \cite{ISO2011},
+any assignments within a top-level expression
 must be completed by the end of evaluation of the expression.  C expressions
 can contain multiple nested assignments and the rules regarding exactly when
-the assignments happen are complicated.
+assignments happen during expression evaluation are complicated.
 
-C expressions are complex, with nested assignments, control-flow and a partial-specified
-order of evaluation.    So that readers can understand the core concepts, we first
-cover the common (simpler) case where the top-level expression is an assignment
-expression and there are no nested assignments.   
-Section~\ref{section:checking-assignment-expressions} cover this case in detail.
-
+In general, C expressions are complex, with nested assignments, control-flow and a partially-specified
+order of evaluation.   We first cover the case for an individual (top-level) assignment expression,
+assuming that no assignments are nested within it.
+Section~\ref{section:checking-assignment-expressions} explains this case in 
+detail.
 The bounds declaration
 checking starts with a bounds declaration context that is true before the assignment
 expression.   The context is based on the {\em declared} bounds for the
-variables.   There is also an {\em equality facts set}.   This is a set of sets of  expressions
-that are known to be  equal.    The equality facts set is used to reason about
-temporaries whose values are assigned to source-level variables.  It may
-also incorporate information computed using dataflow analysis.
+variables.   There is also an {\em equality facts set}.   An equality fact is a set
+of expressions that are known to evaluate to the same value, given the current
+state of memory.  An equality facts set is
+a set of equality facts.   It is used to reason about equality relationships
+temporaries that
+are introduced during bounds expression inference and source-level
+variables.  These relationships are created by assignments.
+The equality facts set may also contain information gathered using dataflow analysis.
 
 Given an assignment \var{v}\lstinline+=+\var{e}, the effect of the assignment to \var{v}
-is modelled by updating the context to contains new bound expressions that are true
-after the assignment.  If \var{v} has \arrayptr type, the bounds expression is updated
-to the inferred bounds expression for \var{e}.  We have to also model the change in \var{v}'s
-value for any bounds expressions in the context that use \var{v}.   If the result of \var{e}
-is bound to a temporary, we update the equality facts set is updated to record that the temporary
-is equal to \var{v} now.   We use the updated context and equality facts set to check
+is modelled by updating the context to contain bound expressions that are true
+after the assignment.  If \var{v} has \arrayptr\ type, the bounds expression in
+the context for \var{v} is updated to the inferred bounds expression for \var{e}.
+We also model the change in \var{v}'s
+value for any bounds expressions in the context that use \var{v}.   If the result of 
+evaluating \var{e} is available in a temporary, we update the equality facts set 
+to record that \var{v} equals the temporary when the (top-level) assignment
+expression is completely evaluated.
+We use the updated context and equality facts set to check
 that the new bounds expressions subsume the declared bounds expressions for variables.
 
-Section~\ref{section:checking-expression-statements} describes how to do
+Section~\ref{section:checking-expression-statements} describes how
 subsumption checking on bounds expressions.   The subsumption checking puts expressions
-into a standard form.   The checking tthen uses syntactic equality, extended with
+into a standard form.  It then uses syntactic equality, extended with
 simple identities about C expressions and taking into account equality facts.
 Inference steps for relational reasoning about bounds expressions 
 are described in Chapter~\ref{chapter:simple-invariants}.
 
-Section~\ref{section:checking-nested-assignment-expressions} covers the full case
-of nested assignments and control-flow within expressions (as introduced by 
-the \lstinline|? :|, \lstinline+||+ and \lstline+&&+  operators).  
-We disallow some C expressions with nested assignments to keep the checking
-from becoming inordinately complex and expensive. 
+Section~\ref{section:checking-nested-assignment-expressions} extends
+Section~\ref{section:checking-assignment-expressions} to cover expressions
+with nested assignments and and control-flow within expressions (as introduced by 
+the \lstinline|? :|, \lstinline+||+ and \lstinline+&&+  operators).
+To keep the static checking tractable, we disallow some C expressions with
+nested assignments to variables used in bounds  declarations.
 If a variable \var{v} with a bounds
 declaration has a bounds expression that uses multiple variables, assignments
 to those variables in conditional expressions in the scope of \var{v} are not allowed.
@@ -138,7 +148,7 @@ variable with an enclosing block scope should be renamed.
 \section{Inferring bounds expressions for expressions}
 \label{section:inferring-expression-bounds}
 
-We first discuss inferring bounds expressions for experssion.e bounds for an
+We first discuss inferring bounds expressions for experssion. The bounds for an
 expression is always determined with respect to a bounds
 declaration context, wich maps variables to the declared bounds
 expressions.  We will use $\vdash$ to denote the
@@ -150,10 +160,13 @@ of an expression or a subexpression.   For example, a function call expression m
 return an \arrayptr\ pointer to an array of constant size
 \var{n}. The bounds for that pointer value would be (the
 \arrayptr\ pointer, the \arrayptr\ pointer +
-\var{n}). We use temporary variables to denote the values
-of expressions or subexpressions.   The evaluation of
-expressions at runtime needs to store values in temporary
-variables, if the temporary variables are used in runtime
+\var{n}). We use temporaries to denote the values
+of expressions or subexpressions.   A temporary is a compiler-introduced
+temporary variable that is initialized immediately upon evaluation of an
+expression.   It differs from a source-level variable, whose assignment
+may happen at some less-precisely specified time.   The evaluation of
+expressions at runtime needs to store values in a temporary, 
+if the temporary is used in a runtime
 bounds check.
 
 \subsection{Null pointers}
@@ -200,6 +213,16 @@ and \var{x} has a known number of elements \var{n}, then
 \end{itemize}
 \item  Otherwise \var{x} has \boundsunknown.
 \end{itemize}
+
+\subsection{String literals and compound literal expressions}
+A string literal \lstinline+''abc''+ evaluates to an lvalue with array type,
+as does a compound literal of the form \lstinline+(int []) { 0, 1, 2, 3}+.
+Thes lvalues are then converted implicitly to values with pointer type.
+
+During bounds checking, a temporary is introduced for the result
+of evaluating a string literal or compound literal expression.
+If a literal \var{e} has array type with \var{n} elements, then
+\boundsinfer{\var{e}}{\bounds{temporary for \var{e}}{temporary for \var{e} + \var{n}}}
 
 \subsection{Address-of expressions}
 \label{section:address-of-expression-bounds}
@@ -259,7 +282,7 @@ Suppose there is a function call expression of the form
 The special variable \lstinline|return_value| may appear in \var{exp1}. It
 is the value of the function call expression. If \lstinline|return_value|
 is used, a temporary variable is introduced to hold the result of the
-function call.  The occurrencs of \lstinlne|return_value| are replaced
+function call.  The occurrencs of \lstinline|return_value| are replaced
 with the the temporary variable.
 
 There needs to be validation that the bounds for argument expressions
@@ -338,39 +361,44 @@ The valid bounds for the call to \lstinline|init(alloc_helper(size),size)| in
 
 First, there is a check that all the actual arguments corresponding to
 the formal parameters used by the return bounds expression are valid
-non-modifying bounds expressions. This check succeeds even though the
+non-modifying bounds expressions.   This check succeeds even though the
 first actual argument \lstinline|alloc_helper(size)| is not a valid bounds
 expression. The formal parameter \lstinline|target| is not used by the
 return bounds expression.
 
 Next, the actual arguments are substituted for the formal parameters and
-a temporary variable \var{t1} is substituted for \lstinline|return_value|.
-(\var{t1} is distinct from all program-level variables}.
+a temporary \var{t1} is substituted for \lstinline|return_value|.
+(\var{t1} is distinct from source-level variables).
 The argument \lstinline|size| is substituted for \lstinline|s|, producing
 \begin{lstlisting}[escapechar=\|]
-    init(alloc_helper(size), size) |\(\vdash\)| bounds(\var{t1}, \var{t1} + size) rel_align(int)
+    init(alloc_helper(size), size) |\(\vdash\)| bounds(|\var{t1}|, |\var{t1}| + size) rel_align(int)
 \end{lstlisting}
 
-It would not be possible to represent the bounds if \lstinline|size| were a
-function call too:
-\begin{lstlisting}
-    array_ptr<int> x = init(alloc_helper(getsize()), getsize());
-\end{lstlisting}
+% TODO: we can now introduce a temporary for the result of the function call, so this
+% is confusing given the discussion below for alloc_helper, where we do that.
+%   Checking of call arguments would fail due to the potential inequality
+% of two function call expressions.  These issues should be explained in checking of function arguments.
+%
+%It would not be possible to represent the bounds if \lstinline|size| were a
+%function call too:
+%\begin{lstlisting}
+%    array_ptr<int> x = init(alloc_helper(getsize()), getsize());
+%\end{lstlisting}
+%
+%Function calls are not valid in bounds expressions:
+%
+%\begin{lstlisting}[escapechar=\|]
+%   bounds(|\var{t1}|, |\var{t1}| + getsize())  // illegal
+%\end{lstlisting}
+%
+%The solution would be to assign the result of \lstinline|getsize()| to a
+%variable:
+%\begin{lstlisting}
+%   int tmp = getsize();
+%   array_ptr<int> x = init(alloc_helper(tmp), tmp);
+%\end{lstlisting}
 
-Function calls are not valid in bounds expressions:
-
-\begin{lstlisting}
-    bounds(\var{t1}, \var{t1} + getsize())  // illegal
-\end{lstlisting}
-
-The solution would be to assign the result of \lstinline|getsize()| to a
-variable:
-\begin{lstlisting}
-   int tmp = getsize();
-   array_ptr<int> x = init(alloc_helper(tmp), tmp);
-\end{lstlisting}
-
-The parameters to the call to \lstinline|init| also need to be validated
+The parameters to the call to \lstinline|init| need to be validated
 (see Section~\ref{section:checking-function-call-arguments}). This
 requires determining the valid bounds for \lstinline|alloc_helper(size)|. The
 return bounds for \lstinline|alloc_helper| are used:
@@ -384,7 +412,7 @@ expressions. The only argument is the variable size, so this check
 succeeds. Next, \lstinline|size| is substituted for \lstinline|n| and
 a temporary variable \var{t2}is substituted for \lstinline|return_value|, producing:
 \begin{lstlisting}[escapechar=\|]
-   alloc_helper(size) |\(\vdash\)| bounds(\var{t2}, \var{t2} + size) rel_align(int)
+   alloc_helper(size) |\(\vdash\)| bounds(|\var{t2}|, |\var{t2}| + size) rel_align(int)
 \end{lstlisting}
 
 \subsection{Pointer arithmetic}
