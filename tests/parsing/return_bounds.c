@@ -227,12 +227,12 @@ extern array_ptr<int> f28(int len) : coount(len) { // expected-error {{expected 
 }
 
 // Omit an argument to bounds to cause a parsing error
-extern array_ptr<int> f29(int len, array_ptr<int> arr : count(len)) : bounds(arr)) { // expected-error {{expected ','}}
+extern array_ptr<int> f29(int len, array_ptr<int> arr : count(len)) : bounds(arr) { // expected-error {{expected ','}}
   return 0;
 }
 
 // Omit both arguments to bounds to cause a parsing error
-extern array_ptr<int> f30(int len, array_ptr<int> arr : count(len)) : bounds()) { // expected-error {{expected expression}}
+extern array_ptr<int> f30(int len, array_ptr<int> arr : count(len)) : bounds() { // expected-error {{expected expression}}
   return 0;
 }
 
