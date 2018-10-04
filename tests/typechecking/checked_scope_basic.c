@@ -400,8 +400,9 @@ void func30(void) {
   int a = 5;
   int len = 10;
   array_ptr<int> pa : count(len) = 0;
-  checked(len);     // expected-error {{expected compound statement after checked scope keyword}}
-  checked [5][5];   // expected-error {{expected compound statement after checked scope keyword}}
+  /// checked is a function declaration specifier unless followed by '{' or '['
+  checked int len2;   // expected-error {{'_Checked' can only appear on functions}}
+  checked [5][5];     // expected-error {{expected identifier}}
 }
 
 // Test for unchecked scope.
