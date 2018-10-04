@@ -1,0 +1,354 @@
+% !Tex root = checkedc.tex
+
+\chapter{Type system extensions for improving type safety}
+
+\section{Introduction}
+
+C programs are well-known for taking a loose approach to type safety that
+can lead to memory corruption.   There are three C language features that
+allow this: pointers to void, casts between different pointer types or
+pointer types and integers, and union types.  In this chapter, 
+we describe language extensions for replacing  most uses of \uncheckedptrvoid{}
+with type-checked code that cannot cause type confusion.
+
+Pointers to void are cast implicitly to and from other pointer types with no checking.
+This can lead to type confusion problems, where pointers to objects of one type are mistakenly
+assumed to be pointers to objects of different types.  Storing through the pointers
+can corrupt memory directly and indirectly.
+
+Pointers to void are used widely for {\em untyped} programming that bypasses
+static checking.  Uses include:
+\begin{itemize}
+\item As handles that hide details of API implementations.  An
+API may provide a handle that is typed as \uncheckedptrvoid\ for 
+users the API, with the API implementation using a pointer to an actual
+type.
+\item As pointers to arrays of bytes.  This is done by APIs such as \lstinline+memcpy+.
+\item In generic data structures or functions. For example, 
+a program may have a data structure and functions for operating on lists. 
+The list may  have elements typed as \uncheckedptrvoid\ to allow the code
+to be used for many different types of list elements, 
+even though in practice only one type of data may be stored in a list instance. 
+\item For registering callback functions that are to be provided with 
+user-supplied data at the callback.  Callback functions can take \uncheckedptrvoid{} arguments and 
+the user-suppled data can be cast to \uncheckedptrvoid{}.
+\item To provide a union of pointer types, without changing data representation
+\end{itemize}
+
+These extensions are restricted so that code remains data-layout compatible and binary-code
+compatible with existing code.  The extensions include:
+\begin{itemize}
+\item Opaque types: these allow different kinds of handles to be distinguished.
+They are incomplete types with enough information to represent
+the types, but nothing else.  They can be copied around and used, but the internal
+details remain unknown in the scope of the declaration.  No conversions to and 
+from opaque types are allowed.
+
+\item Generic structs, functions, and type definitions: these allow structs
+or functions to be re-used for many types.   For example,
+a generic structure for a  \lstinline+List+ can be re-used for many different types of list
+elements.  Generic functions can implement generic list operations such as \lstinline+Append+.
+
+\item Hidden types: these generalize opaque types to handle callbacks involving
+user-supplied data.  Hidden types allow programmers to package up a callback function and data and
+say that they use  some type \lstinline+T+ whose details are hidden from the code that does
+the callback.   Enough details about \lstinline+T+ are available that the callback can be 
+implemented in a type-safe fashion efficently.  Hidden types hide details of the type 
+of user-supplied data, instead of erasing it like \uncheckedptrvoid{} does.
+\end{itemize}
+
+Generic structs and functions can be combined with bounds-checking 
+to provide type-safe interfaces for functions that operate on arrays of bytes.
+Informally, bounds checking provides a way to guarantee that entire objects are handled,
+avoiding corruptions caused by operating only on partial objects.
+
+The remaining sections of this chapter explain the extensions for 
+opaque types, generic functions, generic structures, and hidden types.  They also
+provide examples that illustrate how the extensions can be used to
+replace uses of \uncheckedptrvoid{}.
+
+\section{Opaque types}
+
+We extend \keyword{typedef} declarations so that they can also declare opaque types. 
+The \keyword{typedef} is followed by the new keyword \keyword{opaque}.
+This creates a new named type that is distinct from all other types during
+typechecking and that uses the specified type as its runtime representation.
+Importantly, the new named type is not the same as the specified type.  This allows
+handle types to be distinguished during typechecking:
+\begin{lstlisting}
+typedef opaque void *ProcessHandle;
+typedef opaque void *FileHandle;
+\end{lstlisting}
+An attempt to use a \lstinline+ProcessHandle+ where a \lstinline+FileHandle+ 
+is expected will result in a typechecking error.
+
+To implement operations on an opaque type,
+programmers reveal the actual implementation type of the opaque type
+in some scopes of the program.  The
+keyword \keyword{typedef} is followed by the new keyword \keyword{reveal}:
+\begin{lstlisting}
+typedef reveal _Ptr<struct ProcessData> ProcessHandle;
+typedef reveal _Ptr<struct FileData> FileHandle;
+\end{lstlisting}
+In the scope of a \keyword{reveal} declaration, casts between the
+opaque type and the implementation type are allowed.  
+Converting the implementation type to the representation
+type and back to the implementation type must not lose information.  
+The rules for conversions in the C specification are followed.   Note that 
+this allows the representation type to be larger (in terms of bits) than the implementation type.
+
+C-style casts between opaque types and other types are otherwise not allowed.
+In the special case where a programmer must convert an opaque type to another
+type (for example, a \uncheckedptrvoid{} is being stored as an integer in an existing
+program), the special operator \lstinline|opaque_cast| is provided.
+
+It is implementation-defined whether a pointer to a function type with a
+parameter or return type that is an implementation type can be converted
+explicitly to a pointer to a function type where the corresponding type
+is the opaque type.   The calling convention must be the same for
+the implementation and representation type.  If the representation type is \uncheckedptrvoid{}
+and the implementation type is also a pointer type,  these conversions would be
+allowed in C implementations where all pointer types have the same calling convention.
+
+\section{Generic functions}
+\label{sec:generic-functions}
+
+When C programmers use a \uncheckedptrvoid{} pointer so that a function
+can be re-used, they typically use the \uncheckedptrvoid{} in place of a pointer 
+to some type \var{T}.  At calls to the function, pointers to \var{T} are cast
+implicitly to \uncheckedptrvoid{} or back from \uncheckedptrvoid{}.  
+Sometimes the function is re-used by casting integers to \uncheckedptrvoid{} pointers.
+We want to able to check these uses and ensure they do not cause type confusion.
+
+We want there to be a single copy of a generic function so that programmers
+retain low-level control and updated code is binary ompatible with existing code.  
+This means that the code cloning as is done in C++ templates cannot be used.  
+We instead require that a uniform representation for generic data be used.
+Generic data must either be treated as an incomplete type (with no assumption
+about size) or it must fit in the space provided by the programmer when
+a generic function is defined. There are implementation-dependent restrictions 
+on converting generic function pointers to  other function pointer types,
+based on calling conventions.
+
+We begin with uses of \uncheckedptrvoid{} to represent \lstinline+T *+ pointers.
+The mechanism is simple: we introduce type variables to represent unknown types.
+These type variables will be treated as incomplete C types with an unknown
+representation (we provide a way to describe representations in a later
+section).   A generic function is constructed by parameterizing a
+regular function over type variables.  The generic function is applied
+to types to create a concrete (non-generic) function that can be called.
+A programmer may need to supply information at runtime about the size of T,
+so that pointer arithmetic may be done.
+
+We illustrate these ideas by example, starting with \lstinline+bsearch+, 
+a C standard library function for binary
+searching an array of elements of some type \var{T}.  It
+takes a key that is a pointer to T, the array of elements, the number of elements of
+the array, the size of T, and a comparison function.  We provide the original declaration
+of bsearch and the version modified to use a generic type.  In the modified version,
+\lstinline+for_any(T)+ make \lstinline+bsearch+ a generic function.  This means that
+\lstinline+bsearch+ works for any type \lstinline+T+.
+\begin{lstlisting}
+// Original version
+void *bsearch(const void *key, const void *base, size_t nmemb, 
+              size_t size, int ((*compar)(const void *, const void *)));
+
+// Generic version (not correct)
+for_any(T) T *bsearch(const T *key, const T *base, size_t nmemb,
+                      size_t size, int ((*compar)(const T *, const T *)));
+\end{lstlisting}
+To use the generic version of \lstinline+bsearch+, the programmer applies \lstinline+bsearch+ to
+a specific type.  For programmer familiarity, we use the C++ syntax for template
+instantiations.
+\begin{lstlisting}
+int arr[] = { 0, 1, 2, 3, 5}
+int k = 3;
+int cmp(int *a, int *b);
+bsearch<int>(&k, arr, sizeof(arr), sizeof(int), cmp);
+\end{lstlisting}
+
+It is possible to misuse the generic version of \lstinline+bsearch+ and cause
+an out-of-bounds memory access: \lstinline+base+ might not point to a
+large enough array or \lstinline+compar+ might treat its arguments as pointers to arrays.
+This can be addressed by adding bounds checking.  Bounds checking brings
+an interesting problem to light: \lstinline+size+  must match the size of \lstinline+T+.
+
+One might think the solution is that \lstinline+bsearch+ should not take 
+\lstinline+size+ as an argument.  The implementation of bsearch could just 
+use \lstinline+sizeof(T)+. However, this information is not known at compile-time
+within the implementation of \lstinline+bsearch+.   \lstinline+sizeof(T)+
+must be passed in as an argument.  To indicate that \lstinline+size+ must
+hold \lstinline+sizeof(T)+, we introduce a constraint on the parameter \lstinline+sizes+:
+\begin{lstlisting}
+// Generic version (correct)
+for_any(T) ptr<T> 
+    bsearch(ptr<const T> key,
+            array_ptr<const T> base : byte_count(nmemb * size),
+            size_t nmemb, size_t size : sizeof(T),
+            ptr<int (ptr<const T>, ptr<const T>) compar);
+\end{lstlisting}
+To keep the example simple, we ignore that this function actually needs a 
+bounds-safe interface to avoid changing its type for existing code.  
+We describe  bounds-safe interfaces for generic
+functions in Section~\ref{sec:generic-bounds-safe-interfaces}.
+
+Other functions from the C standard library could be given generic function types too:
+\begin{lstlisting}
+// Generic versions (not correct)
+for_any(T) T *malloc(size_t size);
+
+for_any(T) T *calloc(size_t nmemb, size_t size : sizeof(T))
+
+for_any(T) void free(T *pointer)
+
+for_any(T) T *memcpy(T * restrict dest, const T *src, size_t n);
+\end{lstlisting}
+These functions need bounds checking also.  A programmer
+could pass the wrong value for \lstinline+size+ to \lstinline+malloc+
+ore \lstinline+calloc+, for example.  Here are
+versions with bounds checking (ignoring for now the need for bounds-safe interfaces):
+\begin{lstlisting}
+// Generic versions (correct)
+for_any(T) array_ptr<T> malloc(size_t size) : byte_count(size);
+
+for_any(T) array_ptr<T> calloc(size_t nmemb, size_t size : 
+                               sizeof(T)) : byte_count(nmemb * size);
+
+for_any(T) void free(array_ptr<T> pointer : count(1));
+
+for_any(T) array_ptr<T> memcpy(restrict array_ptr<T> dest : byte_count(n),
+                               array_ptr<const T> src, byte_count(n),
+                               size_t n where n % sizeof(T) == 0) :
+                               byte_count(n);
+\end{lstlisting}
+In the case of \lstinline+malloc+, if the size is not a multiple of the size of \lstinline+T+,
+only enough space for part of an object of type \lstinline+T+ will be allocated.  With the 
+bounds-safe interface, though, the program will only be able to read or write the 
+partially allocated space.   Providing a type-safe interface to \lstinline+memcpy+
+is more challenging.   It is incorrect to copy only part of an element of T.
+\lstinline+T+ could be struct that contains a pointer.  Copying only a few bytes
+of the pointer could result in an invalid pointer.
+This is handled in the bounds-safe interface by requiring that the
+size be a multiple of the size of \lstinline+T+.
+
+\section{Type variables with representation constraints}
+
+The code for \lstinline+bsearch+ can be re-used because \lstinline+bsearch+ is
+not making assumptions about the runtime representation of data with a type
+given by type variable \var{T}.  However, sometimes programmers do make assumptions 
+about the representation of \var{T}.  They may write a hash table that maps
+keys to pointers or integers.    A programmer may specify the representation type by
+adding a {\it representation} clause to the declaration of a type variable.   The
+type variable name is followed by \lstinline+: rep(+ \var{type name}\lstinline+)+.
+For example, we may have an add function for hash table that maps integers to data:
+\begin{lstlisting}
+for_any (Data : rep(void *))
+   hash_add(struct HashTable<T> *table, int key, Data d);
+\end{lstlisting}
+The function \lstinline+hash_add+ can only hold data that fits within a 
+\uncheckedptrvoid{} pointer.  When a type variable has a representation type specified, 
+there must be a lossless conversion from types supplied as type arguments for
+a type variable to the representation type and back.
+This is the same restriction placed on 
+representation and implementation types for opaque types.   In this example, on a
+32-bit architecture where \lstinline+int+ is the same size as +\uncheckedptrvoid{}, 
+\lstinline+hash_add+ could be applied to \lstinline+int+.  It could not be applied to
+to 64-bit integers:
+\begin{lstlisting}
+hash_add<int>(t, key, 314);            // allowed.
+hash_add<long long>(t, key, 314L);     // not allowed.
+\end{lstlisting}
+The compiler will implicitly insert conversions to the type representation
+at calls to the generic function where the type of a parameter is given
+by a type variable.  It will insert conversions from the type representation
+when the return is given by a type variable.
+
+At uses other than as a call target, it is implementation-defined whether a pointer to a function type 
+created by applying a generic function to type arguments can be used where
+a pointer to a function type with the monomorphic type (the function type obtained
+by substituting the type arguments for the type variables) is expected.  If a type
+variable occurs as the type of a parameter or the return, the corresponding type argument
+for the type variable must have the same calling convention as the type variable's
+representation type.   Non-generic and applied generic functions with the same function type
+need to agree on their calling conventions.
+
+As an example, floating-point types may have a different calling convention
+than integer or pointer types.  It makes sense for \lstinline+hash_add+ to allow
+hash tables that map keys to \keyword{float} values, if \keyword{float}
+values fit into a \keyword{void *}.  The compiler can insert  
+bitwise-conversions at calls and returns.   However, \lstinline+hash_add<float>+
+is not interchangeable with a function \lstinline+f(struct HashTable<T> *table, int key, float f)+.
+\lstinline+hash_add+ expects its argument to be passed the same way that \uncheckedptrvoid{} 
+is passed.
+
+\section{Generic structures}
+We use the example of a generic \lstinline+List+ structure.   In the case of structs,
+the \forany{} clause comes after the tag name of the structure.  
+Section~\ref{section:foranyalternatives} explains why the \forany{} clauses 
+are placed differently.
+\begin{lstlisting}
+struct List for_any(T) { 
+   T *elem;
+   List<T> *next;
+}
+\end{lstlisting}
+A function could take a pointer to a list of T and compute its length:
+\begin{lstlisting}
+for_any(T) len(List<T> *head) {
+  int count = 0;
+  while (head != null) {
+     count++;
+     head = head->next;
+  }
+  return count;
+}
+\end{lstlisting}
+Within the declaration of \lstinline+List+, we do not allow polymorphic recursion.
+
+Note that for a type variable to be used as the type of a struct member, 
+the type variable must have a representation type.   Otherwise the type
+variable is an incomplete type.  C does not allow members to have incomplete
+types.
+
+\section{Grammar changes for generic functions and structs}
+
+The grammar from the C11 specification \cite{ISO2011} is extended to allow
+generic functions:
+\begin{tabbing}
+\var{declarat}\=\var{ion:}\\
+\>\var{declaration-specifiers} \var{init-declarator-list} \texttt{;} \\
+\>\ldots{} \\
+\\
+\var{function-definition:}\\
+\>\var{declaration-specifiers} \var{declarator}  
+  \var{declaration-list}\textsubscript{opt} \var{compound-statement}\\
+\\
+\var{declaration-specifiers:}\\
+\>\var{for-any-specifier} \var{declaration-specifiers}\textsubscript{opt} \\
+\>\ldots{} \\
+\\
+\var{for-any-specifier:}\\
+\>\texttt{\_For\_any (} \var{type-variable-list} \texttt{)} \\
+\\
+\var{type-variable-list:} \\
+\>\var{type-variable} \\
+\>\var{type-variable} \texttt{,} \var{type-variable-list}\\
+\\
+\var{type-variable:} \\
+\>\var{identifier} \\
+\\
+\\
+\var{type-specifier:} \\
+\>\var{type-variable} \\
+\>\ldots{} \\
+\end{tabbing}
+At most one \var{for-any-specifier} may occur in the list of declaration specifiers
+for a declaration or function definition.
+The \var{for-any-specifier} introduces a list of type variables into scope.  
+The type variables are available in any following \var{declaration-specifiers} that are part
+of the declaration.  The scope of the type variables extends to the end of
+the declaration or function definition.
+
+\section{Hidden types}
+This section is to be filled in.
+

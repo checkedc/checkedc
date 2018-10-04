@@ -52,15 +52,15 @@
 
 #if _FORTIFY_SOURCE == 0 || !defined(memcpy)
 #undef memcpy
-void *memcpy(void * restrict dest : byte_count(n),
-             const void * restrict src : byte_count(n),
-             size_t n) : bounds(dest, (_Array_ptr<char>) dest + n);
+_Itype_for_any(T) void *memcpy(void * restrict dest : itype(restrict _Array_ptr<T>) byte_count(n),
+             const void * restrict src : itype(restrict _Array_ptr<const T>) byte_count(n),
+             size_t n) : itype(_Array_ptr<T>) byte_count(n);
 #endif
 
 #if _FORTIFY_SOURCE == 0 || !defined(memmove)
 #undef memmove
-void *memmove(void * restrict dest : byte_count(n),
-              const void * restrict src : byte_count(n),
+void *memmove(void * dest : byte_count(n),
+              const void * src : byte_count(n),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 

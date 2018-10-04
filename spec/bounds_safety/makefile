@@ -14,6 +14,7 @@ FILES = abstract.tex \
         span-compilation.tex \
         structure-bounds.tex \
         variable-bounds.tex \
+        void-ptr-replacements.tex \
         sources.bib \
         checkedc.tex
 

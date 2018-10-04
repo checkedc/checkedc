@@ -16,4 +16,12 @@ extern inline int strncmp_array_ptr(const char *src : count(n), const char *s2 :
   _Unchecked { return strncmp(src, s2, n); }
 }
 
+// default snprintf assumes nt_array_ptr for bounds-safe interface
+// this option is for array_ptr
+_Unchecked
+int snprintf_array_ptr(char * restrict s : itype(restrict _Array_ptr<char>) count(n),
+                       size_t n, 
+                       const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
+                       ...);
+
 #endif /* __CHECKED_C_EXTENSIONS_H */

@@ -9,6 +9,7 @@
 // RUN: %clang -fsyntax-only -D_FORTIFY_SOURCE=2 %s
 
 // C Standard
+#include "../../include/assert_checked.h"
 #include "../../include/errno_checked.h"
 #include "../../include/fenv_checked.h"
 #include "../../include/inttypes_checked.h"
@@ -28,8 +29,15 @@
 // which is required by Posix Standard.
 #if defined(__has_include)
 #if __has_include(<unistd.h>)
-
 #include "../../include/unistd_checked.h"
-
 #endif
+
+#if __has_include(<sys/socket.h>)
+#include "../../include/sys/socket_checked.h"
+#endif
+
+#if __has_include(<arpa/inet.h>)
+#include "../../include/arpa/inet_checked.h"
+#endif
+
 #endif

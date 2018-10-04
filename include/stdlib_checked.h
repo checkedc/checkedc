@@ -62,10 +62,10 @@ unsigned long long int strtoull(const char * restrict nptr :
 
 // TODO: express alignment constraints once where clauses have been added.
 void *aligned_alloc(size_t alignment, size_t size) : byte_count(size);
-void *calloc(size_t nmemb, size_t size) : byte_count(nmemb * size);
-void free(void *pointer : byte_count(0));
-void *malloc(size_t size) : byte_count(size);
-void *realloc(void *pointer : byte_count(1), size_t size) : byte_count(size);
+_Itype_for_any(T) void *calloc(size_t nmemb, size_t size) : itype(_Array_ptr<T>) byte_count(nmemb * size);
+_Itype_for_any(T) void free(void *pointer : itype(_Array_ptr<T>) byte_count(0));
+_Itype_for_any(T) void *malloc(size_t size) : itype(_Array_ptr<T>) byte_count(size);
+_Itype_for_any(T) void *realloc(void *pointer : itype(_Array_ptr<T>) byte_count(1), size_t size) : itype(_Array_ptr<T>) byte_count(size);
 
 char *getenv(const char *n : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
 
@@ -78,12 +78,12 @@ int system(const char *s : itype(_Nt_array_ptr<const char>));
 // on parameters based on size.  Currently we are requiring that
 // bounds in parameters lists be closed with respect to variables
 // in the parameter list.
-void *bsearch(const void *key : byte_count(size),
-              const void *base : byte_count(nmemb * size),
-              size_t nmemb, size_t size,
-              int ((*compar)(const void *, const void *)) :
-                itype(_Ptr<int(_Ptr<const void>, _Ptr<const void>)>)) :
-                byte_count(size);
+_Itype_for_any(T) void *bsearch(const void *key : itype(_Ptr<const T>),
+                                const void *base : itype(_Array_ptr<const T>) byte_count(nmemb * size),
+                                size_t nmemb, size_t size,
+                                int ((*compar)(const void *, const void *)) :
+                                  itype(_Ptr<int(_Ptr<const T>, _Ptr<const T>)>)
+                                ) : itype(_Ptr<T>);
 
 // TODO: compar needs to have an itype that has bounds
 // on parameters based on size.  Currently we are requiring that

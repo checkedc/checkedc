@@ -679,4 +679,18 @@ checks in pointer arithmetic is likely small.  Following the principal of
 minimality, we have rejected the design choice of adding \code{object_bounds} 
 for now. 
 
+\section{Placement of for\_any}
+\label{section:foranyalternatives}
+We would have liked the placement of \forany{} to be identical for structs
+and functions.  We were not able to do that. We would like a type variable to be declared 
+before any use of the type variable.  This makes it easier to read and understand
+code.  This means for functions that the \forany{} should precede the
+return type for the function.  However, placing the \forany{} before 
+a struct leads to a parsing ambiguity.  A struct may be declared inline as
+part of a function definition.  It would be unclear what the \forany{} should
+scope: the struct declaration or the function declaration.
+\begin{verbatim}
+for_any(T) int f(void);
+for_any(T) struct S { T *elem, S<T> *next } g(void);
+\end{verbatim}
 

@@ -273,6 +273,17 @@ checked int *f21b(int *b : count(4)) : byte_count(4 * sizeof(int)) {
   return b;
 }
 
+checked int *f21c(int *b : count(4)) : bounds(return_value, return_value + 4) {
+  return b;
+}
+
+checked int *f21d(int *b : count(4)) :
+   bounds((array_ptr<char>)return_value,
+          (array_ptr<char>)return_value + (4 * sizeof(int))) {
+  return b;
+}
+
+
 // Test checked return types implied by a bounds-safe interface
 checked void test_checked_returns(void) {
   int arr1 checked[5][5];
@@ -284,6 +295,8 @@ checked void test_checked_returns(void) {
   array_ptr<int> t3 = 0;
   t3 = f21a(arr2);
   t3 = f21b(arr2);
+  t3 = f21c(arr2);
+  t3 = f21d(arr2);
 }
 
 // No-prototype functions with a bounds-safe interface on the return type

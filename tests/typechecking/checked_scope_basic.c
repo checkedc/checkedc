@@ -122,7 +122,7 @@ scope must have a pointer, array or function type that uses only checked types o
 //   entity.
 
 //
-// Test types that are allowed for parameters in checked scopes.
+// Test types that are allowed for parameters and returns in checked scopes.
 //
 
 checked int func4(int p[]) {  // expected-error {{parameter in a checked scope must have a checked type or a bounds-safe interface}}

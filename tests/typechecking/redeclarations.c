@@ -50,6 +50,9 @@ void f8a(char *, int len);
 int *f20(int len);
 int *f20(int len) : count(len);
 
+int *f20a(int len);
+int *f20a(int len) : bounds(return_value, return_value + len);
+
 int *f21(int len);
 int *f21(int len) : byte_count(len * sizeof(int));
 
@@ -63,6 +66,9 @@ char *f22a(int len) : itype(nt_array_ptr<char>);
 int *f23(int len) : count(len);
 int *f23(int len);
 
+int *f23a(int len) : bounds(return_value, return_value + len);;
+int *f23a(int len);
+
 int *f24(int len) : byte_count(len * sizeof(int));
 int *f24(int len);
 
@@ -71,6 +77,8 @@ int *f25(int len);
 
 char *f25a(int len) : itype(nt_array_ptr<char>);
 char *f25a(int len);
+
+
 
 //---------------------------------------------------------------------------//
 // Redeclarations of functions that have parameters with unchecked types     //
@@ -238,6 +246,10 @@ int *f52(int *p : bounds(p, p + len), int len) : bounds(p, p + len);
 int *f52(int *p : bounds(p, p + len), int len) : bounds(p, p + len);
 int *f52(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // expected-error {{conflicting return bounds}}
 
+int *f52a(int *p : bounds(p, p + len), int len) : bounds(return_value, return_value + len);
+int *f52a(int *p : bounds(p, p + len), int len) : bounds(return_value, return_value + len);
+int *f52a(int *p : bounds(p, p + len), int len) : bounds(return_value, return_value + len + 1);  // expected-error {{conflicting return bounds}}
+
 int *f53(int *p : bounds(p, p + len), int len) : bounds(p, p + len);
 int *f53(int *p, int len);
 // A redeclaration without a bounds-safe interface is compatible with the
@@ -247,6 +259,11 @@ int *f53(int *p : bounds(p, p + len), int len) : bounds(p, p + len + 1);  // exp
 
 int *f54(int len) : itype(ptr<int>);
 int *f54(int len) : count(len);  // expected-error {{added return bounds}}
+
+// Require syntactic identity for return bounds, even when an expanded
+// form is used.
+int *f54a(int *p : bounds(p, p + len), int len) : count(len);
+int *f54a(int *p : bounds(p, p + len), int len) : bounds(return_value, return_value + len);  // expected-error {{conflicting return bounds}}
 
 //
 // Bounds declarations plus interface types
@@ -306,6 +323,10 @@ char *f50l(int len) : itype(nt_array_ptr<char>) count(1);  // expected-error {{c
 array_ptr<int> f60(int len) : count(len);
 array_ptr<int> f60(int len) : count(len);
 array_ptr<int> f60(int len) : count(len + 1); // expected-error {{conflicting return bounds}}
+
+array_ptr<int> f60a(int len) : bounds(return_value, return_value + len);
+array_ptr<int> f60a(int len) : bounds(return_value, return_value + len);
+array_ptr<int> f60a(int len) : bounds(return_value, return_value + (len + 1)); // expected-error {{conflicting return bounds}}
 
 array_ptr<int> f61(array_ptr<int> p : count(len), int len) : bounds(p, p + len);
 array_ptr<int> f61(array_ptr<int> p : count(len), int len) : bounds(p, p + len);
@@ -672,4 +693,15 @@ void f107(void) {
 void f108(void) {
   extern int buf3_count;
   extern array_ptr<int> buf3 : count(buf3_count); // expected-error {{added bounds}}
+}
+
+//Checked C: redeclaration with conflicting function specifiers must throw error
+_Itype_for_any(T) void* f109(void *a);
+_For_any(T) void* f109(void *a) { // expected-error {{conflicting function specifiers for 'f109'. _Itype_for_any and _For_any are incompatible function specifiers}}
+}
+
+//Checked C: redeclaration of _Itype_for_any function with a normal declaration for backward compatibility
+void* f110(void *a);
+_Itype_for_any(T) void* f110(void *a : itype(_Ptr<T>)) : itype(_Ptr<T>) {
+  return a;
 }
