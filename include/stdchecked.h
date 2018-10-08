@@ -7,6 +7,7 @@
 #define checked _Checked
 #define nt_checked _Nt_checked
 #define unchecked _Unchecked
+#define bounds_only _Bounds_only
 #define where _Where
 #define dynamic_check _Dynamic_check
 #define dynamic_bounds_cast _Dynamic_bounds_cast
