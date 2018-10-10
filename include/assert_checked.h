@@ -4,13 +4,22 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
 
 #include <assert.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 
 #ifndef __cplusplus
 #ifndef __ASSERT_CHECKED_H
 #define __ASSERT_CHECKED_H
 
+#pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE ON
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -29,7 +38,7 @@ __THROW __attribute__ ((__noreturn__));
 
 #endif
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif  // guard
 #endif  // no c++

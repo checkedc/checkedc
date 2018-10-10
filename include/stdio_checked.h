@@ -8,13 +8,23 @@
 // TODO: Better Support for _FORTIFY_SOURCE > 0                        //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
+
 #include <stdio.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 
 #ifndef __cplusplus
 #ifndef __STDIO_CHECKED_H
 #define __STDIO_CHECKED_H
 
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE on
 
 #if defined(_WIN32) || defined(_WIN64)
 // stdin, stdout, and stderr only have to be expressions that have
@@ -192,7 +202,7 @@ void perror(const char *s : itype(_Nt_array_ptr<const char>));
 
 #include "_builtin_stdio_checked.h"
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif // guard
 #endif // no C++

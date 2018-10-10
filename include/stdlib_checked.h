@@ -6,15 +6,23 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
 
 #include <stdlib.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 
 #ifndef __cplusplus
 #ifndef __STDLIB_CHECKED_H
 #define __STDLIB_CHECKED_H
 
-
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE on
 
 double atof(const char *s : itype(_Nt_array_ptr<const char>));
 int atoi(const char *s : itype(_Nt_array_ptr<const char>));
@@ -114,7 +122,7 @@ size_t wcstombs(char * restrict output : count(n),
                   itype(restrict _Nt_array_ptr<const wchar_t>),
                 size_t n);
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif  // guard
 #endif  // no c++
