@@ -6,13 +6,23 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
+
 #include <stddef.h> // define wchar_t for wcstoimax and wcstoumax
 #include <inttypes.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 
 #ifndef __cplusplus
 #ifndef __INTTYPES_CHECKED_H
 #define __INTTYPES_CHECKED_H
 
+#pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE ON
 
 _Unchecked
@@ -42,7 +52,7 @@ uintmax_t wcstoumax(const wchar_t * restrict nptr :
                       itype(restrict _Ptr<_Nt_array_ptr<wchar_t>>),
                     int base);
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif // guard
 #endif // no c++

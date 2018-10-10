@@ -4,12 +4,22 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
+
 #include <sys/socket.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 
 #ifndef __cplusplus
 #ifndef __SOCKET_CHECKED_H
 #define __SOCKET_CHECKED_H
 
+#pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE ON
 
 extern int socketpair (int __domain, int __type, int __protocol, 
@@ -114,7 +124,7 @@ extern int accept4 (
     int __flags);
 #endif
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif // guard
 #endif // C++

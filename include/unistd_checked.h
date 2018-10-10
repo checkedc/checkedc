@@ -5,13 +5,23 @@
 // These are POSIX-only                                                //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
+
 #include <unistd.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 
 #ifndef __cplusplus
 #ifndef __UNISTD_CHECKED_H
 #define __UNISTD_CHECKED_H
 
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE on
 
 #if _POSIX_VERSION >= 200112L
 
@@ -25,7 +35,7 @@ extern ssize_t write (int __fd, const void *__buf : byte_count(__n), size_t __n)
 
 #endif
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif
 #endif
