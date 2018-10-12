@@ -29,8 +29,8 @@ extern void f4() {
   array_ptr<int> a : count(2) = 0;
   array_ptr<char> b : count(2) = 0;
 
-  a = _Asume_bounds_cast<array_ptr<int>>(b, count(2)); // expected-error{{use of undeclared identifier}} expected-error {{expected expression}}
-  a = _Dssume_bounds_cast<int>(b); // expected-error{{use of undeclared identifier}} expected-error {{expected expression}}
+  a = _Asume_bounds_cast<array_ptr<int>>(b, count(2)); // expected-error{{use of undeclared identifier}}
+  a = _Dssume_bounds_cast<int>(b); // expected-error{{use of undeclared identifier}}
 }
 
 struct S1 {
@@ -86,12 +86,12 @@ extern void f10() {
   s = _Assume_bounds_cast<ptr<int *>>(q);
   t = _Assume_bounds_cast<ptr<ptr<int>>>(q);
 
-  s = ynamic_bounds_cast<ptr<int *>>(q); // expected-error {{use of undeclared identifier}} expected-error {{expected expression}}
+  s = ynamic_bounds_cast<ptr<int *>>(q); // expected-error {{use of undeclared identifier}}
   t = _Dynamic_bounds_cast<ptr<ptr<int>>>(q);
 
   r = _Assume_bounds_cast<ptr<int>>(q);
   p = _Assume_bounds_cast<int *>(q);
-  p = _Dssume_bounds_cast<int *>(h5); // expected-error {{expected expression}} expected-error {{use of undeclared identifier}}
+  p = _Dssume_bounds_cast<int *>(h5); // expected-error {{use of undeclared identifier}}
 }
 
 extern void f11() {
