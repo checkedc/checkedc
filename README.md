@@ -16,7 +16,7 @@ the IEEE 2018 Cybersecurity Development Conference: "Checked C: Making C Safe by
 The paper describes the key ideas of Checked C in 8 pages.
 
 Note that we have added features to Checked C for improving type safety (and reducing type confusion)
-since writing the paper.  The [Wiki](https://github.com/Microsoft/checkedc/wiki) and [sepcification](https://github.com/Microsoft/checkedc/releases) provide up-to-date descriptions of Checked C.
+since writing the paper.  The [Wiki](https://github.com/Microsoft/checkedc/wiki) and [specification](https://github.com/Microsoft/checkedc/releases) provide up-to-date descriptions of Checked C.
 
 # Build Status
 
