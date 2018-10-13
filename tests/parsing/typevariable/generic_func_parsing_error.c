@@ -12,5 +12,5 @@ void CallGenericFunction() {
   _Ptr<int> x = &num;
   Foo<int int>(x, x); //expected-error{{cannot combine with previous 'int' declaration specifier}}
   Foo<int, >(x, x);   //expected-error{{expected a type}}
-  Foo(x, x);          //expected-error{{ expected a type argument list for a generic function call}}
+  Foo(x, x);          //expected-error{{expected a type argument list for a generic function call}}
 }

@@ -29,7 +29,7 @@ extern void f4() {
   array_ptr<int> a : count(2) = 0;
   array_ptr<char> b : count(2) = 0;
 
-  a = _Asume_bounds_cast<array_ptr<int>>(b, count(2)); // expected-error{{use of undeclared identifier}}
+  a = _Asume_bounds_cast<array_ptr<int>>(b, count(2)); // expected-error{{use of undeclared identifier}} expected-warning {{implicit declaration of function 'count' is invalid in C99}}
   a = _Dssume_bounds_cast<int>(b); // expected-error{{use of undeclared identifier}}
 }
 
@@ -91,7 +91,7 @@ extern void f10() {
 
   r = _Assume_bounds_cast<ptr<int>>(q);
   p = _Assume_bounds_cast<int *>(q);
-  p = _Dssume_bounds_cast<int *>(h5); // expected-error {{use of undeclared identifier}}
+  p = _Dssume_bounds_cast<int *>(h5); // expected-error 2 {{use of undeclared identifier}}
 }
 
 extern void f11() {
