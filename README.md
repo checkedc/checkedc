@@ -12,7 +12,7 @@ and test code.
 
 # Papers
 We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
-the IEEE 2018 Cybersecurity Development Conference: "Checked C: Making C Safe by Extension". 
+Checked C at the IEEE 2018 Cybersecurity Development Conference: "Checked C: Making C Safe by Extension". 
 The paper describes the key ideas of Checked C in 8 pages.
 
 Note that we have added features to Checked C for improving type safety (and reducing type confusion)
