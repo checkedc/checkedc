@@ -690,18 +690,37 @@ void f107(void) {
   extern array_ptr<int> buf3;
 }
 
-void f108(void) {
+void f10(void) {
   extern int buf3_count;
   extern array_ptr<int> buf3 : count(buf3_count); // expected-error {{added bounds}}
 }
 
-//Checked C: redeclaration with conflicting function specifiers must throw error
+// Redeclaration with conflicting _For_any and _Itype_for_any specifiers
 _Itype_for_any(T) void* f109(void *a);
 _For_any(T) void* f109(void *a) { // expected-error {{conflicting function specifiers for 'f109'. _Itype_for_any and _For_any are incompatible function specifiers}}
 }
 
-//Checked C: redeclaration of _Itype_for_any function with a normal declaration for backward compatibility
+// Redeclaration of a non-generic function with _For_any is not allowed.
 void* f110(void *a);
-_Itype_for_any(T) void* f110(void *a : itype(_Ptr<T>)) : itype(_Ptr<T>) {
+_For_any(T) void f110(void* a); //expected-error {{conflicting non-generic and generic declarations of 'f110'}}
+
+// Redeclaration of a non-generic function with _Itype_for_any is OK
+void* f111(void *a);
+_Itype_for_any(T) void* f111(void *a : itype(_Ptr<T>)) : itype(_Ptr<T>) {
   return a;
 }
+
+// Conflicting numbers of type variables.
+_For_any(T, S) void f112(void *a);
+_For_any(T) void f112(void* a);  // expected-error {{conflicting numbers of type variables for declarations of 'f112'}}
+
+// Conflicting numbers of type variables.
+_Itype_for_any(T, S) void f113(void *a);
+_Itype_for_any(T) void f113(void *a);  // expected-error {{conflicting numbers of type variables for declarations of 'f113'}}
+
+// Try out multiple function declarators in one declaration.
+_For_any(T, S) void f114(void *a), f115(void *b);
+_For_any(T, S) void f114(void *a), f115(void *b);
+_Itype_for_any(T, S) void f114(void *a), f115(void *b); // expected-error {{conflicting function specifiers for 'f114'}} \
+                                                        // expected-error {{conflicting function specifiers for 'f115'}}
+
