@@ -690,7 +690,7 @@ void f107(void) {
   extern array_ptr<int> buf3;
 }
 
-void f10(void) {
+void f108(void) {
   extern int buf3_count;
   extern array_ptr<int> buf3 : count(buf3_count); // expected-error {{added bounds}}
 }
