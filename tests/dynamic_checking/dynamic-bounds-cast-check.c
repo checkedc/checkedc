@@ -1,6 +1,6 @@
 // The following lines are for the clang automated test suite
 //
-// RUN: %clang -fcheckedc-extension %s -o %t -Werror -Wno-check-memory-accesses
+// RUN: %clang %s -o %t -Werror -Wno-check-memory-accesses
 // RUN: %t pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
 // RUN: %t pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
 // RUN: %t pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-3
@@ -11,6 +11,7 @@
 // RUN: %t fail5 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-5
 // RUN: %t fail6 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-6
 // RUN: %t fail7 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-7
+// RUN: %t fail8 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,CHECK-FAIL-8
 
 #include <assert.h>
 #include <signal.h>
@@ -30,6 +31,7 @@ void failing_test_4(void);
 void failing_test_5(array_ptr<char> pc : count(len), unsigned len);
 void failing_test_6(array_ptr<char> pc : count(len), unsigned len);
 void failing_test_7(array_ptr<char> pc : count(len), unsigned len);
+void failing_test_8(unsigned len);
 
 // Handle an out-of-bounds reference by immediately exiting. This causes
 // some output to be missing.
@@ -71,6 +73,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-PASS-1: Printable1
     // CHECK-PASS-1: Printable2
     // CHECK-PASS-1: Printable3
+    // CHECK-PASS-1: Printable4
     // CHECK-PASS-1: Expected Success
     passing_test_1();
   }
@@ -130,6 +133,11 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-FAIL-7-NOT: Unexpected Success
     failing_test_7(p, 1);
     failing_test_7(p, 0);
+  } else if (strcmp(argv[1], "fail8") == 0) {
+    // CHECK-FAIL-8: Successful conversion to nt_array_ptr<const char>
+    // CHECK-FAIL-8-NOT: Unexpected Success
+    failing_test_8(5);
+    failing_test_8(7);
   } else {
     // CHECK-NOT: Unexpected Test Name
     puts("Unexpected Test Name");
@@ -147,6 +155,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 // dynamic_check(r != NULL) && dynamic_check(r <= r && r+3 <= r+10) - > OK
 // dynamic_check((r+3) != NULL) && dynamic_check(r <= r+3 && r+6 <= r+10) - > OK
 // dynamic_check((r+3) != NULL) && dynamic_check(r <= r && r+15 <= r+10) - > OK
+// dynamic_check("abcdef", count(2)) -> OK.
 void passing_test_1(void) {
   ptr<int> q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
@@ -163,6 +172,10 @@ void passing_test_1(void) {
 
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
   printf("Printable3\n");
+
+  nt_array_ptr<const char> p : count(2) =
+    _Dynamic_bounds_cast<nt_array_ptr<const char>>("abcdef", count(2));
+  printf("Printable4\n");
 
   puts("Expected Success");
 }
@@ -294,3 +307,13 @@ void failing_test_7(array_ptr<char> pc : count(len), unsigned len) {
     puts("Successful conversion to void *");
 }
 
+// Test dynamic checks involving possibly failing conversions from
+// string literals.
+void failing_test_8(unsigned len) {
+ nt_array_ptr<const char> p : count(len) =
+   _Dynamic_bounds_cast<nt_array_ptr<const char>>("123456", count(len));
+  if (len > 6)
+    puts("Unexpected Success");
+  else if ((len == 0 && p != 0) || *p == '1')
+    puts("Successful conversion to nt_array_ptr<const char>");
+}
