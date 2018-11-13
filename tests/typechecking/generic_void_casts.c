@@ -95,10 +95,10 @@ void test13(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
 void test14(_Array_ptr<int> ip : byte_count(len), 
            _Array_ptr<float> fp : byte_count(len),
            int len) _Checked _Bounds_only {
-  f1(ip, len);
-  f1(fp, len);
-  _Ptr<double> p = alloc(sizeof(double));
-  ip = alloc(len);
+  f1(ip, len);  // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
+  f1(fp, len);  // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
+  _Ptr<double> p = alloc(sizeof(double)); // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
+  ip = alloc(len);  // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
 }
 
 //
@@ -264,10 +264,10 @@ void test53(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
 
 void test54(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
            int len) _Checked  _Bounds_only {
-  f2(ip, fp, len);
-  f2(fp, ip, len);
-  _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len); 
+  f2(ip, fp, len); // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
+  f2(fp, ip, len); // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
+  _Ptr<double> p = alloc2(sizeof(double)); // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
+  ip = alloc2(len);  // expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
 }
 
 //
