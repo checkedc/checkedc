@@ -1,5 +1,6 @@
-// Test type checking of void pointer casts with generic functions
-// in various kinds of scopes.
+// Test type arguments at calls to generic functions in various kinds of
+// scopes, including omitting type arguments.   In unchecked scopes, when
+// type arguments are omitted, void is used for each type argument instead.
 //
 // RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
 
