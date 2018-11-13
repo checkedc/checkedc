@@ -10,6 +10,14 @@ and test code.
 - The PDF of the specification is available [here](https://github.com/Microsoft/checkedc/releases).
 - Compilers are available [here](https://github.com/Microsoft/checkedc-clang/releases).
 
+# Papers
+We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
+Checked C at the IEEE 2018 Cybersecurity Development Conference: "Checked C: Making C Safe by Extension". 
+The paper describes the key ideas of Checked C in 8 pages.
+
+Note that we have added features to Checked C for improving type safety (and reducing type confusion)
+since writing the paper.  The [Wiki](https://github.com/Microsoft/checkedc/wiki) and [specification](https://github.com/Microsoft/checkedc/releases) provide up-to-date descriptions of Checked C.
+
 # Build Status
 
 |Configuration|Testing|Status|
