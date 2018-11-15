@@ -42,16 +42,20 @@ void f11(void) {
 }
 
 // Test you can always `free` a `calloc`d ptr
-void f12(void) {
-    ptr<int> x = calloc<int>(1, sizeof(int));
-    free<int>(x);
+void f12(void) unchecked {
+    // Intentionally vary test from f11: type argument can be omitted
+    // in an unchecked scope.
+    ptr<int> x = calloc(1, sizeof(int));
+    free(x);
 }
 
 // Test you can always `free` a `realloc`d ptr
-void f13(void) {
-    ptr<int> x = malloc<int>(sizeof(int));
+void f13(void) unchecked {
+    // Intentionally vary test from f11: type argument can be omitted
+    // in an unchecked scope.
+    ptr<int> x = malloc(sizeof(int));
     ptr<int> y = realloc<int>(x, 2 * sizeof(int));
-    free<int>(y);
+    free(y);
 }
 
 // Test you can always `free` a `aligned_alloc`d ptr
