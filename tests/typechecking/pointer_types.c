@@ -658,8 +658,12 @@ extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
 // pointer types and one or both of the types of the arms is a
 // pointer to void.
 extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
-                                void *s : byte_count(sizeof(int)), ptr<void> t,
-                                array_ptr<void> u, nt_array_ptr<int> v) {
+                                void *s : byte_count(sizeof(struct CheckedData1)),
+                                ptr<void> t,
+                                array_ptr<void> u, nt_array_ptr<int> v,
+                                ptr<struct CheckedData1> w,
+                                array_ptr<struct CheckedData1> x,
+                                struct CheckedData1 *y) {
 
     // valid combinations of void pointers for the arms of the expressions.
     void *t1 = val ? s : s;           // void * and void * OK
@@ -674,14 +678,25 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     // valid combinations of void pointer and int pointers for the arms of the expression
     void *t8 = val ? s : p;            // void * and int * OK
     void *t9 = val ? p : s;            // int * and void * OK
+    void *t10 = val ? y : s;           // struct CheckedData1 * and void * OK, where CheckedData1
+                                       // contains a checked pointer.
+    void *t11 = val ? s : y;           // void * struct CheckedData1 * OK.
     ptr<void> t14 = val ? t : &val;    // ptr<void> and int * OK when int * has bounds of at least 1 byte
     ptr<void> t15 = val ? &val : t;    // int * and ptr<void> OK when int * has bounds of at least 1 byte
     array_ptr<void> t17 = val ? u : p; // array_ptr<void> and int * OK when array_ptr has unknown bounds
     array_ptr<void> t18 = val ? p : u; // int * and array_ptr<void> OK when array_ptr has unknown bounds
-    ptr<void> t19 = val ? t : q;       // ptr<void> and ptr<int> OK
-    ptr<void> t20 = val ? q : t;       // ptr<int> and ptr<void> OK
-    array_ptr<void> t21 = val ? u : r; // array_ptr<void> and array_ptr<int> OK
-    array_ptr<void> t22 = val ? r : u; // array_ptr<int> and array_ptr<void> OK
+    array_ptr<void> t19 = val ? u : y; // array_ptr<void> and struct CheckedData1 * OK when
+                                       // array_ptr has unknown bounds.
+    array_ptr<void> t20 = val ? y : u; // struct CheckedData1 * and array_ptr<void> OK when
+                                       // array_ptr has unknown bounds.
+    ptr<void> t21 = val ? t : q;       // ptr<void> and ptr<int> OK
+    ptr<void> t22 = val ? q : t;       // ptr<int> and ptr<void> OK
+    ptr<void> t23 = val ? w : t;       // ptr<struct CheckedData1> and ptr<void> OK.
+    ptr<void> t24 = val ? t : w;       // ptr<void> and ptr<struct CheckedData1> OK.
+    array_ptr<void> t25 = val ? u : r; // array_ptr<void> and array_ptr<int> OK
+    array_ptr<void> t26 = val ? r : u; // array_ptr<int> and array_ptr<void> OK
+    array_ptr<void> t27 = val ? u : x; // array_ptr<struct CheckedData1> and array_ptr<int> OK
+    array_ptr<void> t28 = val ? x : u; // array_ptr<void> and array_ptr<struct CheckedData1> OK
 
     // omit assignment because type of expression is not valid when there is an error
 
@@ -691,7 +706,7 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     val ? u : t;   // expected-error {{pointer type mismatch}}
                    // array_ptr<void> and ptr<void> not OK.
 
-    // Invalid combinations of int and void pointer types
+    // Invalid combinations of pointer to int and void pointer types
 
     // According to the C11 standard, section 6.5.15 (conditional
     // operator), if one arm of a conditional expression is a pointer
@@ -701,6 +716,10 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     // Checked C only allows implicit conversions of safe types to
     // unsafe types at bounds-safe interfaces.  If one arm is void *
     // and the other is a safe pointer type, this is a typechecking error.
+    //
+    // Checked C also requires that for implicit conversions between
+    // safe types and safe pointers to void, the pointer kind must
+    // match.
     val ? (void *) &val : q;   // expected-error {{pointer type mismatch}}
                    // void * and ptr<int> not OK.
     val ? q : (void *) &val;   // expected-error {{pointer type mismatch}}
@@ -726,6 +745,13 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
     val ? q : u;   // expected-error {{pointer type mismatch}}
                    // ptr<int> and array_ptr<void> not OK
 
+     // Spot check invalid combinations of pointer to struct and
+     // void pointer data types
+     val ? s : w;   // expected-error {{pointer type mismatch}}
+                    // void * and ptr<struct CheckedData1> not OK.
+     val ? x : s;   // expected-error {{pointer type mismatch}}
+                    // array_ptr<struct CheckedData1> and void * not OK.
+
     // Some C compilers have allowed implicit integer to pointer conversions.
     // These are errors for new safe pointer types to void
     val ? t : val;   // expected-error {{incompatible operand types}}
@@ -738,10 +764,172 @@ extern void check_condexpr_void(int val, int *p, ptr<int> q, array_ptr<int> r,
                      // int  and array_ptr<void> not OK
 
     // Implicit conversion of 0 to a void safe pointer type is OK.
-    ptr<void> t23 = val ? t : 0;
-    ptr<void> t24 = val ? 0 : t;
-    array_ptr<void> t25 = val ? u : 0;
-    array_ptr<void> t26 = val ? 0 : u;
+    ptr<void> t40 = val ? t : 0;
+    ptr<void> t41 = val ? 0 : t;
+    array_ptr<void> t42 = val ? u : 0;
+    array_ptr<void> t43 = val ? 0 : u;
+}
+
+// Test conditional expressions where arms have different kinds of
+// pointer types and one or both of the types of the arms is a
+// pointer to void, a checked bounds_only scope.
+checked bounds_only extern void
+check_condexpr_void_bounds_only(int val, ptr<int> q, array_ptr<int> r,
+                                ptr<void> t,
+                                array_ptr<void> u, nt_array_ptr<int> v,
+                                ptr<struct CheckedData1> w,
+                                array_ptr<struct CheckedData1> x) {
+
+    // valid combinations of void pointers for the arms of the expressions.
+    ptr<void> t3 = val ? t : t;       // ptr<void> and ptr<void> OK
+    array_ptr<void> t7 = val ? u : u; // array_ptr<void> and array_ptr<void> OK
+
+    // valid combinations of void pointer and int pointers for the arms of the expression
+    ptr<void> t21 = val ? t : q;       // ptr<void> and ptr<int> OK
+    ptr<void> t22 = val ? q : t;       // ptr<int> and ptr<void> OK
+    ptr<void> t23 = val ? w : t;       // ptr<struct CheckedData1> and ptr<void> OK.
+    ptr<void> t24 = val ? t : w;       // ptr<void> and ptr<struct CheckedData1> OK.
+    array_ptr<void> t25 = val ? u : r; // array_ptr<void> and array_ptr<int> OK
+    array_ptr<void> t26 = val ? r : u; // array_ptr<int> and array_ptr<void> OK
+    array_ptr<void> t27 = val ? u : x; // array_ptr<struct CheckedData1> and array_ptr<int> OK
+    array_ptr<void> t28 = val ? x : u; // array_ptr<void> and array_ptr<struct CheckedData1> OK
+
+    // omit assignment because type of expression is not valid when there is an error
+
+    // invalid combinations of void pointer types
+    val ? t : u;   // expected-error {{pointer type mismatch}}
+                   // ptr<void> and array_ptr<void> not OK.
+    val ? u : t;   // expected-error {{pointer type mismatch}}
+                   // array_ptr<void> and ptr<void> not OK.
+
+    // Invalid combinations of pointer to int and void pointer types
+
+    // According to the C11 standard, section 6.5.15 (conditional
+    // operator), if one arm of a conditional expression is a pointer
+    // to void and the other arm is another pointer type, the type of
+    // the entire expression is pointer to void.  That implies that
+    // the other arm is implicitly cast to the void pointer type.
+    // Checked C only allows implicit conversions of safe types to
+    // unsafe types at bounds-safe interfaces.  If one arm is void *
+    // and the other is a safe pointer type, this is a typechecking error.
+    //
+    // Checked C also requires that for implicit conversions between
+    // safe types and safe pointers to void, the pointer kind must
+    // match.
+    val ? t : r;   // expected-error {{pointer type mismatch}}
+                   // ptr<void> and array_ptr<int> not OK
+    val ? r : t;   // expected-error {{pointer type mismatch}}
+                   // array_ptr<int> and ptr<void> not OK
+    val ? t : v;   // expected-error {{pointer type mismatch}}
+                   // ptr<void> and nt_array_ptr<int> not OK
+    val ? v : t;   // expected-error {{pointer type mismatch}}
+                   // nt_array_ptr<int> and ptr<void> not OK
+    val ? u : q;   // expected-error {{pointer type mismatch}}
+                   // array_ptr<void> and ptr<int> not OK
+    val ? q : u;   // expected-error {{pointer type mismatch}}
+                   // ptr<int> and array_ptr<void> not OK
+
+    // Some C compilers have allowed implicit integer to pointer conversions.
+    // These are errors for new safe pointer types to void
+    val ? t : val;   // expected-error {{incompatible operand types}}
+                     // ptr<void> and int not OK
+    val ? val : t;   // expected-error {{incompatible operand types}}
+                     // int and ptr<void> not OK
+    val ? u : val;   // expected-error {{incompatible operand types}}
+                     // array_ptr<void> and int not OK
+    val ? val : u;   // expected-error {{incompatible operand types}}
+                     // int  and array_ptr<void> not OK
+
+    // Implicit conversion of 0 to a void safe pointer type is OK.
+    ptr<void> t40 = val ? t : 0;
+    ptr<void> t41 = val ? 0 : t;
+    array_ptr<void> t42 = val ? u : 0;
+    array_ptr<void> t43 = val ? 0 : u;
+}
+
+// Test conditional expressions where arms have different kinds of
+// pointer types and one or both of the types of the arms is a
+// pointer to void, in a checked scope.
+checked extern void
+check_condexpr_void_checked(int val, ptr<int> q, array_ptr<int> r,
+                            ptr<void> t,
+                            array_ptr<void> u, nt_array_ptr<int> v,
+                            ptr<struct CheckedData1> w,
+                            array_ptr<struct CheckedData1> x) {
+
+    // valid combinations of void pointers for the arms of the expressions.
+    ptr<void> t3 = val ? t : t;       // ptr<void> and ptr<void> OK
+    array_ptr<void> t7 = val ? u : u; // array_ptr<void> and array_ptr<void> OK
+
+    // combinations of void pointer and int pointers for the arms of the expression
+    // that are valid in some kinds of checked scopes.
+    ptr<void> t21 = val ? t : q;       // ptr<void> and ptr<int> OK
+    ptr<void> t22 = val ? q : t;       // ptr<int> and ptr<void> OK
+    ptr<void> t23 = val ? w : t;       // expected-error {{not allowed in a checked scope}}
+                                       // ptr<struct CheckedData1> and ptr<void> not OK
+                                       // because CheckedData1 has a checked pointer in it.
+    ptr<void> t24 = val ? t : w;       // expected-error {{not allowed in a checked scope}}
+                                       // ptr<void> and ptr<struct CheckedData1> not OK
+                                       // because CheckedData1 has a checked pointer in it.
+    array_ptr<void> t25 = val ? u : r; // array_ptr<void> and array_ptr<int> OK
+    array_ptr<void> t26 = val ? r : u; // array_ptr<int> and array_ptr<void> OK
+    array_ptr<void> t27 = val ? u : x; // expected-error {{not allowed in a checked scope}}
+                                       // array_ptr<struct CheckedData1> and array_ptr<void> not OK
+                                       // because CheckedData1 has a checked pointer in it.
+    array_ptr<void> t28 = val ? x : u; // expected-error {{not allowed in a checked scope}}
+                                       // array_ptr<void> and array_ptr<struct CheckedData1> not OK
+
+    // omit assignment because type of expression is not valid when there is an error
+
+    // invalid combinations of void pointer types
+    val ? t : u;   // expected-error {{pointer type mismatch}}
+                   // ptr<void> and array_ptr<void> not OK.
+    val ? u : t;   // expected-error {{pointer type mismatch}}
+                   // array_ptr<void> and ptr<void> not OK.
+
+    // Invalid combinations of pointer to int and void pointer types
+
+    // According to the C11 standard, section 6.5.15 (conditional
+    // operator), if one arm of a conditional expression is a pointer
+    // to void and the other arm is another pointer type, the type of
+    // the entire expression is pointer to void.  That implies that
+    // the other arm is implicitly cast to the void pointer type.
+    // Checked C only allows implicit conversions of safe types to
+    // unsafe types at bounds-safe interfaces.  If one arm is void *
+    // and the other is a safe pointer type, this is a typechecking error.
+    //
+    // Checked C also requires that for implicit conversions between
+    // safe types and safe pointers to void, the pointer kind must
+    // match.
+    val ? t : r;   // expected-error {{pointer type mismatch}}
+                   // ptr<void> and array_ptr<int> not OK
+    val ? r : t;   // expected-error {{pointer type mismatch}}
+                   // array_ptr<int> and ptr<void> not OK
+    val ? t : v;   // expected-error {{pointer type mismatch}}
+                   // ptr<void> and nt_array_ptr<int> not OK
+    val ? v : t;   // expected-error {{pointer type mismatch}}
+                   // nt_array_ptr<int> and ptr<void> not OK
+    val ? u : q;   // expected-error {{pointer type mismatch}}
+                   // array_ptr<void> and ptr<int> not OK
+    val ? q : u;   // expected-error {{pointer type mismatch}}
+                   // ptr<int> and array_ptr<void> not OK
+
+    // Some C compilers have allowed implicit integer to pointer conversions.
+    // These are errors for new safe pointer types to void
+    val ? t : val;   // expected-error {{incompatible operand types}}
+                     // ptr<void> and int not OK
+    val ? val : t;   // expected-error {{incompatible operand types}}
+                     // int and ptr<void> not OK
+    val ? u : val;   // expected-error {{incompatible operand types}}
+                     // array_ptr<void> and int not OK
+    val ? val : u;   // expected-error {{incompatible operand types}}
+                     // int  and array_ptr<void> not OK
+
+    // Implicit conversion of 0 to a void safe pointer type is OK.
+    ptr<void> t40 = val ? t : 0;
+    ptr<void> t41 = val ? 0 : t;
+    array_ptr<void> t42 = val ? u : 0;
+    array_ptr<void> t43 = val ? 0 : u;
 }
 
 // Test conditional expressions where arms have different kinds of
