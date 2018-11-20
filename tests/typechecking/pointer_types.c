@@ -281,11 +281,14 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
 
 // Test assignments between different kinds of pointers where the
 // the source and/or destination pointers are pointers to void.
-extern void check_assign_void(int val, int *p, ptr<int> q,
-                              array_ptr<int> r : count(1),
-                              void *s, ptr<void> t,
-                              array_ptr<void> u : byte_count(sizeof(int)),
-                              nt_array_ptr<int> v : count(1)) {
+
+// Unchecked scope
+extern void
+check_assign_void_unchecked(int val, int *p, ptr<int> q,
+                            array_ptr<int> r : count(1),
+                            void *s, ptr<void> t,
+                            array_ptr<void> u : byte_count(sizeof(int)),
+                            nt_array_ptr<int> v : count(1)) {
 
     // pointer to void = pointer to integer for the different kinds of pointers
     void *t1 = p;            // void *  = T * OK;
@@ -367,6 +370,136 @@ extern void check_assign_void(int val, int *p, ptr<int> q,
     ptr<void> t37 = 0;
     array_ptr<void> t38 = 0;
 }
+
+// Test assignments between different kinds of pointers where the
+// the source and/or destination pointers are pointers to void.
+
+// Checked scope
+struct CheckedData1 {
+   int len;
+   array_ptr<int> p : count(len);
+};
+
+extern void
+check_assign_void_checked(int val, ptr<int> p,
+                          array_ptr<int> q : count(1),
+                          array_ptr<void> r : byte_count(sizeof(int)),
+                          array_ptr<void> r2 : byte_count(sizeof(struct CheckedData1)),
+                          array_ptr<void> r3 : byte_count(sizeof(ptr<int>)),
+                          nt_array_ptr<int> s : count(1),
+                          ptr<struct CheckedData1> t,
+                          ptr<ptr<int>> u,
+                          array_ptr<ptr<int> checked[5]> v : count(1)) checked {
+    // pointer to void = pointer to integer for the different kinds of pointers
+    // allowed in checked scopes
+    array_ptr<void> t1 = p;  // array_ptr<void> = ptr<int> OK
+    array_ptr<void> t2 = q;  // array_ptr<void> = array_ptr<int> OK
+    array_ptr<void> t3 = s;  // array_ptr<void> = nt_array_ptr<int> OK
+    array_ptr<void> t4 = t;  // expected-error {{not allowed in a checked scope}}
+                             // array_ptr<void = array_ptr<T> where T contains
+                             // a checked pointer
+    array_ptr<void> t5 = u;  // expected-error {{not allowed in a checked scope}}
+                             // array_ptr<void = array_ptr<T> where T contains
+                             // a checked pointer
+    array_ptr<void> t6 = v;  // expected-error {{not allowed in a checked scope}}
+                             // array_ptr<void = array_ptr<T> where T contains
+                             // a checked pointer
+    // nt_array_ptr<void> is not legal, so we can skip testing it as the
+    // left-hand side of an assignment.
+    nt_array_ptr<void> t7 = 0; // expected-error {{only integer and pointer types are allowed}}
+
+    // pointer to void = pointer to void for the different kinds of pointers
+    array_ptr<void> t8 = r; // array_ptr<void> = void * OK when array_ptr has no
+                             // bounds
+    array_ptr<void> t9 = r; // array_ptr<void> = array_ptr<void> OK
+
+    ptr<int> t20 = r;
+    array_ptr<int> t21 = r;
+    nt_array_ptr<int> t22 = r;  // expected-error {{incompatible type}}
+                                 // nt_array_ptr<int> = array_ptr<void> not OK.
+    array_ptr<struct CheckedData1> t23 = r2;  // expected-error {{not allowed in a checked scope}}
+                                          // array_ptr<T> = array_ptr<void> where T contains
+                                          // a checked pointer
+    ptr<ptr<int>> t24 = r3; // expected-error {{not allowed in a checked scope}}
+                            // array_ptr<T> = array_ptr<void> where T contains
+                            // a checked pointer
+    ptr<ptr<int> checked[1]> t25 = r3;  // expected-error {{not allowed in a checked scope}}
+                                         // array_ptr<T> = array_ptr<void> where T contains
+                                         // a checked pointer
+    // conversions between integers and safe void pointers.
+    int t26 = r;             // expected-error {{incompatible type}}
+                             // int = array_ptr<void> not OK;
+    array_ptr<void> t27 = val; // expected-error {{incompatible type}}
+                               // array_ptr<void> = int not OK
+
+    // spot check converting a pointer to a float
+    float t31 = r;           // expected-error {{incompatible type}}
+                             // float = array_ptr<T> not OK
+
+    // Implicit conversion of a safe void pointer type to _Bool is OK.
+    _Bool t32 = r;
+
+    // _Bool to safe void pointer is not OK.
+    array_ptr<void> t33 = (_Bool)(1);   // expected-error {{incompatible type}}
+
+    // Implicit conversion of 0 to a safe void pointer type is OK.
+    array_ptr<void> t34 = 0;
+}
+
+extern void
+check_assign_void_checked_bounds_only(int val, ptr<int> p,
+                          array_ptr<int> q : count(1),
+                          array_ptr<void> r : byte_count(sizeof(int)),
+                          array_ptr<void> r2 : byte_count(sizeof(struct CheckedData1)),
+                          array_ptr<void> r3 : byte_count(sizeof(ptr<int>)),
+                          nt_array_ptr<int> s : count(1),
+                          ptr<struct CheckedData1> t,
+                          ptr<ptr<int>> u) checked _Bounds_only {
+    // pointer to void = pointer to integer for the different kinds of pointers
+    // allowed in checked scopes
+    array_ptr<void> t1 = p;  // array_ptr<void> = ptr<int> OK
+    array_ptr<void> t2 = q;  // array_ptr<void> = array_ptr<int> OK
+    array_ptr<void> t3 = s;  // array_ptr<void> = nt_array_ptr<int> OK
+    array_ptr<void> t4 = t;  // array_ptr<void = array_ptr<T> OK where T contains
+                             // a checked pointer
+    array_ptr<void> t5 = u;  // array_ptr<void = array_ptr<T> OK where T contains
+                             // a checked pointer
+    // nt_array_ptr<void> is not legal, so we can skip testing it as the
+    // left-hand side of an assignment.
+    nt_array_ptr<void> t6 = 0; // expected-error {{only integer and pointer types are allowed}}
+
+    // pointer to void = pointer to void for the different kinds of pointers
+    array_ptr<void> t7 = r; // array_ptr<void> = void * OK when array_ptr has no
+                             // bounds
+    array_ptr<void> t8 = r; // array_ptr<void> = array_ptr<void> OK
+    ptr<int> t20 = r;
+    array_ptr<int> t21 = r;
+    nt_array_ptr<int> t22 = r;  // expected-error {{incompatible type}}
+                                 // nt_array_ptr<int> = array_ptr<void> not OK.
+    array_ptr<struct CheckedData1> t23 = r2;  // array_ptr<T> = array_ptr<void> OK where T contains
+                                              // a checked pointer
+    ptr<ptr<int>> t24 = r3; // array_ptr<T> = array_ptr<void> OK where T contains
+                            // a checked pointer
+    // conversions between integers and safe void pointers.
+    int t25 = r;             // expected-error {{incompatible type}}
+                             // int = array_ptr<void> not OK;
+    array_ptr<void> t26 = val; // expected-error {{incompatible type}}
+                               // array_ptr<void> = int not OK
+
+    // spot check converting a pointer to a float
+    float t31 = r;           // expected-error {{incompatible type}}
+                             // float = array_ptr<T> not OK
+
+    // Implicit conversion of a safe void pointer type to _Bool is OK.
+    _Bool t32 = r;
+
+    // _Bool to safe void pointer is not OK.
+    array_ptr<void> t33 = (_Bool)(1);   // expected-error {{incompatible type}}
+
+    // Implicit conversion of 0 to a safe void pointer type is OK.
+    array_ptr<void> t34 = 0;
+}
+
 
 // Test assignments between pointers of different kinds with const/volatile
 // attributes on referent types
@@ -813,6 +946,12 @@ extern void f3a(nt_array_ptr<int> p, int y) {
 extern void f4(_Bool p, int y) {
 }
 
+extern void f5(ptr<struct CheckedData1> p, int y) {
+}
+
+extern void f6(array_ptr<struct CheckedData1> p : count(1), int y) {
+}
+
 extern void f1_void(void *p, int y) {
 }
 
@@ -1090,7 +1229,7 @@ extern void check_call_void(void) {
 
    // Test parameters that are integers and argument types that are safe pointers to void
     f1(0, t);         // expected-error {{incompatible type}}
-    f1(0, u);         // expected-error {{incompatible type}} 
+    f1(0, u);         // expected-error {{incompatible type}}
     f1(0, v);         // expected-error {{incompatible type}}
 
    // Test parameters that are safe pointers to void and argument types that are integers
@@ -1099,6 +1238,153 @@ extern void check_call_void(void) {
 
     // Pass safe pointers to void to _Bool parameters
     f4(s, val);       // OK
+    f4(t, val);       // OK
+    f4(u, val);       // OK
+
+    // Pass _Bool to safe pointers to void
+    f2_void((_Bool) 1, val);   // expected-error {{incompatible type}}
+    f3_void((_Bool) 1, val);   // expected-error {{incompatible type}}
+
+    // Null pointers passed to safe pointers to void .
+    f2_void(0, val);
+    f3_void(0, val);
+}
+
+extern void check_call_void_checked(void) checked {
+    int val = 0;
+    float fval = 0.0;
+    ptr<int> q = 0;
+    array_ptr<int> r : count(1) = 0;
+    ptr<struct CheckedData1> s = 0;
+    ptr<void> t = 0;
+    array_ptr<void> u : byte_count(sizeof(struct CheckedData1)) = 0;
+    nt_array_ptr<int> v : count(1) = 0;
+
+    // Test different kinds of pointers where the parameter type is a pointer to void and
+    // the referent type is not a void pointer.
+
+    // Type of first parameter is a pointer type.
+    // Expected to typecheck
+
+    f2_void(q, val);    // param ptr<void>, arg ptr<int> OK.
+    f3_void(r, val);    // param array_ptr<void>, arg array_ptr<int> OK.
+    f2_void(r, val);    // param ptr<void>, arg array_ptr<int> OK
+    f3_void(q, val);    // param array_ptr<void>, arg ptr<int> OK
+    f2_void(v, val);    // param ptr<void>, arg nt_array_ptr<int> OK
+    f3_void(v, val);    // param array_ptr<void>, arg nt_array_ptr<int> OK
+
+    f3_void(s, val);    // expected-error {{not allowed in a checked scope}}
+                        // param array_ptr<void>, arg pointer to struct containing
+                        // a checked pointer not OK.
+
+    // Test different kinds of pointers where the parameter type is a pointer to void and the
+    // referent type is a pointer to void
+    f2_void(t, val);  // param ptr<void>, arg ptr<void OK
+    f3_void(u, val);  // param array_ptr<void> arg array_ptr<void> OK.
+
+    f2_void(u, val);  // param ptr<void>, arg array_ptr<void>, OK
+    f3_void(t, val);  // param array_ptr<void>, arg ptr<void>, OK
+
+    // Test parameter types that are pointer to integers and argument types that are pointers to void
+    f2(t, val);       // expected-error {{incompatible type}}
+                      // param ptr<int>, arg ptr<void>
+    f2(u, val);       // param ptr<int>, arg array_ptr<void> OK
+    f3(t, val);       // expected-error {{incompatible type}}
+                      // param array_ptr<int>, arg ptr<void>
+    f3(u, val);       // param array_ptr<int>, arg array_ptr<void> OK.
+    f3a(t, val);      // expected-error {{incompatible type}}
+                      // param nt_array_ptr<int>, arg ptr<void>
+    f3a(u, val);      // expected-error {{incompatible type}}
+                      // param nt_array_ptr<int>, arg array_ptr<void> not OK.
+    f5(u, val);       // expected-error {{not allowed in a checked scope}}
+                      // param ptr<T> where T contains a checked pointer, arg
+                      // array_ptr<void> not OK.
+    f6(u, val);       // expected-error {{not allowed in a checked scope}}
+                      // param array_ptr<T> where T contains a checked pointer, arg
+                      // array_ptr<void> not OK.
+
+   // Test parameters that are integers and argument types that are safe pointers to void
+    f1(0, t);         // expected-error {{incompatible type}}
+    f1(0, u);         // expected-error {{incompatible type}}
+    f1(0, v);         // expected-error {{incompatible type}}
+
+   // Test parameters that are safe pointers to void and argument types that are integers
+    f2_void(5, val);  // expected-error {{incompatible type}}
+    f3_void(5, val);  // expected-error {{incompatible type}}
+
+    // Pass safe pointers to void to _Bool parameters
+    f4(t, val);       // OK
+    f4(u, val);       // OK
+
+    // Pass _Bool to safe pointers to void
+    f2_void((_Bool) 1, val);   // expected-error {{incompatible type}}
+    f3_void((_Bool) 1, val);   // expected-error {{incompatible type}}
+
+    // Null pointers passed to safe pointers to void .
+    f2_void(0, val);
+    f3_void(0, val);
+}
+
+
+extern void check_call_void_checked_bounds_only(void) checked bounds_only {
+    int val = 0;
+    float fval = 0.0;
+    ptr<int> q = 0;
+    array_ptr<int> r : count(1) = 0;
+    ptr<struct CheckedData1> s = 0;
+    ptr<void> t = 0;
+    array_ptr<void> u : byte_count(sizeof(struct CheckedData1)) = 0;
+    nt_array_ptr<int> v : count(1) = 0;
+
+    // Test different kinds of pointers where the parameter type is a pointer to void and
+    // the referent type is not a void pointer.
+
+    // Type of first parameter is a pointer type.
+    // Expected to typecheck
+
+    f2_void(q, val);    // param ptr<void>, arg ptr<int> OK.
+    f3_void(r, val);    // param array_ptr<void>, arg array_ptr<int> OK.
+    f2_void(r, val);    // param ptr<void>, arg array_ptr<int> OK
+    f3_void(q, val);    // param array_ptr<void>, arg ptr<int> OK
+    f2_void(v, val);    // param ptr<void>, arg nt_array_ptr<int> OK
+    f3_void(v, val);    // param array_ptr<void>, arg nt_array_ptr<int> OK
+    f3_void(s, val);    // param array_ptr<void>, arg pointer to struct containing
+                        // a checked pointer OK.
+
+    // Test different kinds of pointers where the parameter type is a pointer to void and the
+    // referent type is a pointer to void
+    f2_void(t, val);  // param ptr<void>, arg ptr<void OK
+    f3_void(u, val);  // param array_ptr<void> arg array_ptr<void> OK.
+
+    f2_void(u, val);  // param ptr<void>, arg array_ptr<void>, OK
+    f3_void(t, val);  // param array_ptr<void>, arg ptr<void>, OK
+
+    // Test parameter types that are pointer to integers and argument types that are pointers to void
+    f2(t, val);       // expected-error {{incompatible type}}
+                      // param ptr<int>, arg ptr<void>
+    f2(u, val);       // param ptr<int>, arg array_ptr<void> OK
+    f3(t, val);       // expected-error {{incompatible type}}
+                      // param array_ptr<int>, arg ptr<void>
+    f3(u, val);       // param array_ptr<int>, arg array_ptr<void> OK.
+    f3a(t, val);      // expected-error {{incompatible type}}
+                      // param nt_array_ptr<int>, arg ptr<void>
+    f3a(u, val);      // expected-error {{incompatible type}}
+                      // param nt_array_ptr<int>, arg array_ptr<void> not OK.
+    f5(u, val);       // param ptr<T> where T contains a checked pointer, arg
+                      // array_ptr<void> OK.
+    f6(u, val);       // param array_ptr<T> where T contains a checked pointer, arg
+                      // array_ptr<void> OK.
+
+   // Test parameters that are integers and argument types that are safe pointers to void
+    f1(0, t);         // expected-error {{incompatible type}}
+    f1(0, u);         // expected-error {{incompatible type}}
+    f1(0, v);         // expected-error {{incompatible type}}
+
+   // Test parameters that are safe pointers to void and argument types that are integers
+    f2_void(5, val);  // expected-error {{incompatible type}}
+    f3_void(5, val);  // expected-error {{incompatible type}}
+
+    // Pass safe pointers to void to _Bool parameters
     f4(t, val);       // OK
     f4(u, val);       // OK
 
@@ -1151,6 +1437,353 @@ void check_call_cv(void) {
     f3a(s_const, val);    // expected-warning {{discards qualifiers}}
                           // param nt_array_ptr<int> arg nt_array_ptr<const int> not OK
 }
+
+//
+// Check pointer return types with different types of values.
+//
+
+// Check 'int *' return types.
+int *check_return1(int *p) {
+  return p;
+}
+
+int *check_return2(float *p) {
+  return p;  // expected-warning {{incompatible pointer types}}
+}
+
+int *check_return3(void) {
+  return 5; // expected-warning {{incompatible integer to pointer conversion}}
+}
+
+int *check_return4(ptr<int> p) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+int *check_return5(array_ptr<int> p : count(1)) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+int *check_return6(nt_array_ptr<int> p : count(1)) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+// Check ptr<int> return types.
+
+ptr<int> check_return11(int *p) {
+  return p; // expected-error {{expression has unknown bounds}}
+}
+
+ptr<int> check_return12(float *p) {
+  return p;  // expected-error {{incompatible result type}}
+}
+
+ptr<int> check_return13(void) {
+  return 5; // expected-error {{incompatible result type}}
+}
+
+ptr<int> check_return14(ptr<int> p) {
+  return p;
+}
+
+ptr<int> checked_return15(ptr<float> p) {
+  return p;  // expected-error {{incompatible result type}}
+}
+
+ptr<int> check_return16(array_ptr<int> p : count(1)) {
+  return p;
+}
+
+ptr<int> check_return17(nt_array_ptr<int> p : count(1)) {
+  return p;
+}
+
+// Check array_ptr<int> return types.
+
+array_ptr<int> check_return21(int *p) {
+  return p;
+}
+
+array_ptr<int> check_return21a(int *p) : count(1) {
+  // TODO: github issue #403.  This should result in an error.
+  return p;
+}
+
+array_ptr<int> check_return22(float *p) {
+  return p;  // expected-error {{incompatible result type}}
+}
+
+array_ptr<int> check_return23(void) {
+  return 5; // expected-error {{incompatible result type}}
+}
+
+array_ptr<int> check_return24(ptr<int> p) {
+  return p;
+}
+
+array_ptr<int> checked_return25(ptr<float> p) {
+  return p;  // expected-error {{incompatible result type}}
+}
+
+array_ptr<int> check_return26(array_ptr<int> p : count(1)) {
+  return p;
+}
+
+array_ptr<int> check_return27(nt_array_ptr<int> p : count(1)) {
+  return p;
+}
+
+
+//
+// Check pointer return types with void pointer return values
+//
+
+// Unchecked scopes
+
+int *check_voidptr_val_return1(void *p) {
+  return p;
+}
+
+int *check_voidptr_val_return2(array_ptr<void> p : byte_count(sizeof(int))) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+ptr<int> check_voidptr_val_return11(void *p) {
+  return p;  // expected-error {{expression has unknown bounds}}
+}
+
+ptr<int> check_voidptr_val_return12(array_ptr<void> p : byte_count(sizeof(int))) {
+  return p;
+}
+
+array_ptr<int> check_voidptr_val_return21(void *p) {
+  return p;
+}
+
+array_ptr<int> check_voidptr_val_return22(array_ptr<void> p : byte_count(sizeof(int)))   {
+  return p;
+}
+
+array_ptr<struct CheckedData1> check_voidptr_val_return23(array_ptr<void> p : byte_count(sizeof(int)))   {
+  return p;
+}
+
+// Checked scopes
+
+checked ptr<int> check_voidptr_val_return31(array_ptr<void> p : byte_count(sizeof(int))) {
+  return p;
+}
+
+checked array_ptr<int> check_voidptr_val_return32(array_ptr<void> p : byte_count(sizeof(int)))   {
+  return p;
+}
+
+checked array_ptr<struct CheckedData1> check_voidptr_val_return23_checked(array_ptr<void> p : byte_count(sizeof(int)))   {
+  return p; // expected-error {{not allowed in a checked scope}}
+}
+
+// Checked bounds_only scopes
+
+checked bounds_only
+ptr<int> check_voidptr_val_return41(array_ptr<void> p : byte_count(sizeof(int))) {
+  return p;
+}
+
+checked bounds_only
+array_ptr<int> check_voidptr_val_return42(array_ptr<void> p : byte_count(sizeof(int)))   {
+  return p;
+}
+
+checked bounds_only
+array_ptr<struct CheckedData1> check_voidptr_val_return43(array_ptr<void> p : byte_count(sizeof(int)))   {
+  return p;
+}
+
+//
+// Check void pointer return types with different types of values
+// in unchecked scopes
+//
+
+// Check 'void *' return types.
+void *check_voidptr_return1(int *p) {
+  return p;
+}
+
+void *check_voidptr_return2(float *p) {
+  return p;
+}
+
+void *check_voidptr_return3(void) {
+  return 5; // expected-warning {{incompatible integer to pointer conversion}}
+}
+
+void *check_voidptr_return4(ptr<int> p) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+void *check_voidptr_return5(array_ptr<int> p : count(1)) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+void *check_voidptr_return6(nt_array_ptr<int> p : count(1)) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+void *check_voidptr_return7(ptr<struct CheckedData1> p) {
+  return p; // expected-error {{incompatible result type}}
+}
+
+
+// Check array_ptr<void> return types.
+
+array_ptr<void> check_voidptr_return21(int *p) {
+  return p;
+}
+
+array_ptr<void> check_voidptr_return21a(int *p) : byte_count(sizeof(int)) {
+  // TODO: github issue #403.  This should result in an error.
+  return p;
+}
+
+array_ptr<void> check_voidptr_return21b(void *p) {
+  return p;
+}
+
+array_ptr<void> check_voidptr_return21c(void *p) : byte_count(sizeof(int)) {
+  // TODO: github issue #403.  This should result in an error.
+  return p;
+}
+
+
+array_ptr<void> check_voidptr_return22(float *p) {
+  return p;
+}
+
+array_ptr<void> check_voidptr_return23(void) {
+  return 5; // expected-error {{incompatible result type}}
+}
+
+array_ptr<void> check_voidptr_return24(ptr<int> p) {
+  return p;
+}
+
+array_ptr<void> checked_voidptr_return25(ptr<float> p) {
+  return p;
+}
+
+array_ptr<void> check_voidptr_return26(array_ptr<int> p : count(1)) {
+  return p;
+}
+
+array_ptr<void> check_voidptr_return27(ptr<struct CheckedData1> p) {
+  return p;
+}
+
+
+array_ptr<void> check_voidptr_return28(nt_array_ptr<int> p : count(1)) {
+  return p;
+}
+
+array_ptr<void> check_voidptr_return29(ptr<struct CheckedData1> p) {
+  return p;
+}
+
+//
+// Check void pointer return types with different types of values
+// in checked scopes
+//
+
+checked void *check_voidptr_return_checked21(ptr<int> p) {  // expected-error {{return in a checked scope must have a checked type}}
+  return p; // expected-error {{incompatible result type}}
+}
+
+checked array_ptr<void> check_voidptr_return31(ptr<int> p) {
+  return p;
+}
+
+checked array_ptr<void> check_voidptr_return31a(array_ptr<int> p) : byte_count(sizeof(int)) {
+  // TODO: github issue #403.  This should result in an error.
+  return p;
+}
+
+checked array_ptr<void> check_voidptr_return31b(array_ptr<void> p) {
+  return p;
+}
+
+checked array_ptr<void> check_voidptr_return32(void) {
+  return 5; // expected-error {{incompatible result type}}
+}
+
+checked array_ptr<void> check_voidptr_return33(ptr<int> p) {
+  return p;
+}
+
+checked array_ptr<void> checked_voidptr_return34(ptr<float> p) {
+  return p;
+}
+
+checked array_ptr<void> check_voidptr_return35(array_ptr<int> p : count(1)) {
+  return p;
+}
+
+_Checked array_ptr<void> check_voidptr_return36(ptr<struct CheckedData1> p) {
+  return p;  // expected-error {{not allowed in a checked scope}}
+}
+
+checked array_ptr<void> check_voidptr_return39(nt_array_ptr<int> p : count(1)) {
+  return p;
+}
+
+checked bounds_only void *check_voidptr_return41(ptr<int> p) {  // expected-error {{return in a checked scope must have a checked type}}
+  return p; // expected-error {{incompatible result type}}
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return42(ptr<int> p) {
+  return p;
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return42a(array_ptr<int> p) : byte_count(sizeof(int)) {
+  // TODO: github issue #403.  This should result in an error.
+  return p;
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return42b(array_ptr<void> p) {
+  return p;
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return43(void) {
+  return 5; // expected-error {{incompatible result type}}
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return44(ptr<int> p) {
+  return p;
+}
+
+checked bounds_only
+array_ptr<void> checked_voidptr_return45(ptr<float> p) {
+  return p;
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return46(array_ptr<int> p : count(1)) {
+  return p;
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return47(ptr<struct CheckedData1> p) {
+  return p;
+}
+
+checked bounds_only
+array_ptr<void> check_voidptr_return48(nt_array_ptr<int> p : count(1)) {
+  return p;
+}
+
+
 
 void check_pointer_arithmetic(void)
 {
