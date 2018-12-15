@@ -10,6 +10,10 @@ and test code.
 - The PDF of the specification is available [here](https://github.com/Microsoft/checkedc/releases).
 - Compilers are available [here](https://github.com/Microsoft/checkedc-clang/releases).
 
+# We are hiring
+
+We have a Principal Software Engineer position [available](https://careers.microsoft.com/us/en/job/559081/Principal-Software-Engineer). We are looking for someone wih compiler and programming language implementation experience who is passionate about making software more secure and reliable.
+
 # Papers
 We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
 Checked C at the IEEE 2018 Cybersecurity Development Conference: "Checked C: Making C Safe by Extension". 
