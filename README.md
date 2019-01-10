@@ -6,13 +6,16 @@ This repo contains
 sample code, the [extension specification](https://github.com/Microsoft/checkedc/releases),
 and test code.
 
-- For a quick overview of Checked C and more information, see our [Wiki](https://github.com/Microsoft/checkedc/wiki).
+- For a quick overview of Checked C, more information, and pointers to example code,
+  see our [Wiki](https://github.com/Microsoft/checkedc/wiki).
 - The PDF of the specification is available [here](https://github.com/Microsoft/checkedc/releases).
 - Compilers are available [here](https://github.com/Microsoft/checkedc-clang/releases).
 
 # We are hiring
 
-We have a Principal Software Engineer position [available](https://careers.microsoft.com/us/en/job/559081/Principal-Software-Engineer). We are looking for someone wih compiler and programming language implementation experience who is passionate about making software more secure and reliable.
+We have a position available for a 
+[Principal Software Engineer](https://careers.microsoft.com/us/en/job/559081/Principal-Software-Engineer) or a
+[Senior Software Engineer](https://careers.microsoft.com/us/en/job/570339/Senior-Software-Engineer). We are looking for someone wih compiler and programming language implementation experience who is passionate about making software more secure and reliable.
 
 # Papers
 We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
