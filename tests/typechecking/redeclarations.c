@@ -359,12 +359,12 @@ void f70(int * (fn(int * : itype(ptr<int>), int * : itype(ptr<int>))) :
 // return type of itype differs.
 void f70(int (*fn(int *, int *)) : itype(ptr<int> (ptr<int>, ptr<int>))); // expected-error {{function redeclaration has conflicting parameter interop type}}
 // changed interface types for parameters of function pointer
-void f70(int * (fn(int * : itype(array_ptr<int>), int * : itype(array_ptr<int>)))); // expected-error {{conflicting bounds}}
+void f70(int * (fn(int * : itype(array_ptr<int>), int * : itype(array_ptr<int>)))); // expected-error {{conflicting types}}
 
 // Interface type on parameters of a function pointer type
 void f71(int * fn(int *, int *));
 void f71(int * fn(int * : count(5), int *: count(5)));
-void f71(int * fn(int * : count(6), int * : count(6))); // expected-error {{conflicting bounds annotations for 'f71'}}
+void f71(int * fn(int * : count(6), int * : count(6))); // expected-error {{conflicting types for 'f71'}}
 
 // Interface type on return value of a function pointer type
 void f72(int * fn(int *, int *));
@@ -391,19 +391,19 @@ void f81(int *p : bounds(p, p + len), int len);  // expected-error {{conflicting
 
 void f90(void (*fnptr)(array_ptr<int> p1 : count(5)));
 void f90(void (*fnptr)(array_ptr<int> p2 : count(5)));
-void f90(void (*fnptr)(array_ptr<int> p1 : count(6)));  // expected-error {{conflicting bounds annotations for 'f90'}}
+void f90(void (*fnptr)(array_ptr<int> p1 : count(6)));  // expected-error {{conflicting types for 'f90'}}
 
 void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
 void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 5), array_ptr<int> p1)> fnptr);
-void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 6), array_ptr<int> p1)> fnptr);  // expected-error {{conflicting bounds annotations for 'f91'}}
+void f91(ptr<int(array_ptr<int> mid : bounds(p1, p1 + 6), array_ptr<int> p1)> fnptr);  // expected-error {{conflicting types for 'f91'}}
 
 void f92(array_ptr<int>(*fnptr)(int i, int k) : count(i));
 void f92(array_ptr<int>(*fnptr)(int j, int k) : count(j));
-void f92(array_ptr<int>(*fnptr)(int j, int k) : count(k)); // expected-error {{conflicting bounds annotations for 'f92'}}
+void f92(array_ptr<int>(*fnptr)(int j, int k) : count(k)); // expected-error {{conflicting types for 'f92'}}
 
 void f93(array_ptr<int>(*fnptr)(void) : count(5));
 void f93(array_ptr<int>(*f)(void) : count(5));
-void f93(array_ptr<int>(*f)(void) : count(6));          // expected-error {{conflicting bounds annotations for 'f93'}}
+void f93(array_ptr<int>(*f)(void) : count(6));          // expected-error {{conflicting types for 'f93'}}
 
 //---------------------------------------------------------------------------//
 // Declarations of variables with unchecked pointer or array types are       //
