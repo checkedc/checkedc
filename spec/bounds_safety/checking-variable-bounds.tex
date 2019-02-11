@@ -18,18 +18,12 @@ the same way that typechecking rules work.  Given an expression
 and bounds expressions for its subexpressions, a bounds expression
 is constructed.  The induction base casses are variables (for which
 bounds expressions are declared by the programmer) and constants.
-The inference may reqiore tje cp,[o;er tp introduce temporaries to
+The inference may require the compiler to introduce temporaries to
 hold the values of subexpressions.
-Section~\ref{section:inferring-expression-bounds}
-describes how to determine the bounds for an expression of type \arrayptr.
-It does not cover operations that access data structures, such as member
-access and pointer dereference. 
-Those are covered in Chapters~\ref{chapter:structure-bounds} and 
-\ref{chapter:pointers-to-data-with-arrayptrs}.
 
 Bounds declarations are invariants about program variables
 that must be checked at compile time.  The key idea is {\em subsumption checking}.
-At \arrapyptr\ variable declarations and assignments, 
+At \arrayptr\ variable declarations and assignments, 
 the right-hand side expression must have a bounds expression that includes (subsumes) 
 the declared bounds  expression for the variable.  The memory that is accessible using
 the right-hand side must include all the memory that is accessible via the variable.
@@ -68,94 +62,29 @@ some expressions for which bounds could be proved valid, such as
 a conditional expression whose evaluation is unordered with respect
 to an assignment or another conditinal expression.
 
-Section~\ref{section:checking-expression-statements} describes how
-subsumption checking on bounds expressions.   The subsumption checking puts expressions
-into a standard form.  It then uses syntactic equality, extended with
-simple identities about C expressions and taking into account equality facts.
-Inference steps for relational reasoning about bounds expressions 
-are described in Chapter~\ref{chapter:simple-invariants}.
-
-Section~ref{section:checking-assignment-expressions} 
-covers the simple case where there is no control-flow
-within an expression.
+The descriptions of bounds inference and bounds checking are
+presented in a cumulative fashion.  We start with the simplest
+analysis, bounds inference for expressions.  We then extend that
+with progressively more complicated analyses.
+Section~\ref{section:inferring-expression-bounds}
+describes how to determine the bounds for an expression of type \arrayptr.
+It does not cover operations that access data structures, such as member
+access and pointer dereference. 
+Those are covered in Chapters~\ref{chapter:structure-bounds} and 
+\ref{chapter:pointers-to-data-with-arrayptrs}.
+Section~\ref{section:checking-assignment-expressions} describes
+how to check bounds declarations for expressions where there is
+no control-flow within the expression..
 Section~\ref{section:checking-nested-assignment-expressions}
-covers the more complex case where there is control-flow
+extends this to cover the more complex case where there is control-flow
 within expressions.
 
-To handle this, the expression analysis \var{A} takes as an input
-an expression \var{E}, a context \var{C}, and a set of variables 
-whose state is indeterminate beacuse they may have pending assignments \var{IV}. 
-It produces as output a context \var{RC}, set of variables \var{RIV} whose
-current state is indeterminate because they have pending assignments
-assignments and a set of assignment expressions within the expression.
-The analysis does a top-down traversal of the expression
-tree with a case analysis for each expression based on the operator.
-The analysis may recursively invoke itself:
-\begin{enumerate}
-\item The expression is a read of variable \var{V}. 
-If \var{V} is in \var{IV}, this is an error.  This is undefined behavior according to the C specification,
-because no ordering exists between the reads and a possible write.  The analysis $(C, IV, empty set)$
-\item The expression is a literal expression or a constant.  It returns $(C, IV, empty set)$.
-\item The expression is a parenthesized expression \var{E1}.  It return the result of $A(E1, C, IV)$.
-\item The operator is not a control-flow operator:
-For each subexpression \var{S_i}, we
-\begin{enumerate}
-\item We take all the assignments in other subexpressions and add them to a pending set \var{PS_i}.  
-\item WE compute \var{(NP_i, NC_i, AS_i)} = $A(S_i, C, PS_i).
-\end{enumerate}
-We combine together thee contexts, the pending sets, the sets of assignments.  
-To combine the contexts, we examine each context.  For any variable whoses bounds expression
-differs from the original context, we select that bounds expression.  By the check in (2), at
-most one context should contain an updated bounds expression for a variable.
-
-While traversing the expression, we also determine the bounds expressions for any memory
-accesses in the expression.  If we need to determine the bounds expression for a variable and
-the variable is in the pending set, bounds(none) is used as the bounds.
-If the resulting bounds expression uses a variable in the pending set, it is an error.
-\end{enumerate} 
-\item The operator is a comma operator of the form \code{e1, e2}.   We recursively
-ivnoke{A} with code{e1}, context \var{C}, and the pending set{IV}.
-invoke the analysis to compute a context and a list of assignments for \code{e1}.
-For any variable that was not in the incoming pending set, but is 
-pending in the incoming context, but that is now marked
-as pending in the updated context, we clear the pending
-information.
-The expression analysis falls into two general categories
-depending on whether the operator is a control-flow operator or
-not.  If the operator is not a control-flow operator,
-we set the pending flag in the context for any variables
-assigned to by subexpressions.  We then compute updated contexts
-for each of the subexpressions and merge the contexts.
-
- When we analyze an expression,
-we check to see whether the expression operator is a control-flow
-operator.   If it is not a control-flow operator, the evaluation
-of expressions is unordered.  We set the pending flag for
-any variables assigned to by subexpressions.
-if the evaluation of the subexpressions is unordered (that is, the
-expression operator is not a control-flow operator), we set the 
-``pending'' flag for bounds expressions for ponter variables
-that are assigned to within
-``pending'' flag for bounds expression for pointer variables that
-are modified or bounds expressions that use variables that are modified
-
-
-
-
-
-
-
-Given an assignment \var{v}\lstinline+=+\var{e}, the effect of the assignment to \var{v}
-is modelled by updating the context to contain bound expressions that are true
-after the assignment.  If \var{v} has \arrayptr\ type, the bounds expression in
-the context for \var{v} is updated to the inferred bounds expression for \var{e}.
-We also model the change in \var{v}'s
-value for any bounds expressions in the context that use \var{v}.   If the result of 
-evaluating \var{e} is available in a temporary, we update the equality facts set 
-to record that \var{v} equals the temporary when the (top-level) assignment
-expression is completely evaluated.
-We use the updated context and equality facts set to check
-that the new bounds expressions subsume the declared bounds expressions for variables.
+Section~\ref{section:checking-expression-statements} describes
+subsumption checking on bounds expressions.   The subsumption checking
+puts expressions into a standard form.  It then uses syntactic equality,
+extended with simple identities about C expressions and taking into account equality facts.
+Inference steps for relational reasoning about bounds expressions 
+are described in Chapter~\ref{chapter:simple-invariants}.
 
 Section~\ref{section:checking-function-call-arguments}
 describes validating function call arguments.
@@ -307,7 +236,7 @@ to \lstinline|*(|\var{e1} \lstinline|+| \var{e2}\lstinline|)|.  If
 \boundsinfer{\lstinline|&|\var{e1}\lstinline|[|\var{e2}\lstinline|]|}{\var{bounds-exp}}.
 \end{itemize}
    
-\subsection{Funcrtion calls}
+\subsection{Function calls}
 \label{section:inferring-bounds-for-function-calls}
 
 Let \var{f} be the name of a function that returns an
@@ -315,7 +244,7 @@ Let \var{f} be the name of a function that returns an
 Suppose there is a function call expression of the form
 \var{f}\code{(}\var{e1 \ldots{} en}\code{)}:
 
-\begin{\boundsunknown}
+\begin{enumerate}
 \item
   If \var{f} has a bounds declaration for the return value of the form
   \code{return_value :} \var{exp1}, then
@@ -335,7 +264,7 @@ Suppose there is a function call expression of the form
 \item
   If \var{f} does not have a bounds declaration for its return value,
   then \boundsinfer{\var{f}\lstinline|(|\var{e1} \ldots{} \var{en}\lstinline|)|}{\boundsunknown}.
-\end{\boundsunknown}
+\end{enumerate}
 
 The special variable \lstinline|return_value| may appear in \var{exp1}. It
 is the value of the function call expression. If \lstinline|return_value|
@@ -596,8 +525,155 @@ there is an order of evaluation issue of \var{e1} appears in the bounds for
 \var{e2}.   Specifically, the bounds for \var{e2} cannot be used to
 check a memory access within the top-level expression being evaluated.
 
-\section{Bounds declaration checking for simple assignment expressions}
+\section{Bounds declaration checking for expressions ignoring
+control flow}
+
 \label{section:checking-assignment-expressions}
+
+Section~\ref{section:inferring-expression-bounds} described how to 
+traverse an expression in a bottom-up fashion to determine the bounds 
+of an expression.  In this section, we describe an
+approach for bounds declaration checking for expressions without
+control flow. The approach ignores some sequence points \cite{ISO2011}
+within expressions without control-flow.  A sequence point
+is a guarantee that one expression will be evaluated before
+another expression.  Sequence points within non-control-flow
+expressions are relatively rare. The approach is conservative,
+in ignoring sequence points.  if an expression passes 
+checking, it is guaranteed that bounds 
+declarations will be valid after evaluating the expression, if
+they were valid before evaluating the expression. The
+approach can declare expressions that would be valid if sequence
+points were taken into account as being in error, though.
+
+The approach has two parts: calculating an updated context and
+working with sets of pending assignments.  The sets of pending
+assignments prevent the uses of variables whose values are
+indeterminate because an assignment may or may not have completed.
+They also prevent accessing memory with values whose bounds expressions
+are indeterminate because the bounds expressions use a variable
+whose value is determinate.  The pending assignments let
+us guarantee that any pointer-typed variables with update context
+information have exactly one assignment.
+
+The C Standard \cite {ISO2011}
+describes a sequence relation between pairs of expressions $(E1, E2)$:
+the expression $E1$ must be evaluated before $E2$.  
+The C Standard
+further divides sequencing of expressions into value computations
+of expressions and side-effects of expressions.
+Given an assignment of the form $E1 = E2$, 
+the value computations of $E1$ and $E2$ is sequenced before the
+assignment.  We take into account sequencing of value
+computations relative to assignment introduced by assignments.
+We do not take into account other sequencing of expressions.
+
+The function $Pending(E)$ calculates the set of assignments $A$
+that are pending for an expression $E$ and the set of variables
+with pending assignments $PV$.  It uses two helper functions,
+$GetLValue(E)$ and $GetRValue(E)$.  Those functions
+return a set containing a variable name or the empty set.
+
+$Pending(E)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ has the form $E1 = E2$, let $V = GetVariable(E1)$,
+$(A_1,PV_1) = Pending(E1)$, and $(A_2, PV_2) = Pending(E2)$. 
+$A = A_1 \cup A_2 \cup E and  $PV = PV_1 \cup $PV_2 \cup V.
+\item Otherwise, if $E$ has $n$ expressions, let $S_i$ be
+the $i^th$ subexpression.  For  all $i$ in n, let $(A_i, PV_i) = Pending(S_i)$.  
+$A$ = \cup_{i=1}^{n} A_i$ and $PV$ = \cup_{i=1}^{n} PV_i$.
+\end{enumerate}
+
+$GetLValue(E)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ is a variable $V$, return ${ V }$.
+\item If $E$ has the form $(E1)$, return $GetLValue(E)$.
+\item If $E$  has the form $*E1$, return GetRValue(E)
+\item Otherwise, return \emptyset.
+\end{enumerate}
+
+$GetRValue(E)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ has the form $\code{&}E1$, return $GetLValue(E)$.
+\item If $E$ has the form $(E1)$, return $GetRValue(E).
+\end{enumerate}
+
+The bounds declaration checking function $Check(E, C, PV)$  
+takes as inputs an expression $E$, a context $C$ that maps variables 
+to their bounds, and a set of $PV$ of indeterminate variables.
+It returns a bound expression $B$ for $E$, updates $U$ to the context,
+and a set of pending assignments $A$.  It may also report an error.
+
+$Check(E, C, PV)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ is a variable $V$,
+\begin{enumerate{
+\item If $V$ is in $PV$, return an error.
+\item Otherwise, let $B = C[V]$, $U = \emptyset$, and $A = \emptyset$.
+\end{enumerate}
+\item If $E$ has the form $E1 = E2$, let $(A_E1, PV_E1) = Pending(E1)$
+and $(A_E2, PV_E2) = Pending(E2)$:
+\begin{enumerate}
+\item Let $(B_E1, U_E1, A_E1) = Check(E, C, \cup PV \cup PV_E2)$.
+\item Let $(B_E2, U_E2, A_E2) = Check(E, NC_E1, \cup PV \cup PV_E1)$.
+\item If $E1 is a pointer indirection, check that the bounds expression
+for the pointer-typed subexpression does not use any variables in
+$PV \cup PV_E1 \cup PV_E2$.
+Let $B = B_E2$, $U = U_E1 \cup U_E2, and $A = A_E1 \cup A_E2 \cup { E }$.
+\end{enumerate}
+\item Otherwise
+
+If $E$ is a top-level expression, we traverse all the immediate
+subexpressions of $S_i$ of $E$ and compute the set of variables
+$MV_i$ updated by each $S_i$.  It is an error if any $MV_i$ overlaps
+with each other or $IV$: this means there are multiple writes
+to a variable.
+
+For each $S_i$, we compute 
+overlaps with $IV$ 
+   It return an updated context $RC$ and a set of indeterminate variables $RIV$.
+
+If $E$ is not a function call, then for each subexpression $S_i$
+of $E$, we invoke $Check(S_i, C)$ to a compute a new context $SC_i$
+and a set of of updated variables $SIV_i$.
+
+Let $RC = C$.  For any variable $v$ in $C$ such that $v$ was 
+updated in some $SC_i$, let $RC[v] = SC_i[v]$.  It is an error
+if there are multiple $SC_i$ where $v$ was updated.  That indicates
+conflicting writes.
+
+Let $RIV = \union_i SIV_i$.
+
+If $E
+some $SC_i$ where $SC_i(v) != C(v)$, 
+
+
+
+
+
+To handle this, the expression analysis \var{A} takes as an input
+an expression \var{E}, a context \var{C}, and a set of variables 
+whose state is indeterminate beacuse they may have pending assignments \var{IV}. 
+
+
+There are certain
+points in the evaluation of C functions where pending assignments
+are guaranteed to be completed: at 
+
+
+Given an assignment \var{v}\lstinline+=+\var{e}, the effect of the assignment to \var{v}
+is modelled by updating the context to contain bound expressions that are true
+after the assignment.  If \var{v} has \arrayptr\ type, the bounds expression in
+the context for \var{v} is updated to the inferred bounds expression for \var{e}.
+We also model the change in \var{v}'s
+value for any bounds expressions in the context that use \var{v}.   If the result of 
+evaluating \var{e} is available in a temporary, we update the equality facts set 
+to record that \var{v} equals the temporary when the (top-level) assignment
+expression is completely evaluated.
+We use the updated context and equality facts set to check
+that the new bounds expressions subsume the declared bounds expressions for variables.
+
+
 
 For an assignment expression of the form \var{x} \code{=} \var{e},
 where \var{x} is a variable and \var{e} is an expression, there are
@@ -650,14 +726,14 @@ The updated context is determined in two steps. First, if
 \var{x} has type \arrayptr, the context is updated for
 \var{x} using bounds expressions that use the \emph{old} value of \var{x}:
 
-\begin{\boundsunknown}
+\begin{enumerate}
 \item
   If \boundsinfer{\var{e}}{\var{exp}}, then the context is updated with
   \boundsdecl{\var{x}}{\var{exp}}.
 \item
   Otherwise, the context is updated with \boundsdecl{\var{x}}{\boundsunknown}
    to indicate that \var{x} has no valid bounds.
-\end{\boundsunknown}
+\end{enumerate}
 
 Second, the context is updated to reflect the change in the value of
 \var{x}:
@@ -741,13 +817,13 @@ holds only if overflow is a runtime error.
 \subsection{Invertible expressions}
 An expression is invertible with respect to a variable \var{x} if:
 
-\begin{\boundsunknown}
+\begin{enumerate}
 \item
   The expression is \var{x}
 \item
   or
 
-  \begin{\boundsunknown}
+  \begin{enumerate}
   \item
     The operator in the expression is an addition, subtraction, one's
     complement, unary minus, unary plus, exclusive-or, a bit-preserving
@@ -759,8 +835,8 @@ An expression is invertible with respect to a variable \var{x} if:
     Any other argument of the operation is a non-modifying expression,
     excluding non-modifying expressions that are or include member
     references, indirect member references, or pointer dereferences.
-  \end{\boundsunknown}
-\end{\boundsunknown}
+  \end{enumerate}
+\end{enumerate}
 
 The addition and subtraction operations must be for checked pointer
 arithmetic or unsigned integer arithmetic. An implementation may allow
@@ -823,6 +899,64 @@ of computing the inverse of \code{x = (x + 4) + 5}:
 
 \section{Bounds for expressions with nested assignment expressions}
 \label{section:checking-nested-assignment-expressions}
+
+To handle this, the expression analysis \var{A} takes as an input
+an expression \var{E}, a context \var{C}, and a set of variables 
+whose state is indeterminate beacuse they may have pending assignments \var{IV}. 
+It produces as output a context \var{RC}, set of variables \var{RIV} whose
+current state is indeterminate because they have pending assignments
+assignments and a set of assignment expressions within the expression.
+The analysis does a top-down traversal of the expression
+tree with a case analysis for each expression based on the operator.
+The analysis may recursively invoke itself:
+\begin{enumerate}
+\item The expression is a read of variable \var{V}. 
+If \var{V} is in \var{IV}, this is an error.  This is undefined behavior according to the C specification,
+because no ordering exists between the reads and a possible write.  The analysis $(C, IV, empty set)$
+\item The expression is a literal expression or a constant.  It returns $(C, IV, empty set)$.
+\item The expression is a parenthesized expression \var{E1}.  It return the result of $A(E1, C, IV)$.
+\item The operator is not a control-flow operator:
+For each subexpression $S_i$, we
+\begin{enumerate}
+\item We take all the assignments in other subexpressions and add them to a pending set $PS_i$.  
+\item We compute $(NP_i, NC_i, AS_i) = A(S_i, C, PS_i)$.
+\end{enumerate}
+We combine together the contexts, the pending sets, the sets of assignments.  
+To combine the contexts, we examine each context.  For any variable whoses bounds expression
+differs from the original context, we select that bounds expression.  By the check in (2), at
+most one context should contain an updated bounds expression for a variable.
+
+While traversing the expression, we also determine the bounds expressions for any memory
+accesses in the expression.  If we need to determine the bounds expression for a variable and
+the variable is in the pending set, bounds(none) is used as the bounds.
+If the resulting bounds expression uses a variable in the pending set, it is an error.
+\item The operator is a comma operator of the form \code{e1, e2}.   We recursively
+invoke $A$ with code{e1}, context \var{C}, and the pending set{IV}.
+invoke the analysis to compute a context and a list of assignments for \code{e1}.
+For any variable that was not in the incoming pending set, but is 
+pending in the incoming context, but that is now marked
+as pending in the updated context, we clear the pending
+information.
+\end{enumerate}
+
+The expression analysis falls into two general categories
+depending on whether the operator is a control-flow operator or
+not.  If the operator is not a control-flow operator,
+we set the pending flag in the context for any variables
+assigned to by subexpressions.  We then compute updated contexts
+for each of the subexpressions and merge the contexts.
+
+ When we analyze an expression,
+we check to see whether the expression operator is a control-flow
+operator.   If it is not a control-flow operator, the evaluation
+of expressions is unordered.  We set the pending flag for
+any variables assigned to by subexpressions.
+if the evaluation of the subexpressions is unordered (that is, the
+expression operator is not a control-flow operator), we set the 
+``pending'' flag for bounds expressions for ponter variables
+that are assigned to within
+``pending'' flag for bounds expression for pointer variables that
+are modified or bounds expressions that use variables that are modified
 
 C allows assignment expressions to be nested within other expressions.
 This means that the approach of 
@@ -1623,7 +1757,7 @@ these expressions.
 
 The meaning of an expression is undefined if:
 
-\begin{\boundsunknown}
+\begin{enumerate}
 \item
   There are multiple assignments to the same variable within an
   expression where the order of evaluation of the assignments is
@@ -1632,7 +1766,7 @@ The meaning of an expression is undefined if:
   There is an assignment to a variable that is also used by the
   expression, where the order of evaluation of the assignment and the
   use is undefined.
-\end{\boundsunknown}
+\end{enumerate}
 
 The following statements illustrate these problems:
 
