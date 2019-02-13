@@ -525,140 +525,12 @@ there is an order of evaluation issue of \var{e1} appears in the bounds for
 \var{e2}.   Specifically, the bounds for \var{e2} cannot be used to
 check a memory access within the top-level expression being evaluated.
 
-\section{Bounds declaration checking for expressions ignoring
-control flow}
+\section{Bounds declaration checking for a simple assignment}
 
-\label{section:checking-assignment-expressions}
-
-Section~\ref{section:inferring-expression-bounds} described how to 
-traverse an expression in a bottom-up fashion to determine the bounds 
-of an expression.  In this section, we describe an
-approach for bounds declaration checking for expressions without
-control flow. The approach ignores some sequence points \cite{ISO2011}
-within expressions without control-flow.  A sequence point
-is a guarantee that one expression will be evaluated before
-another expression.  Sequence points within non-control-flow
-expressions are relatively rare. The approach is conservative,
-in ignoring sequence points.  if an expression passes 
-checking, it is guaranteed that bounds 
-declarations will be valid after evaluating the expression, if
-they were valid before evaluating the expression. The
-approach can declare expressions that would be valid if sequence
-points were taken into account as being in error, though.
-
-The approach has two parts: calculating an updated context and
-working with sets of pending assignments.  The sets of pending
-assignments prevent the uses of variables whose values are
-indeterminate because an assignment may or may not have completed.
-They also prevent accessing memory with values whose bounds expressions
-are indeterminate because the bounds expressions use a variable
-whose value is determinate.  The pending assignments let
-us guarantee that any pointer-typed variables with update context
-information have exactly one assignment.
-
-The C Standard \cite {ISO2011}
-describes a sequence relation between pairs of expressions $(E1, E2)$:
-the expression $E1$ must be evaluated before $E2$.  
-The C Standard
-further divides sequencing of expressions into value computations
-of expressions and side-effects of expressions.
-Given an assignment of the form $E1 = E2$, 
-the value computations of $E1$ and $E2$ is sequenced before the
-assignment.  We take into account sequencing of value
-computations relative to assignment introduced by assignments.
-We do not take into account other sequencing of expressions.
-
-The function $Pending(E)$ calculates the set of assignments $A$
-that are pending for an expression $E$ and the set of variables
-with pending assignments $PV$.  It uses two helper functions,
-$GetLValue(E)$ and $GetRValue(E)$.  Those functions
-return a set containing a variable name or the empty set.
-
-$Pending(E)$ is defined as follows:
-\begin{enumerate}
-\item If $E$ has the form $E1 = E2$, let $V = GetVariable(E1)$,
-$(A_1,PV_1) = Pending(E1)$, and $(A_2, PV_2) = Pending(E2)$. 
-$A = A_1 \cup A_2 \cup E and  $PV = PV_1 \cup $PV_2 \cup V.
-\item Otherwise, if $E$ has $n$ expressions, let $S_i$ be
-the $i^th$ subexpression.  For  all $i$ in n, let $(A_i, PV_i) = Pending(S_i)$.  
-$A$ = \cup_{i=1}^{n} A_i$ and $PV$ = \cup_{i=1}^{n} PV_i$.
-\end{enumerate}
-
-$GetLValue(E)$ is defined as follows:
-\begin{enumerate}
-\item If $E$ is a variable $V$, return ${ V }$.
-\item If $E$ has the form $(E1)$, return $GetLValue(E)$.
-\item If $E$  has the form $*E1$, return GetRValue(E)
-\item Otherwise, return \emptyset.
-\end{enumerate}
-
-$GetRValue(E)$ is defined as follows:
-\begin{enumerate}
-\item If $E$ has the form $\code{&}E1$, return $GetLValue(E)$.
-\item If $E$ has the form $(E1)$, return $GetRValue(E).
-\end{enumerate}
-
-The bounds declaration checking function $Check(E, C, PV)$  
-takes as inputs an expression $E$, a context $C$ that maps variables 
-to their bounds, and a set of $PV$ of indeterminate variables.
-It returns a bound expression $B$ for $E$, updates $U$ to the context,
-and a set of pending assignments $A$.  It may also report an error.
-
-$Check(E, C, PV)$ is defined as follows:
-\begin{enumerate}
-\item If $E$ is a variable $V$,
-\begin{enumerate{
-\item If $V$ is in $PV$, return an error.
-\item Otherwise, let $B = C[V]$, $U = \emptyset$, and $A = \emptyset$.
-\end{enumerate}
-\item If $E$ has the form $E1 = E2$, let $(A_E1, PV_E1) = Pending(E1)$
-and $(A_E2, PV_E2) = Pending(E2)$:
-\begin{enumerate}
-\item Let $(B_E1, U_E1, A_E1) = Check(E, C, \cup PV \cup PV_E2)$.
-\item Let $(B_E2, U_E2, A_E2) = Check(E, NC_E1, \cup PV \cup PV_E1)$.
-\item If $E1 is a pointer indirection, check that the bounds expression
-for the pointer-typed subexpression does not use any variables in
-$PV \cup PV_E1 \cup PV_E2$.
-Let $B = B_E2$, $U = U_E1 \cup U_E2, and $A = A_E1 \cup A_E2 \cup { E }$.
-\end{enumerate}
-\item Otherwise
-
-If $E$ is a top-level expression, we traverse all the immediate
-subexpressions of $S_i$ of $E$ and compute the set of variables
-$MV_i$ updated by each $S_i$.  It is an error if any $MV_i$ overlaps
-with each other or $IV$: this means there are multiple writes
-to a variable.
-
-For each $S_i$, we compute 
-overlaps with $IV$ 
-   It return an updated context $RC$ and a set of indeterminate variables $RIV$.
-
-If $E$ is not a function call, then for each subexpression $S_i$
-of $E$, we invoke $Check(S_i, C)$ to a compute a new context $SC_i$
-and a set of of updated variables $SIV_i$.
-
-Let $RC = C$.  For any variable $v$ in $C$ such that $v$ was 
-updated in some $SC_i$, let $RC[v] = SC_i[v]$.  It is an error
-if there are multiple $SC_i$ where $v$ was updated.  That indicates
-conflicting writes.
-
-Let $RIV = \union_i SIV_i$.
-
-If $E
-some $SC_i$ where $SC_i(v) != C(v)$, 
-
-
-
-
-
-To handle this, the expression analysis \var{A} takes as an input
-an expression \var{E}, a context \var{C}, and a set of variables 
-whose state is indeterminate beacuse they may have pending assignments \var{IV}. 
-
-
-There are certain
-points in the evaluation of C functions where pending assignments
-are guaranteed to be completed: at 
+In this section, we describe how to check bounds declarations for a
+simple assignment to a variable.  This an expression statement of the
+form \code{v = e1}, where \code{v} is a variable and \code{e1} does
+not contain any nested assignments.
 
 
 Given an assignment \var{v}\lstinline+=+\var{e}, the effect of the assignment to \var{v}
@@ -672,8 +544,6 @@ to record that \var{v} equals the temporary when the (top-level) assignment
 expression is completely evaluated.
 We use the updated context and equality facts set to check
 that the new bounds expressions subsume the declared bounds expressions for variables.
-
-
 
 For an assignment expression of the form \var{x} \code{=} \var{e},
 where \var{x} is a variable and \var{e} is an expression, there are
@@ -896,6 +766,159 @@ of computing the inverse of \code{x = (x + 4) + 5}:
           inverse((x - 5) - 4, x) =
               (x - 5) - 4
 \end{lstlisting}
+
+
+\section{Bounds declaration checking for expressions ignoring
+control flow}
+
+\label{section:checking-assignment-expressions}
+
+In this section, we generalize bounds declaration checking to 
+handle nested assignments in expressions without control-flow.
+We build on the bottom-up analysis in Section~\ref{section:inferring-expression-bounds}
+for determining the bounds  of an expression.  The
+checking  ignores some sequence points \cite{ISO2011}
+within expressions without control-flow.  A sequence point
+is a guarantee that one expression will be evaluated before
+another expression.  Sequence points within non-control-flow
+expressions are relatively rare.  The checking is
+conservative. If an expression passes 
+checking, it is guaranteed that bounds 
+declarations will be valid after evaluating the expression, if
+they were valid before evaluating the expression.  However,
+the checking may delcare that some expressions are erroneous,
+even though they would not be if sequence points were taking
+into account.
+
+The approach has two components: calculating an updated context and
+working with sets of pending assignments.  The sets of pending
+assignments prevent the uses of variables whose values are
+indeterminate because an assignment may or may not have been completed.
+They also prevent accessing memory with values whose bounds expressions
+are indeterminate because the bounds expressions use a variable
+whose value is determinate.  The pending assignments let
+us guarantee that any pointer-typed variables with update context
+information have exactly one assignment.
+
+The C Standard \cite {ISO2011}
+describes a sequence relation between pairs of expressions $(E1, E2)$:
+the expression $E1$ must be evaluated before $E2$.  
+The C Standard
+further divides sequencing of expressions into value computations
+of expressions and side-effects of expressions.
+Given an assignment of the form $E1 = E2$, 
+the value computations of $E1$ and $E2$ is sequenced before the
+assignment.  We take into account sequencing of value
+computations relative to assignment introduced by assignments.
+We do not take into account other sequencing of expressions.
+
+The function $Pending(E)$ calculates the set of variables $PV$
+with assignments that may be pending after evaluating $E$.  It uses two helper functions,
+$GetLValueVariable(E)$ and $GetRValueVariable(E)$.  Those functions
+return a set containing a variable name or the empty set.
+
+$Pending(E)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ has the form $E1 = E2$, let $V = GetLValueVariable(E1)$.
+$P = Pending(E1) \cup Pending(E2) cup V$.
+\item Otherwise, if $E$ has $n$ subexpressions, let $S_i$ be
+the $i^th$ subexpression.   Let $PV$ = \cup_{i=1}^{n} Pending(S_i)$.
+\end{enumerate}
+
+$GetLValueVariable(E)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ is a variable $V$, return ${ V }$.
+\item If $E$ has the form $(E1)$, return $GetLValueVariable(E)$.
+\item If $E$  has the form $*E1$, return GetRValueVariable(E)
+\item Otherwise, return \emptyset.
+\end{enumerate}
+
+$GetRValueVariable(E)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ has the form $\code{&}E1$, return $GetLValueVariable(E)$.
+\item If $E$ has the form $(E1)$, return $GetRValueVariable(E).
+\end{enumerate}
+
+The bounds declaration checking function $Check(E, C, PV)$  
+takes as inputs an expression $E$ that evaluates to a value, 
+a context $C$ that maps variables  to their bounds, and a set of $PV$ of 
+indeterminate variables.
+It returns a bound expression $B$ for the value $E$, updates $U$ for the context,
+and a set of pending assignments $A$.  It may also report an error.
+The function $CheckLValue(E, C, PV)$ is similar to $Check$, but it takes
+an expression $E$ that ealuates to an lvalue and returns the bounds expression $B$ for
+the lvalue to which $E$ evaluates. The function $NeedsBoundsCheck(E)$ takes
+an expression that evaluates to an lvalue and determines if an 
+assignment to $E$ requires a bounds check.
+
+The $Check$ function works by calculating pending variables due to other
+expressions.   Given a subexpression $S_i$ of an expression $E$
+that is unordered with respect to other subexpressions of $E$, it calculates 
+the pending variables of all the other subexpressions and uses them
+when checking $S_i$.  Because $E$ could itself having pending variables
+due to other expressions, we passes the set of pending variables $PV$
+in as an argumen to $Check$.
+
+$Check(E, C, PV)$ is defined as follows:
+\begin{enumerate}
+\item If $E$ is a variable $V$,
+\begin{enumerate}
+\item If $V$ is in $PV$, return an error.
+\item Otherwise, let $B = C[V]$, $U = \emptyset$, and $A = \emptyset$.
+\end{enumerate}
+\item If $E$ has the form $E1 = E2$, let $(A_E1, PV_E1) = Pending(E1)$
+and $(A_E2, PV_E2) = Pending(E2)$:
+\begin{enumerate}
+\item Let $(B_E1, U_E1, A_E1) = CheckLValue(E1, C, \cup PV \cup PV_E2)$.
+\item Let $(B_E2, U_E2, A_E2) = Check(E2, C, \cup PV \cup PV_E1)$.
+\item If $NeedsBoundsCheck(E1)$ is true, check that $B_E1$ does not use any variables in 
+$PV \cup PV_E1 \cup PV_E2$.  If it does, return an error.
+\item Let $B = B__E2$ and  $A = A_E1 \cup A_E2 \cup { E }$.
+\item  If $E1$ is a variable $V$ ($GetLValue(E1) = { V }) of \arrayptr\ type with declared bounds,
+\begin{enumerate}
+\item Check that $V$ is not in $PV$.  If it is, return an error.  This means there are multiple unordered
+assignments to $V$.
+\item Let $U = U_E1 \cup U_E2 \cup {V \mapsto B_E2}$.
+\end{enumerate}
+\item Otherwise, let $U  = U_E1 \cup U_E2$.
+\end{enumerate}
+\item Otherwise, E is some expression that has $n$ subexpressions (where n may be 0).
+\begin{enumerate}
+\item\ let $S_i$ be the $i^th$ subexpression.  For each $i$ in $1 \ldots n$, let $(A_i, PV_i) = Pending(S_i)$.
+Let $(B_i, U_i, A_i) = Check(S_i, C, \cup_{i = 1, j <> i}^{n} PV_j)$.
+\item Use the rules described in Section~\ref{} to compute B, using the $B_i$.
+\item Let $U$ = \cup_{i=1^{n} U_i $ and $A = \cup_{i=1}^{n} A_i.
+\end{enumerate}
+\end{enumerate}
+
+$CheckLValue(E, C, PV)$ is defined as follows
+\begin{enumerate}
+\item If $E$ is a variable $V$, let $B = bounds(\&v,\&v + 1)$,  $U = \emptyset$, and $A = \emptyset$.
+\item If $E$ has the form $*E1$,  let $(B_E1, U_E1, A_E1) = Check(E1, C, PV)$.  Let $B = B_E1$,
+$U = U_E1$, and $A = A_E1$.
+\item If $E$ has the form $E1[E2]$,
+\begin{enumerate}
+\item Let $(B_E1, U_E1, A_E1) = Check(E1, C, PV \cup Pending(E2))$.
+\item Let $(B_E2, U_E2, A_E2) = Check(E2, C, PV \cup Pending(E1))$
+\item Choose the E_i that has pointer type.   Let $B = B_E_i$, $U = U_E1 \cup U_E2$, and $A = A_E1 \cup A_E2$.
+\end{enumerate}
+\item IF $E$ has the form $(E1)$, return $CheckLValue(E1, C, PV)$
+\end{enumerate}
+
+$NeedsBoundsCheck(E)$ is defined as follows
+\begin{enumerate}
+\item If $E$ has the form $(E1)$, return $NeedsBoundsCheck(E1).$
+\item If $E$ has the form $*E1$ and E1 has an \arrayptr\ type, return true.
+\item If $E$ has the from $E1[E2]$ and the subexpression with a pointer type has an \arrayptr\ type, return true.
+\item Otherwise, return false.
+\end{enumerate}
+
+For each top-level expression $E$ in a function, we call $CheckValue(E, C, \emptyset)$, where $C$ is constructed
+from the variables in scope for $E$.  This produces a set $U$ of updates to apply to $C$, along with 
+a set of pending assignments $A$.   These updates are applied to $C$ to produce $C^\prime$.  $C^\prime$ is then updated based on the pending assignments, as described in the prior section.  If an entry for a variable $V$ has a bounds $B$,
+and $B$ use a variable $T$ with a pending assignment, either the inverted value of $T$ is substituted in $B$ or
+the entry for $V$ is set to $bounds(none)$.  We then check that the updated version of $C^prime$ implies
+the declared bounds.
 
 \section{Bounds for expressions with nested assignment expressions}
 \label{section:checking-nested-assignment-expressions}
