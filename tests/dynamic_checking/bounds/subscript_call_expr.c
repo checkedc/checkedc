@@ -1,10 +1,11 @@
 // Test bounds checking of array subscripting of call expressions,
 // where the call expression produces a pointer-typed value.
 //
-// Uses are tested in read, assignment,increment, and compound assignment 
-// expressions.  The type of use is controlled by the macro names TEST_READ,
-// TEST_WRITE, TEST_INCREMENT, and TEST_COMPOUND_ASSIGNMENT.  The file must
-// be compiled with exactly one of those macro names defined.
+// Uses are tested for read, assignment,increment, and compound assignment 
+// expressions. Each test takes two arguments describing the type of bounds
+// and the type of operation.  Additional arguments describe test-specific
+// information such as array lengths and the index of the element to 
+// operate on.
 //
 // This file is also used to test bounds checking of the pointer 
 // dereference operator applied to pointer expressions involving
@@ -21,14 +22,10 @@
 //
 // RUN: %clang %s -o %t1 -Werror -Wno-unused-value
 //
-// The following tests take the type of bounds followed by a sequence of arguments.
-// The arguments are for a sequence of operations.  The last arguments are for the
-// operation being tested.  Operations for preceding elements must pass.
 //
+// Test operations on a pointer to 5 integers, where the integers are initialized to 0...4.
+// The 3rd argument = element to perform operation on.
 //
-//
-// Test operations on a pointer to 5 integers, where the integers are initialized to 0...4
-// 3rd argument = element to perform operation on.
 //
 // RUN: %t1 constant_bounds read 5 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-FAIL
 // RUN: %t1 constant_bounds read  -1 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-FAIL
@@ -51,83 +48,70 @@
 // RUN: %t1 constant_bounds compound 0 | FileCheck %s --check-prefixes=CB-COMPOUND-START,CB-COMPOUND-SUCCESS
 //
 //
-//
 // Test operations on a pointer with bounds dependent on the value of an argument n. The pointer points
 // to n integers, where the integers are initialized 0...n-1.
+// The 3rd argument = array length and 4th argument = element to perform operation on.
 //
 //
+// RUN: %t1 dependent_bounds read 2 5 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-FAIL
+// RUN: %t1 dependent_bounds read 3 -1 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-FAIL
+// RUN: %t1 dependent_bounds read 5 4 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-SUCCESS
+// RUN: %t1 dependent_bounds read 10 0 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-SUCCESS
 //
-// 2nd argument = array length. 3rd argument = element to read.
-// RUN: %t1 dependent_bounds 2 5 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-FAIL
-// RUN: %t1 dependent_bounds 3 -1 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-FAIL
-// RUN: %t1 dependent_bounds 5 4 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-SUCCESS
-// RUN: %t1 dependent_bounds 10 0 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-SUCCESS
+// RUN: %t1 dependent_bounds write 6 6 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-FAIL
+// RUN: %t1 dependent_bounds write 11 -1 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-FAIL
+// RUN: %t1 dependent_bounds write 3 2 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-SUCCESS
+// RUN: %t1 dependent_bounds write 3 0 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-SUCCESS
 //
-// 4th argument = array length.  5th argument = element to write.
-// case must pass too.
-// RUN: %t1 dependent_bounds 5 4 6 6 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-FAIL
-// RUN: %t1 dependent_bounds 5 4 11 -1 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-FAIL
-// RUN: %t1 dependent_bounds 5 4 3 2 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-SUCCESS
-// RUN: %t1 dependent_bounds 5 4 3 0 | FileCheck %s --check-prefixes=DB-WRITE-START,DB-WRITE-SUCCESS
+// RUN: %t1 dependent_bounds inc 5 -1 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-FAIL
+// RUN: %t1 dependent_bounds inc 5 5 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-FAIL
+// RUN: %t1 dependent_bounds inc 12 11 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-SUCCESS
+// RUN: %t1 dependent_bounds inc 12 0 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-SUCCESS
 //
-// 6th argument = array length.  7th argument = element to increment.
-// prior operations.
-// RUN: %t1 dependent_bounds 5 4 3 2 5 -1 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-FAIL
-// RUN: %t1 dependent_bounds 5 4 3 2 5 5 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-FAIL
-// RUN: %t1 dependent_bounds 5 4 3 2 12 11 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-SUCCESS
-// RUN: %t1 dependent_bounds 5 4 3 2 12 0 | FileCheck %s --check-prefixes=DB-INC-START,DB-INC-SUCCESS
-//
-// 8th argument = array length.  9th argument = element for compound assignment.
-// RUN: %t1 dependent_bounds 5 4 3 2 12 11 50 1000| FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-FAIL
-// RUN: %t1 dependent_bounds 5 4 3 2 12 11 50 -146 | FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-FAIL
-// RUN  %t1 dependent_bounds 5 4 3 2 12 11 10 9 | FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-SUCCESS
-// RUN  %t1 dependent_bounds 5 4 3 2 12 11 10 0 | FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-SUCCESS
-//
+// RUN: %t1 dependent_bounds compound 50 1000| FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-FAIL
+// RUN: %t1 dependent_bounds compound 50 -146 | FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-FAIL
+// RUN  %t1 dependent_bounds compound 10 9 | FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-SUCCESS
+// RUN  %t1 dependent_bounds compound 10 0 | FileCheck %s --check-prefixes=DB-COMPOUND-START,DB-COMPOUND-SUCCESS
 //
 //
 // Test operations on a pointer to null-terminated array of 5 integers, where the integers are
 // initialized to 0...4.
+// The 3rd argument = element to perform operation on.
 //
 //
+// RUN: %t1 nt_constant_bounds read 6 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-FAIL
+// RUN: %t1 nt_constant_bounds read -1 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-FAIL
+// RUN: %t1 nt_constant_bounds read 5 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-SUCCESS
+// RUN: %t1 nt_constant_bounds read 4 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-SUCCESS
+// RUN: %t1 nt_constant_bounds read 0 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-SUCCESS
 //
-// 2nd argument = element to read.
-// RUN: %t1 nt_constant_bounds 6 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-FAIL
-// RUN: %t1 nt_constant_bounds -1 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-FAIL
-// RUN: %t1 nt_constant_bounds 5 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-SUCCESS
-// RUN: %t1 nt_constant_bounds 4 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-SUCCESS
-// RUN: %t1 nt_constant_bounds 0 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-SUCCESS
+// 4th argument = value to write.
+// RUN: %t1 nt_constant_bounds write 6 5| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-FAIL
+// RUN: %t1 nt_constant_bounds write -1 5 | FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-FAIL
+// RUN: %t1 nt_constant_bounds write 5 0| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-SUCCESS
+// RUN: %t1 nt_constant_bounds write 4 5| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-SUCCESS
+// RUN: %t1 nt_constant_bounds write 0 5| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-SUCCESS
 //
-// 3rd argument = element to write.  4th argument = value to write.
-// RUN: %t1 nt_constant_bounds 4 6 5| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-FAIL
-// RUN: %t1 nt_constant_bounds 4 -1 5 | FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-FAIL
-// RUN: %t1 nt_constant_bounds 4 5 0| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-SUCCESS
-// RUN: %t1 nt_constant_bounds 4 4 5| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-SUCCESS
-// RUN: %t1 nt_constant_bounds 4 0 5| FileCheck %s --check-prefixes=NT-CB-WRITE-START,NT-CB-WRITE-SUCCESS
+// The next test line tries to increment the null terminator.
+// RUN: %t1 nt_constant_bounds inc 5 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-FAIL
+// RUN: %t1 nt_constant_bounds inc 7| FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-FAIL
+// RUN: %t1 nt_constant_bounds inc -2 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-FAIL
+// RUN: %t1 nt_constant_bounds inc 4 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-SUCCESS
+// RUN: %t1 nt_constant_bounds inc 0 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-SUCCESS
 //
-// 5th argument = element to increment.
-// Try to increment null element.
-// RUN: %t1 nt_constant_bounds 4 4 5 5 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-FAIL
-// RUN: %t1 nt_constant_bounds 4 4 5 7| FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-FAIL
-// RUN: %t1 nt_constant_bounds 4 4 5 -2 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-FAIL
-// RUN: %t1 nt_constant_bounds 4 4 5 4 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-SUCCESS
-// RUN: %t1 nt_constant_bounds 4 4 5 0 | FileCheck %s --check-prefixes=NT-CB-INC-START,NT-CB-INC-SUCCESS
-//
-// 6th argument = element to compound assign.
-// Try to do a compound assignment on the null terminator.
-// RUN: %t1 nt_constant_bounds 4 4 5 3 5 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-FAIL
-// RUN: %t1 nt_constant_bounds 4 4 5 3 1000| FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-FAIL
-// RUN: %t1 nt_constant_bounds 4 4 5 3 -146 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-FAIL
-// RUN: %t1 nt_constant_bounds 4 4 5 3 4 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-SUCCESS
-// RUN: %t1 nt_constant_bounds 4 4 5 3 0 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-SUCCESS
-//
+// The next test line tries to do a compound assignment on the null terminator.
+// RUN: %t1 nt_constant_bounds compound 5 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-FAIL
+// RUN: %t1 nt_constant_bounds compound 1000| FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-FAIL
+// RUN: %t1 nt_constant_bounds compound -146 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-FAIL
+// RUN: %t1 nt_constant_bounds compound 4 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-SUCCESS
+// RUN: %t1 nt_constant_bounds compound 0 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-SUCCESS
 //
 //
 // Test operations on a pointer to a null-terminated array with bounds dependent on the value of an argument n. 
 // The pointer points an array of n integers, where the integers are initialized to 0, 2 ...2 * (n-1).
+// 3rd argument = array length. 4th argument = element to performance operation on.
 //
 //
-//
-// 2nd argument = array length. 3rd argument = element to read.
 // RUN: %t1 nt_dependent_bounds read 2 5 | FileCheck %s --check-prefixes=NT-DB-READ-START,NT-DB-READ-FAIL
 // RUN: %t1 nt_dependent_bounds read 3 -1 | FileCheck %s --check-prefixes=NT-DB-READ-START,NT-DB-READ-FAIL
 // Test reading null-terminator.
@@ -135,8 +119,7 @@
 // RUN: %t1 nt_dependent_bounds read 5 4 | FileCheck %s --check-prefixes=NT-DB-READ-START,NT-DB-READ-SUCCESS
 // RUN: %t1 nt_dependent_bounds read 10 0 | FileCheck %s --check-prefixes=NT-DB-READ-START,NT-DB-READ-SUCCESS
 //
-// 4th argument = array length.  5th argument = element to write.  6th argument = value to write.
-// case must pass too.
+// 5th argument = value to write.
 // Test trying to overwrite null terminator with a non-zero value.
 // RUN: %t1 nt_dependent_bounds write 6 6 100 | FileCheck %s --check-prefixes=NT-DB-WRITE-START,NT-DB-WRITE-FAIL
 // RUN: %t1 nt_dependent_bounds write 6 10 15 | FileCheck %s --check-prefixes=NT-DB-WRITE-START,NT-DB-WRITE-FAIL
@@ -148,7 +131,6 @@
 // RUN: %t1 nt_dependent_bounds write 6 5 25 | FileCheck %s --check-prefixes=NT-DB-WRITE-START,NT-DB-WRITE-SUCCESS
 // RUN: %t1 nt_dependent_bounds write 3 0 10 | FileCheck %s --check-prefixes=NT-DB-WRITE-START,NT-DB-WRITE-SUCCESS
 //
-// 6th argument = array length.  7th argument = element to increment.
 // RUN: %t1 nt_dependent_bounds inc 5 -1 | FileCheck %s --check-prefixes=NT-DB-INC-START,NT-DB-INC-FAIL
 // Try to do a compound assignment on the null terminator.
 // RUN: %t1 nt_dependent_bounds inc 5 5 | FileCheck %s --check-prefixes=NT-DB-INC-START,NT-DB-INC-FAIL
@@ -156,7 +138,6 @@
 // RUN: %t1 nt_dependent_bounds inc 12 11 | FileCheck %s --check-prefixes=NT-DB-INC-START,NT-DB-INC-SUCCESS
 // RUN: %t1 nt_dependent_bounds inc 12 0 | FileCheck %s --check-prefixes=NT-DB-INC-START,NT-DB-INC-SUCCESS
 //
-// 8th argument = array length.  9th argument = element for compound assignment.
 // Try to do a compound assignment on the null element.
 // RUN: %t1 nt_dependent_bounds compound 50 50 | FileCheck %s --check-prefixes=NT-DB-COMPOUND-START,NT-DB-COMPOUND-FAIL
 // RUN: %t1 nt_dependent_bounds compound 50 1000| FileCheck %s --check-prefixes=NT-DB-COMPOUND-START,NT-DB-COMPOUND-FAIL
@@ -168,10 +149,9 @@
 // Test operations on a pointer with bounds dependent on the value of an argument n. The pointer points
 // to n 3-d integer arrays, where the integers are initialized by the sequence 1, 3, 5 ...  (i - 1) * 3 * 2 + 5),
 // i.e. with a stride of 2.
-//
-// For each test, the 2nd argument is th operation name, the 3rd argument
-// is the array length (n), the 4th argument is the 1st dimension index,
-// and the 5th argument is the 2nd dimension index.
+// The 3rd argument = the array length (n), the 4th and 5th argument specify the
+// element to performanc an operation on.  The 4th argument is the 1st dimension index,
+// and the 5th argument is the 2nd dimension index.  
 //
 // RUN: %t1 md_dependent_bounds read 2 2 0   | FileCheck %s --check-prefixes=MD-DB-READ-START,MD-DB-READ-FAIL
 // RUN: %t1 md_dependent_bounds read 3 -1 1  | FileCheck %s --check-prefixes=MD-DB-READ-START,MD-DB-READ-FAIL
@@ -211,6 +191,7 @@
 // RUN  %t1 md_dependent_bounds compound 10 9 3 | FileCheck %s --check-prefixes=MD-DB-COMPOUND-START,MD-DB-COMPOUND-SUCCESS
 // RUN  %t1 md_dependent_bounds compound 10 0 0 | FileCheck %s --check-prefixes=MD-DB-COMPOUND-START,MD-DB-COMPOUND-SUCCESS
 // RUN  %t1 md_dependent_bounds compound 50 1 1 | FileCheck %s --check-prefixes=MD-DB-COMPOUND-START,MD-DB-COMPOUND-SUCCESS
+
 #include <assert.h>
 #include <limits.h>
 #include <signal.h>
@@ -229,13 +210,9 @@
 #define ACCESS_DIM1(e1, index1) (*(e1 + index1))
 #define ACCESS_DIM2(e1, index1, index2) (*(*(e1 + index1) + index2))
 #define ACCESS_DIM3(e1, index1, index2, index3)  (*(*(*(e1 + index1) + index2) + index3))
-char *format_dim1 = "*(%s + %d) = %d\n";
-char *format_dim2 = "*(*(%s + %d) + %d) = %d\n";
 #else
 #define ACCESS_DIM1(e1, index1) (e1[index1])
 #define ACCESS_DIM2(e1, index1, index2) (e1[index1][index2])
-char *format_dim1 = "%s[%d] = %d\n";
-char *format_dim2 = "%s[%d][%d] = %d\n";
 #endif
 
 #define TEST_READ1(e1, index1) ACCESS_DIM1(e1,index1)
@@ -325,9 +302,9 @@ nt_array_ptr<int> g_nt_const_bounds(void) : count(CONSTANT_SIZE) {
   return g_nt_dependent_bounds(CONSTANT_SIZE);
 }
 
-// Allocate and initialize an array of size i of 3-elements arrays.
-// with the array elements are by the sequence 1, 3, 5 ...  (i - 1) * 3 * 2 + 5 (i.e.
-// with a stride of 2).
+// Allocate and initialize an array of size i of 3-element arrays.
+// with the array elements initialized by the sequence 
+// 1, 3, 5 ...  (i - 1) * 3 * 2 + 5 (i.e. with a stride of 2).
 array_ptr<int checked[3]> g_md_dependent_bounds(unsigned int i) : count(i) {
    if (i >= SIZE)
      return NULL;
@@ -372,11 +349,10 @@ enum OpKind get_operation(char *i, char *name) {
 }
 
 void test_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
-                       int idx) {
+                          int idx) {
   // g_const_bounds returns a pointer to CONSTANT_SIZE integers filled with 0...4
   // The pointer value is arr_1d.
-  enum OpKind op = get_operation(argv[idx++], "constant bounds");
-  switch (op) {
+  switch (get_operation(argv[idx++], "constant bounds")) {
     case READ: {
       puts("Starting constant bounds read");
       // CB-READ-START: Starting constant bounds read
@@ -433,55 +409,56 @@ void test_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
   // The pointer value is arr_1d. i must be < SIZE
   // (the size of arr_1d)
 
-  // char *op = argv[idx++];
-  if (idx < argc) {
-    puts("Starting dependent bounds read");
-    // DB-READ-START: Starting dependent bounds read
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int r = TEST_READ1(g_dependent_bounds(i), j);
-    puts("Passed dependent bounds read");
-    CHECK(r == j);
-    // DB-READ-FAIL-NOT: Passed dependent bounds read
-    // DB-READ-SUCCESS: Passed dependent bounds read
-  }
-
-  if (idx < argc) {
-    puts("Starting dependent bounds write");
-    // DB-WRITE-START: Starting dependent bounds read
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int r = TEST_WRITE1(g_dependent_bounds(i), j, 7);
-    CHECK(arr_1d[j] == 7);
-    puts("Passed dependent bounds write");
-    // DB-WRITE-FAIL-NOT: Passed dependent bounds write
-    // DB-WRITE-SUCCESS: Passed dependent bounds write
-  }
-
-  if (idx < argc) {
-    puts("Starting dependent bounds increment");
-    // BB-INC-START: Starting dependent bounds increment
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int r = TEST_INC1(g_dependent_bounds(2*i), 2*j);
-    CHECK(r == 2*j);
-    CHECK(arr_1d[2*j] == 2*j + 1);
-    puts("Passed dependent bounds inc");
-    // DB-INC-FAIL-NOT: Passed dependent bounds inc
-    // DB-INC-SUCCESS: Passed dependent bounds inc
-  }
-
-  if (idx < argc) {
-    puts("Starting dependent bounds compound assign");
-    // DB-COMPOUND-START: Starting dependent bounds compound assign
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int r = TEST_COMPOUND_ASSIGN1(g_dependent_bounds(i + 3), j, 2);
-    CHECK(r == j - 2);
-    CHECK(arr_1d[i] == j - 2);
-    puts("Passed dependent bounds compound assign");
-    // DB-COMPOUND-FAIL-NOT: Passed dependent bounds compound assign
-    // DB-COMPOUND-SUCCESS: Passed dependent bounds compound assign
+  switch (get_operation(argv[idx++], "dependent bounds")) {
+    case READ: {
+      puts("Starting dependent bounds read");
+      // DB-READ-START: Starting dependent bounds read
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int r = TEST_READ1(g_dependent_bounds(i), j);
+      puts("Passed dependent bounds read");
+      CHECK(r == j);
+      // DB-READ-FAIL-NOT: Passed dependent bounds read
+      // DB-READ-SUCCESS: Passed dependent bounds read
+      break;
+    }
+    case WRITE: {
+      puts("Starting dependent bounds write");
+      // DB-WRITE-START: Starting dependent bounds write
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int r = TEST_WRITE1(g_dependent_bounds(i), j, 7);
+      CHECK(arr_1d[j] == 7);
+      puts("Passed dependent bounds write");
+      // DB-WRITE-FAIL-NOT: Passed dependent bounds write
+      // DB-WRITE-SUCCESS: Passed dependent bounds write
+      break;
+    }
+    case INC: {
+      puts("Starting dependent bounds increment");
+      // BB-INC-START: Starting dependent bounds increment
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int r = TEST_INC1(g_dependent_bounds(2*i), 2*j);
+      CHECK(r == 2*j);
+      CHECK(arr_1d[2*j] == 2*j + 1);
+      puts("Passed dependent bounds inc");
+      // DB-INC-FAIL-NOT: Passed dependent bounds inc
+      // DB-INC-SUCCESS: Passed dependent bounds inc
+    }
+    case COMPOUND: {
+      puts("Starting dependent bounds compound assign");
+      // DB-COMPOUND-START: Starting dependent bounds compound assign
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int r = TEST_COMPOUND_ASSIGN1(g_dependent_bounds(i + 3), j, 2);
+      CHECK(r == j - 2);
+      CHECK(arr_1d[i] == j - 2);
+      puts("Passed dependent bounds compound assign");
+      // DB-COMPOUND-FAIL-NOT: Passed dependent bounds compound assign
+      // DB-COMPOUND-SUCCESS: Passed dependent bounds compound assign
+      break;
+    }
   }
 }
 
@@ -492,52 +469,54 @@ void test_nt_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
   // The CONSTANT_SIZE integers filled with 0...(CONSTANT_SIZE -1)*2.
   // The pointer value is arr_nt.
 
-//   char *op = argv[idx++];
-  if (idx < argc) {
-    puts("Starting nt constant bounds read");
-    // NT-CB-READ-START: Starting nt constant bounds read
-    int i = atoi(argv[idx++]);
-    int r = TEST_READ1(g_nt_const_bounds(), i);
-    CHECK(r == 2 * i || (i == CONSTANT_SIZE && r == 0));
-    puts("Passed nt constant bounds read");
-    // NT-CB-READ-FAIL-NOT: Passed nt constant bounds read
-    // NT-CB-READ-SUCCESS: Passed nt constant bounds read
-  }
-
-  if (idx < argc) {
-    puts("Starting nt constant bounds write");
-    // NT-CB-WRITE-START: Starting nt constant bounds write
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int r = TEST_WRITE1(g_nt_const_bounds(), i, j);
-    CHECK(arr_nt[i] == j);
-    puts("Passed nt constant bounds write");
-    // NT-CB-WRITE-FAIL-NOT: Passed nt constant bounds write
-    // NT-CB-WRITE-SUCCESS: Passed nt constant bounds write
-  }
-
-  if (idx < argc) {
-    puts("Starting nt constant bounds increment");
-    // NT-CB-INC-START: Starting nt constant bounds increment
-    int i = atoi(argv[idx++]);
-    int r = TEST_INC1(g_nt_const_bounds(), i);
-    CHECK(r == 2 * i);
-    CHECK(arr_nt[i] == 2 * i + 1);
-    puts("Passed nt constant bounds inc");
-    // NT-CB-INC-FAIL-NOT: Passed nt constant bounds inc
-    // NT-CB-INC-SUCCESS: Passed nt constant bounds inc
-  }
-
-  if (idx < argc) {
-    puts("Starting nt constant bounds compound assign");
-    // NT-CB-COMPOUND-START: Starting nt constant bounds compound assign
-    int i = atoi(argv[idx++]);
-    int r = TEST_COMPOUND_ASSIGN1(g_nt_const_bounds(), i, 2);
-    CHECK(r == 2 * i - 2);
-    CHECK(arr_nt[i] == 2 * i - 2);
-    puts("Passed nt constant bounds compound assign");
-    // NT-CB-COMPOUND-FAIL-NOT: Passed nt constant bounds compound assign
-    // NT-CB-COMPOUND-SUCCESS: Passed nt constant bounds compound assign
+  switch (get_operation(argv[idx++],"nt constant bounds")) {
+    case READ: {
+      puts("Starting nt constant bounds read");
+      // NT-CB-READ-START: Starting nt constant bounds read
+      int i = atoi(argv[idx++]);
+      int r = TEST_READ1(g_nt_const_bounds(), i);
+      CHECK(r == 2 * i || (i == CONSTANT_SIZE && r == 0));
+      puts("Passed nt constant bounds read");
+      // NT-CB-READ-FAIL-NOT: Passed nt constant bounds read
+      // NT-CB-READ-SUCCESS: Passed nt constant bounds read
+      break;
+    }
+    case WRITE: {
+      puts("Starting nt constant bounds write");
+      // NT-CB-WRITE-START: Starting nt constant bounds write
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int r = TEST_WRITE1(g_nt_const_bounds(), i, j);
+      CHECK(arr_nt[i] == j);
+      puts("Passed nt constant bounds write");
+      // NT-CB-WRITE-FAIL-NOT: Passed nt constant bounds write
+      // NT-CB-WRITE-SUCCESS: Passed nt constant bounds write
+      break;
+    }
+    case INC: {
+      puts("Starting nt constant bounds increment");
+      // NT-CB-INC-START: Starting nt constant bounds increment
+      int i = atoi(argv[idx++]);
+      int r = TEST_INC1(g_nt_const_bounds(), i);
+      CHECK(r == 2 * i);
+      CHECK(arr_nt[i] == 2 * i + 1);
+      puts("Passed nt constant bounds inc");
+      // NT-CB-INC-FAIL-NOT: Passed nt constant bounds inc
+      // NT-CB-INC-SUCCESS: Passed nt constant bounds inc
+      break;
+    }
+    case COMPOUND: {
+      puts("Starting nt constant bounds compound assign");
+      // NT-CB-COMPOUND-START: Starting nt constant bounds compound assign
+      int i = atoi(argv[idx++]);
+      int r = TEST_COMPOUND_ASSIGN1(g_nt_const_bounds(), i, 2);
+      CHECK(r == 2 * i - 2);
+      CHECK(arr_nt[i] == 2 * i - 2);
+      puts("Passed nt constant bounds compound assign");
+      // NT-CB-COMPOUND-FAIL-NOT: Passed nt constant bounds compound assign
+      // NT-CB-COMPOUND-SUCCESS: Passed nt constant bounds compound assign
+      break;
+    }
   }
 }
 
@@ -613,63 +592,65 @@ void test_md_dependent_bounds(int argc, array_ptr<char *> argv : count(argc),
   // 1, 3, 5 ...  3 * 2 * i (i.e.  with a stride of 2).
   // The pointer value is arr_2d. i must be < SIZE
   // (the size of arr_1d)
-
-  char *op = argv[idx++];
-  if (strcmp(op, "read") == 0) {
-    puts("Starting md dependent bounds read");
-    // MD-DB-READ-START: Starting md dependent bounds read
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int k = atoi(argv[idx++]);
-    int r = TEST_READ2(g_md_dependent_bounds(i), j, k);
-    CHECK(r == compute_val(j, k));
-    CHECK(arr_2d[j][k] == compute_val(j, k));
-    puts("Passed md dependent bounds read");
-    // MD-DB-READ-FAIL-NOT: Passed md dependent bounds read
-    // MD-DB-READ-SUCCESS: Passed md dependent bounds read
-  } else if (strcmp(op, "write") == 0) {
-    puts("Starting md dependent bounds write");
-    // MD-DB-WRITE-START: Starting md dependent bounds write
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int k = atoi(argv[idx++]);
-    int r = TEST_WRITE2(g_md_dependent_bounds(i), j, k, 7);
-    CHECK(arr_2d[j][k] == 7);
-    puts("Passed md dependent bounds write");
-    // MD-DB-WRITE-FAIL-NOT: Passed md dependent bounds write
-    // MD-DB-WRITE-SUCCESS: Passed md dependent bounds write
-  } else if (strcmp(op, "inc") == 0) {
-    puts("Starting md dependent bounds increment");
-    // MD-DB-INC-START: Starting md dependent bounds increment
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int k = atoi(argv[idx++]);
-    int r = TEST_INC2(g_md_dependent_bounds(i), j, k);
-    CHECK(r == compute_val(j, k));
-    CHECK(arr_2d[j][k] == compute_val(j, k) + 1);
-    puts("Passed md dependent bounds inc");
-    // MD-DB-INC-FAIL-NOT: Passed md dependent bounds inc
-    // MD-DB-INC-SUCCESS: Passed md dependent bounds inc
-  } else if (strcmp(op, "compound") == 0) {
-    puts("Starting md dependent bounds compound assign");
-    // MD-DB-COMPOUND-START: Starting md dependent bounds compound assign
-    int i = atoi(argv[idx++]);
-    int j = atoi(argv[idx++]);
-    int k = atoi(argv[idx++]);
-    int r = TEST_COMPOUND_ASSIGN2(g_md_dependent_bounds(i), j, k, 2);
-    CHECK(r == compute_val(j, k) - 2);
-    CHECK(arr_2d[j][k] == compute_val(j, k) - 2);
-    puts("Passed md dependent bounds compound assign");
-    // MD-DB-COMPOUND-FAIL-NOT: Passed md dependent bounds compound assign
-    // MD-DB-COMPOUND-SUCCESS: Passed md dependent bounds compound assign
-  } else {
-    puts("Unknown md operation");
-    _Exit(EXIT_FAILURE);
+  switch (get_operation(argv[idx++],"md dependent bounds")) {
+    case READ: {
+      puts("Starting md dependent bounds read");
+      // MD-DB-READ-START: Starting md dependent bounds read
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int k = atoi(argv[idx++]);
+      int r = TEST_READ2(g_md_dependent_bounds(i), j, k);
+      CHECK(r == compute_val(j, k));
+      CHECK(arr_2d[j][k] == compute_val(j, k));
+      puts("Passed md dependent bounds read");
+      // MD-DB-READ-FAIL-NOT: Passed md dependent bounds read
+      // MD-DB-READ-SUCCESS: Passed md dependent bounds read
+      break;
+    }
+    case WRITE: {
+      puts("Starting md dependent bounds write");
+      // MD-DB-WRITE-START: Starting md dependent bounds write
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int k = atoi(argv[idx++]);
+      int r = TEST_WRITE2(g_md_dependent_bounds(i), j, k, 7);
+      CHECK(arr_2d[j][k] == 7);
+      puts("Passed md dependent bounds write");
+      // MD-DB-WRITE-FAIL-NOT: Passed md dependent bounds write
+      // MD-DB-WRITE-SUCCESS: Passed md dependent bounds write
+      break;
+    } 
+    case INC: {
+      puts("Starting md dependent bounds increment");
+      // MD-DB-INC-START: Starting md dependent bounds increment
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int k = atoi(argv[idx++]);
+      int r = TEST_INC2(g_md_dependent_bounds(i), j, k);
+      CHECK(r == compute_val(j, k));
+      CHECK(arr_2d[j][k] == compute_val(j, k) + 1);
+      puts("Passed md dependent bounds inc");
+      // MD-DB-INC-FAIL-NOT: Passed md dependent bounds inc
+      // MD-DB-INC-SUCCESS: Passed md dependent bounds inc
+      break;
+    }
+    case COMPOUND: {
+      puts("Starting md dependent bounds compound assign");
+      // MD-DB-COMPOUND-START: Starting md dependent bounds compound assign
+      int i = atoi(argv[idx++]);
+      int j = atoi(argv[idx++]);
+      int k = atoi(argv[idx++]);
+      int r = TEST_COMPOUND_ASSIGN2(g_md_dependent_bounds(i), j, k, 2);
+      CHECK(r == compute_val(j, k) - 2);
+      CHECK(arr_2d[j][k] == compute_val(j, k) - 2);
+      puts("Passed md dependent bounds compound assign");
+      // MD-DB-COMPOUND-FAIL-NOT: Passed md dependent bounds compound assign
+      // MD-DB-COMPOUND-SUCCESS: Passed md dependent bounds compound assign
+      break;
+    }
   }
 }
 
-// This signature for main is exactly what we want here,
-// it also means any uses of argv[i] are checked too!
 int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
