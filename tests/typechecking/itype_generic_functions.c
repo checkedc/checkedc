@@ -44,7 +44,7 @@ void CallItypeGenericFunctions(void) {
   checked {
     p = validItypeGenericFunction<float>(5, p2, p2);
     //Checked scope expects type arguments
-    validItypeGenericFunction(5, 0, 0); //expected-error {{expected a list of type arguments for a generic function}}
+    validItypeGenericFunction(5, 0, 0); //expected-error {{expected a type argument list for a bounds-safe interface call in a checked scope}}
   }
   unchecked{
     void * p3 = (void *) p2;

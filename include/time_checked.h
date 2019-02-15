@@ -6,12 +6,22 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
+
 #include <time.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 
 #ifndef __cplusplus
 #ifndef __TIME_CHECKED_H
 #define __TIME_CHECKED_H
 
+#pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE ON
 
 time_t mktime(struct tm *timeptr : itype(_Ptr<struct tm>));
@@ -37,7 +47,7 @@ size_t strftime(char * restrict output : count(maxsize),
                 const struct tm * restrict timeptr :
                    itype(restrict _Ptr<const struct tm>));
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif
 #endif

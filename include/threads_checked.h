@@ -22,13 +22,23 @@ typedef struct __thread_specific_storage_struct tss_t;
 typedef void (tss_dtor_t)(void *);
 struct timespec;
 #else
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE off
+#endif
 #include <threads.h>
+
+#ifndef __cplusplus
+#pragma CHECKED_SCOPE pop
+#endif
 #endif
 
 #ifndef __cplusplus
 #ifndef __THREADS_CHECKED_H
 #define __THREADS_CHECKED_H
 
+#pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE ON
 
 void call_once(once_flag *flag : itype(_Ptr<once_flag>),
@@ -69,7 +79,7 @@ int tss_create(tss_t *key : itype(_Ptr<tss_t>),
 void *tss_get(tss_t key) : itype(_Ptr<void>);
 int tss_set(tss_t key, void *value : itype(_Ptr<void>));
 
-#pragma CHECKED_SCOPE OFF
+#pragma CHECKED_SCOPE pop
 
 #endif // guard
 #endif // no C++
