@@ -1,22 +1,22 @@
 // Test bounds checking of array subscripting of call expressions,
-// where the call expression produces a pointer-typed value.
+// where the call expressions produce values with pointer types.
 //
-// Uses are tested for read, assignment,increment, and compound assignment 
-// expressions. Each test takes two arguments describing the type of bounds
+// Uses are tested for read, assignment,increment, and compound assignment
+// operations. Each test takes two arguments describing the type of bounds
 // and the type of operation.  Additional arguments describe test-specific
-// information such as array lengths and the index of the element to 
-// operate on.
+// information such as the index of the element to operate on and array lengths.
 //
-// This file is also used to test bounds checking of the pointer 
-// dereference operator applied to pointer expressions involving
-// pointer arithmetic.  This is controlled by the macro name
-// POINTER_ARITHMETIC.  When this macro is undefined, array subscript is
-// used. When it is defined the array subscripting is replaced by equivalent
-// expressions that use pointer arithmetic and the dereferences.
+// This file is also used to test bounds checking of subscripting of call
+// expressions where:
+// - Subscripting is implemented using pointer arithmetic and pointer
+//   dereference.  This is controlled by the macro POINTER_ARITHMETIC.
+// - The called function has a return bounds-safe interface. This is
+// controlled by the macro BOUNDS_INTERFACE.
 //
 // To shorten test times (and keep the parallelism more balanced when tests are
-// run in parallel), separate test suite driver files are used for pointer
-// arithmetic.
+// run in parallel), separate test suite driver files are used for these 
+// additional cases.
+//
 //
 // The following lines are for the clang automated test suite.
 //
@@ -24,7 +24,7 @@
 //
 //
 // Test operations on a pointer to 5 integers, where the integers are initialized to 0...4.
-// The 3rd argument = element to perform operation on.
+// The 3rd argument = element to do operation on.
 //
 //
 // RUN: %t1 constant_bounds read 5 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-FAIL
@@ -52,7 +52,7 @@
 //
 // Test operations on a pointer with bounds dependent on the value of an argument n. The pointer points
 // to n integers, where the integers are initialized 0...n-1.
-// The 3rd argument = array length and 4th argument = element to perform operation on.
+// The 3rd argument = array length and 4th argument = element to do the operation on.
 //
 //
 // RUN: %t1 dependent_bounds read 2 5 | FileCheck %s --check-prefixes=DB-READ-START,DB-READ-FAIL
@@ -78,7 +78,7 @@
 //
 // Test operations on a pointer to null-terminated array of 5 integers, where the integers are
 // initialized to 0...4.
-// The 3rd argument = element to perform operation on.
+// The 3rd argument = element to do the operation on.
 //
 //
 // RUN: %t1 nt_constant_bounds read 6 | FileCheck %s --check-prefixes=NT-CB-READ-START,NT-CB-READ-FAIL
@@ -111,7 +111,7 @@
 //
 // Test operations on a pointer to a null-terminated array with bounds dependent on the value of an argument n. 
 // The pointer points an array of n integers, where the integers are initialized to 0, 2 ...2 * (n-1).
-// 3rd argument = array length. 4th argument = element to performance operation on.
+// 3rd argument = array length. 4th argument = element to do operation on.
 //
 //
 // RUN: %t1 nt_dependent_bounds read 2 5 | FileCheck %s --check-prefixes=NT-DB-READ-START,NT-DB-READ-FAIL
@@ -152,7 +152,7 @@
 // to n 3-d integer arrays, where the integers are initialized by the sequence 1, 3, 5 ...  (i - 1) * 3 * 2 + 5),
 // i.e. with a stride of 2.
 // The 3rd argument = the array length (n), the 4th and 5th argument specify the
-// element to performanc an operation on.  The 4th argument is the 1st dimension index,
+// element to do the operation on.  The 4th argument is the 1st dimension index,
 // and the 5th argument is the 2nd dimension index.  
 //
 // RUN: %t1 md_dependent_bounds read 2 2 0   | FileCheck %s --check-prefixes=MD-DB-READ-START,MD-DB-READ-FAIL

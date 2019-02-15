@@ -61,16 +61,21 @@
 
 #if _FORTIFY_SOURCE == 0 || !defined(memcpy)
 #undef memcpy
+// TODO: this needs a where clause preventing partial copying of objects when this
+// function is generic.
 _Itype_for_any(T) void *memcpy(void * restrict dest : itype(restrict _Array_ptr<T>) byte_count(n),
              const void * restrict src : itype(restrict _Array_ptr<const T>) byte_count(n),
              size_t n) : itype(_Array_ptr<T>) byte_count(n);
 #endif
 
+// TODO: this needs a where clause preventing partial copying of objects when this
+// function is generic.
 #if _FORTIFY_SOURCE == 0 || !defined(memmove)
 #undef memmove
-void *memmove(void * dest : byte_count(n),
-              const void * src : byte_count(n),
-              size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
+_Itype_for_any(T) 
+void *memmove(void * dest : itype(_Array_ptr<T>) byte_count(n),
+              const void * src : itype(_Array_ptr<const T>) byte_count(n),
+              size_t n) : itype(_Array_ptr<T>) bounds((_Array_ptr<char>) dest, (_Array_ptr<char>)dest + n);
 #endif
 
 #if _FORTIFY_SOURCE == 0 || !defined(memset)
@@ -92,7 +97,7 @@ char *strcpy(char * restrict dest,
 #if _FORTIFY_SOURCE == 0 || !defined(strncpy)
 #undef strncpy
 char *strncpy(char * restrict dest : count(n),
-              const char * restrict src : count(n),
+              const char * restrict src : itype(restrict _Nt_array_ptr<const char>),
               size_t n) : bounds(dest, (_Array_ptr<char>)dest + n);
 #endif
 
