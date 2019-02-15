@@ -31,6 +31,8 @@
 // RUN: %t1 constant_bounds read  -1 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-FAIL
 // RUN: %t1 constant_bounds read 4 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-SUCCESS
 // RUN: %t1 constant_bounds read 0 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-SUCCESS
+// Make sure we aren't accidentally running the bounds-safe interface verison of this test.
+// RUN: %t1 constant_bounds read 0 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-SUCCESS,CHECK-BSI-NOT
 //
 // RUN: %t1 constant_bounds write 5| FileCheck %s --check-prefixes=CB-WRITE-START,CB-WRITE-FAIL
 // RUN: %t1 constant_bounds write -1 | FileCheck %s --check-prefixes=CB-WRITE-START,CB-WRITE-FAIL
@@ -195,9 +197,9 @@
 #include <assert.h>
 #include <limits.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <stdlib_checked.h>
+#include <stdio_checked.h>
+#include <string_checked.h>
 #include <stdchecked.h>
 
 #define SIZE 100  // pre-allocated array size.  We return pointers to
@@ -234,13 +236,21 @@ int arr_1d checked[SIZE];
 int arr_2d checked[SIZE][3];
 int arr_nt nt_checked[SIZE + 1];
 
-
 // The test functions to call.
+#ifdef BOUNDS_INTERFACE
+int *g_const_bounds(void) : count(CONSTANT_SIZE);
+int *g_dependent_bounds(unsigned int i) : count(i);
+int *g_nt_const_bounds(void) : itype(nt_array_ptr<int>) count(CONSTANT_SIZE);
+int *g_nt_dependent_bounds(unsigned int i) : itype(nt_array_ptr<int>) count(i);
+typedef int arrty[3];
+arrty *g_md_dependent_bounds(unsigned int i) : itype(array_ptr<int checked[3]>) count(i);
+#else
 array_ptr<int> g_const_bounds(void) : count(CONSTANT_SIZE);
 array_ptr<int> g_dependent_bounds(unsigned int i) : count(i);
 nt_array_ptr<int> g_nt_const_bounds(void) : count(CONSTANT_SIZE);
 nt_array_ptr<int> g_nt_dependent_bounds(unsigned int i) : count(i);
 array_ptr<int checked[3]> g_md_dependent_bounds(unsigned int i) : count(i);
+#endif
 
 // Initialize an integer array with a sequence of increasing nummbers
 void int_array_init(array_ptr<int> p : count(i), unsigned int i, int stride) {
@@ -264,7 +274,12 @@ void int_md_array_init(array_ptr<int checked[3]> p : count(i), unsigned int i, i
 
 // Allocate and initialize an integer array of size i,
 // with the array initialized with values from 1...i
-array_ptr<int> g_dependent_bounds(unsigned int i) : count(i) {
+#ifdef BOUNDS_INTERFACE
+int *g_dependent_bounds(unsigned int i) : count(i)
+#else
+array_ptr<int> g_dependent_bounds(unsigned int i) : count(i)
+#endif
+{
   if (i >= SIZE)
     return NULL;
   // TODO: after incorporating dataflow information into bounds declaration
@@ -277,14 +292,24 @@ array_ptr<int> g_dependent_bounds(unsigned int i) : count(i) {
 
 // Allocate and initialize an integer array of size CONSTANT_SIZE, with
 // the array initialized with values from 1..CONSTANT_SIZE.
-array_ptr<int> g_const_bounds(void) : count(CONSTANT_SIZE) {
+#ifdef BOUNDS_INTERFACE
+int *g_const_bounds(void) : count(CONSTANT_SIZE)
+#else
+array_ptr<int> g_const_bounds(void) : count(CONSTANT_SIZE)
+#endif
+{
   return g_dependent_bounds(CONSTANT_SIZE);
 }
 
 // Allocate and initialize a null-terminated integer array of
 // size i + 1, with the array initialized with values from 1, 2, ... 2*i,
 // followed by 0.
-nt_array_ptr<int> g_nt_dependent_bounds(unsigned int i) : count(i) unchecked {
+#ifdef BOUNDS_INTERFACE
+int *g_nt_dependent_bounds(unsigned int i) : itype(nt_array_ptr<int>) count(i)
+#else
+nt_array_ptr<int> g_nt_dependent_bounds(unsigned int i) : count(i) 
+#endif
+unchecked {
   if (i >= SIZE + 1)
     return NULL;
   // TODO: after incorporating dataflow information into bounds declaration
@@ -298,14 +323,24 @@ nt_array_ptr<int> g_nt_dependent_bounds(unsigned int i) : count(i) unchecked {
 // Allocate and initialize a zero-terminated integer array of
 // size i + 1, with the array initialized with 
 // values 1, 2, .. CONSTANT_SIZE - 1, 0. 
-nt_array_ptr<int> g_nt_const_bounds(void) : count(CONSTANT_SIZE) {
+#ifdef BOUNDS_INTERFACE
+int *g_nt_const_bounds(void) : itype(nt_array_ptr<int>) count(CONSTANT_SIZE)
+#else
+nt_array_ptr<int> g_nt_const_bounds(void) : count(CONSTANT_SIZE)
+#endif
+{
   return g_nt_dependent_bounds(CONSTANT_SIZE);
 }
 
 // Allocate and initialize an array of size i of 3-element arrays.
 // with the array elements initialized by the sequence 
 // 1, 3, 5 ...  (i - 1) * 3 * 2 + 5 (i.e. with a stride of 2).
-array_ptr<int checked[3]> g_md_dependent_bounds(unsigned int i) : count(i) {
+#ifdef BOUNDS_INTERFACE
+arrty *g_md_dependent_bounds(unsigned int i) : itype(array_ptr<int checked[3]>) count(i)
+#else
+array_ptr<int checked[3]> g_md_dependent_bounds(unsigned int i) : count(i)
+#endif
+{
    if (i >= SIZE)
      return NULL;
   // TODO: after incorporating dataflow information into bounds declaration
@@ -331,7 +366,9 @@ enum OpKind {
    COMPOUND
 };
 
-enum OpKind get_operation(char *i, char *name) {
+#pragma CHECKED_SCOPE on
+
+enum OpKind get_operation(nt_array_ptr<char>i, nt_array_ptr<char>name) {
   if (strcmp(i, "read") == 0)
     return READ;
   else if (strcmp(i, "write") == 0)
@@ -348,15 +385,18 @@ enum OpKind get_operation(char *i, char *name) {
   }
 }
 
-void test_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
+void test_constant_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc),
                           int idx) {
   // g_const_bounds returns a pointer to CONSTANT_SIZE integers filled with 0...4
   // The pointer value is arr_1d.
-  switch (get_operation(argv[idx++], "constant bounds")) {
+  enum OpKind op = get_operation(argv[idx], "constant bounds");
+  idx++; // TODO: fold back into prior line
+  switch (op) {
     case READ: {
       puts("Starting constant bounds read");
       // CB-READ-START: Starting constant bounds read
-      int i = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line once bounds declaration checking handle side-effecting call args.
       int r = TEST_READ1(g_const_bounds(), i);
       CHECK(r == i);
       puts("Passed constant bounds read");
@@ -367,7 +407,8 @@ void test_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
     case WRITE: {
       puts("Starting constant bounds write");
       // CB-WRITE-START: Starting constant bounds write
-      int i = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_WRITE1(g_const_bounds(), i, 6);
       CHECK(arr_1d[i] == 6);
       puts("Passed constant bounds write");
@@ -378,7 +419,8 @@ void test_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
     case INC: {
       puts("Starting constant bounds increment");
       // CB-INC-START: Starting constant bounds increment
-      int i = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_INC1(g_const_bounds(), i);
       CHECK(r == i);
       CHECK(arr_1d[i] == i + 1);
@@ -390,7 +432,8 @@ void test_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
     case COMPOUND: {
       puts("Starting constant bounds compound assign");
       // CB-COMPOUND-START: Starting constant bounds compound assign
-      int i = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_COMPOUND_ASSIGN1(g_const_bounds(), i, 2);
       CHECK(r == i - 2);
       CHECK(arr_1d[i] == i - 2);
@@ -402,19 +445,23 @@ void test_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
   }
 }
 
-void test_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
+void test_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc),
                        int idx) {
   // g_dependent_bounds(i) returns a pointer to i integers,
   // where the integers are initialized from 0...i-1.
   // The pointer value is arr_1d. i must be < SIZE
   // (the size of arr_1d)
 
-  switch (get_operation(argv[idx++], "dependent bounds")) {
+  enum OpKind op = get_operation(argv[idx], "dependent bounds");
+  idx++; // TODO: fold back into prior line
+  switch (op) {
     case READ: {
       puts("Starting dependent bounds read");
       // DB-READ-START: Starting dependent bounds read
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_READ1(g_dependent_bounds(i), j);
       puts("Passed dependent bounds read");
       CHECK(r == j);
@@ -425,8 +472,10 @@ void test_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
     case WRITE: {
       puts("Starting dependent bounds write");
       // DB-WRITE-START: Starting dependent bounds write
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_WRITE1(g_dependent_bounds(i), j, 7);
       CHECK(arr_1d[j] == 7);
       puts("Passed dependent bounds write");
@@ -437,8 +486,10 @@ void test_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
     case INC: {
       puts("Starting dependent bounds increment");
       // BB-INC-START: Starting dependent bounds increment
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_INC1(g_dependent_bounds(2*i), 2*j);
       CHECK(r == 2*j);
       CHECK(arr_1d[2*j] == 2*j + 1);
@@ -449,8 +500,10 @@ void test_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
     case COMPOUND: {
       puts("Starting dependent bounds compound assign");
       // DB-COMPOUND-START: Starting dependent bounds compound assign
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_COMPOUND_ASSIGN1(g_dependent_bounds(i + 3), j, 2);
       CHECK(r == j - 2);
       CHECK(arr_1d[i] == j - 2);
@@ -462,18 +515,21 @@ void test_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
   }
 }
 
-void test_nt_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
+void test_nt_constant_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc),
                              int idx) {
   // g_nt_const_bounds returns a pointer to a null-terminated
   // array of integers.  There are CONSTANT_SIZE integers and a null-terminator integer.
   // The CONSTANT_SIZE integers filled with 0...(CONSTANT_SIZE -1)*2.
   // The pointer value is arr_nt.
 
-  switch (get_operation(argv[idx++],"nt constant bounds")) {
+  enum OpKind op = get_operation(argv[idx], "nt constant bounds");
+  idx++; // TODO: fold back into prior line
+  switch (op) {
     case READ: {
       puts("Starting nt constant bounds read");
       // NT-CB-READ-START: Starting nt constant bounds read
-      int i = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_READ1(g_nt_const_bounds(), i);
       CHECK(r == 2 * i || (i == CONSTANT_SIZE && r == 0));
       puts("Passed nt constant bounds read");
@@ -484,8 +540,10 @@ void test_nt_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
     case WRITE: {
       puts("Starting nt constant bounds write");
       // NT-CB-WRITE-START: Starting nt constant bounds write
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_WRITE1(g_nt_const_bounds(), i, j);
       CHECK(arr_nt[i] == j);
       puts("Passed nt constant bounds write");
@@ -496,7 +554,8 @@ void test_nt_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
     case INC: {
       puts("Starting nt constant bounds increment");
       // NT-CB-INC-START: Starting nt constant bounds increment
-      int i = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_INC1(g_nt_const_bounds(), i);
       CHECK(r == 2 * i);
       CHECK(arr_nt[i] == 2 * i + 1);
@@ -508,7 +567,8 @@ void test_nt_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
     case COMPOUND: {
       puts("Starting nt constant bounds compound assign");
       // NT-CB-COMPOUND-START: Starting nt constant bounds compound assign
-      int i = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_COMPOUND_ASSIGN1(g_nt_const_bounds(), i, 2);
       CHECK(r == 2 * i - 2);
       CHECK(arr_nt[i] == 2 * i - 2);
@@ -520,18 +580,22 @@ void test_nt_constant_bounds(int argc, array_ptr<char*> argv : count(argc),
   }
 }
 
-void test_nt_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
+void test_nt_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc),
                               int idx) {
   // g_nt_dependent_bounds(i) returns a pointer to i integers,
   // where the integers are initialized from 0...(i-1) * 2
   // The pointer value is arr_1d. i must be < SIZE
   // (the size of arr_1d)
-  switch (get_operation(argv[idx++], "nt dependent bounds")) {
+  enum OpKind op = get_operation(argv[idx], "nt dependent bounds");
+  idx++; // TODO: fold back into prior line
+  switch (op) {
     case READ: {
       puts("Starting nt dependent bounds read");
       // NT-DB-READ-START: Starting nt dependent bounds read
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_READ1(g_nt_dependent_bounds(i), j);
       puts("Passed nt dependent bounds read");
       CHECK(r == 2 * j || (i == j && r == 0));
@@ -542,9 +606,12 @@ void test_nt_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
     case WRITE: {
       puts("Starting nt dependent bounds write");
       // NT-DB-WRITE-START: Starting nt dependent bounds write
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
-      int val = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int val = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_WRITE1(g_nt_dependent_bounds(i), j, val);
       CHECK(arr_nt[j] == val);
       puts("Passed nt dependent bounds write");
@@ -555,8 +622,10 @@ void test_nt_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
     case INC: {
       puts("Starting nt dependent bounds increment");
       // BB-INC-START: Starting nt dependent bounds increment
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_INC1(g_nt_dependent_bounds(2*i), 2*j);
       CHECK(r == 4 * j);
       CHECK(arr_nt[2 * j] == 4 * j + 1);
@@ -568,8 +637,10 @@ void test_nt_dependent_bounds(int argc, array_ptr<char*> argv : count(argc),
     case COMPOUND: {
       puts("Starting nt dependent bounds compound assign");
       // NT-DB-COMPOUND-START: Starting nt dependent bounds compound assign
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_COMPOUND_ASSIGN1(g_nt_dependent_bounds(i + 3), j + 3, 2);
       CHECK(r == j * 2 - 2);
       CHECK(arr_nt[i] == j  * 2 - 2);
@@ -585,20 +656,25 @@ int compute_val(int dim1, int dim2) {
    return 1 + dim1 * 6 + dim2 * 2;
 }
 
-void test_md_dependent_bounds(int argc, array_ptr<char *> argv : count(argc),
+void test_md_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc),
                        int idx) {
   // g_md_dependent_bounds(i) returns a pointer to i 3-element arrays.
   // where the array elements are initialzied to the sequence 
   // 1, 3, 5 ...  3 * 2 * i (i.e.  with a stride of 2).
   // The pointer value is arr_2d. i must be < SIZE
   // (the size of arr_1d)
-  switch (get_operation(argv[idx++],"md dependent bounds")) {
+  enum OpKind op = get_operation(argv[idx], "md dependent bounds");
+  idx++; // TODO: fold back into prior line
+  switch (op) {
     case READ: {
       puts("Starting md dependent bounds read");
       // MD-DB-READ-START: Starting md dependent bounds read
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
-      int k = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int k = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_READ2(g_md_dependent_bounds(i), j, k);
       CHECK(r == compute_val(j, k));
       CHECK(arr_2d[j][k] == compute_val(j, k));
@@ -610,9 +686,12 @@ void test_md_dependent_bounds(int argc, array_ptr<char *> argv : count(argc),
     case WRITE: {
       puts("Starting md dependent bounds write");
       // MD-DB-WRITE-START: Starting md dependent bounds write
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
-      int k = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int k = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_WRITE2(g_md_dependent_bounds(i), j, k, 7);
       CHECK(arr_2d[j][k] == 7);
       puts("Passed md dependent bounds write");
@@ -623,9 +702,12 @@ void test_md_dependent_bounds(int argc, array_ptr<char *> argv : count(argc),
     case INC: {
       puts("Starting md dependent bounds increment");
       // MD-DB-INC-START: Starting md dependent bounds increment
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
-      int k = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int k = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_INC2(g_md_dependent_bounds(i), j, k);
       CHECK(r == compute_val(j, k));
       CHECK(arr_2d[j][k] == compute_val(j, k) + 1);
@@ -637,9 +719,12 @@ void test_md_dependent_bounds(int argc, array_ptr<char *> argv : count(argc),
     case COMPOUND: {
       puts("Starting md dependent bounds compound assign");
       // MD-DB-COMPOUND-START: Starting md dependent bounds compound assign
-      int i = atoi(argv[idx++]);
-      int j = atoi(argv[idx++]);
-      int k = atoi(argv[idx++]);
+      int i = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int j = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
+      int k = atoi(argv[idx]);
+      idx++; // TODO: fold back into prior line
       int r = TEST_COMPOUND_ASSIGN2(g_md_dependent_bounds(i), j, k, 2);
       CHECK(r == compute_val(j, k) - 2);
       CHECK(arr_2d[j][k] == compute_val(j, k) - 2);
@@ -650,8 +735,9 @@ void test_md_dependent_bounds(int argc, array_ptr<char *> argv : count(argc),
     }
   }
 }
+#pragma CHECKED_SCOPE off
 
-int main(int argc, array_ptr<char*> argv : count(argc)) {
+int main(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
   // clang implementation raises a SIGILL when a bounds check fails.  This
@@ -673,7 +759,8 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   }
 
   int idx = 1;
-  char *test = argv[idx++];
+  nt_array_ptr<char> test = argv[idx];
+  idx++; // TODO: fold back into prior line.
   if (strcmp(test, "constant_bounds") == 0) {
     test_constant_bounds(argc, argv, idx);
   } else if (strcmp(test, "dependent_bounds") == 0) {
@@ -689,6 +776,17 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     return EXIT_FAILURE;
   }
   puts("Dynamic Checks Passed");
+
+#ifdef BOUNDS_INTERFACE
+  // This output has to be after any output for tests because of the way
+  // FileCheck works when multiple prefixes are specified.  FileCheck
+  // handles multiple prefixes by constructing a regular expression that
+  // is the 'or' of all the prefixes, so order of output among different
+  // prefixes must match order of checks in this file.  The checks for
+  // tests precede the check below.
+  puts("Testing interfaces");
+  // CHECK-BSI: Testing interfaces
+#endif
 
   return EXIT_SUCCESS;
 }
