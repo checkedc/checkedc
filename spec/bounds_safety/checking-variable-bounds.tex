@@ -781,12 +781,12 @@ It does so in a conservative fashion.
 If an expression passes checking, it is guaranteed that bounds 
 declarations will be valid after evaluating the expression.
 
-The C Standard \cite{ISO2011}
+The C Standard \cite[Section 5.1.2.3]{ISO2011}
 describes a sequence relation between pairs of expressions $(E1, E2)$:
 the expression $E1$ must be evaluated before $E2$.  
 The C Standard
 further divides sequencing of expressions into value computations
-of expressions and side-effects of expressions.
+of expressions and side-effects of expressions \cite[Section 6.5, pars. 1,2]{ISO2011}.
 Given an assignment of the form $E1 = E2$, 
 the value computations of $E1$ and $E2$ are sequenced before the
 assignment. We take into account both of these forms of sequencing.
@@ -839,11 +839,11 @@ a context $C$ that maps variables  to their bounds, and a set $PV$ of
 indeterminate variables.  The variables in $PV$ have indeterminate
 values because they may be modified by other expressions whose 
 evaluation is unordered with respect $E$'s evaluation.
-$Check$ returns a bound expression $B$ for the value of $E$  and an updated context $U$.
+$Check$ returns a bound expression $B$ for the value of $E$  and an updated context $UC$.
 It may also report an error.
 
-The bounds expression $B$ and $U$ reflect the side-effects of assignments in $E$, even
-though the assignments may still be pending.  When $B$ or entries in $U$ depend on
+The bounds expression $B$ and $UC$ reflect the side-effects of assignments in $E$, even
+though the assignments may still be pending.  When $B$ or entries in $UC$ depend on
 pending variables, it is important to not use them during the runtime evaluation of an expression.
 
 The function $CheckLValue(E, C, PV)$ is similar to $Check$, but it takes
@@ -862,27 +862,27 @@ The definition of $Check(E, C, PV)$ is:
 \item Otherwise,
 \begin{enumerate} 
 \item If $V \in dom(C)$, let $B = C[V]$.  If $V \notin dom(C)$, let $B = $ \boundsunknown.
-\item Let $U = C$.
+\item Let $UC = C$.
 \end{enumerate}
 \end{enumerate}
 \item If $E$ has the form $E1 = E2$,
 \begin{enumerate}
-\item Let $(B_{E1}, C_{E1}) = CheckLValue(E1, C, PV \cup Pending(E2))$. 
-\item Let $(B_{E2}, C_{E2}) = Check(C_{E1}, PV \cup Pending(E1))$.
+\item Let $(B_{E1}, {UC}_{E1}) = CheckLValue(E1, C, PV \cup Pending(E2))$. 
+\item Let $(B_{E2}, {UC}_{E2}) = Check(E2, {UC}_{E1}, PV \cup Pending(E1))$.
 $Pending(E1)$ and $Pending(E2)$ play an important role.  They
 ensure that the recursive calls to $Check$ process updates to different variables.
 The {\em order} in which the context is updated does not matter because
 the same context will be produced.
 \item If $NeedsBoundsCheck(E1)$ returns true, check that $B_{E1}$ does not use any variables in 
 $PV \cup PV_{E1} \cup PV_{E2}$.  If it does, report an error.
-\item Let $B = B_{E2}$ and $U = C_{E2}$.
+\item Let $B = B_{E2}$ and $UC = {UC}_{E2}$.
 \item  If $E1$ is a variable $V$ (that is, $GetLValue(E1) = { V }$),
 \begin{enumerate}
 \item Check that $V \notin PV$.  If it is, report an error.  There are multiple unsequenced.
 assignments to $V$.
-\item If $V$ has \arrayptr\ type and declared bounds, update $U$ so that $V \mapsto B$.
+\item If $V$ has \arrayptr\ type and declared bounds, update $UC$ so that $V \mapsto B$.
 \item The context $C$ has bounds expressions that are valid {\em before}
-the assignment is completed.   Update $U$ to reflect
+the assignment is completed.   Update $UC$ to reflect
 the effect of the assignment.   If for some variable $X$, $C[X] = B_X$ and
 $B_X$ uses $V$, either the inverted
 value of $V$ is substituted in $B_X$ or the entry for $X$ is set to \boundsunknown.
@@ -893,10 +893,10 @@ value of $V$ is substituted in $B_X$ or the entry for $X$ is set to \boundsunkno
 \item If $E$ has the form $\&E1$, return $CheckLValue(E1, C, PV)$.
 \item Otherwise, E is some expression with $n$ subexpressions (n may be 0).
 \begin{enumerate}
-\item Let $U = C$.
+\item Let $UC = C$.
 \item Let $S_k$ designate the $k^{th}$ subexpression.
-\item Visit the $n$ subexpressions in some order, accumulating results into $U$.  If the current subexpression being visited is $S_i$,
-let $(B_i, U) = Check(S_i, U, \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
+\item Visit the $n$ subexpressions in some order, accumulating results into $UC$.  If the current subexpression being visited is $S_i$,
+let $(B_i, UC) = Check(S_i, UC, \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} 
 to compute B using the $B_i$.
 \end{enumerate}
@@ -906,13 +906,13 @@ that any updates to the context by the recursive calls are for different variabl
 
 The definition of $CheckLValue(E, C, PV)$ is:
 \begin{enumerate}
-\item If $E$ is a variable $V$, let $B = bounds(\&v,\&v + 1)$,  $U = C$.
-\item If $E$ has the form $*E1$,  let $(B, U) = Check(E1, C)$.
+\item If $E$ is a variable $V$, let $B = bounds(\&v,\&v + 1)$,  $UC = C$.
+\item If $E$ has the form $*E1$,  let $(B, UC) = Check(E1, C, PV)$.
 \item If $E$ has the form $E1[E2]$,
 \begin{enumerate}
-\item Let $(B_{E1}, U_{E1}) = Check(E1, C, PV \cup Pending(E2))$.
-\item Let $(B_{E2}, U_{E2}) = Check(E2, U_{E1}, PV \cup Pending(E1))$
-\item Choose the $E_i$ that has pointer type.   Let $B = B_{E_i}$ and $U = U_{E2}$.
+\item Let $(B_{E1}, {UC}_{E1}) = Check(E1, C, PV \cup Pending(E2))$.
+\item Let $(B_{E2}, {UC}_{E2}) = Check(E2, {UC}_{E1}, PV \cup Pending(E1))$
+\item Choose the $E_i$ that has pointer type.   Let $B = B_{E_i}$ and $UC = {UC}_{E2}$.
 \end{enumerate}
 \item If $E$ has the form $(E1)$, return $CheckLValue(E1, C, PV)$
 \end{enumerate}
@@ -928,16 +928,16 @@ The definition of $NeedsBoundsCheck(E)$ is:
 \subsection{Top-level expressions}
 
 For top-level expression $E$, we will validate that the updated context implies the declared bounds.
-The routine $Validate(C, U, Equiv)$ takes a context
-constructed using declared bounds, an updated context $U$, and a set of equivalences that
-are true in the program state where $U$ is valid.  It checks that $U$ and the set of equivalances
-implies the valid of $C$:
+The routine $Validate(C, UC, Equiv)$ takes a context
+constructed using declared bounds, an updated context $UC$, and a set of equivalences that
+are true in the program state where $UC$ is valid.  It checks that $UC$ and the set of equivalances
+implies the validity of $C$:
 \begin{enumerate}
 \item Let $DC$ be the context formed from declared bounds.
-\item Let $(_, U) = Check(E, C, \emptyset)$.
+\item Let $(\_, UC) = Check(E, C, \emptyset)$.
 \item Let $Equiv$ be a set of equality facts determined to be true after evaluating $E$, using
 dataflow analysis and by extending $Check$ to compute additional information.
-\item Call $Validate(C, U, Equiv)$.
+\item Call $Validate(C, UC, Equiv)$.
 \end{enumerate}
 
 \subsection{Control-flow expressions}
@@ -948,33 +948,33 @@ logical boolean expressions.
 
 For a comma expression $E1$~\lstinline|,|~$E2$, $Check(E, C, PV)$ is defined as follows:
 \begin{enumerate}
-\item Let $(B_{E1}, U_{E1})$ = $Check(E1, C, PV)$
-\item Let $(B, U) = Check(E2, U_{E1}, PV)$
+\item Let $(B_{E1}, {UC}_{E1})$ = $Check(E1, C, PV)$
+\item Let $(B, UC) = Check(E2, {UC}_{E1}, PV)$
 \end{enumerate}
 
 For a conditional expression $E1$~\lstinline+?+~$E2$~\lstinline+:+~$E3$, we validate that each branch
 of the conditional expression preserves bounds declarations.  This is tricky
-because of the interaction of conditional evaluation and unordered evaluation
-of expression.  A bounds expression might depend both on variables modified 
-by other subexpressions and variables modified conditionally by one of the
+because of the possible interaction of conditional evaluation and unordered evaluation
+of expressions.  A bounds expression might depend both on variables modified 
+by other expressions and variables modified conditionally by one of the
 branches.  Our solution to this is to disallow such modifications.
 
 Let $DC$ be the context formed from declared bounds.
 \begin{enumerate}
-\item Let $(\_, U_{E1})= Check(E1, C, PV)$
+\item Let $(\_, {UC}_{E1})= Check(E1, C, PV)$
 \item For each arm $E_i$ of the conditional branch,
 \begin{enumerate}
-\item If there is a bounds expression in $U_i$ or $DC$ that uses variables in $PV$ and $Pending(E_i)$, report
+\item If there is a bounds expression in ${UC}_i$ or $DC$ that uses variables in $PV$ and $Pending(E_i)$, report
 an error.
-\item Let $(B_i, U_i) = Check(E2, U_{E1}, PV)$.
+\item Let $(B_i, {UC}_i) = Check(E2, {UC}_{E1}, PV)$.
 \item Let $DC_i$ be $D$ with its domain restricted to variables in $Pending(E_i) \cup Pending(E1)$. 
-\item Call $Validate(DC_i, U_i)$.
+\item Call $Validate(DC_i, {UC}_i)$.
 \end{enumerate}
-\item Let $U = U_{E1}$ and  $B$ be the greatest lower bound of the $B_i$, 
+\item Let $UC = {UC}_{E1}$ and  $B$ be the greatest lower bound of the $B_i$, 
 \end{enumerate}
 
 Logical boolean expressions are as forms of conditional expressions.
-For  $Check(E1 \&\& E2, C, PV)$, call $Check(E1 ? E2 : 0, C, PV)$.  For Check $(E1 || E2, C, PV)$,  call $Check(E1 ? 1 : E2, C, PV)$.
+For  $Check(E1 \&\& E2, C, PV)$, call $Check(E1 ? E2 : 0, C, PV)$.  For $Check(E1 || E2, C, PV)$,  call $Check(E1 ? 1 : E2, C, PV)$.
 
 \section{Expression statements}
 \label{section:checking-expression-statements}
