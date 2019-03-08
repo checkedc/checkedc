@@ -790,6 +790,91 @@ assignments.
 It builds on the bottom-up analysis in
 Section~\ref{section:inferring-expression-bounds}.
 
+\subsection{Order of evaluation and checking}
+\label{section:avoiding-undefinedness}
+
+The order of evaluation of side-effects in subexpressions of an
+expression is defined in C only for control-flow expressions
+and in certain other circumstances \cite[Section 6.5,Annex C]{ISO2011}). Otherwise, the order of
+evaluation of side-effects is undefined. Although nested assignment
+expressions help the brevity of programs, theycan lead to expressions whose
+meaning or bounds are undefined. To avoid compromising the integrity of
+bounds information, checking must produce an error when it encounters
+these expressions.  For C expressions that provide control-flow
+(the comma operator, the conditional operator, and logical boolean operators), the checking must model the order of side-effects
+and their effect on bounds information.
+
+The meaning of an expression is undefined if:
+
+\begin{enumerate}
+\item
+  There are multiple assignments to the same variable within an
+  expression where the order of evaluation of the assignments is
+  undefined, or
+\item
+  There is an assignment to a variable that is also used by the
+  expression, where the order of evaluation of the assignment and the
+  use is undefined.
+\end{enumerate}
+
+The following statements illustrate these problems:
+
+\begin{lstlisting}
+y = (x = 5) + (x = 6);
+i = i++ + 1;
+a[i++] = i;
+\end{lstlisting}
+
+In the first case, the value of the right-hand side expression is 11,
+yet at the end of the expression, the value of x could be 5 or 6. In the
+second case, there are two assignments to i and the order is undefined.
+In the third case, it is not clear when i is read vs. when it is
+modified.
+
+Bounds checks can lead to a subtle version of the second problem: an
+expression may have an assignment through a pointer that require a
+bounds check. The bounds for the pointer expression may include a
+variable that is modified in the expression, where the order of
+evaluation of the assignment through the pointer and the variable
+assignment is undefined. This means that the order of evaluation of the
+bounds check and the variable assignment is undefined.
+
+This example illustrates this problem:
+
+\begin{lstlisting}
+w = ...
+where w : bounds(x, x + y);
+int t = *w + (y = tmp);
+\end{lstlisting}
+
+The variable y is an integer variable that is a count of elements. It is
+overwritten during the evaluation of an expression that dereferences w,
+whose bounds include y.
+
+\subsection{Checking overview}
+There are three aspects to the checking:
+\begin{itemize}
+\item Modelling the effect of assignments on the bounds
+of variables by calculating an updated context.
+\item Tracking and calculating equality facts.
+\item Preventing undefined behavior.
+\end{itemize}
+The updated context and equality facts are used to prove that bounds
+declarations remain valid. 
+
+To prevent undefined behavior, the checking tracks
+sets of pending assignments. The pending assignments 
+track variables that have indeterminate values because
+an assignment may or may not have been completed.  The
+sets used to used to prevents:
+\begin{enumerate}
+\item The use of variables whose values are
+indeterminate because an assignment may or may not have been completed.
+\item Accessing memory with pointers whose bounds expressions
+are indeterminate because they use a variable whose value is indeterminate.
+\item Multiple unsequenced writes to the  same variable, which have undefined behavior.
+\end{enumerate}
+
 The C Standard \cite[Section 5.1.2.3]{ISO2011}
 describes a sequence relation between pairs of expressions $(e1, e2)$:
 the expression $e1$ must be evaluated before $e2$.  
@@ -798,21 +883,10 @@ further divides sequencing of expressions into value computations
 of expressions and side-effects of expressions \cite[Section 6.5, pars. 1,2]{ISO2011}.
 Given an assignment of the form $e1 = e2$, 
 the value computations of $e1$ and $e2$ are sequenced before the
-assignment. We take into account both of these forms of sequencing.
-
-The approach has three components: calculating an updated context,
-calculating equality facts, and working with sets of pending assignments.
-The updated context and equality facts are used to prove that bounds
-declarations remain valid.  The sets of pending assignments prevent 
-undefined behavior due to assignments that are unsequenced with respect
-to other assignments.   The sets of pending assignments prevent:
-\begin{enumerate}
-\item The use of variables whose values are
-indeterminate because an assignment may or may not have been completed.
-\item Accessing memory with pointers whose bounds expressions
-are indeterminate because they use a variable whose value is indeterminate.
-\item Multiple unsequenced writes to the  same variable, which have undefined behavior.
-\end{enumerate}
+assignment. The checking takes into account both forms of sequencing.
+For side-effects that must be completed before the evaluation of another
+expression $e$, those side-effects do not cause variables to
+be added to the pending set for $e$.
 
 We introduce the following notation:
 \begin{enumerate}
@@ -826,9 +900,29 @@ an equality fact set and a set of variables.  It produces a new equality fact
 set with any expressions that use the values of variables in $S$ removed.
 \end{enumerate}
 
-The function $Pending(e)$ calculates the set of variables $PV$
-with assignments that may be pending after evaluating $e$.  It uses
-the helper functions,
+The checking is done by the following functions:
+\begin{enumerate}
+\item $Pending(e)$: calculates the set of variables $PV$
+with assignments that may be pending after evaluating $e$. 
+\item $Update$: update the context, the equality fact set,
+and other information to be valid in the program state after
+a side-effect is completed.
+\item $Check$ and $CheckLValue$:  these mutually recursive
+functions check expressions.  For an expression, they compute
+its bounds, an updated context and equality fact set, and
+an equality fact true about the value.$Check$ handles expressions that
+produce value, while $CheckLValue$ handles expressions that produce
+lvalues. When an lvalue expression is used where a value is
+expected, the lvalue is implicitly converted to a value by
+reading the memory for the lvalue.
+\item $Validate$: this checks that an updated update
+and equality fact set imply the declare bounds for
+variables are valid.
+\end{enumerate}
+
+\subsection{Computing pending variables}
+
+The function $Pending(e)$ uses the helper functions,
 $GetLValueVariable(e)$ and $GetRValueVariable(e)$.  Those functions
 return a set containing a variable name or the empty set.
 
@@ -859,7 +953,7 @@ The definition of $GetRValueVariable(e)$ is as follows. If $e$ has the form:
 \item Otherwise, $\emptyset$
 \end{enumerate}
 
-\subsection{Expressions with unordered evaluation of operands}
+\subsection{Checking expressions with unordered evaluation of operands}
 
 When an assignment $a$ to a variable $v$ happens, the context and equality fact set 
 need to be updated so that they are valid for the program state when the assignment is complete.
@@ -1113,7 +1207,8 @@ assignments does not matter.
 
 \subsection{Full expressions}
 
-For a full expression $e$, we will validate that the updated context implies the declared bounds.
+For a full expression $e$, we will validate that the updated context
+and equality fact set imply the declared bounds.
 A full expression \cite[Annex C]{ISO2011} is an expression not nested within another expression.
 The routine $Validate(C, UC, EQ)$ takes a context $C$,
 constructed using declared bounds, an updated context $UC$, and an equality fact set $EQ$
@@ -1170,19 +1265,19 @@ Logical boolean expressions are treated as forms of conditional expressions.
 For  $Check(e1$ \code{&&} $ e2, C, PV)$, use $Check(e1$ \code{ ?  } $e2$ \code{: 0}$, C, EQ, PV)$.  For
 $Check(e1$ \code{ \|\| } $ e2, C, EQ, PV)$,  use $Check(e1 $ \code{ ? 1 : } $e2, C, EQ, PV)$.
 
-\section{Expression statements}
+\section{Checking that expressions maintain declared bounds}
 \label{section:checking-expression-statements}
 
-Expression statements need to be checked for consistency with their
-expected bounds declarations. If an expression statement is within a
+We need to check that full expressions mantain the validity of
+declared bounds.  If a full expression is within a
 bundled block, the checking is deferred to the end of the bundled block.
 
-To check an expression statement, the analysis of 
+To check a full expression, the analysis of 
 Section~\ref{section:extent-definition} is used
-to determine the context for the expression in the statement (the bounds
-for variables before the statement is evaluated). The rules in 
-Section~\ref{section:checking-nested-assignment-expressions}
-are then used to determine the updated context.
+to determine the context for the full expression (the bounds
+for variables before the expression is evaluated). The $Check$
+method in Section~\ref{section:checking-nested-assignment-expressions}
+is then used to determine the updated context and equality fact set.
 
 The updated context is then checked against the bounds declarations that
 must be true after the expression statement. For each
@@ -1199,17 +1294,18 @@ computed:
   expected bounds expression for x.
 \end{itemize}
 
-We will refer to the bounds expression for \var{x} in the updated context
-as the updated bounds expression.  It must imply that the
+The bounds expression for \var{x} in the updated context
+is called the updated bounds expression.  It must imply that the
 expected bounds expression holds. Implication is checked in this section
-using by placing non-modifying expressions into a canonical form and
-checking for syntactic equality. If two expressions have the same
-canonical form, any values that they have at runtime will always be
+by placing bounds expressions into a canonical form and
+checking for syntactic equality, taking into account equality
+facts that are valid after the expression. If two expressions 
+are equal, any values that they have at runtime will always be
 identical. Chapter~\ref{chapter:simple-invariants}
 describes more general techniques for checking
 that context bounds imply the expected bounds.
 
-The updated bounds expression implies that the expected bounds
+An updated bounds expression implies that the expected bounds
 expression holds if:
 
 \begin{itemize}
@@ -1220,7 +1316,8 @@ expression holds if:
 \item
   The updated bounds expression and the expected bounds expression are
   equal syntactically after placing the expressions into canonical
-  forms,
+  forms, taking into equality facts that are true after the full
+  expression,
 \item
   The canonicalized expressions
   differ syntactically only in their relative alignment, and
@@ -1892,11 +1989,11 @@ from zero or more expressions, statements, and declarations:
 
 The nested statements and declarations can be checked individually.
 
-For the expressions used in the statements, the context is determined
-before the evaluation of the expression. No way is provided for a direct
-expression occurring in a statement to have new bounds declared for any
-bounds in it. This means that the bounds declarations in the context
-will be expected to be true after the evaluation of the expression too.
+For the full expressions used in the statements, the context is determined
+before the evaluation of the full expression. No way is provided for a
+full expression occurring in a statement to have new bounds declared 
+for any variables in it. This means that the bounds declarations in the
+context will be expected to be true after the evaluation of the full expression too.
 
 The rules in Section~\ref{section:checking-nested-assignment-expressions}
 are used to determine the updated context after evaluation of the
@@ -1904,81 +2001,3 @@ expression. The rules in Section~\ref{section:checking-expression-statements}
 are used to check that the updated
 context implies the expected bounds declarations.
 
-\section{Avoiding undefined expressions and undefined bounds}
-\label{section:avoiding-undefinedness}
-
-The order of evaluation of side-effects in subexpressions of an
-expression is defined in C only in certain circumstances (these are
-described in Section 6.5 and Annex C of \cite{ISO2011}). Otherwise, the order of
-evaluation of side-effects is undefined. Although nested assignment
-expressions help the brevity of programs, they lead to expressions whose
-meaning or bounds are undefined. To avoid compromising the integrity of
-bounds information, compilers must produce errors when they encounter
-these expressions.
-
-The meaning of an expression is undefined if:
-
-\begin{enumerate}
-\item
-  There are multiple assignments to the same variable within an
-  expression where the order of evaluation of the assignments is
-  undefined, or
-\item
-  There is an assignment to a variable that is also used by the
-  expression, where the order of evaluation of the assignment and the
-  use is undefined.
-\end{enumerate}
-
-The following statements illustrate these problems:
-
-\begin{lstlisting}
-y = (x = 5) + (x = 6);
-i = i++ + 1;
-a[i++] = i;
-\end{lstlisting}
-
-In the first case, the value of the right-hand side expression is 11,
-yet at the end of the expression, the value of x could be 5 or 6. In the
-second case, there are two assignments to i and the order is undefined.
-In the third case, it is not clear when i is read vs. when it is
-modified.
-
-Bounds checks can lead to a subtle version of the second problem: an
-expression may have an assignment through a pointer that require a
-bounds check. The bounds for the pointer expression may include a
-variable that is modified in the expression, where the order of
-evaluation of the assignment through the pointer and the variable
-assignment is undefined. This means that the order of evaluation of the
-bounds check and the variable assignment is undefined.
-
-This example illustrates this problem:
-
-\begin{lstlisting}
-w = ...
-where w : bounds(x, x + y);
-int t = *w + (y = tmp);
-\end{lstlisting}
-
-The variable y is an integer variable that is a count of elements. It is
-overwritten during the evaluation of an expression that dereferences w,
-whose bounds include y.
-
-We define these situations to be compile-time errors. Define an
-ambiguous variable in an expression e as:
-
-\begin{itemize}
-\item
-  A variable that has multiple assignments to it within e such that the
-  order of evaluation of those assignments is undefined, or
-\item
-  A variable that has an assignment to it and a use of the variable such
-  that the order of evaluation of the assignment and the use is
-  undefined, or
-\item
-  A variable that has an assignment to it, where there is some
-  subexpression *e1 of e where the variable appears in the bounds of e1
-  and the order of evaluation of *e1 and the assignment to the variable
-  is undefined.
-\end{itemize}
-It is a compile-time error for an expression to have an ambiguous
-variable.
