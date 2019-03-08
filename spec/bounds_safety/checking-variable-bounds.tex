@@ -39,7 +39,7 @@ To handle both assignments to pointer variables with bounds and assignments
 to variables used in bounds, we generalize bounds declaration
 checking to operate over contexts.  Contexts are maps from variables
 to bounds expressions for the values stored in the variables.  For
-each top-level expression in a function, we start with a context based
+each full expression in a function, we start with a context based
 on declared bounds.  We analyze the expression and produce a new
 context that describes the bounds for variables after any assignments
 in the expression have happened.  We then check that the bounds
@@ -523,7 +523,7 @@ as the bounds for the entire expression.
 Note that if \var{e1} is a variable,
 there is an order of evaluation issue of \var{e1} appears in the bounds for
 \var{e2}.   Specifically, the bounds for \var{e2} cannot be used to
-check a memory access within the top-level expression being evaluated.
+check a memory access within the full expression being evaluated.
 
 \subsection{Pre-and-post increment operators}
 \label{section:inferring-increment-bounds}
@@ -550,10 +550,10 @@ after the assignment.  If \var{v} has \arrayptr\ type, the bounds expression in
 the context for \var{v} is updated to the inferred bounds expression for \var{e}.
 We also model the change in \var{v}'s
 value for any bounds expressions in the context that use \var{v}.   If the result of 
-evaluating \var{e} is available in a temporary, we update the equality facts set 
+evaluating \var{e} is available in a temporary, we update the equality fact set 
 to record that \var{v} equals the temporary when the (top-level) assignment
 expression is completely evaluated.
-We use the updated context and equality facts set to check
+We use the updated context and equality fact set to check
 that the new bounds expressions subsume the declared bounds expressions for variables.
 
 For an assignment expression of the form \var{x} \code{=} \var{e},
@@ -788,20 +788,16 @@ This section generalizes bounds declaration checking for a single
 assignment expression to expressions with control-flow or multiple
 assignments.
 It builds on the bottom-up analysis in
-Section~\ref{section:inferring-expression-bounds}.  The
-checking ignores some sequence points described in the C Standard \cite{ISO2011}.
-It does so in a conservative fashion.
-If an expression passes checking, it is guaranteed that bounds 
-declarations will be valid after evaluating the expression.
+Section~\ref{section:inferring-expression-bounds}.
 
 The C Standard \cite[Section 5.1.2.3]{ISO2011}
-describes a sequence relation between pairs of expressions $(E1, E2)$:
-the expression $E1$ must be evaluated before $E2$.  
+describes a sequence relation between pairs of expressions $(e1, e2)$:
+the expression $e1$ must be evaluated before $e2$.  
 The C Standard
 further divides sequencing of expressions into value computations
 of expressions and side-effects of expressions \cite[Section 6.5, pars. 1,2]{ISO2011}.
-Given an assignment of the form $E1 = E2$, 
-the value computations of $E1$ and $E2$ are sequenced before the
+Given an assignment of the form $e1 = e2$, 
+the value computations of $e1$ and $e2$ are sequenced before the
 assignment. We take into account both of these forms of sequencing.
 
 The approach has three components: calculating an updated context,
@@ -818,7 +814,7 @@ are indeterminate because they use a variable whose value is indeterminate.
 \item Multiple unsequenced writes to the  same variable, which have undefined behavior.
 \end{enumerate}
 
-We introduce the following notation for describing the approach:
+We introduce the following notation:
 \begin{enumerate}
 \item Given context $C$, $C[v]$ returns the value for variable $v$ in $C$.
 \item $C[v \mapsto B]$ produces a new context that is identical to $C$,
@@ -865,7 +861,7 @@ The definition of $GetRValueVariable(e)$ is as follows. If $e$ has the form:
 
 \subsection{Expressions with unordered evaluation of operands}
 
-When an assignment $A$ to a variable $V$ happens, the context and equality fact set 
+When an assignment $a$ to a variable $v$ happens, the context and equality fact set 
 need to be updated so that they are valid for the program state when the assignment is complete.
 The function $Update(v, OVE, B, C, EQ, G)$ takes:
 \begin{compactitem}
@@ -875,8 +871,8 @@ The function $Update(v, OVE, B, C, EQ, G)$ takes:
 \item A bounds expression $B$ for the value being assigned to $v$.
 \item A a context $C$.
 \item An equality fact set $EQ$. 
-\item An equality fact $G$ for the value being assigned to $V$.  $G$ must be valid in the program
-state (1) after any assignments in subexpressions of $A$ have completed (2) before $a$
+\item An equality fact $G$ for the value being assigned to $v$.  $G$ must be valid in the program
+state (1) after any assignments in subexpressions of $a$ have completed (2) before $a$
 has completed.   A use of $v$ in $G$ is the value of $v$ before $a$ has completed.
 \end{compactitem}
 It returns updated bounds, context, equality facts, and equality facts ($UB$, $UC$, $UEQ$, and $UG$)
@@ -896,7 +892,7 @@ item  Otherwise, let $B_x^\prime = B_x$ with $OVE$ substituted for $v$.
 Let $UC = UC[x \mapsto B_x^\prime]$
 \end{compactenum}
 \item Let $UB = B$.  If $UB$ uses $v$, update $UB$ similarly.
-\item Let $UEQ = EQ$.  Adjust $UEQ$ so that it is true for the memory state after the assignment. For any expression $d$ in $UEQ$ that uses $v$, if $OVE$ is {\it None}, let $UEQ$ = $UEQ $ - $d$. Otherwise,
+\item Let $UEQ = EQ$.  Adjust $UEQ$ so that it is true for the program state after the assignment. For any expression $d$ in $UEQ$ that uses $v$, if $OVE$ is {\it None}, let $UEQ$ = $UEQ $ - $d$. Otherwise,
 substitute $OVE$ for $v$ in $d$.
 \item Update the equality fact for the assignment.   Let $UG = G$.  Remove any expressions in $UG$
 that use the value of $v$. Add $\{v\}$ to $UG$.
@@ -908,10 +904,8 @@ The bounds declaration checking function $Check(e, C, EQ, PV)$   takes as inputs
 \item An expression $e$ that evaluates to a value.
 \item A context $C$.
 \item A set of equality facts $EQ$.
-\item A set $PV$ of  indeterminate variables.  The variables in $PV$ are indeterminate because they
+\item A set $PV$ of  indeterminate variables.  The variables 
 may be modified by other expressions whose  evaluation is unordered with respect to $e$'s evaluation.
-The peinding variable set ensure that the recursive calls to $Check$ make updates to different
-variables, and do not making conflicting updates.
 \end{compactenum}
 
 $Check$ returns:
@@ -926,7 +920,7 @@ The results produced by $Check$ are valid in the program state.
 {\em after} the assignments in $e$ have been completed.   When $B$ or entries in 
 $UC$ depend on pending variables, it is important to not use them during runtime bounds checking.
 
-The function $CheckLValue(e, C, EQ PV)$ is similar to $Check$, but it takes an
+The function $CheckLValue(e, C, EQ PV)$ is similar to $Check$, but takes an
 expression $e$ that evaluates to an lvalue.  The bounds expression $B$ that it 
 returns is for the lvalue to which $e$ evaluates.  The function $NeedsBoundsCheck(e)$ takes
 an expression that evaluates to an lvalue and determines if an 
@@ -936,8 +930,7 @@ When $Check$ is used recursively on a subexpression of $e$, it calculates
 additional variables that are pending due to other subexpressions of $e$.
 The definition of $Check(e, C, EQ, PV)$ is:
 \begin{enumerate}
-
-\item If $e$ is a variable $v$,
+\item If $e$ is a variable $v$ and $e$ does not have array type,
 \begin{enumerate}
 \item If $v \in PV$, report an error.  There is an unsequenced read and write of $v$.
 \item Otherwise,
@@ -946,21 +939,32 @@ The definition of $Check(e, C, EQ, PV)$ is:
 \item Let $UC = C$, $UEQ = EQ$, and $G = \{ v \}$.
 \end{enumerate}
 \end{enumerate}
-
+\item If $e$ is another lvalue expression, 
+\begin{enumerate}
+\item Let $(B_e, UC, UEQ, G) = CheckLValue(e, C, EQ,PV)$.
+\item If $e$ has array type, let $B = B_e$.
+\item Otherwise, there will an implicit read of the lvalue produced by $e$ at runtime.
+\begin{enumerate}
+\item If $NeedsBoundsCheck(e)$ returns true, we will insert a bounds check that $e$
+is a valid memory location to access.  Check that $B_e$ does not use any variables in 
+$PV$.  If it does, report an error.
+\item Let $B = $ \boundsunknown.
+\end{enumerate}
+\end{enumerate}
 \item If $e$ has the form $lhs = rhs$,
 \label{list:check-assignment}
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
-        and $P_{rhs}$  describe variables that are pending during the evaluation of $lhs$ and $rhs$ due
+        and $P_{rhs}$  describe variables that are pending during the evaluations of $lhs$ and $rhs$ due
         to assignments in other expressions.
-\item Let $(B_{lhs}, {UC}_{lhs}, {UEQ}_{lhs}, _) = CheckLValue(lhs, c, EQ - P_{lhs}, P_{lhs})$.  
+\item Let $(B_{lhs}, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, c, EQ - P_{lhs}, P_{lhs})$.  
 \item Let $(B_{rhs}, {UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = Check(rhs, {UC}_{lhs}, {UEQ}_{lhs} - P_{rhs},P_{rhs}))$ 
 \item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
 $PV \cup PV_{lhs} \cup PV_{rhs}$.  If it does, report an error.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValue(lhs) = { v }$),
 \begin{enumerate}
-\item Check that $v \notin PV \cup Pending(lhs) \cup Pending(rhs)$.  If it is, report an error.  
-There are multiple unsequenced. assignments to $v$.
+\item Check that $v \notin PV \cup P_{lhs} \cup P_{rhs}$.  If it is, report an error.  
+There are multiple unsequenced assignments to $v$.
 \item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$.   Otherwise
 let $iv = $ {\it None}.
 \item Let $(B, UC, UEQ, G) = Update(v, iv, B_{rhs}, UC_{rhs}, UEQ_{rhs}, G_{rhs})$.
@@ -974,8 +978,10 @@ let $iv = $ {\it None}.
 $PV \cup Pending(e1)$.  If it does, report an error.
 \item If $e1$ is a variable,
 \begin{enumerate}
-\item If $e1$ has the form \code{}$v$ or $v$\code{++} and $v$ \code{ + 1} is invertible, let $iv = v$\code{- 1}.
-\item If $e1$ has the form \code{--}$v$ or $v$\code{--} and $v$\code{ - 1} is invertible, let $iv = v$\code{ + 1}.
+\item If $e1$ has the form \code{++}$v$ or $v$\code{++} and $v$ \code{+ 1} is invertible, 
+let $iv = v$ \code{ - 1}.
+\item If $e1$ has the form \code{--}$v$ or $v$\code{--} and $v$ \code{ - 1} is invertible, 
+let $iv = v$ \code{ + 1}.
 \item Otherwise, let $iv = $ {\em None}.
 \item Compute $B$ using the rules in Section~\ref{section:inferring-increment-bounds}.
 \item Let $(B, UC, UEQ, UG) = Update(v, iv, B, UC_{e1}, UEQ_{e1}, \emptyset)$
@@ -993,18 +999,29 @@ $PV \cup Pending(e1)$.  If it does, report an error.
 \item Visit the $n$ subexpressions in some order, accumulating results into $UC$ and $UEQ$.  If the current subexpression being visited is $S_i$,
 let $(B_i, UC, UEQ, G_i) = Check(S_i, UC, \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
 \item If $e$ has no side-effects, let $G$ = \{ e \}.  If $e$ has side-effects, see if we can use the
-$G_i$ to construct a version of $e^\prime$ without side-effects.  If we can,
-let $G = \{ e^\prime \}$.  Otherwise, let $G = \emptyset$.
+$G_i$ to construct a version $e^\prime$ of $e$ that computes the same value but has no side-effects.  
+If we can, let $G = \{ e^\prime \}$.  Otherwise, let $G = \emptyset$.
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$.
 \end{enumerate}
-Again, note the role of the pending sets: they ensure that updates to the context and
-equality facts set by the recursive calls are for different variables.
 \end{enumerate}
 
 The definition of $CheckLValue(e, C, EQ, PV)$ is:
 \begin{enumerate}
-\item If $e$ is a variable $v$, let $B = bounds(\&v,\&v + 1)$,  $UC = C$, $UEQ=EQ$, and 
+\item If $e$ is a variable $v$, let $UC = C$, $UEQ=EQ$,
+\begin{enumerate}
+\item If $v$ does not have array type, let $B = bounds(\&v,\&v + 1)$,  and 
 $G=\{$ \code{&}$v \}$
+\item Otherwise, $v$ has an array type.
+\begin{enumerate}
+\item If $v$ has a known number of elements $n$ and
+\begin{enumerate}
+\item If $v$ has a checked array type, or
+\item $v$ has an unchecked array type and is a local variable or externally-scoped variable,
+\end{enumerate}
+Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
+\item Otherwise, let $B = $ \boundsunknown and $G = \emptyset$.
+\end{enumerate}
+\end{enumerate}
 \item If $e$ has the form $*e1$,  let $(B, UC, EQ, \_) = Check(e1, C, EQ, PV)$.  Let $G =\emptyset$.
 \item If $e$ has the form $e1[e2]$,
 \begin{enumerate}
@@ -1025,77 +1042,84 @@ The definition of $NeedsBoundsCheck(e)$ is:
 \item Otherwise, false.
 \end{enumerate}
 
-\subsubsection{Order of recursive calls does not matter}
+\subsection{Different orders of recursive calls produce the same result}
 
-The pending variable sets used in recursive calls to $Check$ for the assignment case
-(\ref{list:check-general-operator}) and the general operator case  (\ref{list:check-general-operator})
-ensure that updates to the context and equality facts set are done on different variables
-for each recursive call.  This in turn ensures that the the same context and equality facts
-set is produced no matter which order the recursive calls are made.   Here we informally argue 
-that this property (known as confluence) holds for the assignment  case ($lhs = rhs$).   
+The pending variable sets used in recursive calls to $Check$ and $CheckLValue$ for assignment (case
+\ref{list:check-assignment}) and non-side-effecting operations
+(case  \ref{list:check-general-operator})
+ensure that updates to the context and equality fact set are done on different variables
+for each recursive call.  This in turn ensures that the the same context and equality fact
+set are produced no matter which order the recursive calls are made.   Here we informally argue 
+that this property (known as confluence) holds for the assignment case (which has the form $lhs = rhs$).   
 
 Suppose $lhs$
-contains an assignment expression that updates some variable $v$ with an expression $e1$ and 
-$rhs$ contains an assignment expression that updates variable $w$ with an expression $e2$.  We know
-that $lhs$ does not update or use $w$ because of the pending variable parameters.  Similarly, we know
-that $rhs$ does not update or use $v$.
+contains a single assignment expression that updates a variable $v$ with an expression $e1$ and 
+$rhs$ contains a single assignment expression that updates  a variable $w$ with an expression $e2$.  
+We know that $lhs$ does not update or use $w$ because of the pending variable parameters.  Similarly, 
+we know that $rhs$ does not update or use $v$.
 
 Observe that a recursive call to $Check(e, \ldots)$ or $CheckLValue(e, \ldots)$  only updates the context
 and the equality fact set for variables that are assigned to in $e$.   $CheckLValue(lhs,\ldots)$ and
-$Check(rhs)$ have assignments to different sets of variables because of the $Pending$ sets.  This
+$Check(rhs, \ldots)$ have assignments to different sets of variables because of the $Pending$ sets.  This
 implies that $CheckLValue(lhs,\ldots)$ and $Check(rhs, \ldots)$ only do updates for different variables.
 
-We want to show that leads to the same context and equality facts set, no matter which order 
+We want to show this leads to the same context and equality fact set no matter which order 
 $CheckLValue$ and $Check$ are called.  We consider the case where  $CheckLValue(lhs, \ldots)$ 
-is called first. There are two kinds of updates done for the assignment in $CheckLValue$.
+is called first. There are two possible kinds of updates in $CheckLValue$ for the assignment to $v$.
 \begin{itemize}
-\item Replace occurrences of $v$ in expressions in the context and equality facts set with the
+\item Replace occurrences of $v$ in expressions in the context and the equality fact set with the
 expression $inverse(e1, v)$, which computes the prior value of $v$ based on the current value of $v$. 
-Now, $e1$ cannot use $w$, because that would result in $CheckLvalue$ reporting an error.  
+Now, $e1$ cannot use $w$, because that would result in $CheckLValue$ reporting an error.  
 $inverse(e1, v)$ does 
 not introduce any new uses of variables not in $e1$ so $inverse(e1, v)$ cannot use $w$ either.   After $inverse(e1, v)$ is substituted for $v$ in the context
-or the equality facts set during $CheckLValue(lhs, \ldots)$, the substituted expression will be
+or the equality fact set during $CheckLValue(lhs, \ldots)$, each substituted expression will be
 unchanged by the call to $Check(rhs, \ldots)$.  This is because the only updates done by 
 $Check(rhs, \ldots)$ involve $w$.   
 
-$CheckLValue(lhs, \ldots) does not affect any occurrences of $v$.  Those will be replaced 
-by $inverse(e2, w)$ in the call to $Check(rhs, \ldots).
+$CheckLValue(lhs, \ldots)$ does not affect any occurrences of $w$.  Those will be replaced 
+by $inverse(e2, w)$ in the call to $Check(rhs, \ldots)$.
 
 \item Replace the bounds expression for $v$ in the context with a new bounds expression $b$.
 When $Check$ infers the bounds for $e1$, $e1$ cannot use $w$ because that would result in 
 $Check$ reporting an error. This means that the only way a use of $w$ can appear in $b$ is
-through a look up of bounds of some variable $y$ in the context.  `
+through a look up of bounds of some variable $y$ in the context (note that $y$ could be
+$v$ or $w$).
 
-Now, the bounds of  $y$ must be
-unchanged at the time that it is looked up.  It must by $C[y]$, where $C$ is the context passed into
-$CheckLValue$.
+There are several cases possible for $y$:
 \begin{itemize}
-\item  If an assignment to $y$ occurred within $e1$, this would lead to an error involving an unordered 
-read and write.
-\item $inverse(e1, v)$ has not been substituted for $v$ yet either, because we inferring the bounds for
-$e1$.
-\end{itemize}
+\item There is no assignment to $y$ in $lhs$ or $rhs$.   In that case, the bound of $y$
+must be $C[y]$, where $C$ is the context passed into $CheckLValue$.  We are in the midst
+of processing the assignment $v = e1$ and the assignment $w = e2$ have not been processed yet.  
+
 The bounds $C[y]$ are  either propagated or dropped during the computation of bounds for $e1$.
-If the bounds $C[y]$ are dropped, then they cannot be the source of $w$.  So the $bounds C[y]$must be propagated.  The only change that can happen is for $inverse(e1, v)$ to be substituted for $v$ during propagation.  No change can happen to the occurrence of $w$ because there are no assignments to $w$
+If the bounds $C[y]$ are dropped, then they cannot be the source of $w$.  So the bounds $C[y]$ must be propagated.  During propagation, $inverse(e1, v)$ will be substituted for $v$.  No change can happen to the occurrence of $w$ because there are no assignments to $w$
 in $CheckLValue(lhs, \ldots)$.  Now, when $Check(rhs, \ldots)$ is called, there will be no changes in the
 context to the substituted expression $inverse(e1, v)$ because $w$ cannot occur in $e1$.  
-The occurrence of $w$ in the bounds for $v$ may be updated by $Check(rhs, \ldots)$ to $inverse(e2, w)$.
+The occurrence of $w$ in the bounds for $v$ will be updated by $Check(rhs, \ldots)$ to $inverse(e2, w)$.
 Note that $inverse(e2, w)$ cannot contain a use of $v$.
 
-Now, if $Check(rhs, \ldots)$ had been called first, the bounds for $y$ in the context would be updated to use
-$inverse(e2, w)$.  The substituted expression will be left unchanged as the bounds propagate
-in the call to $CheckLValue$.  $e2$ cannot use $v$, so $inverse(e2, w)$ will not use $v$.
+Now, if $Check(rhs, \ldots)$ is called first, the bounds for $y$ in the context will be updated to use
+$inverse(e2, w)$ in place of $w$.  Each substituted expression will be left unchanged as the bounds
+propagate in the call to $CheckLValue$.  $e2$ cannot use $v$, so $inverse(e2, w)$ will not use $v$.
+
+\item There is an assignment to $y$ in $lhs$ or $rhs$.   The case where there is an assignment 
+to $y$ in the $rhs$ is not possible because that would create an unordered read and write of $y$.
+$y$ can also not be assigned within $e1$ for a similar reason.  That leaves just one case: $y$ is
+assigned to after $e1$ is evaluated.  This means that the bounds of $y$ must be $C[y]$.   The logic
+regarding propagating bounds from the prior case can be applied to show that the order of
+assignments does not matter.
+\end{itemize}
 \end{itemize}
 
-\subsection{Top-level expressions}
+\subsection{Full expressions}
 
-For a top-level expression $e$, we will validate that the updated context implies the declared bounds.
-A top-level expression is an expression not nested within another expression.
+For a full expression $e$, we will validate that the updated context implies the declared bounds.
+A full expression \cite[Annex C]{ISO2011} is an expression not nested within another expression.
 The routine $Validate(C, UC, EQ)$ takes a context $C$,
 constructed using declared bounds, an updated context $UC$, and an equality fact set $EQ$
 that is valid when $UC$ is valid.  It checks that $UC$ and $EQ$ imply the validity of $C$.
 
-The top-level checking works as follows:
+The checking works as follows:
 \begin{enumerate}
 \item Let $DC$ be the context formed from declared bounds.
 \item Let $(\_, UC, UEQ, \_) = Check(e, DC, \emptyset, \emptyset)$.
@@ -1110,16 +1134,22 @@ logical boolean expressions.
 
 For a comma expression $e1$~\lstinline|,|~$e2$, $Check(e, C, EQ, PV)$ is defined as follows:
 \begin{enumerate}
-\item Let $(B_{e1}, {UC}_{e1}, {UEQ}_{e1}, _)$ = $Check(e1, C, EQ, PV)$
+\item Let $(B_{e1}, {UC}_{e1}, {UEQ}_{e1}, \_)$ = $Check(e1, C, EQ, PV)$
 \item Let $(B, UC, UEQ, UG) = Check(e2, {UC}_{e1}, {UEQ}_{e1}, PV)$
 \end{enumerate}
 
 For a conditional expression $e1$~\lstinline+?+~$e2$~\lstinline+:+~$e3$, we validate that each branch
-of the conditional expression preserves bounds declarations.  This is tricky
+of the conditional expression preserves bounds declarations.
+
+This is tricky
 because of the possible interaction of conditional evaluation and unordered evaluation
 of expressions.  A bounds expression might depend both on variables modified 
 by other expressions and variables modified conditionally by one of the
-branches.  Our solution is to disallow expressions with such modifications.
+branches.  To handle this, $Check$ would need to produce two  contexts, with
+one context for the true case and one context for the false case.   This would in turn
+require that $Check$ take a set of contexts as inputs.  We could end up with the
+number of contexts growing exponentially.  To avoid checking becoming computationally
+expensive, we disallow such expressions.
 
 Let $DC$ be the context formed from declared bounds.
 \begin{enumerate}
@@ -1136,9 +1166,9 @@ variables in $Pending(e_i)$, report an error.
 If $e$ has no side-effects, let $G$ = \{ e \}.  Otherwise let $G=\emptyset$.
 \end{enumerate}
 
-Logical boolean expressions are as forms of conditional expressions.
-For  $Check(e1$\code{ && }$e2, C, PV)$, use $Check(e1$\code{ ?  }$e2$\code{: 0}$, C, PV)$.  For
-$Check(e1$\code{ || }$e2, C, PV)$,  use $Check(e1$\code{ ? 1 : }$e2, C, PV)$.
+Logical boolean expressions are treated as forms of conditional expressions.
+For  $Check(e1$ \code{&&} $ e2, C, PV)$, use $Check(e1$ \code{ ?  } $e2$ \code{: 0}$, C, EQ, PV)$.  For
+$Check(e1$ \code{ \|\| } $ e2, C, EQ, PV)$,  use $Check(e1 $ \code{ ? 1 : } $e2, C, EQ, PV)$.
 
 \section{Expression statements}
 \label{section:checking-expression-statements}
