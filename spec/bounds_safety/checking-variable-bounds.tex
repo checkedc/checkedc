@@ -793,16 +793,13 @@ Section~\ref{section:inferring-expression-bounds}.
 \subsection{Order of evaluation and checking}
 \label{section:avoiding-undefinedness}
 
-The order of evaluation of side-effects in subexpressions of an
-expression is defined in C only for control-flow expressions
-and in certain other circumstances \cite[Section 6.5,Annex C]{ISO2011}). Otherwise, the order of
-evaluation of side-effects is undefined. Although nested assignment
-expressions help the brevity of programs, theycan lead to expressions whose
-meaning or bounds are undefined. To avoid compromising the integrity of
-bounds information, checking must produce an error when it encounters
-these expressions.  For C expressions that provide control-flow
-(the comma operator, the conditional operator, and logical boolean operators), the checking must model the order of side-effects
-and their effect on bounds information.
+The order of evaluation of side-effects in subexpressions of an expression is defined in C only for 
+control-flow expressions and in certain other circumstances \cite[Section 6.5,Annex C]{ISO2011}).
+Otherwise, the order of evaluation of side-effects is undefined.   This complicates checking 
+because an expression with undefined order of evaluation of side-effects might have an 
+undefined meaning.  Checking must produce an error for these expressions because the
+validity of bounds information is not maintained by such expressions.   In addition, checking must still
+model the order of side-effects when the order is defined.
 
 The meaning of an expression is undefined if:
 
@@ -831,8 +828,8 @@ second case, there are two assignments to i and the order is undefined.
 In the third case, it is not clear when i is read vs. when it is
 modified.
 
-Bounds checks can lead to a subtle version of the second problem: an
-expression may have an assignment through a pointer that require a
+Bounds checks can lead to a subtle version of an unordered assignment
+and use.  An expression may have an assignment through a pointer that requires a
 bounds check. The bounds for the pointer expression may include a
 variable that is modified in the expression, where the order of
 evaluation of the assignment through the pointer and the variable
@@ -857,27 +854,26 @@ There are three aspects to the checking:
 \item Modelling the effect of assignments on the bounds
 of variables by calculating an updated context.
 \item Tracking and calculating equality facts.
-\item Preventing undefined behavior.
+\item Detecting undefined behavior.
 \end{itemize}
 The updated context and equality facts are used to prove that bounds
 declarations remain valid. 
 
-To prevent undefined behavior, the checking tracks
-sets of pending assignments. The pending assignments 
-track variables that have indeterminate values because
-an assignment may or may not have been completed.  The
-sets used to used to prevents:
+To detect undefined behavior, the checking tracks
+sets of variables with pending assignments.  Pending
+assignments may or may not have been completed, which means
+that the variables being assigned to have {\em indeterminate}
+values.  The set are used to used to detect:
 \begin{enumerate}
-\item The use of variables whose values are
-indeterminate because an assignment may or may not have been completed.
+\item Uses of variables whose values are indeterminate.
 \item Accessing memory with pointers whose bounds expressions
 are indeterminate because they use a variable whose value is indeterminate.
-\item Multiple unsequenced writes to the  same variable, which have undefined behavior.
+\item Unsequenced assignments to the  same variable.
 \end{enumerate}
 
-The C Standard \cite[Section 5.1.2.3]{ISO2011}
+The C Standard 
 describes a sequence relation between pairs of expressions $(e1, e2)$:
-the expression $e1$ must be evaluated before $e2$.  
+the expression $e1$ must be evaluated before $e2$ \cite[Section 5.1.2.3]{ISO2011}.  
 The C Standard
 further divides sequencing of expressions into value computations
 of expressions and side-effects of expressions \cite[Section 6.5, pars. 1,2]{ISO2011}.
@@ -890,7 +886,7 @@ be added to the pending set for $e$.
 
 We introduce the following notation:
 \begin{enumerate}
-\item Given context $C$, $C[v]$ returns the value for variable $v$ in $C$.
+\item Given a context $C$, $C[v]$ returns the value for variable $v$ in $C$.
 \item $C[v \mapsto B]$ produces a new context that is identical to $C$,
 except that variable $v$ is mapped to $B$.
 \item $v \in dom(C)$ means $v$ is is in the domain of $C$.
@@ -904,19 +900,20 @@ The checking is done by the following functions:
 \begin{enumerate}
 \item $Pending(e)$: calculates the set of variables $PV$
 with assignments that may be pending after evaluating $e$. 
-\item $Update$: update the context, the equality fact set,
-and other information to be valid in the program state after
+\item $Update$: updates the context, the equality fact set,
+and other information to be valid for the program state after
 a side-effect is completed.
 \item $Check$ and $CheckLValue$:  these mutually recursive
 functions check expressions.  For an expression, they compute
 its bounds, an updated context and equality fact set, and
-an equality fact true about the value.$Check$ handles expressions that
-produce value, while $CheckLValue$ handles expressions that produce
-lvalues. When an lvalue expression is used where a value is
-expected, the lvalue is implicitly converted to a value by
+an equality fact true about the value produced by the expression. 
+$Check$ handles expressions that
+produce values, while $CheckLValue$ handles expressions that produce
+lvalues.  In C, when an lvalue expression is used where a value is
+expected, the lvalue is converted implicitly to a value by
 reading the memory for the lvalue.
-\item $Validate$: this checks that an updated update
-and equality fact set imply the declare bounds for
+\item $Validate$: checks that the updated context
+and equality fact set imply that the declared bounds for
 variables are valid.
 \end{enumerate}
 
@@ -938,18 +935,18 @@ let $V =  GetLValueVariable(e1)$.  $P = Pending(e1) \cup V$.
 the $i^{th}$ subexpression.  Let $PV = \cup_{i=1}^{n} Pending(S_i)$.
 \end{enumerate}
 
-The definition of $GetLValueVariable(e)$ is:
+The definition of $GetLValueVariable(e)$ is as follows. If $e$ has the form:
 \begin{enumerate}
-\item If $e$ is a variable $v$, $\{ v \}$.
-\item If $e$ has the form $(e1)$, $GetLValueVariable(e1)$.
-\item If $e$ has the form $*e1$, $GetRValueVariable(e1)$.
+\item A variable $v$, $\{ v \}$.
+\item $(e1)$, $GetLValueVariable(e1)$.
+\item $*e1$, $GetRValueVariable(e1)$.
 \item Otherwise, $\emptyset$.
 \end{enumerate}
 
 The definition of $GetRValueVariable(e)$ is as follows. If $e$ has the form:
 \begin{enumerate}
 \item \code{&}$e1$, $GetLValueVariable(e1)$.
-\item$(e1)$, $GetRValueVariable(e)$.
+\item$(e1)$, $GetRValueVariable(e1)$.
 \item Otherwise, $\emptyset$
 \end{enumerate}
 
@@ -960,16 +957,17 @@ need to be updated so that they are valid for the program state when the assignm
 The function $Update(v, OVE, B, C, EQ, G)$ takes:
 \begin{compactitem}
 \item A variable $v$ that is being assigned to.
-\item $OVE$ is an expression that computes the original value of $v$ 
-(before the assignment) in the updated program state or the special value {\it None}.
+\item An optional expression $OVE$ that computes the original value of $v$ 
+(before the assignment) in the updated program state.   $OVE$ is either an expression
+or the special value {\it None}.
 \item A bounds expression $B$ for the value being assigned to $v$.
-\item A a context $C$.
+\item A context $C$.
 \item An equality fact set $EQ$. 
 \item An equality fact $G$ for the value being assigned to $v$.  $G$ must be valid in the program
 state (1) after any assignments in subexpressions of $a$ have completed (2) before $a$
 has completed.   A use of $v$ in $G$ is the value of $v$ before $a$ has completed.
 \end{compactitem}
-It returns updated bounds, context, equality facts, and equality facts ($UB$, $UC$, $UEQ$, and $UG$)
+It returns an updated bounds, context, equality fact set, and equality fact ($UB$, $UC$, $UEQ$, and $UG$)
 that are valid in the program state after the assignment is complete.
 
 Its definition is:
@@ -982,7 +980,7 @@ set $OVE$ to $w$.
 $B_x$ uses $v$,
 \begin{compactenum}
 \item If $OVE$ is {\it None}, let $UC = UC[x \mapsto$ \boundsunknown $]$.
-item  Otherwise, let $B_x^\prime = B_x$ with $OVE$ substituted for $v$.  
+\item  Otherwise, let $B_x^\prime = B_x$ with $OVE$ substituted for $v$.  
 Let $UC = UC[x \mapsto B_x^\prime]$
 \end{compactenum}
 \item Let $UB = B$.  If $UB$ uses $v$, update $UB$ similarly.
@@ -1004,23 +1002,23 @@ may be modified by other expressions whose  evaluation is unordered with respect
 
 $Check$ returns:
 \begin{itemize}
-\item A bound expression $B$ for the values of $e$.
+\item A bounds expression $B$ for the values at runtime to which $e$ evaluates.
 \item An updated context $UC$.
 \item An updated set of equality facts $UEQ$.
 \item An equality fact $G$ about the values produced by $e$. 
 \item $Check$ may also report an error.
 \end{itemize}
-The results produced by $Check$ are valid in the program state.
+The results produced by $Check$ are valid in the program state
 {\em after} the assignments in $e$ have been completed.   When $B$ or entries in 
-$UC$ depend on pending variables, it is important to not use them during runtime bounds checking.
+$UC$ depend on pending variables, it is important not to use them during runtime bounds checking.
 
-The function $CheckLValue(e, C, EQ PV)$ is similar to $Check$, but takes an
+The function $CheckLValue(e, C, EQ, PV)$ is similar to $Check$, but takes an
 expression $e$ that evaluates to an lvalue.  The bounds expression $B$ that it 
 returns is for the lvalue to which $e$ evaluates.  The function $NeedsBoundsCheck(e)$ takes
 an expression that evaluates to an lvalue and determines if an 
 assignment to $e$ requires a bounds check.
 
-When $Check$ is used recursively on a subexpression of $e$, it calculates 
+Before $Check$ calls itself recursively on a subexpression of $e$, it calculates 
 additional variables that are pending due to other subexpressions of $e$.
 The definition of $Check(e, C, EQ, PV)$ is:
 \begin{enumerate}
@@ -1039,7 +1037,7 @@ The definition of $Check(e, C, EQ, PV)$ is:
 \item If $e$ has array type, let $B = B_e$.
 \item Otherwise, there will an implicit read of the lvalue produced by $e$ at runtime.
 \begin{enumerate}
-\item If $NeedsBoundsCheck(e)$ returns true, we will insert a bounds check that $e$
+\item If $NeedsBoundsCheck(e)$ returns true, a compiler will insert a bounds check that $e$
 is a valid memory location to access.  Check that $B_e$ does not use any variables in 
 $PV$.  If it does, report an error.
 \item Let $B = $ \boundsunknown.
@@ -1049,17 +1047,17 @@ $PV$.  If it does, report an error.
 \label{list:check-assignment}
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
-        and $P_{rhs}$  describe variables that are pending during the evaluations of $lhs$ and $rhs$ due
-        to assignments in other expressions.
-\item Let $(B_{lhs}, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, c, EQ - P_{lhs}, P_{lhs})$.  
+        and $P_{rhs}$  describe variables that are pending during the evaluations of $lhs$ and $rhs$.
+\item Let $(B_{lhs}, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ - P_{lhs}, P_{lhs})$.  
 \item Let $(B_{rhs}, {UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = Check(rhs, {UC}_{lhs}, {UEQ}_{lhs} - P_{rhs},P_{rhs}))$ 
 \item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
-$PV \cup PV_{lhs} \cup PV_{rhs}$.  If it does, report an error.
+$PV \cup Pending(lhs) \cup Ppending(rhs)$.  If it does, report an error.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValue(lhs) = { v }$),
 \begin{enumerate}
-\item Check that $v \notin PV \cup P_{lhs} \cup P_{rhs}$.  If it is, report an error.  
+\item Check that $v \notin PV \cup Pending(lhs) \cup Pending(rhs)$.  If it is, report an error.  
 There are multiple unsequenced assignments to $v$.
-\item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$.   Otherwise
+\item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$.   Otherwise,
+
 let $iv = $ {\it None}.
 \item Let $(B, UC, UEQ, G) = Update(v, iv, B_{rhs}, UC_{rhs}, UEQ_{rhs}, G_{rhs})$.
 \end{enumerate}
@@ -1091,7 +1089,7 @@ let $iv = v$ \code{ + 1}.
 \begin{enumerate}
 \item Let $UC = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
 \item Visit the $n$ subexpressions in some order, accumulating results into $UC$ and $UEQ$.  If the current subexpression being visited is $S_i$,
-let $(B_i, UC, UEQ, G_i) = Check(S_i, UC, \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
+let $(B_i, UC, UEQ, G_i) = Check(S_i, UC, UEQ, \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
 \item If $e$ has no side-effects, let $G$ = \{ e \}.  If $e$ has side-effects, see if we can use the
 $G_i$ to construct a version $e^\prime$ of $e$ that computes the same value but has no side-effects.  
 If we can, let $G = \{ e^\prime \}$.  Otherwise, let $G = \emptyset$.
