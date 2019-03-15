@@ -963,17 +963,14 @@ or the special value {\it None}.
 \item A bounds expression $B$ for the value being assigned to $v$.
 \item A context $C$.
 \item An equality fact set $EQ$. 
-\item An equality fact $G$ for the value being assigned to $v$.  $G$ must be valid in the program
-state (1) after any assignments in subexpressions of $a$ have completed (2) before $a$
-has completed.   A use of $v$ in $G$ is the value of $v$ before $a$ has completed.
+\item An equality fact $G$ for the value being assigned to $v$.  All expressions in $G$ 
+evaluate to the same value that is being assigned to $v$.
 \end{compactitem}
 It returns an updated bounds, context, equality fact set, and equality fact ($UB$, $UC$, $UEQ$, and $UG$)
 that are valid in the program state after the assignment is complete.
 
 Its definition is:
 \begin{compactenum}
-\item If $OVE$ is {\em None}, $G$ is non-empty, and $G$ contains a variable $w$ other than $v$,
-set $OVE$ to $w$. 
 \item Let $UC = C$.
 \item If $v$ has \arrayptr\ type and declared bounds, let $UC = UC[v \mapsto B]$.
 \item Update $UC$ to reflect the effect of the assignment.  For any variable $x$ where $UC[x] = B_x$ and
@@ -986,8 +983,7 @@ Let $UC = UC[x \mapsto B_x^\prime]$
 \item Let $UB = B$.  If $UB$ uses $v$, update $UB$ similarly.
 \item Let $UEQ = EQ$.  Adjust $UEQ$ so that it is true for the program state after the assignment. For any expression $d$ in $UEQ$ that uses $v$, if $OVE$ is {\it None}, let $UEQ$ = $UEQ $ - $d$. Otherwise,
 substitute $OVE$ for $v$ in $d$.
-\item Update the equality fact for the assignment.   Let $UG = G$.  Remove any expressions in $UG$
-that use the value of $v$. Add $\{v\}$ to $UG$.
+\item Update the equality fact for the assignment.   Let $UG = G$.  Update $UG$ the same way that $UEQ$ was updated.  Add $\{v\}$ to $UG$.
 \item Add $UG$ to $UEQ$.
 \end{compactenum}
 
@@ -1024,11 +1020,12 @@ The definition of $Check(e, C, EQ, PV)$ is:
 \begin{enumerate}
 \item If $e$ is a variable $v$ and $e$ does not have array type,
 \begin{enumerate}
-\item If $v \in PV$, report an error.  There is an unsequenced read and write of $v$.
+\item If $v \in PV$, report an error.  There is an unsequenced use and assignment of $v$.
 \item Otherwise,
 \begin{enumerate} 
 \item If $v \in dom(C)$, let $B = C[v]$.  If $v \notin dom(C)$, let $B =$ \boundsunknown.
-\item Let $UC = C$, $UEQ = EQ$, and $G = \{ v \}$.
+\item Let $UC = C$ and $UEQ = EQ$. If $v$ is an element of an equality fact set $F$ in $EQ$,
+let $G = F$.  Otherwise let $G = \{ v \}$.
 \end{enumerate}
 \end{enumerate}
 \item If $e$ is another lvalue expression, 
@@ -1043,22 +1040,26 @@ $PV$.  If it does, report an error.
 \item Let $B = $ \boundsunknown.
 \end{enumerate}
 \end{enumerate}
-\item If $e$ has the form $lhs = rhs$,
+\item If $e$ has the form $lhs = rhs$ or $lhs op= rhs$,
 \label{list:check-assignment}
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
         and $P_{rhs}$  describe variables that are pending during the evaluations of $lhs$ and $rhs$.
-\item Let $(B_{lhs}, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ - P_{lhs}, P_{lhs})$.  
-\item Let $(B_{rhs}, {UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = Check(rhs, {UC}_{lhs}, {UEQ}_{lhs} - P_{rhs},P_{rhs}))$ 
+\item Let $(B_{lhs}, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ, P_{lhs})$.  
+\item Let $(B_{rhs}, {UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = Check(rhs, {UC}_{lhs}, {UEQ}_{lhs},P_{rhs})$ 
 \item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
-$PV \cup Pending(lhs) \cup Ppending(rhs)$.  If it does, report an error.
+$PV \cup Pending(lhs) \cup Pending(rhs)$.  If it does, report an error.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValue(lhs) = { v }$),
 \begin{enumerate}
 \item Check that $v \notin PV \cup Pending(lhs) \cup Pending(rhs)$.  If it is, report an error.  
 There are multiple unsequenced assignments to $v$.
-\item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$.   Otherwise,
-
-let $iv = $ {\it None}.
+\item Choose an expression that computes the old value of $v$:
+\begin{enumerate}
+\item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$.   
+\item Otherwise, if $EQ - Pending(lhs) - Pending(rhs)$ has an equality fact set  $F$ that contains $v$ as 
+an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
+\item Otherwise, let $iv = $ {\it None}.
+\end{enumerate}
 \item Let $(B, UC, UEQ, G) = Update(v, iv, B_{rhs}, UC_{rhs}, UEQ_{rhs}, G_{rhs})$.
 \end{enumerate}
 \end{enumerate}
@@ -1074,7 +1075,8 @@ $PV \cup Pending(e1)$.  If it does, report an error.
 let $iv = v$ \code{ - 1}.
 \item If $e1$ has the form \code{--}$v$ or $v$\code{--} and $v$ \code{ - 1} is invertible, 
 let $iv = v$ \code{ + 1}.
-\item Otherwise, let $iv = $ {\em None}.
+\item Otherwise, try using information from $EQ$ as done for assignments to compute $iv$.
+\item If that does not work, let $iv = $ {\em None}.
 \item Compute $B$ using the rules in Section~\ref{section:inferring-increment-bounds}.
 \item Let $(B, UC, UEQ, UG) = Update(v, iv, B, UC_{e1}, UEQ_{e1}, \emptyset)$
 \end{enumerate}
@@ -1090,8 +1092,9 @@ let $iv = v$ \code{ + 1}.
 \item Let $UC = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
 \item Visit the $n$ subexpressions in some order, accumulating results into $UC$ and $UEQ$.  If the current subexpression being visited is $S_i$,
 let $(B_i, UC, UEQ, G_i) = Check(S_i, UC, UEQ, \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
-\item If $e$ has no side-effects, let $G$ = \{ e \}.  If $e$ has side-effects, see if we can use the
-$G_i$ to construct a version $e^\prime$ of $e$ that computes the same value but has no side-effects.  
+\item If $e$ has no side-effects, let $G$ = \{ e \}.  If $e$ has side-effects, see if we can construct
+a version $e^\prime$ of $e$ that computes the same value but has no side-effects, using information
+from the $G_i$ if necessary.
 If we can, let $G = \{ e^\prime \}$.  Otherwise, let $G = \emptyset$.
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$.
 \end{enumerate}
@@ -1241,29 +1244,40 @@ by other expressions and variables modified conditionally by one of the
 branches.  To handle this, $Check$ would need to produce two  contexts, with
 one context for the true case and one context for the false case.   This would in turn
 require that $Check$ take a set of contexts as inputs.  We could end up with the
-number of contexts growing exponentially.  To avoid checking becoming computationally
-expensive, we disallow such expressions.
+number of contexts growing exponentially.
+
+To avoid checking becoming computationally expensive, we disallow such expressions.
+We also need a way of forming a single updated context that is valid after both arms.
+Our solution is to require that top-level bounds involving variables modified by a conditional arm
+be valid after both arms.   We can then use top-level bounds after the conditional, without
+concern about which arm was evaluated.
 
 Let $DC$ be the context formed from declared bounds.
+Let $DC^\prime$ be $DC$ restricted to variables in $Pending(e1) \cup Pending(e2)$:
+for each variable $v \in dom(DC)$, keep the entry if $v \in Pending(e1) \cup Pending(e2)$
+or $DC[v]$ uses the value of a variable in $Pending(e1) \cup Pending(e2)$.
 \begin{enumerate}
-\item Let $(\_, {UC}_{e1}, {UEQ}_{E1}, \_)= Check(e1, C, EQ, PV)$
+\item Let $(\_, {UC}_{e1}, {UEQ}_{e1}, \_)= Check(e1, C, EQ, PV)$
 \item For each arm $e_i$ of the conditional branch,
 \begin{enumerate}
-\item If there is a bounds expression in ${UC}_i$ or $DC$ that uses variables in $PV$ and
+\item If there is a bounds expression in $DC$ that uses variables in $PV$ and
 variables in $Pending(e_i)$, report an error.
-\item Let $(B_i, {UC}_i, {UEQ}_i) = Check(e2, {UC}_{e1}, PV)$.
-\item Let $DC_i$ be $D$ with its domain restricted to variables in $Pending(e_i) \cup Pending(e1)$. 
-\item Call $Validate(DC_i, {UC}_i, {UEQ}_i)$.
+\item Let $(B_i, {UC}_i, {UEQ}_i) = Check(e_i, {UC}_{e1}, PV)$.
+\item Call $Validate(DC^\prime, {UC}_i, {UEQ}_i)$.
 \end{enumerate}
-\item Let $UC = {UC}_{e1}$, $B$ be the greatest lower bound of the $B_i$, $UEQ = {UEQ}_{E1}$.
-If $e$ has no side-effects, let $G$ = \{ e \}.  Otherwise let $G=\emptyset$.
+\item Let $UC = C$.  Update $UC$ so that any variables modified by the conditional expression
+have the top-level declared bounds (which were just validated after each arm).
+For any variable $v$ in $DC^\prime$, let $UC[v] = DC^\prime[v]$.
+\item Let $B$ be the greatest lower bound of the $B_i$.
+\item Let $UEQ = {UEQ}_1 \cap {UEQ}_2$.
+\item If $e$ has no side-effects, let $G$ = \{ e \}.  Otherwise let $G=\emptyset$.
 \end{enumerate}
 
 Logical boolean expressions are treated as forms of conditional expressions.
 For  $Check(e1$ \code{&&} $ e2, C, PV)$, use $Check(e1$ \code{ ?  } $e2$ \code{: 0}$, C, EQ, PV)$.  For
 $Check(e1$ \code{ \|\| } $ e2, C, EQ, PV)$,  use $Check(e1 $ \code{ ? 1 : } $e2, C, EQ, PV)$.
 
-\section{Checking that expressions maintain declared bounds}
+\section{Checking that full expressions maintain declared bounds}
 \label{section:checking-expression-statements}
 
 We need to check that full expressions mantain the validity of
