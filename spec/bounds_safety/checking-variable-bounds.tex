@@ -30,10 +30,11 @@ the right-hand side must include all the memory that is accessible via the varia
 In addition, after assignments to variables used in declared bounds, the
 declared bounds must still be valid.
 
-Subsumption checking is parameterized by {\it equality facts}.
-An equality fact is a set of expressions or temporaries that evaluate 
-to the same value given the current state of memory.  
-Equality facts are introduced by assignments and are also inferred using dataflow analysis.
+Subsumption checking is parameterized by {\it sets of equivalent non-modifying expressions}.
+Two non-modifying expressions are equivalent if they
+evaluate to the same value given the program state at the program point where 
+checking is being done.  Assignments create equivalent non-modifying
+expressions. Equivalence can also be inferred by dataflow analysis.
 
 To handle both assignments to pointer variables with bounds and assignments
 to variables used in bounds, we generalize bounds declaration
@@ -54,13 +55,15 @@ expressions  via comma expressions,   conditional expressions, and
 logical boolean expressions (the \code{&&} and \code{||} expressions).
 
 To handle this, we extend the analysis to track assignments
-whose stores to memory may pending.  For conditional expressions
-and logical boolean expressions, we require that bounds be provably
-true for the branches of the expressions. This rule keeps the analyis
-tractable, while being easily explainable to programmers.  It disallows
-some expressions for which bounds could be proved valid, such as 
-a conditional expression whose evaluation is unordered with respect
-to an assignment or another conditinal expression.
+whose stores to memory may be pending.  To keep the tracking
+tractable, we place some restrictions on conditional expressions
+and logical boolean operations.  If an arm of a conditional expression
+modifies a variable, any bounds that use that variable must be provably
+true after each arm of the conditional expression.  Similarly, if a
+logical boolean operator modifies a variable, any bounds that
+use that variable must be provable after each operand of the operator.
+ariable is updated conditionally
+by an expression, any bounds that use that variable must be provable
 
 The descriptions of bounds inference and bounds checking are
 presented in a cumulative fashion.  We start with the simplest
@@ -82,7 +85,8 @@ within expressions.
 Section~\ref{section:checking-expression-statements} describes
 subsumption checking on bounds expressions.   The subsumption checking
 puts expressions into a standard form.  It then uses syntactic equality,
-extended with simple identities about C expressions and taking into account equality facts.
+extended with simple identities about C expressions and taking into account expression
+equivalence information.
 Inference steps for relational reasoning about bounds expressions 
 are described in Chapter~\ref{chapter:simple-invariants}.
 
@@ -550,10 +554,10 @@ after the assignment.  If \var{v} has \arrayptr\ type, the bounds expression in
 the context for \var{v} is updated to the inferred bounds expression for \var{e}.
 We also model the change in \var{v}'s
 value for any bounds expressions in the context that use \var{v}.   If the result of 
-evaluating \var{e} is available in a temporary, we update the equality fact set 
-to record that \var{v} equals the temporary when the (top-level) assignment
+evaluating \var{e} is available in a temporary, we update the sets of equivalent
+expressions to record that \var{v} equals the temporary when the (top-level) assignment
 expression is completely evaluated.
-We use the updated context and equality fact set to check
+We use the updated context and sets of equivalent expressions to check
 that the new bounds expressions subsume the declared bounds expressions for variables.
 
 For an assignment expression of the form \var{x} \code{=} \var{e},
@@ -629,7 +633,7 @@ Second, the context is updated to reflect the change in the value of
 \end{itemize}
 
 Third, if the value of \var{e} is also available in a temporary,
-we record in the set of equality facts that \var{x} equals that
+we record in the expression equivalance set that \var{x} equals that
 temporary (at the end of evaluating the expression).
 
 \subsection{Invertibility}
@@ -825,7 +829,7 @@ a[i++] = i;
 In the first case, the value of the right-hand side expression is 11,
 yet at the end of the expression, the value of x could be 5 or 6. In the
 second case, there are two assignments to i and the order is undefined.
-In the third case, it is not clear when i is read vs. when it is
+In the third case, it is not clear when i is read versus when it is
 modified.
 
 Bounds checks can lead to a subtle version of an unordered assignment
@@ -853,10 +857,10 @@ There are three aspects to the checking:
 \begin{itemize}
 \item Modelling the effect of assignments on the bounds
 of variables by calculating an updated context.
-\item Tracking and calculating equality facts.
+\item Tracking and calculating sets of equivalent (non-modifying) expressions.
 \item Detecting undefined behavior.
 \end{itemize}
-The updated context and equality facts are used to prove that bounds
+The updated context and equivalence information are used to prove that bounds
 declarations remain valid. 
 
 To detect undefined behavior, the checking tracks
@@ -890,30 +894,29 @@ We introduce the following notation:
 \item $C[v \mapsto B]$ produces a new context that is identical to $C$,
 except that variable $v$ is mapped to $B$.
 \item $v \in dom(C)$ means $v$ is is in the domain of $C$.
-\item Recall that an equality fact is a set of equivalent expressions.  An 
-equality fact set is a set of sets of equivalent expressions.  $EQ - S$ takes
-an equality fact set and a set of variables.  It produces a new equality fact
-set with any expressions that use the values of variables in $S$ removed.
+\item $EQ - S$ takes sets of equivalent expressions $EQ$  and a set of variables
+$S$.  It produces new sets by removing any expressions that use the value 
+of variables in $S$.
 \end{enumerate}
 
 The checking is done by the following functions:
 \begin{enumerate}
 \item $Pending(e)$: calculates the set of variables $PV$
 with assignments that may be pending after evaluating $e$. 
-\item $Update$: updates the context, the equality fact set,
+\item $Update$: updates the context, the sets of equivalent expressions,
 and other information to be valid for the program state after
 a side-effect is completed.
 \item $Check$ and $CheckLValue$:  these mutually recursive
 functions check expressions.  For an expression, they compute
-its bounds, an updated context and equality fact set, and
-an equality fact true about the value produced by the expression. 
+its bounds, an updated context, updated sets of equivalent expressions,
+and a set of expressions that produce the same value as $e$.
 $Check$ handles expressions that
 produce values, while $CheckLValue$ handles expressions that produce
 lvalues.  In C, when an lvalue expression is used where a value is
 expected, the lvalue is converted implicitly to a value by
 reading the memory for the lvalue.
 \item $Validate$: checks that the updated context
-and equality fact set imply that the declared bounds for
+and sets of equivalent expressions imply that the declared bounds for
 variables are valid.
 \end{enumerate}
 
@@ -952,8 +955,8 @@ The definition of $GetRValueVariable(e)$ is as follows. If $e$ has the form:
 
 \subsection{Checking expressions with unordered evaluation of operands}
 
-When an assignment $a$ to a variable $v$ happens, the context and equality fact set 
-need to be updated so that they are valid for the program state when the assignment is complete.
+When an assignment $a$ to a variable $v$ happens, the context and sets of equivalent expressions
+need to be updated so that they are valid for the program state after the assignment is complete.
 The function $Update(v, OVE, B, C, EQ, G)$ takes:
 \begin{compactitem}
 \item A variable $v$ that is being assigned to.
@@ -962,12 +965,11 @@ before the assignment.  $OVE$ is either an expression
 or the special value {\it None}.
 \item A bounds expression $B$ for the value being assigned to $v$.
 \item A context $C$.
-\item An equality fact set $EQ$. 
-\item An equality fact $G$ for the value being assigned to $v$.  All expressions in $G$ 
-evaluate to the same value that is being assigned to $v$.
+\item Sets of equivalent expressions $EQ$. 
+\item A set of equivalent expressions $G$ that produce the same value being assigned to $v$.
 \end{compactitem}
-It returns an updated bounds, context, equality fact set, and equality fact ($UB$, $UC$, $UEQ$, and $UG$)
-that are valid in the program state after the assignment is complete.
+It returns updated bounds $UB$, context $UC$, and sets of equivalent expression ($UEQ$, and $UG$)
+that are valid in the program state after the assignment
 
 Its definition is:
 \begin{compactenum}
@@ -983,15 +985,15 @@ Let $UC = UC[x \mapsto B_x^\prime]$
 \item Let $UB = B$.  If $UB$ uses $v$, update $UB$ similarly.
 \item Let $UEQ = EQ$.  Adjust $UEQ$ so that it is true for the program state after the assignment. For any expression $d$ in $UEQ$ that uses the value of $v$, if $OVE$ is {\it None}, let $UEQ$ = $UEQ $ - $d$.
 Otherwise, substitute $OVE$ for the use of $v$ in $d$.
-\item Update the equality fact for the assignment.   Let $UG = G$.  Update $UG$ the same way that $UEQ$ was updated.  Add $\{v\}$ to $UG$.
+\item Let $UG = G$. Update the set of equivalent expressions $G$ similarly to $UEQ$. Add $\{v\}$ to $UG$.
 \item Add $UG$ to $UEQ$.
 \end{compactenum}
 
-The bounds declaration checking function $Check(e, C, EQ, PV, Form, FB)$   takes as inputs:
+The bounds declaration checking function $Check(e, C, EQ, PV, Form, FB)$ takes as inputs:
 \begin{compactenum}
 \item An expression $e$ that evaluates to a value.
 \item A context $C$.
-\item A set of equality facts $EQ$.
+\item Sets of equivalent expression $EQ$.
 \item A set $PV$ of indeterminate variables.  The variables 
 may be modified by other expressions whose  evaluation is unordered with respect to $e$'s evaluation.
 \item Whether $e$ is special instruction form.  This can have 3 values: $Standard$, $PostIncDec$,
@@ -1005,23 +1007,25 @@ $Check$ returns:
 \begin{compactenum}
 \item A bounds expression $B$ for the values at runtime to which $e$ evaluates.
 \item An updated context $UC$.
-\item An updated set of equality facts $UEQ$.
-\item An equality fact $G$ about the values produced by $e$. 
+\item Updated sets of equivalent expressions $UEQ$.
+\item A set of equivalent expressions $G$ that will produce the same value as $e$. 
 \item It may also report an error.
 \end{compactenum}
 The results produced by $Check$ are valid in the program state
 {\em after} the assignments in $e$ have been completed.   When $B$ or entries in 
 $UC$ depend on pending variables, it is important not to use them during runtime bounds checking.
+Similarly, during checking, it is important not to use equality information
+from $UEQ$ or $G$ that depends on pending variables.
 
 The function $CheckLValue(e, C, EQ, PV)$ is similar to $Check$, but takes an
 expression $e$ that evaluates to an lvalue.  It returns:
 \begin{compactenum}
-\item A bounds expression $B$ for for the lvalues at runtime to which $e$ evaluates.
+\item A bounds expression $B$ for for the lvalues produced by $e$.
 \item A target bounds expression $TB$ for the values stored in the lvalues.
 \item An updated context $UC$.
-\item An updated set of equality facts $UEQ$.
-\item An equality fact $G$ about the lvalues produced by $e$. 
-\item  It may also report an error.
+\item Updated sets of equivalent expressions $UEQ$.
+\item A set of equivalent expressions $G$ that produce the same lvalue as $e$. 
+\item It may also report an error.
 \end{compactenum}
 
 The function $NeedsBoundsCheck(e)$ takes
@@ -1045,7 +1049,7 @@ $PV$.  If it does, report an error.
 \item If $e$ is a variable $v$ and $v \in PV$, report an error.  There is an unsequenced use and
 assignment of $v$.
 \item Let $B = TB$. 
-\item If $e$ is an element of an equality fact set $F$ in $EQ$, let $G = F$. 
+\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ - PV$, let $G = F$. 
 \item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.  
 \item Otherwise, let $G = \emptyset$ (we address aliasing of memory accesses in another section).
 \end{enumerate}
@@ -1070,7 +1074,7 @@ There are multiple unsequenced assignments to $v$.
 \item Choose an expression that computes the old value of $v$:
 \begin{enumerate}
 \item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$. 
-\item Otherwise, if $EQ - Pending(lhs) - Pending(rhs)$ has an equality fact set  $F$ that contains $v$ as 
+\item Otherwise, if $EQ - (PV \cup Pending(lhs) \cup Pending(rhs))$ contains a set of equivalent expressions $F$ that contains $v$ as 
 an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
 \item Otherwise, let $iv = $ {\it None}.
 \end{enumerate}
@@ -1094,11 +1098,8 @@ Compound, None)$.
 C, EQ, PV, PostIncDec, None)$.
 \item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, C, EQ, PV, PostIncDec, None)$.
 \end{enumerate}
-
-\item If $e$ has the form $(e1)$, the result is $Check(e1, C, EQ, PV, Standard)$.
-
 \item If $e$ has the form \code{&}$e1$, let $(B, \_, UC, UEQ, G) = CheckLValue(e1, C, EQ, PV)$.
-
+      
 \item Otherwise, $e$ is some expression with $n$ subexpressions (n may be 0).  The
 result is 
 \begin{enumerate}
@@ -1107,18 +1108,28 @@ result is
 \begin{enumerate}
 \item If $i = 1$ and $Form = PostIncDec$ or $Form = Compound$, $S_1$ has already
 been checked, so use the results from that.  Let $B_1 = FB$.  If $S_1$ appears in some set $F$ in $UEQ$,
- let $G_1 = F$.   Otherwise, let $G_1 = \emptyset$.
-\item Otherwise,  let $PV_i = \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
+ let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.
+\item Otherwise, let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
 Let $(B_i, \_, UC, UEQ, G_i) =$  $Check(S_i, UC, UEQ, PV_i, Standard, None)$.
 \end{enumerate}
-\item Determine the equality fact set for $e$.
+\item Determine the set of equivalent expressions for $e$.  Recall that the equivalent expressions must be non-modifying expressions.
 \begin{enumerate}
 \item  If $Form = PostIncDec$, let $Val = S_1$.  Otherwise, let $Val = e$.
-\item If $Val$ has no side-effects, let $G  = \{ Val \}$.
-\item If $Val$ has side-effects, see if we can construct a version $Val^\prime$ of $Val$ that computes the same value as $Val$ but has no side-effects. Use equality information from the $G_i$ for
-subexpressions that have side-effects (or $G_1$ when $Form = PostIncDec$).
+\item If $Val$ is a non-modifying expression, let $G  = \{ Val \}$.
+\item If $Val$ is a call expression, let $G = \emptyset$.
+\item Otherwise, try to construct a version $Val^\prime$ of $Val$ that computes the same value 
+      as $Val$ but is a non-modifying expression. 
+      
+      For any subexpression $S_i$ that is a modifying expression, 
+      use an expression from $G_i$ (or $G_1$ when $Form = PostIncDec$). If $G_i$ is empty, $Val\prime$ cannot
+      be constructed.
+      
+      Note that an invariant about each $G_i$ is that it will not contain any uses of variables in $PV_i$.
+      This means that side-effects in other subexpressions do not affect the value of expressions in $G_i$.
+\item If $Val^\prime$ can be constructed, let $G = \{ Val^\prime \}$.  Otherwise, let $G = \emptyset$.	
 \end{enumerate}
-\item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$.
+\item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$. 
+\item If computing $B$ introduces a temporary $t$ to hold the value produced by evaluating $e$, add $t$ to $G$.
 \end{enumerate}
 \end{enumerate}
 
@@ -1169,10 +1180,10 @@ The definition of $NeedsBoundsCheck(e)$ is:
 \subsection{Full expressions}
 
 For a full expression $e$, we will validate that the updated context
-and equality fact set imply the declared bounds.
+and sets of equivalent expressions imply the declared bounds.
 A full expression \cite[Annex C]{ISO2011} is an expression not nested within another expression.
 The routine $Validate(C, UC, EQ)$ takes a context $C$,
-constructed using declared bounds, an updated context $UC$, and an equality fact set $EQ$
+constructed using declared bounds, an updated context $UC$, and sets of equivalent expressions $EQ$
 that is valid when $UC$ is valid.  It checks that $UC$ and $EQ$ imply the validity of $C$.
 
 The checking works as follows:
@@ -1239,12 +1250,37 @@ $Check(e1$ \code{ ?  } $e2$ \code{: 0}$, C, EQ, PV, Form, None)$.
 For $Check(e1$ \code{ \|\| } $ e2, C, EQ, PV, Form, TB)$,  use 
 $Check(e1 $ \code{ ? 1 : } $e2, C, EQ, PV, Standard, None)$.
 
+\subsection{Examples}
+
+\begin{lstlisting}
+int len = 0;
+array_ptr<int> x : count(len) = 0;
+
+x = malloc(5), len = 5;
+\end{lstlisting}
+
+\begin{small}
+\begin{tabbing}
+~~~\=~~~\=~~~\=~~~\=~~~\=\\
+$Check(e=$~\code{x = malloc(5)}\code{, len = 5}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},
+       EQ=\emptyset, PV=\emptyset, Form=Standard, FG=None)$ \\
+  \>$Check(e=$~\code{x = malloc(5)}$,C=\{x\mapsto$\code{bounds(x,x + len)}$\},
+           EQ=\emptyset, PV=\emptyset, Form=Standard, FG=None)$ \\
+  \>\>$CheckLValue($\code{x}$, C = \{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+  \>\>\>Result = $(B = $ \code{bounds(&x, &x + 1)}, $TB = $\code{bounds(x, x + len)}$,
+                 UC = \{x \mapsto$\code{bounds(x, x + len)}$, UEQ = \emptyset, G = \{$\code{&v}\}$)$ \\
+  \>\>$Check($\code{malloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset, Form = Standard, FG = None)$\\
+  \>\>\>Result = $(B = $ \code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset, G = \{$ \code{tmp}$\})$\\  
+  \>\>Result= $(B = $\code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{ tmp, x\}\}, G = \{tmp\})$ \\
+\end{tabbing}
+\end{small}
+
 \subsection{Different orders of recursive calls produce the same result}
 
 The pending variable sets used in recursive calls to $Check$ and $CheckLValue$
-ensure that updates to the context and equality fact set are done on different variables when order
-of evaluation is not specified.  This in turn ensures that the the same context and equality fact
-set are produced no matter which order the recursive calls are made.   Here we informally argue 
+ensure that updates to the context and sets of equivalent expressions are done on different variables when order
+of evaluation is not specified.  This in turn ensures that the the same context and sets of equivalent expressions
+are produced no matter which order the recursive calls are made.   Here we informally argue 
 that this property (known as confluence) holds for assignments that have  the form $lhs = rhs$.
 
 Suppose $lhs$
@@ -1254,20 +1290,21 @@ We know that $lhs$ does not update or use $w$ because of the pending variable pa
 we know that $rhs$ does not update or use $v$.
 
 Observe that a recursive call to $Check(e, \ldots)$ or $CheckLValue(e, \ldots)$  only updates the context
-and the equality fact set for variables that are assigned to in $e$.   $CheckLValue(lhs,\ldots)$ and
+and the sets of equivalent expressions for variables that are assigned to in $e$.   $CheckLValue(lhs,\ldots)$ and
 $Check(rhs, \ldots)$ have assignments to different sets of variables because of the $Pending$ sets.  This
 implies that $CheckLValue(lhs,\ldots)$ and $Check(rhs, \ldots)$ only do updates for different variables.
 
-We want to show this leads to the same context and equality fact set no matter which order 
+We want to show this leads to the same context and sets of equivalent expressions no matter which order 
 $CheckLValue$ and $Check$ are called.  We consider the case where  $CheckLValue(lhs, \ldots)$ 
 is called first. There are two possible kinds of updates in $CheckLValue$ for the assignment to $v$.
 \begin{itemize}
-\item Replace occurrences of $v$ in expressions in the context and the equality fact set with the
+\item Replace occurrences of $v$ in expressions in the context and sets of equivalent expressions with the
 expression $inverse(e1, v)$, which computes the prior value of $v$ based on the current value of $v$. 
 Now, $e1$ cannot use $w$, because that would result in $CheckLValue$ reporting an error.  
 $inverse(e1, v)$ does 
-not introduce any new uses of variables not in $e1$ so $inverse(e1, v)$ cannot use $w$ either.   After $inverse(e1, v)$ is substituted for $v$ in the context
-or the equality fact set during $CheckLValue(lhs, \ldots)$, each substituted expression will be
+not introduce any new uses of variables not in $e1$ so $inverse(e1, v)$ cannot use $w$ either.   
+After $inverse(e1, v)$ is substituted for $v$ in the context
+or the sets of equivalent expressions during $CheckLValue(lhs, \ldots)$, each substituted expression will be
 unchanged by the call to $Check(rhs, \ldots)$.  This is because the only updates done by 
 $Check(rhs, \ldots)$ involve $w$.   
 
@@ -1319,7 +1356,7 @@ Section~\ref{section:extent-definition} is used
 to determine the context for the full expression (the bounds
 for variables before the expression is evaluated). The $Check$
 method in Section~\ref{section:checking-nested-assignment-expressions}
-is then used to determine the updated context and equality fact set.
+is then used to determine the updated context and sets of equivalente expressions.
 
 The updated context is then checked against the bounds declarations that
 must be true after the expression statement. For each
@@ -1340,10 +1377,9 @@ The bounds expression for \var{x} in the updated context
 is called the updated bounds expression.  It must imply that the
 expected bounds expression holds. Implication is checked in this section
 by placing bounds expressions into a canonical form and
-checking for syntactic equality, taking into account equality
-facts that are valid after the expression. If two expressions 
-are equal, any values that they have at runtime will always be
-identical. Chapter~\ref{chapter:simple-invariants}
+checking for syntactic equality, taking into account sets 
+of expressions that are equivalent after the expression has
+been evaluated.  Chapter~\ref{chapter:simple-invariants}
 describes more general techniques for checking
 that context bounds imply the expected bounds.
 
@@ -1358,7 +1394,7 @@ expression holds if:
 \item
   The updated bounds expression and the expected bounds expression are
   equal syntactically after placing the expressions into canonical
-  forms, taking into equality facts that are true after the full
+  forms, taking into sets of expressions that are equivalent after the full
   expression,
 \item
   The canonicalized expressions
@@ -1996,7 +2032,7 @@ Section~\ref{section:checking-expression-statements}
 
 Note that if the bounds of \var{e} involve a temporary,
 the temporary does not occur in the (possibly updated) return bounds,
-and no equality facts have been recorded involving the temporary,
+and no sets of equivalent expressions have been recorded involving the temporary,
 the bounds of \var{e} cannot imply the return bounds are
 valid.  There will be no connection between the temporary
 and values used in the return bounds.
