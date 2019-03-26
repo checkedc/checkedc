@@ -1280,7 +1280,7 @@ $CheckFullExpr(e=$~\code{x = malloc(5)}\code{, len = 5}$)$\\
   \>\>\>\>~$UEQ = \emptyset, G = \{$\code{&v}\}$)$ \\
   \>\>\>$Check($\code{malloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset, Form = No, FG = None)$\\
   \>\>\>\>$(B = $ \code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
-              G = \{$ \code{tmp}$\})$\\  
+              G = \{$\code{tmp}$\})$\\  
  \>\>\>$(B = $\code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\}, 
           G = \{tmp, x\})$ \\
   \>\>$Check(e=$~\code{len = 5}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\}, 
@@ -1289,7 +1289,7 @@ $CheckFullExpr(e=$~\code{x = malloc(5)}\code{, len = 5}$)$\\
                               PV = \emptyset)$\\
    \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}$, TB = $\code{bounds(unknown)}$,$
                             $UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},$\\
-   \>\>\>\>~$UEQ = \{\{tmp, x\}\},  PV = \emptyset)$\\
+   \>\>\>\>\>~$UEQ = \{\{tmp, x\}\},  PV = \emptyset)$\\
    \>\>\>$Check(e = $\code{5}, $UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, EQ = \{\{tmp, x\}\}, PV = \emptyset, 
           Form = No, FG = None)$\\
    \>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
