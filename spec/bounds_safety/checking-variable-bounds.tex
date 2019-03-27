@@ -1025,7 +1025,7 @@ The function $CheckLValue(e, C, EQ, PV)$ is similar to $Check$, but takes an
 expression $e$ that evaluates to an lvalue.  It returns:
 \begin{enumerate}
 \item A bounds expression $B$ for for the lvalues produced by $e$.
-\item A target bounds expression $TB$ for the values stored in the lvalues.
+\item A bounds expression $RB$ for values read from the lvalues produced by $e$.
 \item An updated context $UC$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that produce the same lvalue as $e$. 
@@ -1042,7 +1042,7 @@ The definition of $Check(e, C, EQ, PV, Form, FB)$ is:
 \begin{enumerate}
 \item If $e$ is an lvalue expression
 \begin{enumerate}
-\item Let $(B_{lv}, TB, UC, UEQ, G_{lv}) = CheckLValue(e, C, EQ,PV)$.
+\item Let $(B_{lv}, RB, UC, UEQ, G_{lv}) = CheckLValue(e, C, EQ,PV)$.
 \item If $e$ has array type, let $B = B_{lv}$ and $G = G_{lv}$.
 \item If $e$ does not have array type, there will an implicit read of the lvalue produced by $e$
 at runtime:
@@ -1052,7 +1052,7 @@ to ensure $e$ is a valid memory location to access.  Check that $B_{lv}$ does no
 $PV$.  If it does, report an error.
 \item If $e$ is a variable $v$ and $v \in PV$, report an error.  There is an unsequenced use and
 assignment of $v$.
-\item Let $B = TB$. 
+\item Let $B = RB$. 
 \item If $e$ is an element of a set of equivalent expressions $F$ in $EQ - PV$, let $G = F$. 
 \item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.  
 \item Otherwise, let $G = \emptyset$ (we address aliasing of memory accesses in another section).
@@ -1066,9 +1066,9 @@ assignment of $v$.
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
         and $P_{rhs}$ describe variables that are pending during the evaluations of $lhs$ and $rhs$.
-\item Let $(B_{lhs}, TB, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ, P_{lhs})$.  
+\item Let $(B_{lhs}, RB, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ, P_{lhs})$.  
 \item Let $(B_{rhs},  {UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = 
-Check(rhs, {UC}_{lhs}, {UEQ}_{lhs},P_{rhs}, Form, TB)$.
+Check(rhs, {UC}_{lhs}, {UEQ}_{lhs},P_{rhs}, Form, RB)$.
 \item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
 $PV \cup Pending(lhs) \cup Pending(rhs)$.  If it does, report an error.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValue(lhs) = { v }$),
@@ -1144,7 +1144,7 @@ The definition of $CheckLValue(e, C, EQ, PV)$ is:
 \item If $v$ does not have array type,
 \begin{enumerate}
 \item Let $B = bounds(\&v,\&v + 1)$.
-\item If $v \in dom(C)$, let $TB = C[v]$.  If $v \notin dom(C)$, let $TB =$ \boundsunknown.
+\item If $v \in dom(C)$, let $RB = C[v]$.  If $v \notin dom(C)$, let $RB =$ \boundsunknown.
 \item Let $G=\{$ \code{&}$v \}$.
 \end{enumerate}
 \item Otherwise, $v$ has an array type.
@@ -1156,10 +1156,10 @@ The definition of $CheckLValue(e, C, EQ, PV)$ is:
 \end{enumerate}
 Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
 \item Otherwise, let $B = $ \boundsunknown and $G = \emptyset$.
-\item Let $TB = $ \boundsunknown.
+\item Let $RB = $ \boundsunknown.
 \end{enumerate}
 \end{enumerate}
-\item If $e$ has the form $*e1$,  let $(B, UC, EQ, \_) = Check(e1, C, EQ, PV, No)$.  Let $G =\emptyset$ and $TB = $ \boundsunknown.
+\item If $e$ has the form $*e1$,  let $(B, UC, EQ, \_) = Check(e1, C, EQ, PV, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown.
 \item If $e$ has the form $e1[e2]$,
 \begin{enumerate}
 \item Let $(B_{e1}, {UC}_{e1}, {UEQ}_{e1}, \_) = Check(e1, C, EQ, PV \cup Pending(e2), No, 
@@ -1167,7 +1167,7 @@ Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
 \item Let $(B_{e2}, {UC}_{e2}, {UEQ}_{e2}, \_) = Check(e2, {UC}_{e1}, {EQ}_{e1},
          PV \cup Pending(e1), No, None)$
 \item Choose the $e_i$ that has pointer type.   Let $B = B_{e_i}$, $UC = {UC}_{e2}$, 
-$UEQ  = {UEQ}_2$,  $G=\emptyset$, and $TB = $ \boundsunknown.
+$UEQ  = {UEQ}_2$,  $G=\emptyset$, and $RB = $ \boundsunknown.
 \end{enumerate}
 \item If $e$ has the form $(e1)$, the result is $CheckLValue(e1, C, EQ, PV)$
 \end{enumerate}
@@ -1189,9 +1189,9 @@ declared bounds. It computes an updated context and equality information
 implied by $e$.  It then checks that the updated context 
 and sets of equivalent expressions imply the declared bounds.
 
-The routine $Validate(C, UC, EQ)$ takes a full expression $e$, a context $C$,
+The routine $Validate(DC, UC, EQ)$ takes a full expression $e$, a context $C$,
 constructed using declared bounds, an updated context $UC$, and sets of equivalent expressions $EQ$
-that is valid when $UC$ is valid.  It checks that $UC$ and $EQ$ imply the validity of $C$.
+that is valid when $UC$ is valid.  It checks that $UC$ and $EQ$ imply the validity of $DC$.
 
 $CheckFullExpr(e)$ is defined as follows:
 \begin{enumerate}
@@ -1206,7 +1206,7 @@ This section covers how to check bounds declarations for expressions
 with control flow: comma expressions, conditional expressions, and 
 logical boolean expressions.
 
-For a comma expression $e1$~\lstinline|,|~$e2$, $Check(e, C, EQ, PV, Form, TB)$ is defined as follows:
+For a comma expression $e1$~\lstinline|,|~$e2$, $Check(e, C, EQ, PV, Form, FB)$ is defined as follows:
 \begin{enumerate}
 \item Let $(B_{e1}, {UC}_{e1}, {UEQ}_{e1}, \_)$ = $Check(e1, C, EQ, PV, No, None)$
 \item Let $(B, UC, UEQ, UG) = Check(e2, {UC}_{e1}, {UEQ}_{e1}, PV, No, None)$
@@ -1223,12 +1223,13 @@ branches.  To handle this, $Check$ would need to produce two contexts, one
 for each arm of the conditional. This would in turn
 require that $Check$ take a set of contexts as inputs.  The number of contexts could
 grow exponentially in the height of the expression tree.
-
 To avoid checking becoming computationally expensive, we disallow such expressions.
+
 We also need a way of forming a single updated context that is valid after both arms.
-Our solution is to require that top-level bounds involving variables modified by a conditional arm
-be valid after both arms.   We can then use top-level bounds after the conditional, without
-concern about which arm was evaluated.
+If the updated context is the same after both arms, we use that.  Otherwise, 
+we require that top-level bounds be valid after both arms.  We only require this for bounds that
+use the value of variables that are modified by one of the conditional arms.
+The top-level bounds can then be used for the single updated context.
 
 Let $DC$ be the context formed from declared bounds.
 Let $DC^\prime$ be $DC$ restricted to variables in $Pending(e1) \cup Pending(e2)$:
@@ -1241,44 +1242,56 @@ or $DC[v]$ uses the value of a variable in $Pending(e1) \cup Pending(e2)$.
 \item If there is a bounds expression in $DC$ that uses variables in $PV$ and
 variables in $Pending(e_i)$, report an error.
 \item Let $(B_i, {UC}_i, {UEQ}_i) = Check(e_i, {UC}_{e1}, EQ, PV, No, None)$.
-\item Call $Validate(DC^\prime, {UC}_i, {UEQ}_i)$.
 \end{enumerate}
+\item If the ${UC}_i$ are identical, let $UC$ = $UC_1$.
+\item Otherwise,
+\begin{enumerate}
+\item For each arm $e_i$, call $Validate(DC^\prime, {UC}_i, {UEQ}_i)$.
 \item Let $UC = C$.  Update $UC$ so that any variables modified by the conditional expression
 have the top-level declared bounds (which were just validated after each arm).
 For any variable $v$ in $DC^\prime$, let $UC[v] = DC^\prime[v]$.
+\end{enumerate}
 \item Let $B$ be the greatest lower bound of the $B_i$.
 \item Let $UEQ = {UEQ}_1 \cap {UEQ}_2$.
 \item If $e$ has no side-effects, let $G$ = \{ e \}.  Otherwise let $G=\emptyset$.
 \end{enumerate}
 
 Logical boolean expressions are treated as forms of conditional expressions.
-For  $Check(e1$ \code{&&} $ e2, C, PV, Form, TB)$, use '
+For  $Check(e1$ \code{&&} $ e2, C, PV, Form, FB)$, use '
 $Check(e1$ \code{ ?  } $e2$ \code{: 0}$, C, EQ, PV, Form, None)$.  
-For $Check(e1$ \code{ \|\| } $ e2, C, EQ, PV, Form, TB)$,  use 
+For $Check(e1$ \code{ \|\| } $ e2, C, EQ, PV, Form, FB)$,  use 
 $Check(e1 $ \code{ ? 1 : } $e2, C, EQ, PV, No, None)$.
 
 \subsection{Examples}
 
+\subsubsection{Assignments separated by a comma operator}
+
+The following example shows the steps of checking an assignment to an \arrayptr\ and its corresponding
+length field, where the assignments are separated by a comma operator.  We assume that that the allocation
+function returns an \arrayptrint\ to simplify the example.  Here is the code:
 \begin{lstlisting}
+array_ptr<int> alloc(int s) : count(s);
+
 int len = 0;
 array_ptr<int> x : count(len) = 0;
-x = malloc(5), len = 5;
+x = alloc(5), len = 5;
 \end{lstlisting}
 
+Here is a list of checking steps:
 \begin{small}
 \begin{tabbing}
 ~~~\=~~~\=~~~\=~~~\=~~~\=~~~\=~~~\=\\
-$CheckFullExpr(e=$~\code{x = malloc(5)}\code{, len = 5}$)$\\
+$CheckFullExpr(e=$~\code{x = alloc(5)}\code{, len = 5}$)$\\
 \>$DC = \{x \mapsto$\code{bounds(x, x + len)}$\}$\\
-\>$Check(e=$~\code{x = malloc(5)}\code{, len = 5}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},  EQ=\emptyset,
+\>$Check(e=$~\code{x = alloc(5)}\code{, len = 5}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},  EQ=\emptyset,
            PV=\emptyset, Form = No, FG = None)$\\
-\>\>$Check(e=$~\code{x = malloc(5)}$,C=\{x\mapsto$\code{bounds(x,x + len)}$\},
+\>\>$Check(e=$~\code{x = alloc(5)}$,C=\{x\mapsto$\code{bounds(x,x + len)}$\},
                 EQ=\emptyset, PV=\emptyset, Form=No, FG=None)$ \\
   \>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
-  \>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $TB = $\code{bounds(x, x + len)}$,
+  \>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(x, x + len)}$,
                            UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
   \>\>\>\>~$UEQ = \emptyset, G = \{$\code{&v}\}$)$ \\
-  \>\>\>$Check($\code{malloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset, Form = No, FG = None)$\\
+  \>\>\>$Check($\code{alloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset, Form = No, FG = None)$\\
   \>\>\>\>$(B = $ \code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
               G = \{$\code{tmp}$\})$\\  
  \>\>\>$(B = $\code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\}, 
@@ -1287,7 +1300,7 @@ $CheckFullExpr(e=$~\code{x = malloc(5)}\code{, len = 5}$)$\\
         PV=\emptyset, Form = No, FG = None)$\\
    \>\>\>$CheckLValue($\code{len}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},  
                               PV = \emptyset)$\\
-   \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}$, TB = $\code{bounds(unknown)}$,$
+   \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}$, RB = $\code{bounds(unknown)}$,$
                             $UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},$\\
    \>\>\>\>\>~$UEQ = \{\{tmp, x\}\},  PV = \emptyset)$\\
    \>\>\>$Check(e = $\code{5}, $UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, EQ = \{\{tmp, x\}\}, PV = \emptyset, 
@@ -1296,9 +1309,84 @@ $CheckFullExpr(e=$~\code{x = malloc(5)}\code{, len = 5}$)$\\
             EQ = \{\{tmp, x\},\{5\}\},  G = \{5\})$\\
    \>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
              EQ = \{\{tmp, x\},\{5, len\}\},  G = \{5\})$\\
-  \>$Validate(C = \{x \mapsto$\code{bounds(x, x + len)}$\}, 
+  \>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\}, 
                    UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
                    EQ = \{\{tmp, x\},\{5, len\}\})$\\
+\end{tabbing}
+\end{small}
+
+\subsubsection{Assignments within a conditional expression}
+
+This example shows assignments within a conditional expression.  Note that the declared bounds must
+be valid after checking each arm of the conditional assignment.
+\begin{lstlisting}
+array_ptr<int> alloc(int c) : count(c);
+int getlen(void);
+
+int len = 0;
+array_ptr<int> x : count(len) = 0;
+(len = getlen()) ? (x = alloc(len)) : (x = 0);
+\end{lstlisting}
+
+\begin{small}
+\begin{tabbing}
+~~~\=~~~\=~~~\=~~~\=~~~\=~~~\=~~~\=\\
+$CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = 0)}$)$\\
+\>$DC = \{x \mapsto$\code{bounds(x, x + len)}$\}$\\
+\>$Check(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = 0)}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\}, 
+          EQ=\emptyset,PV=\emptyset, Form = No, FG = None)$\\ \\
+% The condition expression
+\>\>{\tt Process the condition:}\\        
+\>\>$Check(e=$~\code{(len = getlen())}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\}, 
+         EQ=\emptyset,PV=\emptyset, Form = No, FG = None)$\\
+\>\>\>$Check(e=$~\code{len = getlen()}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\}, 
+         EQ=\emptyset,PV=\emptyset, Form = No, FG = None)$\\
+\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+\>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}, $RB = $\code{bounds(unknown)}$,
+                     UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&len}\}$)$ \\
+\>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset,
+                         Form = No, FG = None)$\\
+\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
+               G = \emptyset)$\\
+\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
+               G = \emptyset)$\\
+\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
+          G = \emptyset)$\\  \\
+% first arm
+\>\>{\tt Process the first arm:}\\
+\>\>$Check(e=$~\code{(x = alloc(len))}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
+         EQ=\emptyset,PV=\emptyset, Form = No, FG = None)$\\
+\>\>\>$Check(e=$~\code{x = alloc(len)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
+          EQ=\emptyset,PV=\emptyset, Form = No, FG = None)$\\
+\>\>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+\>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(unknown)}$,
+                     UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&x}\}$)$ \\
+\>\>\>$Check($\code{alloc(len)}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset,
+                       Form = No, FG = None)$\\
+\>\>\>\>$(B = $ \code{bounds(tmp, tmp + len)}$, UC = \{x\mapsto$\code{bounds(unknown)}$,
+                UEQ = \{\{tmp\}\}, G = \{tmp\})$\\
+\>\>\>$(B = $ \code{bounds(tmp, tmp + len)}$, UC = \{x\mapsto$\code{bounds(tmp, tmp + len)}$ ,
+             UEQ = \{\{x, tmp\}\}, G = \{x, tmp\})$\\ \\
+\>\>{\tt Process the second arm:}\\
+\>\>$Check(e=$~\code{(x = 0)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
+         EQ=\emptyset,PV=\emptyset, Form = No, FG = None)$\\
+\>\>\>$Check(e=$~\code{x = 0}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
+          EQ=\emptyset,PV=\emptyset, Form = No, FG = None)$\\
+\>\>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+\>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(unknown)}$,
+                     UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&x}\}$)$ \\
+\>\>\>$Check($\code{0}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset,
+                       Form = No, FG = None)$\\
+\>\>\>\>$(B = $ \code{bounds(any)}$, UC = \{x\mapsto$\code{bounds(unknown)}$ ,
+                UEQ = \{\{tmp\}\}, G = \{0\})$\\
+\>\>\>$(B = $ \code{bounds(any)}$, UC = \{x\mapsto$\code{bounds(any))}$ ,
+             UEQ = \{\{x, 0\}, G = \{x, 0\})$\\                          
+\>\>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\}, 
+                   UC = \{x\mapsto $\code{bounds(tmp, tmp + len)}$\},
+                   EQ = \{\{tmp, x\}\})$\\ 
 \end{tabbing}
 \end{small}
 
