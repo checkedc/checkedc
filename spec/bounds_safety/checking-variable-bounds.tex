@@ -5,11 +5,12 @@
 
 The prior chapter described how to declare bounds for variables.
 This chapter describes how to infer a bounds expression for 
-an expression based on the declare bounds.  An inferred bounds expression
+an expression, starting from the declared bounds for variables.
+An inferred bounds expression
 describes the range of memory that can be accessed (if any) using 
-the values produced by expression.  The inferred bounds expression
+the values produced by expression.  Inferred bounds expressions
 are used in runtime bounds checks.   This chapter also describes how to
- check that  declared bounds for variables are valid at initialization
+ check that declared bounds for variables are valid at initialization
  time and after assignments.
 
 Bounds expressions for expressions are inferred using inference
@@ -42,8 +43,8 @@ checking to operate over contexts.  Contexts are maps from variables
 to bounds expressions for the values stored in the variables.  For
 each full expression in a function, we start with a context based
 on declared bounds.  We analyze the expression and produce a new
-context that describes the bounds for variables after any assignments
-in the expression have happened.  We then check that the bounds
+context that describes the bounds for variables after assignments
+in the expression have been completed.  We then check that the bounds
 expressions in the context subsume the declared bounds for variables.
 
 The analysis of expressions is complicated by C's evaluation
@@ -51,19 +52,19 @@ rules for expressions.  C does not have a precise order of evaluation
 for expressions.  The times at which assignments
 must happen within expressions are only partially constrained.
 C also allows allows control flow within 
-expressions  via comma expressions,   conditional expressions, and
+expressions via comma expressions, conditional expressions, and
 logical boolean expressions (the \code{&&} and \code{||} expressions).
 
-To handle this, we extend the analysis to track assignments
-whose stores to memory may be pending.  To keep the tracking
-tractable, we place some restrictions on conditional expressions
-and logical boolean operations.  If an arm of a conditional expression
-modifies a variable, any bounds that use that variable must be provably
-true after each arm of the conditional expression.  Similarly, if a
-logical boolean operator modifies a variable, any bounds that
-use that variable must be provable after each operand of the operator.
-ariable is updated conditionally
-by an expression, any bounds that use that variable must be provable
+To handle this, the analysis tracks variables where assignments
+to those variables may not have been completed yet.  We call these
+variables pending variables.  The analysis models indeterminate order
+of evaluation by placing variables in pending sets, and sequential
+control-flow by not placing variables in pending sets.  The analysis
+tracks the flow of information through expressions, relying on the
+pending sets to prevent undefined uses of variables or conflicting
+assignments to variables.  We disallow some complicated expressions
+that combine conditional assignments and unordered assignments
+to variables used in the same bounds declaration.
 
 The descriptions of bounds inference and bounds checking are
 presented in a cumulative fashion.  We start with the simplest
@@ -75,14 +76,14 @@ It does not cover operations that access data structures, such as member
 access and pointer dereference. 
 Those are covered in Chapters~\ref{chapter:structure-bounds} and 
 \ref{chapter:pointers-to-data-with-arrayptrs}.
-Section~\ref{section:checking-assignment-expressions} describes
-how to check bounds declarations for expressions where there is
-no control-flow within the expression..
-Section~\ref{section:checking-nested-assignment-expressions}
-extends this to cover the more complex case where there is control-flow
-within expressions.
+Section~\ref{section:checking-simple-assignment} describes
+how to check bounds declarations for a simple assignment
+expression.
+Section~\ref{section:checking-complex-expressions}
+extends this to cover more complex cases where there is control-flow
+or multiple assignments within an expression.
 
-Section~\ref{section:checking-expression-statements} describes
+Section~\ref{section:checking-full-expressions} describes
 subsumption checking on bounds expressions.   The subsumption checking
 puts expressions into a standard form.  It then uses syntactic equality,
 extended with simple identities about C expressions and taking into account expression
@@ -140,8 +141,8 @@ variable with an enclosing block scope should be renamed.
 \label{section:inferring-expression-bounds}
 
 We first discuss inferring bounds expressions for expressions. The bounds for an
-expression is always determined with respect to a bounds
-declaration context, wich maps variables to the declared bounds
+expression are always determined with respect to a bounds
+declaration context, which maps variables to their
 expressions.  We will use $\vdash$ to denote the
 valid bounds for an expression. The notation \boundsinfer{\var{e}}{\var{bounds-exp}}
 means that expression \var{e} has valid bounds \var{bounds-exp}.
@@ -273,7 +274,7 @@ Suppose there is a function call expression of the form
 The special variable \lstinline|return_value| may appear in \var{exp1}. It
 is the value of the function call expression. If \lstinline|return_value|
 is used, a temporary variable is introduced to hold the result of the
-function call.  The occurrencs of \lstinline|return_value| are replaced
+function call.  The occurrences of \lstinline|return_value| are replaced
 with the the temporary variable.
 
 There needs to be validation that the bounds for argument expressions
@@ -352,7 +353,7 @@ The valid bounds for the call to \lstinline|init(alloc_helper(size),size)| in
 
 First, there is a check that all the actual arguments corresponding to
 the formal parameters used by the return bounds expression are valid
-non-modifying bounds expressions.   This check succeeds even though the
+non-modifying bounds expressions. This check succeeds even though the
 first actual argument \lstinline|alloc_helper(size)| is not a valid bounds
 expression. The formal parameter \lstinline|target| is not used by the
 return bounds expression.
@@ -533,7 +534,7 @@ check a memory access within the full expression being evaluated.
 \label{section:inferring-increment-bounds}
 
 Given an expression of the form \code{++}\var{e1}, \code{--}\var{e1},
- \var{e1}\code{++} or \var{e1}\code{--}, where $e1$ has pointer type,
+ \var{e1}\code{++} or \var{e1}\code{--}, where $e1$ has a pointer type,
  the bounds for $e1$ are the bounds for the entire expression.
  
  If $e1$ appears in its own bounds, the compiler should introduce a
@@ -542,8 +543,9 @@ Given an expression of the form \code{++}\var{e1}, \code{--}\var{e1},
  the C semantics already require  introducing a temporary for the value of $e1$.
 
 \section{Bounds declaration checking for simple assignments}
+\label{section:checking-simple-assignment}
 
-This section describes how to check bounds declarations for a
+This section describes how to check bounds declarations for
 simple assignments to variables.  Thiese are expression statements of the
 form \code{v = e1}, where \code{v} is a variable and \code{e1} does
 not contain nested assignments.
@@ -633,7 +635,7 @@ Second, the context is updated to reflect the change in the value of
 \end{itemize}
 
 Third, if the value of \var{e} is also available in a temporary,
-we record in the expression equivalance set that \var{x} equals that
+we record in the expression equivalence set that \var{x} equals that
 temporary (at the end of evaluating the expression).
 
 \subsection{Invertibility}
@@ -785,8 +787,7 @@ of computing the inverse of \code{x = (x + 4) + 5}:
 
 \section{Bounds declaration checking for expressions}
 
-\label{section:checking-assignment-expressions}
-\label{section:checking-nested-assignment-expressions}
+\label{section:checking-complex-expressions}
 
 This section generalizes bounds declaration checking for a single
 assignment expression to expressions with control-flow or multiple
@@ -800,9 +801,9 @@ Section~\ref{section:inferring-expression-bounds}.
 The order of evaluation of side-effects in subexpressions of an expression is defined in C only for 
 control-flow expressions and in certain other circumstances \cite[Section 6.5,Annex C]{ISO2011}).
 Otherwise, the order of evaluation of side-effects is undefined.   This complicates checking 
-because an expression with undefined order of evaluation of side-effects might have an 
+because an expression with an undefined order of evaluation of side-effects might have an 
 undefined meaning.  Checking must produce an error for these expressions because the
-validity of bounds information is not maintained by such expressions.   In addition, checking must still
+validity of bounds information is not maintained by such expressions. In addition, checking must still
 model the order of side-effects when the order is defined.
 
 The meaning of an expression is undefined if:
@@ -865,14 +866,14 @@ declarations remain valid.
 
 To detect undefined behavior, the checking tracks
 sets of variables with pending assignments.  Pending
-assignments may or may not have been completed, which means
+assignments may or may not have been completed yet, which means
 that the variables being assigned to have {\em indeterminate}
 values.  The set are used to used to detect:
 \begin{enumerate}
 \item Uses of variables whose values are indeterminate.
 \item Accessing memory with pointers whose bounds expressions
 are indeterminate because they use a variable whose value is indeterminate.
-\item Unsequenced assignments to the  same variable.
+\item Unsequenced assignments to the same variable.
 \end{enumerate}
 
 The C Standard 
@@ -932,7 +933,7 @@ The function $Pending(e)$ uses the helper functions,
 $GetLValueVariable(e)$ and $GetRValueVariable(e)$.  Those functions
 return a set containing a variable name or the empty set.
 
-The definition of $Pending(e)$ is as follows. If $e1$ has the form:
+The definition of $Pending(e)$ is as follows. If $e$ has the form:
 \begin{enumerate}
 \item $e1 = e2$, let $V = GetLValueVariable(e1)$.
 $P = Pending(e1) \cup Pending(e2) \cup V$.
@@ -1222,7 +1223,7 @@ merge the results from both branches to produce a result for the entire expressi
 This could lose information and cause checking to fail. For example,  the validity of bounds after
 one arm could depend on assignments in that arm only.
 
-We address this problem with the following approach.
+We address this problem with the following approach:
 \begin{itemize}
 \item  If both arms produce the same updated context, we use that context
 and merge the rest of the results.
@@ -1247,7 +1248,7 @@ To keep checking from becoming too expensive, we disallow such expressions.
 \item For each arm $e_i$ of the conditional branch,
         let $(B_i, {UC}_i, {UEQ}_i, _) = Check(e_i, {UC}_{e1}, EQ, PV, No, None)$.
 \item Handle uses of temporaries bound in only one branch.  These temporaries
-will be uninitialized if the other branch of the conditional arm is evaluated.
+will be uninitialized when the other branch of the conditional arm is evaluated.
 If some $B_i$, ${UC}_i$ or ${UEQ}_i$ uses a temporary bound in $e_i$,
 introduce a  temporary $r$ for the result of the entire conditional expression.
 For each arm $e_i$ of the conditional branch, for each temporary $t$ bound
@@ -1344,10 +1345,10 @@ $CheckFullExpr(e=$~\code{x = alloc(5)}\code{, len = 5}$)$\\
 
 \subsubsection{Assignments in a conditional expression}
 
-There are two cases for handling conditional expressions.  The first case is when the context is identical
-at the end of both arms of a conditional expression.  The second case is when the context differs.
+There are two cases for checking conditional expressions. The first case is when the context is identical
+at the end of both arms of a conditional expression. The second case is when the context differs.
 
-This example shows assignments in a conditional expression that produce the same context at
+Thus example shows assignments in a conditional expression that produce the same context at
 the end of each arm.
 \begin{lstlisting}
 array_ptr<int> alloc(int c) : count(c);
@@ -1431,8 +1432,8 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 \end{small}
 
 This example shows assignments within a conditional expression that cause the context to be
-different.  In this case, the declared bounds must be valid after checking each arm of the conditional 
-assignment.
+different.  In this case, the declared bounds for \lstinline+x+ must be valid after checking each arm
+of the conditional  assignment.
 \begin{lstlisting}
 array_ptr<int> alloc(int c) : count(c);
 int getlen(void);
@@ -1541,18 +1542,18 @@ $CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), le
 \subsection{Different orders of recursive calls produce the same result}
 
 The pending variable sets used in recursive calls to $Check$ and $CheckLValue$
-ensure that updates to the context and sets of equivalent expressions are done on different variables when order
-of evaluation is not specified.  This in turn ensures that the the same context and sets of equivalent expressions
+ensure that updates to the context and sets of equivalent expressions are done on different variables when
+the order of evaluation is not specified.  This in turn ensures that the the same context and sets of equivalent expressions
 are produced no matter which order the recursive calls are made.   Here we informally argue 
 that this property (known as confluence) holds for assignments that have  the form $lhs = rhs$.
 
-Suppose $lhs$
+Suppose that $lhs$
 contains a single assignment expression that updates a variable $v$ with an expression $e1$ and 
 $rhs$ contains a single assignment expression that updates  a variable $w$ with an expression $e2$.  
 We know that $lhs$ does not update or use $w$ because of the pending variable parameters.  Similarly, 
 we know that $rhs$ does not update or use $v$.
 
-Observe that a recursive call to $Check(e, \ldots)$ or $CheckLValue(e, \ldots)$  only updates the context
+Observe that a recursive call to $Check(e, \ldots)$ or $CheckLValue(e, \ldots)$ only updates the context
 and the sets of equivalent expressions for variables that are assigned to in $e$.   $CheckLValue(lhs,\ldots)$ and
 $Check(rhs, \ldots)$ have assignments to different sets of variables because of the $Pending$ sets.  This
 implies that $CheckLValue(lhs,\ldots)$ and $Check(rhs, \ldots)$ only do updates for different variables.
@@ -1608,7 +1609,7 @@ assignments does not matter.
 
 
 \section{Checking that full expressions maintain declared bounds}
-\label{section:checking-expression-statements}
+\label{section:checking-full-expressions}
 
 We need to check that full expressions mantain the validity of
 declared bounds.  If a full expression is within a
@@ -1618,7 +1619,7 @@ To check a full expression, the analysis of
 Section~\ref{section:extent-definition} is used
 to determine the context for the full expression (the bounds
 for variables before the expression is evaluated). The $Check$
-method in Section~\ref{section:checking-nested-assignment-expressions}
+method in Section~\ref{section:checking-complex-expressions}
 is then used to determine the updated context and sets of equivalente expressions.
 
 The updated context is then checked against the bounds declarations that
@@ -2118,7 +2119,7 @@ each variable \var{v} in the list,
 \item
   If \var{v} has an initializer, the current context is updated by
   traversing the assignment expressions in the initializer using the
-  analysis from Section~\ref{section:checking-nested-assignment-expressions}. 
+  analysis from Section~\ref{section:checking-complex-expressions}.
   The bounds for each individual assignment
   expression are recorded as well. Note that if \var{v} is a static
   variable, the assignment expressions must actually be constant
@@ -2158,7 +2159,7 @@ each variable \var{v} in the list,
 
 The current context is then checked against the bounds declarations that
 must be true after the declaration using the analysis in 
-Section~\ref{section:checking-expression-statements}
+Section~\ref{section:checking-full-expressions}
 
 Declarations that are not definitions are not checked, other than to
 verify that all the declarations of a variable in a translation unit
@@ -2171,13 +2172,13 @@ the variable.
 To check bundled declarations and statements, the current context is
 determined before the bundled block. The current context is then updated
 for each expression statement and declaration following the rules for
-updating contexts in Sections~\ref{section:checking-expression-statements} and 
+updating contexts in Sections~\ref{section:checking-full-expressions} and 
 \ref{section:checking-declarations}. The analysis of 
 Section~\ref{section:extent-definition}
 is used to determine the expected bounds expression for each variable at
 the end of the bundled block. The current context is checked against the
 bounds declarations that must be true at the end of the block using the
-analysis in Section~\ref{section:checking-expression-statements}
+analysis in Section~\ref{section:checking-full-expressions}
 
 When an expression with \arrayptr\ type is dereferenced within
 an expression statement in a bundled block, the current context before
@@ -2254,7 +2255,7 @@ parameters,
 \item
   The context for the function call is constructed. The statement is
   checked in that context using the rules in 
-  Section~\ref{section:checking-expression-statements}
+  Section~\ref{section:checking-full-expressions}
 \item
   A subtle point is that the order of evaluation for argument
   expressions in C is not defined (Section~\ref{section:avoiding-undefinedness}
@@ -2291,7 +2292,7 @@ of evaluating \var{e} are equal.
 The bounds for \var{e} are computed.   It is then checked that
 the bounds for \var{e} imply the (possibly updated) return
 bounds, using  the rules in 
-Section~\ref{section:checking-expression-statements}
+Section~\ref{section:checking-full-expressions}
 
 Note that if the bounds of \var{e} involve a temporary,
 the temporary does not occur in the (possibly updated) return bounds,
@@ -2337,9 +2338,9 @@ full expression occurring in a statement to have new bounds declared
 for any variables in it. This means that the bounds declarations in the
 context will be expected to be true after the evaluation of the full expression too.
 
-The rules in Section~\ref{section:checking-nested-assignment-expressions}
+The rules in Section~\ref{section:checking-compleex-expressions}
 are used to determine the updated context after evaluation of the
-expression. The rules in Section~\ref{section:checking-expression-statements}
+expression. The rules in Section~\ref{section:checking-full-expressions}
 are used to check that the updated
 context implies the expected bounds declarations.
 
