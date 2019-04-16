@@ -39,10 +39,12 @@ expressions. Equivalence can also be inferred by dataflow analysis.
 
 To handle both assignments to pointer variables with bounds and assignments
 to variables used in bounds, we generalize bounds declaration
-checking to operate over contexts.  Contexts are maps from variables
-to bounds expressions for the values stored in the variables.  For
-each full expression in a function, we start with a context based
-on declared bounds.  We analyze the expression and produce a new
+checking to operate over {\em contexts}.  Contexts are maps from variables
+to bounds expressions for the values stored in the variables.
+For each {\em full expression} in a function, we start with a context based
+on declared bounds.
+A full expression \cite[Annex C]{ISO2011} is an expression not nested within another expression.
+We analyze the full expression and produce a new
 context that describes the bounds for variables after assignments
 in the expression have been completed.  We then check that the bounds
 expressions in the context subsume the declared bounds for variables.
@@ -55,12 +57,12 @@ C also allows allows control flow within
 expressions via comma expressions, conditional expressions, and
 logical boolean expressions (the \code{&&} and \code{||} expressions).
 
-To handle this, the analysis tracks variables where assignments
+To handle this, the analysis tracks sets variables where assignments
 to those variables may not have been completed yet.  We call these
-variables pending variables.  The analysis models indeterminate order
-of evaluation by placing variables in pending sets, and sequential
-control-flow by not placing variables in pending sets.  The analysis
-tracks the flow of information through expressions, relying on the
+variables {\em pending variables} and the sets of variables {\em
+pending sets}.  When the order of evaluation of expressions
+is indeterminate, variables are added to pending sets.
+The analysis tracks the flow of information through expressions, relying on the
 pending sets to prevent undefined uses of variables or conflicting
 assignments to variables.  We disallow some complicated expressions
 that combine conditional assignments and unordered assignments
@@ -143,7 +145,7 @@ variable with an enclosing block scope should be renamed.
 We first discuss inferring bounds expressions for expressions. The bounds for an
 expression are always determined with respect to a bounds
 declaration context, which maps variables to their
-expressions.  We will use $\vdash$ to denote the
+bounds expressions.  We will use $\vdash$ to denote the
 valid bounds for an expression. The notation \boundsinfer{\var{e}}{\var{bounds-exp}}
 means that expression \var{e} has valid bounds \var{bounds-exp}.
 
@@ -209,12 +211,19 @@ and \var{x} has a known number of elements \var{n}, then
 \subsection{String literals and compound literal expressions}
 A string literal \lstinline+''abc''+ evaluates to an lvalue with array type,
 as does a compound literal of the form \lstinline+(int []) { 0, 1, 2, 3}+.
-Thes lvalues are then converted implicitly to values with pointer type.
+These lvalues are then converted implicitly to values with pointer type.
 
 During bounds checking, a temporary is introduced for the result
 of evaluating a string literal or compound literal expression.
-If a literal \var{e} has array type with \var{n} elements, then
+If a literal \var{e} has array type and \var{n} elements, the bounds
+exclude the null terminator, if there is one.
+\begin{itemize}
+\item If $e$ is a string literal or a compound literal expression with
+a null-terminated array type,
+\boundsinfer{\var{e}}{\bounds{temporary for \var{e}}{temporary for \var{e} + (\var{n - 1})}}.
+\item Otherwise,
 \boundsinfer{\var{e}}{\bounds{temporary for \var{e}}{temporary for \var{e} + \var{n}}}
+\end{itemize}
 
 \subsection{Address-of expressions}
 \label{section:address-of-expression-bounds}
@@ -359,7 +368,7 @@ expression. The formal parameter \lstinline|target| is not used by the
 return bounds expression.
 
 Next, the actual arguments are substituted for the formal parameters and
-a temporary \var{t1} is substituted for \lstinline|return_value|.
+a new temporary \var{t1} is substituted for \lstinline|return_value|.
 (\var{t1} is distinct from source-level variables).
 The argument \lstinline|size| is substituted for \lstinline|s|, producing
 \begin{lstlisting}[escapechar=\|]
@@ -402,7 +411,7 @@ First, there is a check that the actual arguments that correspond to
 formal parameters used in the return bounds are valid non-modifying
 expressions. The only argument is the variable size, so this check
 succeeds. Next, \lstinline|size| is substituted for \lstinline|n| and
-a temporary variable \var{t2}is substituted for \lstinline|return_value|, producing:
+a new temporary variable \var{t2} is substituted for \lstinline|return_value|, producing:
 \begin{lstlisting}[escapechar=\|]
    alloc_helper(size) |\(\vdash\)| bounds(|\var{t2}|, |\var{t2}| + size) rel_align(int)
 \end{lstlisting}
@@ -526,7 +535,7 @@ bounds for \var{e2} are determined. The bounds for \var{e2} are used
 as the bounds for the entire expression.
 
 Note that if \var{e1} is a variable,
-there is an order of evaluation issue of \var{e1} appears in the bounds for
+there is an order of evaluation issue if \var{e1} appears in the bounds for
 \var{e2}.   Specifically, the bounds for \var{e2} cannot be used to
 check a memory access within the full expression being evaluated.
 
@@ -546,12 +555,13 @@ Given an expression of the form \code{++}\var{e1}, \code{--}\var{e1},
 \label{section:checking-simple-assignment}
 
 This section describes how to check bounds declarations for
-simple assignments to variables.  Thiese are expression statements of the
+simple assignments to variables.  These are expression statements of the
 form \code{v = e1}, where \code{v} is a variable and \code{e1} does
 not contain nested assignments.
+Section~\ref{section:checking-complex-expressions} handles nested assigments.
 
-Given an assignment \var{v}\lstinline+=+\var{e}, the effect of the assignment to \var{v}
-is modelled by updating the context to contain bound expressions that are true
+Given an expression of the form \var{v}\lstinline+=+\var{e}, the effect of the assignment
+to \var{v} is modelled by updating the context to contain bound expressions that are true
 after the assignment.  If \var{v} has \arrayptr\ type, the bounds expression in
 the context for \var{v} is updated to the inferred bounds expression for \var{e}.
 We also model the change in \var{v}'s
@@ -564,16 +574,20 @@ that the new bounds expressions subsume the declared bounds expressions for vari
 
 For an assignment expression of the form \var{x} \code{=} \var{e},
 where \var{x} is a variable and \var{e} is an expression, there are
-three aspects to to computing bounds.   First, we infer the
-bounds expression for \var{e}.
-
-Second, we determine the effect of the assignment on the
+three aspects to to computing bounds. 
+\begin{itemize}
+\item Infer the bounds expression for \var{e}.
+\item Determine the effect of the assignment on the
 bounds declaration context.
 We start with the context that is true before the expression
 is evaluated and determine the context that is true after
 the expression is evaluated.
-
-This seems straightforward.  If \var{x} has type
+\item If the value of \var{e} is also available in a temporary,
+we record in the expression equivalence set that \var{x} equals that
+temporary (at the end of evaluating the expression).
+\end{itemize}
+It seems straightforward to determine the effect of the assignment
+on the context.   If \var{x} has type
 \arrayptr, use the computed bounds for \var{e} to update the context
 so that the bounds for \var{x} are the bounds of \var{e}.
 However, there is a problem. The bounds for \var{e} is determined
@@ -633,10 +647,6 @@ Second, the context is updated to reflect the change in the value of
 \item
   Otherwise, any bounds expression that involves \var{x} is invalidated
 \end{itemize}
-
-Third, if the value of \var{e} is also available in a temporary,
-we record in the expression equivalence set that \var{x} equals that
-temporary (at the end of evaluating the expression).
 
 \subsection{Invertibility}
 
@@ -904,16 +914,18 @@ of variables in $S$.
 
 The checking is done by the following functions:
 \begin{enumerate}
-\item $Pending(e)$: calculates the set of variables $PV$
-with assignments that may be pending after the computation
-of the value of $e$.
+\item $Pending$: calculates the set of pending variables for
+an expression.  These are the set of variables that are assigned
+to by the expression.  If the evaluation of the expression is indeterminately
+ordered with respect to another expression, these variables are
+pending during the evaluation of the other expression.
 \item $Update$: updates the context, the sets of equivalent expressions,
 and other information to be valid for the program state after
 a side-effect is completed.
 \item $Check$ and $CheckLValue$:  these mutually recursive
 functions check expressions.  For an expression, they compute
 its bounds, an updated context, updated sets of equivalent expressions,
-and a set of expressions that produce the same value as $e$.
+and a set of expressions that produce the same value as the expression.
 $Check$ handles expressions that
 produce values, while $CheckLValue$ handles expressions that produce
 lvalues.  In C, when an lvalue expression is used where a value is
@@ -924,14 +936,13 @@ and sets of equivalent expressions imply that the declared bounds for
 variables are valid.
 \item $CheckFullExpr$: checks that declared bounds are valid after
 evaluating a full expression.  
-A full expression \cite[Annex C]{ISO2011} is an expression not nested within another expression.
 \end{enumerate}
 
 \subsection{Computing pending variables}
 
 The function $Pending(e)$ uses the helper functions,
 $GetLValueVariable(e)$ and $GetRValueVariable(e)$.  Those functions
-return a set containing a variable name or the empty set.
+return a singleton set containing a variable name or the empty set.
 
 The definition of $Pending(e)$ is as follows. If $e$ has the form:
 \begin{enumerate}
@@ -964,37 +975,46 @@ The definition of $GetRValueVariable(e)$ is as follows. If $e$ has the form:
 
 When an assignment $a$ to a variable $v$ happens, the context and sets of equivalent expressions
 need to be updated so that they are valid for the program state after the assignment is complete.
-The function $Update(v, OV, B, C, EQ, G)$ takes:
+The function $Update(v, \mathit{OV}, B, C, \mathit{EQ}, G)$ takes:
 \begin{itemize}
 \item A variable $v$ that is being assigned to.
-\item An optional expression $OV$
+\item An optional expression $\mathit{OV}$
 that evaluates in the updated program state to the value of $v$
-before the assignment.   $OV$ stands for original value.
-$OV$ is either an expression
+before the assignment.   $\mathit{OV}$ stands for original value.
+$\mathit{OV}$ is either an expression
 or the special value {\it None}.
 \item A bounds expression $B$ for the value being assigned to $v$.
 \item A context $C$.
-\item Sets of equivalent expressions $EQ$. 
+\item Sets of equivalent expressions $\mathit{EQ}$.
 \item A set of equivalent expressions $G$ that produce the same value being assigned to $v$.
 \end{itemize}
-It returns updated bounds $UB$, context $UC$, and sets of equivalent expression ($UEQ$, and $UG$)
+It returns updated bounds $\mathit{UB}$, context $\mathit{UC}$, and 
+sets of equivalent expression ($\mathit{UEQ}$, and $\mathit{UG}$)
 that are valid in the program state after the assignment
 
 Its definition is:
 \begin{enumerate}
-\item Let $UC = C$.
-\item If $v$ has \arrayptr\ type and declared bounds, let $UC = UC[v \mapsto B]$.
-\item Update $UC$ to reflect the effect of the assignment on existing entries.  
-For any variable $x$ where $UC[x] = B_x$ and $B_x$ uses the value of $v$,
+\item Let $\mathit{UC} = C$.
+\item If $v$ has \arrayptr\ type and declared bounds, let $\mathit{UC} = \mathit{UC}[v \mapsto B]$.
+\item Update $\mathit{UC}$ to reflect the effect of the assignment on existing entries.
+For any variable $x$ where $\mathit{UC}[x] = B_x$ and $B_x$ uses the value of $v$,
 \begin{enumerate}
-\item If $OV$ is {\it None}, let $UC = UC[x \mapsto$ \boundsunknown $]$.
+\item If $OV$ is {\it None}, let $\mathit{UC} = \mathit{UC}[x \mapsto$ \boundsunknown $]$.
 \item  Otherwise, let $B_x^\prime = B_x$ with $OV$ substituted for the use of $v$.
-Let $UC = UC[x \mapsto B_x^\prime]$
+Let $\mathit{UC} = \mathit{UC}[x \mapsto B_x^\prime]$
 \end{enumerate}
-\item Let $UB = B$.  If $UB$ uses $v$, update $UB$ similarly.
-\item Record the new bounds for $v$: let $UC = UC[v \mapsto UB]$.
-\item Let $UEQ = EQ$.  Adjust $UEQ$ so that it is true for the program state after the assignment. For any expression $d$ in $UEQ$ that uses the value of $v$, if $OV$ is {\it None}, let $UEQ$ = $UEQ $ - $d$.
-Otherwise, substitute $OV$ for the use of $v$ in $d$.
+\item Let $UB = B$.  If $UB$ uses $v$, update $UB$ the same way that entries in $UC$
+are updated:
+\begin{enumerate}
+\item If $OV$ is {\it None}, let $UB = $ \boundsunknown.
+\item Otherwise, substitute $OV$ for $v$ in $UB$.
+\end{enumerate}
+\item Record the new bounds for $v$: let $\mathit{UC} = \mathit{UC}[v \mapsto UB]$.
+\item Let $UEQ = EQ$.  Adjust $UEQ$ so that it is true for the program state after the assignment: for any expression $d$ in $UEQ$ that uses the value of $v$,
+\begin{enumerate}
+\item If $OV$ is {\it None}, let $UEQ$ = $UEQ $ - $d$.
+\item Otherwise, substitute $OV$ for the use of $v$ in $d$.
+\end{enumerate}
 \item Let $UG = G$. Update the set of equivalent expressions $G$ similarly to $UEQ$. Add $\{v\}$ to $UG$.
 \item If $UG$ is not a singleton set, add $UG$ to $UEQ$.
 \end{enumerate}
@@ -1016,14 +1036,14 @@ expanded to the form $e1~=~e1~op~e2$ where $e1$ is only processed once.
 $Check$ returns:
 \begin{enumerate}
 \item A bounds expression $B$ for the values at runtime to which $e$ evaluates.
-\item An updated context $UC$.
+\item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that will produce the same value as $e$. 
 \item It may also report an error.
 \end{enumerate}
 The results produced by $Check$ are valid in the program state
 {\em after} the assignments in $e$ have been completed.   When $B$ or entries in 
-$UC$ depend on pending variables, it is important not to use them during runtime bounds checking.
+$\mathit{UC}$ depend on pending variables, it is important not to use them during runtime bounds checking.
 Similarly, during checking, it is important not to use equality information
 from $UEQ$ or $G$ that depends on pending variables.
 
@@ -1032,7 +1052,7 @@ expression $e$ that evaluates to an lvalue.  It returns:
 \begin{enumerate}
 \item A bounds expression $B$ for for the lvalues produced by $e$.
 \item A bounds expression $RB$ for values read from the lvalues produced by $e$.
-\item An updated context $UC$.
+\item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that produce the same lvalue as $e$. 
 \item It may also report an error.
@@ -1048,7 +1068,7 @@ The definition of $Check(e, C, EQ, PV, Form, FB)$ is:
 \begin{enumerate}
 \item If $e$ is an lvalue expression
 \begin{enumerate}
-\item Let $(B_{lv}, RB, UC, UEQ, G_{lv}) = CheckLValue(e, C, EQ,PV)$.
+\item Let $(B_{lv}, RB, \mathit{UC}, UEQ, G_{lv}) = CheckLValue(e, C, EQ,PV)$.
 \item If $e$ has array type, let $B = B_{lv}$ and $G = G_{lv}$.
 \item If $e$ does not have array type, there will an implicit read of the lvalue produced by $e$
 at runtime:
@@ -1072,12 +1092,12 @@ assignment of $v$.
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
         and $P_{rhs}$ describe variables that are pending during the evaluations of $lhs$ and $rhs$.
-\item Let $(B_{lhs}, RB, {UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ, P_{lhs})$.  
-\item Let $(B_{rhs},  {UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = 
-Check(rhs, {UC}_{lhs}, {UEQ}_{lhs},P_{rhs}, Form, RB)$.
+\item Let $(B_{lhs}, RB, \mathit{UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ, P_{lhs})$.  
+\item Let $(B_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = 
+Check(rhs, \mathit{UC}_{lhs}, {UEQ}_{lhs},P_{rhs}, Form, RB)$.
 \item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
 $PV \cup Pending(lhs) \cup Pending(rhs)$.  If it does, report an error.
-\item  If $lhs$ is a variable $v$ (that is, $GetLValue(lhs) = { v }$),
+\item  If $lhs$ is a variable $v$ (that is, $GetLValueVariable(lhs) = { v }$),
 \begin{enumerate}
 \item Check that $v \notin PV \cup Pending(lhs) \cup Pending(rhs)$.  If it is, report an error.  
 There are multiple unsequenced assignments to $v$.
@@ -1088,9 +1108,9 @@ There are multiple unsequenced assignments to $v$.
 an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
 \item Otherwise, let $iv = $ {\it None}.
 \end{enumerate}
-\item Let $(B, UC, UEQ, G) = Update(v, iv, B_{rhs}, UC_{rhs}, UEQ_{rhs}, G_{rhs})$.
+\item Let $(B, \mathit{UC}, UEQ, G) = Update(v, iv, B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$.
 \end{enumerate}
-\item If $lhs$ is not a variable, let $(B, UC, UEQ, G) = (B_{rhs}, UC_{rhs}, UEQ_{rhs}, G_{rhs})$
+\item If $lhs$ is not a variable, let $(B, \mathit{UC}, UEQ, G) = (B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$
 \end{enumerate}
 
 % lhs op= rhs
@@ -1108,19 +1128,19 @@ Compound, None)$.
 C, EQ, PV, PostIncDec, None)$.
 \item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, C, EQ, PV, PostIncDec, None)$.
 \end{enumerate}
-\item If $e$ has the form \code{&}$e1$, let $(B, \_, UC, UEQ, G) = CheckLValue(e1, C, EQ, PV)$.
+\item If $e$ has the form \code{&}$e1$, let $(B, \_, \mathit{UC}, UEQ, G) = CheckLValue(e1, C, EQ, PV)$.
       
 \item Otherwise, $e$ is some expression with $n$ subexpressions (n may be 0).  The
 result is 
 \begin{enumerate}
-\item Let $UC = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
-\item Visit the $n$ subexpressions in some order, accumulating results into $UC$ and $UEQ$.  If the current subexpression being visited is $S_i$,
+\item Let $\mathit{UC} = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
+\item Visit the $n$ subexpressions in some order, accumulating results into $\mathit{UC}$ and $UEQ$.  If the current subexpression being visited is $S_i$,
 \begin{enumerate}
 \item If $i = 1$ and $Form = PostIncDec$ or $Form = Compound$, $S_1$ has already
 been checked, so use the results from that.  Let $B_1 = FB$.  If $S_1$ appears in some set $F$ in $UEQ$,
  let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.
 \item Otherwise, let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
-Let $(B_i, \_, UC, UEQ, G_i) =$  $Check(S_i, UC, UEQ, PV_i, No, None)$.
+Let $(B_i, \_, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, None)$.
 \end{enumerate}
 \item Determine the set of equivalent expressions for $e$.  Recall that the equivalent expressions must be non-modifying expressions.
 \begin{enumerate}
@@ -1131,7 +1151,7 @@ Let $(B_i, \_, UC, UEQ, G_i) =$  $Check(S_i, UC, UEQ, PV_i, No, None)$.
       as $Val$ but is a non-modifying expression. 
       
       For any subexpression $S_i$ that is a modifying expression, 
-      use an expression from $G_i$ (or $G_1$ when $Form = PostIncDec$). If $G_i$ is empty, $Val\prime$ cannot
+      use an expression from $G_i$ (or $G_1$ when $Form = PostIncDec$). If $G_i$ is empty, $Val^\prime$ cannot
       be constructed.
       
       Note that an invariant about each $G_i$ is that it will not contain any uses of variables in $PV_i$.
@@ -1145,7 +1165,7 @@ Let $(B_i, \_, UC, UEQ, G_i) =$  $Check(S_i, UC, UEQ, PV_i, No, None)$.
 
 The definition of $CheckLValue(e, C, EQ, PV)$ is:
 \begin{enumerate}
-\item If $e$ is a variable $v$, let $UC = C$, $UEQ=EQ$,
+\item If $e$ is a variable $v$, let $\mathit{UC} = C$, $UEQ=EQ$,
 \begin{enumerate}
 \item If $v$ does not have array type,
 \begin{enumerate}
@@ -1165,14 +1185,14 @@ Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
 \item Let $RB = $ \boundsunknown.
 \end{enumerate}
 \end{enumerate}
-\item If $e$ has the form $*e1$,  let $(B, UC, EQ, \_) = Check(e1, C, EQ, PV, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown.
+\item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, EQ, \_) = Check(e1, C, EQ, PV, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown.
 \item If $e$ has the form $e1[e2]$,
 \begin{enumerate}
-\item Let $(B_{e1}, {UC}_{e1}, {UEQ}_{e1}, \_) = Check(e1, C, EQ, PV \cup Pending(e2), No, 
+\item Let $(B_{e1}, \mathit{UC}_{e1}, {UEQ}_{e1}, \_) = Check(e1, C, EQ, PV \cup Pending(e2), No, 
          None)$.
-\item Let $(B_{e2}, {UC}_{e2}, {UEQ}_{e2}, \_) = Check(e2, {UC}_{e1}, {EQ}_{e1},
+\item Let $(B_{e2}, \mathit{UC}_{e2}, {UEQ}_{e2}, \_) = Check(e2, \mathit{UC}_{e1}, {EQ}_{e1},
          PV \cup Pending(e1), No, None)$
-\item Choose the $e_i$ that has pointer type.   Let $B = B_{e_i}$, $UC = {UC}_{e2}$, 
+\item Choose the $e_i$ that has pointer type.   Let $B = B_{e_i}$, $\mathit{UC} = \mathit{UC}_{e2}$, 
 $UEQ  = {UEQ}_2$,  $G=\emptyset$, and $RB = $ \boundsunknown.
 \end{enumerate}
 \item If $e$ has the form $(e1)$, the result is $CheckLValue(e1, C, EQ, PV)$
@@ -1195,15 +1215,15 @@ declared bounds. It computes an updated context and equality information
 implied by $e$.  It then checks that the updated context 
 and sets of equivalent expressions imply the declared bounds.
 
-The routine $Validate(DC, UC, EQ)$ takes a full expression $e$, a context $C$,
-constructed using declared bounds, an updated context $UC$, and sets of equivalent expressions $EQ$
-that is valid when $UC$ is valid.  It checks that $UC$ and $EQ$ imply the validity of $DC$.
+The routine $Validate(DC, \mathit{UC}, EQ)$ takes a full expression $e$, a context $C$,
+constructed using declared bounds, an updated context $\mathit{UC}$, and sets of equivalent expressions $EQ$
+that is valid when $\mathit{UC}$ is valid.  It checks that $\mathit{UC}$ and $EQ$ imply the validity of $DC$.
 
 $CheckFullExpr(e)$ is defined as follows:
 \begin{enumerate}
 \item Let $DC$ be the context formed from declared bounds.
-\item Let $(\_, UC, UEQ, \_) = Check(e, DC, \emptyset, \emptyset, No, None)$.
-\item Call $Validate(DC, UC, UEQ)$.
+\item Let $(\_, \mathit{UC}, UEQ, \_) = Check(e, DC, \emptyset, \emptyset, No, None)$.
+\item Call $Validate(DC, \mathit{UC}, UEQ)$.
 \end{enumerate}
 
 \subsection{Control-flow expressions}
@@ -1214,8 +1234,8 @@ logical boolean expressions.
 
 For a comma expression $e1$~\lstinline|,|~$e2$, $Check(e, C, EQ, PV, Form, FB)$ is defined as follows:
 \begin{enumerate}
-\item Let $(B_{e1}, {UC}_{e1}, {UEQ}_{e1}, \_)$ = $Check(e1, C, EQ, PV, No, None)$
-\item Let $(B, UC, UEQ, UG) = Check(e2, {UC}_{e1}, {UEQ}_{e1}, PV, No, None)$
+\item Let $(B_{e1}, \mathit{UC}_{e1}, {UEQ}_{e1}, \_)$ = $Check(e1, C, EQ, PV, No, None)$
+\item Let $(B, \mathit{UC}, UEQ, UG) = Check(e2, \mathit{UC}_{e1}, {UEQ}_{e1}, PV, No, None)$
 \end{enumerate}
 
 For a conditional expression $e1$~\lstinline+?+~$e2$~\lstinline+:+~$e3$, we must
@@ -1244,17 +1264,17 @@ one for each arm. This turn require that $Check$ take a set of contexts as
 To keep checking from becoming too expensive, we disallow such expressions.
 
 \begin{enumerate}
-\item Let $(\_, {UC}_{e1}, {UEQ}_{e1}, \_)= Check(e1, C, EQ, PV, No, None)$
+\item Let $(\_, \mathit{UC}_{e1}, {UEQ}_{e1}, \_)= Check(e1, C, EQ, PV, No, None)$
 \item For each arm $e_i$ of the conditional branch,
-        let $(B_i, {UC}_i, {UEQ}_i, _) = Check(e_i, {UC}_{e1}, EQ, PV, No, None)$.
+        let $(B_i, \mathit{UC}_i, {UEQ}_i, _) = Check(e_i, \mathit{UC}_{e1}, EQ, PV, No, None)$.
 \item Handle uses of temporaries bound in only one branch.  These temporaries
 will be uninitialized when the other branch of the conditional arm is evaluated.
-If some $B_i$, ${UC}_i$ or ${UEQ}_i$ uses a temporary bound in $e_i$,
+If some $B_i$, $\mathit{UC}_i$ or ${UEQ}_i$ uses a temporary bound in $e_i$,
 introduce a  temporary $r$ for the result of the entire conditional expression.
 For each arm $e_i$ of the conditional branch, for each temporary $t$ bound
-in only $e_i$ and used in $B_i$, ${UC}_i$ or ${UEQ}_i$,
+in only $e_i$ and used in $B_i$, $\mathit{UC}_i$ or ${UEQ}_i$,
 \begin{enumerate}
-\item See if $t$ is an element of $G_i$. If so, substitute $r$ for $t$ in $B_i$, ${UC}_i$ and ${UEQ}_i$,
+\item See if $t$ is an element of $G_i$. If so, substitute $r$ for $t$ in $B_i$, $\mathit{UC}_i$ and ${UEQ}_i$,
 and $G_i$.
 \item Otherwise,
 \begin{enumerate}
@@ -1263,7 +1283,7 @@ and $G_i$.
 \item Let ${UEQ}_i = {UEQ}_i - \{ t \}$.
 \end{enumerate}
 \end{enumerate}
-\item If the ${UC}_i$ are identical, let $UC$ = $UC_1$.
+\item If the $\mathit{UC}_i$ are identical, let $\mathit{UC}$ = $\mathit{UC}_1$.
 \item Otherwise,
 \begin{enumerate}
 \item Let $DC$ be the context formed from declared bounds.
@@ -1272,10 +1292,10 @@ for each variable $v \in dom(DC)$, keep the entry if $v \in Pending(e1) \cup Pen
 or $DC[v]$ uses the value of a variable in $Pending(e1) \cup Pending(e2)$.
 \item If there is a bounds expression in $DC^\prime$ that uses variables in $PV$,
 report an error.   Not all side-effects may have been seen.
-\item For each arm $e_i$, call $Validate(DC^\prime, {UC}_i, {UEQ}_i)$.
-\item Let $UC = C$.  Update $UC$ so that any variables modified by the conditional expression
+\item For each arm $e_i$, call $Validate(DC^\prime, \mathit{UC}_i, {UEQ}_i)$.
+\item Let $\mathit{UC} = C$.  Update $\mathit{UC}$ so that any variables modified by the conditional expression
 have the top-level declared bounds (which were just validated after each arm).
-For any variable $v$ in $DC^\prime$, let $UC[v] = DC^\prime[v]$.
+For any variable $v$ in $DC^\prime$, let $\mathit{UC}[v] = DC^\prime[v]$.
 \end{enumerate}
 \item Let $B$ be the greatest lower bound of the $B_i$.
 \item Let $UEQ = {UEQ}_1 \cap {UEQ}_2$,  where each set in $UEQ_1$ is intersected with each set in $UEQ_2$
@@ -1317,28 +1337,28 @@ $CheckFullExpr(e=$~\code{x = alloc(5)}\code{, len = 5}$)$\\
                 EQ=\emptyset, PV=\emptyset, Form=No, FB=None)$ \\
   \>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
   \>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(x, x + len)}$,
-                           UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+                           \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
   \>\>\>\>~$UEQ = \emptyset, G = \{$\code{&v}\}$)$ \\
   \>\>\>$Check($\code{alloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset, Form = No, FB = None)$\\
-  \>\>\>\>$(B = $ \code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
+  \>\>\>\>$(B = $ \code{bounds(tmp, tmp + 5)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
               G = \{$\code{tmp}$\})$\\
- \>\>\>$(B = $\code{bounds(tmp, tmp + 5)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},
+ \>\>\>$(B = $\code{bounds(tmp, tmp + 5)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},
           G = \{tmp, x\})$ \\
   \>\>$Check(e=$~\code{len = 5}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},
         PV=\emptyset, Form = No, FB = None)$\\
    \>\>\>$CheckLValue($\code{len}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},
                               PV = \emptyset)$\\
    \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}$, RB = $\code{bounds(unknown)}$,$
-                            $UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},$\\
+                            $\mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},$\\
    \>\>\>\>\>~$UEQ = \{\{tmp, x\}\},  PV = \emptyset)$\\
-   \>\>\>$Check(e = $\code{5}, $UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, EQ = \{\{tmp, x\}\}, PV = \emptyset,
+   \>\>\>$Check(e = $\code{5}, $\mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, EQ = \{\{tmp, x\}\}, PV = \emptyset,
           Form = No, FB = None)$\\
-   \>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
+   \>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
             EQ = \{\{tmp, x\},\{5\}\},  G = \{5\})$\\
-   \>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
+   \>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
              EQ = \{\{tmp, x\},\{5, len\}\},  G = \{5\})$\\
   \>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\},
-                   UC = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
+                   \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
                    EQ = \{\{tmp, x\},\{5, len\}\})$\\
 \end{tabbing}
 \end{small}
@@ -1370,7 +1390,7 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 
 \>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
 \>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(x, x + len)}$,
-                    UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+                    \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
 \>\>$Check(e=$~\code{(len = getlen()) ? alloc(len) : 0}$,$\\
 \>\>\>\>~$C=\{x \mapsto$\code{bounds(x, x + len)}$\},EQ=\emptyset,PV=\emptyset,
            Form = No, FB = None)$\\ \\
@@ -1385,21 +1405,21 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 \>\>\>\>\>\>\>$FB = None)$\\
 \>\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
 \>\>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}, $RB = $\code{bounds(unknown)}$,
-                     UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+                     \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
 \>\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&len}\}$)$ \\
 \>\>\>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset,
                          Form = No, FB = None)$\\
-\>\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
+\>\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
                G = \emptyset)$\\
-\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
+\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
                G = \emptyset)$\\
-\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
+\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
           G = \emptyset)$\\  \\
 % first arm
 \>\>\>{\tt Process the first arm:}\\
 \>\>\>$Check(e=$~\code{alloc(len)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
          EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
-\>\>\>\>$(B_1 = $ \code{bounds(tmp1, tmp1 + len)}$, {UC}_1 = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>$(B_1 = $ \code{bounds(tmp1, tmp1 + len)}$, \mathit{UC}_1 = \{x\mapsto$\code{bounds(unknown)}$,
                 {UEQ}_1 = \emptyset, G_1 = \{tmp1\})$\\
 
 % process the second arm
@@ -1407,26 +1427,26 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 \>\>\>{\tt Process the second arm:}\\
 \>\>\>$Check(e=$~\code{0}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
          EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
-\>\>\>\>$(B_2 = $ \code{bounds(any)}$, {UC}_2 = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>$(B_2 = $ \code{bounds(any)}$, \mathit{UC}_2 = \{x\mapsto$\code{bounds(unknown)}$,
                {UEQ}_2 = \emptyset, G_2 = \{ 0 \}$\\ \\
 
 \>\>\>{\tt Adjust the results for temporaries. Introduce a new temporary tmp2 for the result of}\\
 \>\>\>{\tt the entire conditional expression.}\\
-\>\>\>\>$(B_1 = $\code{bounds(tmp2, tmp2 + len)}$, {UC}_1 = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>$(B_1 = $\code{bounds(tmp2, tmp2 + len)}$, \mathit{UC}_1 = \{x\mapsto$\code{bounds(unknown)}$,
                 {UEQ}_1 = \emptyset)$\\
-\>\>\>\>$(B_2 = $ \code{bounds(any)}$, {UC}_2 = \{x\mapsto$\code{bounds(unknown)}$,$
+\>\>\>\>$(B_2 = $ \code{bounds(any)}$, \mathit{UC}_2 = \{x\mapsto$\code{bounds(unknown)}$,$
                ${UEQ}_2 = \emptyset)$\\
 \\
 \>\>\>{\tt Merge information for arms:}\\
-\>\>\>\>$(B = $\code{bounds(tmp2, tmp2 + len)}$, UC = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>$(B = $\code{bounds(tmp2, tmp2 + len)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                 UEQ = \emptyset, G = \{ tmp2 \})$\\
 \\
 \>\>\>{\tt Result for assignment:}\\
-\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + len)}$, UC = \{x\mapsto$\code{bounds(tmp2, tmp2 + len)}$,$\\
+\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + len)}$, \mathit{UC} = \{x\mapsto$\code{bounds(tmp2, tmp2 + len)}$,$\\
 \>\>\>\>~$UEQ = \{\{tmp2, x\}\}, G = \{tmp2 \})$\\
 \\
 \>\>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\},
-                   UC = \{x\mapsto $\code{bounds(tmp2, tmp2 + len)}$\},$\\
+                   \mathit{UC} = \{x\mapsto $\code{bounds(tmp2, tmp2 + len)}$\},$\\
 \>\>\>\>\>\>$EQ = \{\{tmp2, x\}\})$\\
 \end{tabbing}
 \end{small}
@@ -1461,15 +1481,15 @@ $CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), le
 \>\>\>\>\>\>$FB = None)$\\
 \>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
 \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}, $RB = $\code{bounds(unknown)}$,
-                     UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+                     \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
 \>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&len}\}$)$ \\
 \>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset,
                          Form = No, FB = None)$\\
-\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
+\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
                G = \emptyset)$\\
-\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
+\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
                G = \emptyset)$\\
-\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
+\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
           G = \emptyset)$\\  \\
 % first arm
 \>\>{\tt Process the first arm:}\\
@@ -1479,13 +1499,13 @@ $CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), le
           EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
 \>\>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
 \>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(unknown)}$,
-                     UC = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+                     \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
 \>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&x}\}$)$ \\
 \>\>\>$Check($\code{alloc(len)}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset,
                        Form = No, FB = None)$\\
-\>\>\>\>$(B = $ \code{bounds(tmp1, tmp1 + len)}$, UC = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>$(B = $ \code{bounds(tmp1, tmp1 + len)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                 UEQ = \emptyset G = \{tmp1\})$\\
-\>\>\>$(B = $ \code{bounds(tmp1, tmp1 + len)}$, UC = \{x\mapsto$\code{bounds(tmp1, tmp1 + len)}$ ,
+\>\>\>$(B = $ \code{bounds(tmp1, tmp1 + len)}$, \mathit{UC} = \{x\mapsto$\code{bounds(tmp1, tmp1 + len)}$ ,
              UEQ = \{\{x, tmp1\}\},$\\
 \>\>\>~$G = \{x, tmp1\})$\\ \\
 % process the second arm
@@ -1501,13 +1521,13 @@ $CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), le
 \>\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ =  \emptyset,
                    PV = \emptyset)$ \\
 \>\>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}, $RB = $\code{bounds(unknown)}$,
-                     UC = \{x \mapsto$\code{bounds(unknown)}$\},$\\
+                     \mathit{UC} = \{x \mapsto$\code{bounds(unknown)}$\},$\\
 \>\>\>\>\>\>~$UEQ =  \emptyset, G = \{$\code{&len}\}$)$ \\
 \>\>\>\>\>$Check($\code{1}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset,
                        Form = No, FB = None)$\\
-\>\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                   UEQ = \emptyset, G = \{1\})$\\
-\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, UC = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                   UEQ = \{\{len, 1\}\}, G = \{len, 1\})$\\
 \>\>\>\>$Check(e=$~\code{x = alloc(1)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
           EQ=\{\{len, 1\}\},PV=\emptyset, Form = No,$\\
@@ -1515,26 +1535,26 @@ $CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), le
 \>\>\>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, 
                                       EQ = \{\{len, 1\}\}, PV = \emptyset)$ \\
 \>\>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(unknown)}$,
-                     UC = \{x \mapsto$\code{bounds(unknown)}$\},$\\
+                     \mathit{UC} = \{x \mapsto$\code{bounds(unknown)}$\},$\\
 \>\>\>\>\>\>~$UEQ = \{\{len, 1\}\}, G = \{$\code{&x}\}$)$ \\
 \>\>\>\>\>$Check($\code{alloc(1)}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \{\{len, 1\}\}, PV = \emptyset,
                        Form = No, FB = None)$\\
-\>\>\>\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$, UC = \{x\mapsto$\code{bounds(unknown)}$,
+\>\>\>\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                       UEQ = \{\{len, 1\}\},G = \{tmp2\})$\\
 \>\>\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$,
-                   UC = \{x\mapsto$\code{bounds(tmp2, tmp2 + 1))}$,$\\
+                   \mathit{UC} = \{x\mapsto$\code{bounds(tmp2, tmp2 + 1))}$,$\\
 \>\>\>\>\>~UEQ = \{\{len, 1\}, \{x, tmp2\}\},$G = \{x, tmp2\})$\\
-\>\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$, UC = \{x\mapsto$\code{bounds(tmp2, tmp2 + 1))}$,$\\
+\>\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$, \mathit{UC} = \{x\mapsto$\code{bounds(tmp2, tmp2 + 1))}$,$\\
 \>\>\>\>~$UEQ = \{\{len, 1\}, \{x, tmp2\}\}, G = \{x, tmp2\})$\\
-\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$, UC = \{x\mapsto$\code{bounds(tmp2, tmp2 + 1))}$,$\\
+\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$, \mathit{UC} = \{x\mapsto$\code{bounds(tmp2, tmp2 + 1))}$,$\\
 \>\>\>~$UEQ = \{\{len, 1\}, \{x, tmp2\}, G = \{x, tmp2\})$\\ \\
 % Contexts are not the same, so validate results after each arm.
 \>\>{\tt Contexts are not the same, so validate contexts after each arm:}\\
 \>\>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\},
-                   UC = \{x\mapsto $\code{bounds(tmp1, tmp1 + len)}$\},$\\
+                   \mathit{UC} = \{x\mapsto $\code{bounds(tmp1, tmp1 + len)}$\},$\\
 \>\>\>\>\>\>$EQ = \{\{tmp1, x\}\})$\\
 \>\>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\}, 
-                   UC = \{x\mapsto $\code{bounds(tmp2, tmp2 + 1)}$\},$\\
+                   \mathit{UC} = \{x\mapsto $\code{bounds(tmp2, tmp2 + 1)}$\},$\\
 \>\>\>\>\>\>$EQ = \{\{len, 1\}, \{x, tmp2\}\})$\\
 \end{tabbing}
 \end{small}
@@ -2172,7 +2192,7 @@ the variable.
 To check bundled declarations and statements, the current context is
 determined before the bundled block. The current context is then updated
 for each expression statement and declaration following the rules for
-updating contexts in Sections~\ref{section:checking-full-expressions} and 
+updating contexts in Sections~\ref{section:checking-full-expressions} and
 \ref{section:checking-declarations}. The analysis of 
 Section~\ref{section:extent-definition}
 is used to determine the expected bounds expression for each variable at
@@ -2338,7 +2358,7 @@ full expression occurring in a statement to have new bounds declared
 for any variables in it. This means that the bounds declarations in the
 context will be expected to be true after the evaluation of the full expression too.
 
-The rules in Section~\ref{section:checking-compleex-expressions}
+The rules in Section~\ref{section:checking-complex-expressions}
 are used to determine the updated context after evaluation of the
 expression. The rules in Section~\ref{section:checking-full-expressions}
 are used to check that the updated
