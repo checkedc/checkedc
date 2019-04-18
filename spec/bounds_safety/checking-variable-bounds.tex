@@ -847,7 +847,8 @@ modified.
 Note that a C compiler may choose an order of evaluation and
 define the meaning of an expression anyway.  We still
 require that a compiler produce an error when checking
-bounds declaration.  This ensures that the checking
+bounds declarations for expressions with undefined meaning
+according to the definition just given.  This ensures that the checking
 is the same across compilers.
 
 Bounds checks can lead to a subtle version of an unordered assignment
