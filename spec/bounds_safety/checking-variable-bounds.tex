@@ -57,7 +57,7 @@ C also allows allows control flow within
 expressions via comma expressions, conditional expressions, and
 logical boolean expressions (the \code{&&} and \code{||} expressions).
 
-To handle this, the analysis tracks sets variables where assignments
+To handle this, the analysis tracks sets of variables where assignments
 to those variables may not have been completed yet.  We call these
 variables {\em pending variables} and the sets of variables {\em
 pending sets}.  When the order of evaluation of expressions
@@ -885,7 +885,7 @@ To detect undefined behavior, the checking tracks
 sets of variables with pending assignments.  Pending
 assignments may or may not have been completed yet, which means
 that the variables being assigned to have {\em indeterminate}
-values.  The set are used to used to detect:
+values.  The sets are used to used to detect:
 \begin{enumerate}
 \item Uses of variables whose values are indeterminate.
 \item Accessing memory with pointers whose bounds expressions
@@ -1153,6 +1153,7 @@ C, EQ, PV, PostIncDec, None)$.
       
 \item Otherwise, $e$ is some expression with $n$ subexpressions (n may be 0).  The
 result is 
+\label{list:check-unordered-operands}
 \begin{enumerate}
 \item Let $\mathit{UC} = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
 \item Visit the $n$ subexpressions in some order, accumulating results into $\mathit{UC}$ and $UEQ$.  If the current subexpression being visited is $S_i$,
@@ -1208,6 +1209,7 @@ Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
 \end{enumerate}
 \item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, EQ, \_) = Check(e1, C, EQ, PV, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown (Checked C does not allow bounds for values pointed to by pointers).
 \item If $e$ has the form $e1[e2]$,
+\label{list:check-unordered-subscript-operands}
 \begin{enumerate}
 \item Let $(B_{e1}, \mathit{UC}_{e1}, {UEQ}_{e1}, \_) = Check(e1, C, EQ, PV \cup Pending(e2), No, 
          None)$.
@@ -1268,7 +1270,7 @@ We address this problem with the following approach:
 \begin{itemize}
 \item  If both arms produce the same updated context, we use that context
 and merge the rest of the results.
-\item Iif the arms produce different
+\item If the arms produce different
 contexts, we validate bounds declarations at the end of each arm.  We then
 use the declared bounds in the updated context for the entire expression
 and merge the result of the results.
@@ -1359,7 +1361,7 @@ $CheckFullExpr(e=$~\code{x = alloc(5)}\code{, len = 5}$)$\\
   \>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
   \>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(x, x + len)}$,
                            \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
-  \>\>\>\>~$UEQ = \emptyset, G = \{$\code{&v}\}$)$ \\
+  \>\>\>\>~$UEQ = \emptyset, G = \{$\code{&x}\}$)$ \\
   \>\>\>$Check($\code{alloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset, Form = No, FB = None)$\\
   \>\>\>\>$(B = $ \code{bounds(tmp, tmp + 5)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
               G = \{$\code{tmp}$\})$\\
@@ -1586,13 +1588,15 @@ The pending variable sets used in recursive calls to $Check$ and $CheckLValue$
 ensure that updates to the context and sets of equivalent expressions are done on different variables when
 the order of evaluation is not specified.  This in turn ensures that the the same context and sets of equivalent expressions
 are produced no matter which order the recursive calls are made.   Here we informally argue 
-that this property (known as confluence) holds for assignments that have  the form $lhs = rhs$.
+that this property (known as confluence) holds for assignments that have the form $lhs = rhs$.
 
 Suppose that $lhs$
 contains a single assignment expression that updates a variable $v$ with an expression $e1$ and 
-$rhs$ contains a single assignment expression that updates  a variable $w$ with an expression $e2$.  
-We know that $lhs$ does not update or use $w$ because of the pending variable parameters.  Similarly, 
-we know that $rhs$ does not update or use $v$.
+$rhs$ contains a single assignment expression that updates  a variable $w$ with an expression $e2$.
+We assume that $lhs$ does not update or use $w$ and that $rhs$ does not use or update $v$
+(if either did, this leads to an error being reported no matter which order recursive calls are
+made because of the pending variable sets.  $w$ appears in the pending variable set for
+$CheckLValue(lhs,\ldots)$ and $v$ appears in the pending variable set for $Check(rhs, \ldots)$).
 
 Observe that a recursive call to $Check(e, \ldots)$ or $CheckLValue(e, \ldots)$ only updates the context
 and the sets of equivalent expressions for variables that are assigned to in $e$.   $CheckLValue(lhs,\ldots)$ and
@@ -1648,6 +1652,16 @@ assignments does not matter.
 \end{itemize}
 \end{itemize}
 
+Similar reasoning applies when $Check$ is called before $CheckLValue$. Thus, we have shown that
+checking an assignment expression produces the same result, no matter which order $Check$ and
+$CheckLValue$ are called.
+
+Similar reasoning also applies when there are multiple recursive calls to
+$Check$ (as happens in case~\ref{list:check-unordered-operands} of $Check$ and
+case~\ref{list:check-unordered-subscript-operands} of $CheckLValue$).  Thus, we argue
+that checking expressions with subexpressions whose evaluation is unordered with
+respect to one another produces the same result, no matter which order $Check$
+or $CheckLValue$ are invoked recursively on the subexpressions.
 
 \section{Checking that full expressions maintain declared bounds}
 \label{section:checking-full-expressions}
