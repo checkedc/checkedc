@@ -129,7 +129,7 @@ pointer types, checking succeeds.
 \item Otherwise, if \var{D} is not a function pointer type and \var{D} is
 \begin{itemize}
 \item \ptrT: the bounds of \var{e} are computed using the rules
-in Section~\ref{section:checking-nested-assignment-expressions}.
+in Section~\ref{section:checking-complex-expressions}.
 \begin{itemize}
 \item If the bounds are \boundsunknown, checking fails with a compile-time
 error.
@@ -191,7 +191,7 @@ as arguments:
 \end{itemize}
 
 The bounds of \var{e1} are computed
-using the rules in Section~\ref{section:checking-nested-assignment-expressions}.
+using the rules in Section~\ref{section:checking-complex-expressions}.
 If the bounds of \var{e1} are \boundsunknown, it is a compile-time error. 
 If the bounds of \var{e1} are \boundsany, no runtime checks are needed.
 Otherwise the bounds must be \bounds{\var{lb}}{\var{ub}} (or convertible to that form).

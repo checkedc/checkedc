@@ -589,7 +589,7 @@ bounds expression.  Given this representation, it is easy to define
 the rules for inferring bounds for member accesses: a member access prunes the
 set of pairs and shortens the member paths.
 
-In Section~\ref{section:checking-assignment-expressions}, checking of assignment
+In Section~\ref{section:checking-complex-expressions}, checking of assignment
 expressions updates contexts.  The contexts are then used to check that expression
 statements imply declared bounds.  They are also used to check expressions nested
 within an expression that contain assignment expressions. 
@@ -604,7 +604,7 @@ assignment.
 An expression statement is checked by determining the updated context for the
 expression statement, determining the expected context for bounds after 
 the statement, and then checking that the updated context implies the
-validity of the bounds in the expected context (Section ~\ref{section:checking-expression-statements}).
+validity of the bounds in the expected context (Section ~\ref{section:checking-full-expressions}).
 For each variable in the expected context, it is checked that the bounds expression in
 the updated context implies the expected bounds expression.  This is easily 
 extended to a structure variable by checking for each member path for 
