@@ -38,45 +38,7 @@ struct S {
 \end{lstlisting}
 
 Member bounds declarations are program invariants that are assumed to be true
-by default for objects of that type. A member bounds declaraton may be suspended for a specific
-object to allow for initialization of the object or modification of the
-members involved in the member bounds declarations. The member bounds
-declaration is declared to hold again after the initialization or modification is done.
-Here is an example of variable of type \code{S} being initialized:
-
-\begin{lstlisting}
-void f(int len) {
-    S y 
-    where suspends(y.data);
-    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
-    y.data = newarr;
-    y.num = len
-    where holds(y.data);    // the member bounds for y.data now holds
-    ...
-}
-\end{lstlisting}
-
-\keyword{Suspends} and \keyword{holds} are dataflow-sensitive declarations of 
-the states of the member bounds declarations for specific members of variables. They can be
-applied to variable members that have member bounds.
-
-They also can be applied to variables or variable members with structure
-types as syntactic short-hand. In that case, they apply to the nested
-members of the variable or variable member. The example could also be
-written as:
-
-\begin{lstlisting}
-void f(int len) {
-    S y 
-    where suspends(y);
-    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len))
-    y.data = newarr;
-    y.num = len
-    where holds(y);    // the member bounds for y.data now holds
-    ...
-}
-\end{lstlisting}
-
+by default for objects of that type.
 Making member bounds declarations be invariants provides a way to deal with issues
 caused by aliasing. There can be pointers to data structures or members
 of data structures. There may be multiple pointers to a single
@@ -110,15 +72,19 @@ members of other pointer variables.
 
 Member bounds declarations being program invariants for structure members allows
 localized reasoning about the members. A programmer can assume that the
-bounds declarations are true for members of objects of that type. The member bounds
-declaration may be suspended temporarily for specific objects while they are being
-initialized or modified.
+bounds declarations are true for members of objects of that type.   Initializers for
+structure variables must establish the validity of the member bounds declarations and
+updates to structure members of objects must preserve the member bounds
+declarations invariants.  The updates may need to be enclosed in a 
+\code{bundled} block.
 
-The bounds declarations for variables with structure types and the
-\keyword{suspends} and \keyword{holds} declarations will be checked statically
-for validity.  Section~\ref{section:checking-bounds-with-structures} extends
-the rules from Chapter~\ref{chapter:checking-bounds} to variables with structure
-types and to \keyword{suspends} and \keyword{holds} declarations.
+We will check statically that programs maintain the validity of bounds
+declarations for structure members.   
+Section~\ref{section:checking-bounds-with-structures} generalizes
+the rules in Chapter~\ref{chapter:checking-bounds} from variables
+to lvalue expressions with {\em bounds invariants}.  The new
+expressions covered include structure member access expressions, 
+pointer dereference expressions, and array subscripting expressions.   
 
 In the rest of this chapter, to simplify the description, assumptions
 about address-taken variables similar to those in
@@ -230,295 +196,6 @@ explaining concepts. Sometimes concepts will be explained using member
 bounds that use only immediate members and then generalized to handle
 nested members.
 
-\section{Bounds declarations for variables with structure types}
-
-To describe facts about members of specific variables, the left-hand
-sides of bound declarations are generalized to allow members of
-variables. The term \emph{variable member path} stands for variables or
-variables with member accesses. Variable member paths are used where
-variables were allowed:
-\begin{tabbing}
-\var{bounds}\=\var{-decl:}\\
-\> \var{var-member-path} \code{:} \var{bounds-exp} \\
-\\
-\var{var-member-path:} \\
-\> \var{identifier} \\
-\> \var{var-member-path} \code{.} \var{identifier}
-\end{tabbing}
-
-The first identifier in a variable member path must be the name of a
-variable. The rest of the path, if there is one, must
-describe a member path for the structure type that has an
-\arrayptr\ type. The member path can be used as a name for its
-associated member bounds. Inline bounds declarations are still
-restricted to variables.
-
-\section{Declaring the state of member bounds declarations for variables}
-
-Programmers may declare the state of a member bounds declaration
-for a variable using two kinds of facts:
-\begin{tabbing}
-\var{fact:}\= \\
-\> \var{\ldots{}} \\
-\> \code{suspends(}\var{var-member-path}\code{)} \\
-\> \code{holds(}\var{var-member-path}\code{)}
-\end{tabbing}
-
-If the \var{var-member-path} has an \arrayptr\ type, it must
-have the form \var{x.path,} where \var{x} is a variable name. 
-The fact \code{suspends}(\var{x\code{.}path}\code{)} means that the
-member bounds declared by the type of \var{x} for \var{path} may not
-hold for \var{x}. The fact \code{holds(}\var{x\code{.}path}\code{)}
-means that the member bounds declared by the type of x for \var{path}
-holds now for \var{x}.
-
-As a convenient short-hand notation, the \var{var-member-path} can have
-a structure type. In that case, the declaration applies to all member
-bounds for the structure type and child members of the structure type.
-
-\subsection{Parameters and return values}
-
-The state of member bounds declarations can be declared for parameters and
-return values using \keyword{suspends} and \keyword{holds} as well. By
-default, the state is \code{holds}.
-
-Consider the following structure type definitions:
-
-\begin{lstlisting}
-struct S {
-    array_ptr<int> data : count(num);
-    int num;
-}
-
-struct T {
-    S arr1;
-    S arr2;
-    array_ptr<float> weights : count(len);
-    int len;
-}
-\end{lstlisting}
-
-Here are some function declarations involving the state of member
-bounds:
-\begin{lstlisting}
-T f(T x where holds(x)) where holds(return_value)   // the default 
-
-T f(T x where suspends(x.arr1))
-where suspends(return_value.arr2)
-
-T f(T x where suspends(x.arr1.data)
-where suspends(return_value.arr1.data)
-\end{lstlisting}
-
-\subsection{Extent of declarations of member bounds state for variables}
-\label{section:member-bounds-state-extent}
-
-Declarations of the state of member bounds declarations are dataflow-sensitive
-and follow rules similar to flow-sensitive bounds declarations.
-
-We first define the set of state declarations that apply to a function
-component, where a function component is a statement or
-variable declaration.
-
-The state declarations for variables and variable members with structure
-types are expanded to state declarations of the individual members with
-\arrayptr\ type. It is assumed that declarations of automatic
-structure variables without initializers implicitly have \keyword{suspends}
-declarations for the variables. All other declarations of structure
-variables are assumed implicitly to have \keyword{holds} declarations for the
-variables. The other declarations are either automatic variables with
-initializers or variables with static storage, which are initialized to
-0. Any \arrayptr\ members initialized to 0 have \boundsany, so
-they satisfy their member bounds declarations.
-
-For any declaration of member bounds state for \var{v}.\var{mp}, where
-\var{v} is a variable and \var{mp} is a member path, if
-\begin{enumerate}
-\item
-  There is some path from the declaration to the function component, and
-\item
-  \var{v} occurs in the function component, and
-\item
-  There is no other declaration of member bounds state for \var{v.mp}
-  along the path
-\end{enumerate}
-then the declaration of member bounds state applies to the function
-component.
-
-Member bounds state declarations must be consistent and agree
-along all paths to a function component.   If a variable occurring in a
-function component has more than one state declaration that applies to
-it at the component, then all the state declarations applying to it at
-the component must be syntactically identical. This avoids ambiguity
-about which state declaration applies to an occurrence of a variable.
-It is an error for the member bounds state declarations to disagree.
-
-The following example illustrates the declaration of member bounds
-state. The structure \code{S} represents a variable length array,
-where \code{data} holds a pointer to an array and \code{num} is the 
-length of the array. The function \code{f} takes a length parameter  
-\code{len} and creates an initialized instance of \code{S} in the 
-variable \code{y}.  It then copies \code{y} to \code{z}.
-
-\begin{lstlisting}
-struct S {
-   array_ptr<int> data
-   where count(data)== num;
-   int num;
-};
-\end{lstlisting}
-
-Here is a version of \code{f} where all member bounds state declarations are
-made explicit. For structure variable members whose member bounds are
-suspended, the bounds declarations are made explicit as well.
-
-\begin{lstlisting}
-void f(int len) {
-    S y where suspends(y.data);
-    S z where suspends(z.data);
-    int i, j;
-    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
-    y.data = newarr
-    where y.data : count(len);
-    y.num = len
-    where holds(y.data);   // the member bounds for y.data now holds
-    z = y
-    where holds(z.data);
-}
-\end{lstlisting}
-
-This can be written more succinctly as:
-
-\begin{lstlisting}
-void f(int len) {
-    S y;
-    S z;
-    int i, j;
-    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
-    y.data = newarr
-    where y.data : count(len);
-    y.num = len
-    where holds(y);   // y is initialized now
-    z = y
-    where holds(z);   // z is initialized now
-}
-\end{lstlisting}
-
-\section{Integration of member bounds and bounds for variables}
-
-A member of a structure variable may be covered by its member bounds
-declaration and a bounds declaration at the same time. This coexistence
-happens when a member is initialized to satisfy its member bounds
-declaration. Here is a version of \code{f} that is annotated with both member
-bounds and bounds declarations for variable members.
-\begin{lstlisting}
-void f(int len) {
-    S y;
-    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
-    y.data = newarr
-    where newarr : count(len) && y.data : count(len);
-    y.num = len
-    where holds(y.data) && y.data : count(len) && 
-          y.data : count(y.num);
-    ...
-}
-\end{lstlisting}
-
-After the assignment \code{y.num = len}, the member bounds holds for
-\code{y.data} and the bounds declaration \code{y.data : count(y.num)}
-holds as well.
-
-\subsection{Determining bounds for a use of an \arrayptr\ member of a variable}
-\label{section:determining-variable-member-bounds}
-
-When a member path \var{mp} of a variable \var{x} is used and
-\var{x}\code{.}\var{mp} has type \arrayptr, the bounds for
-\var{x}\code{.}\var{mp} are determined using these rules:
-
-\begin{itemize}
-\item
-  If the use is within the extent of a bounds declaration
-  \var{x}\code{.}\var{mp} \code{:} \var{bounds-exp} and
-  \var{bounds-exp} is not \boundsunknown, \var{bounds-exp} is
-  the bounds.
-\item
-  Otherwise, if the state of the member bounds for
-  \var{x}\code{.}\var{mp} is \code{holds}, the member bounds for
-  \var{x}\code{.}\var{mp} is used.
-\item
-  Otherwise, the bounds of \var{x}\code{.}\var{mp} is
-  \boundsunknown.
-\end{itemize}
-
-\subsection{Suspends declarations and bounds for variables.}
-
-When the member bounds declaration \var{mb} for a variable member is
-suspended by a statement of the form:
-
-\var{e2} \keyword{where} \code{suspends(}\var{x\code{.}mp}\code{);}
-
-where \var{x} is a variable and \var{mp} is a member path, there is an
-implicit bounds declaration for \var{x}\code{.}\var{mp} at the point
-of suspension. This happens unless \var{e2} modifies a member \var{m}
-of \var{x} that occurs in \var{mb}. In addition, the state of the
-member bounds for \var{x}\code{.}\var{mp} must be \code{holds}
-before the statement. The member bounds declaration \var{mb} is
-converted to a bounds declaration by prefixing each occurrence of a
-member path in \var{mb} with the expression ``\var{x}\code{.}''.
-
-For example, given
-
-\begin{lstlisting}
-S copy_and_resize(S arg, int len) {
-    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
-       where suspends(arg);
-    for (int i = 0; i < arg.num; i++) {
-       newarr[i] = arg.data[i];
-    }
-    arg.data = newarr where arg.data : count(len);
-    arg.num = len where arg.data : count(arg.num)
-    where holds(arg);   // member bounds for arg holds now
-    return arg;
-}
-\end{lstlisting}
-
-
-There is implicitly a bounds declaration at the suspension of the member
-bounds for arg:
-
-\begin{lstlisting}
-    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
-       where suspends(arg) && arg.data : count(arg.num);
-\end{lstlisting}
-
-If the suspends were done after the assignment to \code{arg.data}:
-
-\begin{lstlisting}
-    arg.data = newarr
-    suspends(arg);
-\end{lstlisting}
-
-there would not be an implicit bounds declaration because \code{arg.data} is
-modified by the assignment.
-
-At a declaration of a structure variable x, no implicit bounds
-declarations are inserted if the declaration suspends the member bounds
-for a member of x. There was no point at which the member bounds was
-known to be true. For example,
-
-\begin{lstlisting}
-f(S arg where suspends(arg))
-\end{lstlisting}
-
-does not have an implicit bounds declaration of the form \lstinline|arg.data :count(arg.len)|.
-
-\subsection{Holds declarations and bounds for variables}
-
-At a \keyword{holds} declaration for a variable member path \var{x.mp},
-the member bounds for \var{x.mp} must be implied by the bounds
-declarations that are true about members of \var{x} and any facts that 
-true at the point of the \keyword{holds} declaration.
-
 \section{Bounds-safe interfaces}
 \label{section:structure-bounds-safe-interfaces}
 
@@ -564,12 +241,139 @@ unchecked pointers read from the data structure to checked pointers.  Code in un
 contexts that uses only unchecked pointer types is compiled as though the bounds-safe
 interface has been stripped from the source code.
 
-\section{Extending checking validity of bounds}
+\section{Inferring bounds expressions for member access expressions}
+
+In this section, we informally explain how to infer bounds expressions for
+member access expressions for members that have bounds declarations.
+
+Given an expression \var{e} \var{op} \var{m}, where 
+\begin{itemize}
+\item \var{op} is either \code{.} or \code{->}, and 
+\item \var{m} is a member that has a member bounds declaration  \var{d}
+\end{itemize}
+the bounds declaration for the expression is created by taking \var{d} and replacing
+members \var{d} that have been used in place of variables with member access
+expression.  For each use of a member \var{p}, replace each occurrence of \var{p}
+with \var{e} \var{op} \var{p}.  If  \var{e} has side-effects,
+\var{e} is replaced with a temporary that will contain the lvalue (or value) to
+which \var{e} evaluates.
+
+Here are examples of bounds expressions for member access expressions.
+Given
+\begin{lstlisting}
+struct Buffer {
+   array_ptr<int> data : count(len);
+   int len;
+};
+
+void f(struct Buffer b) {
+  ...   b.data[0] ...
+}
+\end{lstlisting}
+the bounds for \code{b.data} are \code{count(b.len)}.   The expanded bounds are
+\code{bounds(b.data, b.data + b.len)}.   The bounds check for \code{b.data[0]} will 
+check that \code{b.data + 0 <= b.data} and \code{b.data + 0 < b.data + b.len}.
+If \code{len} is \code{0}, the bounds check will fail.
+
+Given
+\begin{lstlisting}
+void g(ptr<struct Buffer> b) {
+   ... b->data[0] ...
+}
+\end{lstlisting}
+the bounds for \code{b->data} are \code{count(b->len)}.  The expanded bounds are
+\code{bounds(b->data, b->data + b->len)}.
+In C, the expression \code{e->m} is equivalent to \code{(*e).m}.   Given
+\begin{lstlisting}
+void g(ptr<struct Buffer> b) {
+   ... (*b).data[0] ...
+}
+\end{lstlisting}
+the bounds for \code{(*b).data)} are \code{count((*b).len}.  The expanded bounds are
+\code{bounds((*b).data, (*b).data + (*b).len}.
+The following example shows the inference of a bounds expression  when the base expression of
+a member access has a side effect:
+\begin{lstlisting}
+void ptr<struct Buffer> get(int i);
+
+int h(int num, int index) {
+  return get(num)->data[index];
+}
+\end{lstlisting}
+A new temporary \var{t1} is introduced by the compiler to hold the result of
+\code{get(num)} at runtime.   
+The bounds for \code{get(num)->data} are \code{count(}\var{t1}\code{->len)}.
+The expanded bounds are 
+\code{bounds(}\var{t1}\code{->data,}\var{t1}\code{->data +}  \var{t1}\code{->len)}.
+
+\section{Extending bounds declaration checking}
 \label{section:checking-bounds-with-structures}
 
-This section describes how to extend the checking in Chapter~\ref{chapter:tracking-bounds} 
-to check variables with structure bounds and expressions with structure operations such 
-as member assignment and member access.  This section is primarily of interest to compiler writers.
+This section extends the checking in Chapter~\ref{chapter:tracking-bounds} from
+variables to the remaing forms of lvalue expressions: structure member accesses, pointer
+dereferences, and subscript expressions.  These have to be handled together because
+they interact.  Structure member accesses may use other lvalue expressions as 
+base expressions, and the other expressions may modify entire structures.
+
+It is important to understand that structure bounds declarations are program-wide invariants.
+An assignment to a structure member of a specific object implies that an invariant about
+that specific object must hold, when the member is involved in a bounds declaration.
+To be concrete, if the bounds declaration involves multiple members, we must check
+that all the members have been updated accordingly.  
+
+When an assignment is made to a specific member, the object may enter a state where the
+program-wide invariant temporarily does not hold.  The invariant must hold by the end of evaluating 
+a full expression or a bundled block.
+
+The presence of aliasing makes this challenging to reason about.  Aliasing is when two pointers
+(or lvalues) point to overlapping memory.   Changing memory via one pointer may change the
+result of accessing memory via the other pointer.  We largely side-stepped aliasing issues in the
+treatment of variables by disallowing taking the address of variables.  With pointer dereferences,
+we cannot avoid reasoning about aliasing.
+
+The extended checking works as follows:
+\begin{itemize}
+\item An assignment to a structure member implies that an invariant about a specific
+object must hold.  In Chapter~\ref{chapter:tracking-bounds}, we were able to use
+declarations of variables to track what invariants need to be checked.    These were
+described as  the {\em declared context}.  In this checking, we add an {\em implied context}.
+which tracks new invariants created by assignments to members of objects.  The implied
+context must be passed through the checking routines.   The implied context is a map
+from non-modifying lvalue expressions to the bounds expression that must be true at the
+end of evaluating the expression.
+\item The sets of pending variables become {\em pending lvalue expressions}.   These
+describe lvalues that may or may not have been updated yet.   It is undefined for an expression
+to read memory and write to the same memory in an unordered fashion, as well as for an 
+expression to have multiple writes to the same memory that are unordered.  
+\item We introduce a function {\em IsDisjoint} that determines when two lvalue expressions
+do not alias.  It return true when two lvalue expressions must denote disjoint ranges of memory,
+false otherwise.   This is used to detect when there are conflicting reads/write and writes/writes
+involving lvalue expressions.
+
+This function is pessimistic, in that it assumes aliasing unless aliasing can be disproven.  Currently, 
+we have no notation for describing the lack of aliasing in data structures or during function calls.   
+{\em IsNotAliased} could be made less pessimistic with this information.
+
+\item At a function call, we assume that the function call may read or write any memory accessible
+to the function being called.  For local variables whose addresses are not taken, we can assume that 
+function call does not modify them. For data structures, we assume that a function may read or write them.
+This implies that structure member bounds declarations must hold before function calls.  That in
+turn implies that unordered calls and assignments via pointers to structure members involved in bounds declarations will not be allowed in the same expression.
+
+Note that C places a sequence point after the arguments and function target for a call have been 
+evaluated and before the call.  So an assignment that is part of argument expression would be allowed,
+unless there were multiple unsequenced calls within the entire expression,  C also states that
+function evaluations are not interleaved, even when the calls themselves are unordered.  We do
+not have to wory about unordered function calls conflicting with each other with respect to preserving
+structure member bounds declarations.
+
+\item Because the checking works in terms of lvalue expressions, we must make sure that we 
+do not lose track of lvalues during the checking.  When a variable that is used in computing an
+lvalue expression changes, for example, we must make sure that we can compute the original
+value of the expression.  If we cannot, we made to signal an error.  In assignment through a pointer
+may invalidate an lvalue expression that reads a pointer, if the two pointers are potentially alised.
+In this case, we will need to signal an error.
+\end{itemize}
 
 In Chapter~\ref{chapter:checking-bounds}, contexts map pointer variables to their bounds.
 Contexts are extended to map structure variables to descriptions of bounds for their

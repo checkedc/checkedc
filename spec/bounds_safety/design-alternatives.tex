@@ -694,3 +694,348 @@ for_any(T) int f(void);
 for_any(T) struct S { T *elem, S<T> *next } g(void);
 \end{verbatim}
 
+\section{Suspends and hold clauses for structure members}
+
+We initially proposed having a notion of \code{suspends} and \code{holds} clauses
+for structure members with bounds.  This allows the programmer to annotate when
+a bounds declaration for structure member is not valid and when it becomes valid.
+We removed it because it is not strictly necessary and is probably better addressed
+as a discussion on initialization and invariants on data.   This section contains
+the proposed design.
+
+Member bounds declaraton may be suspended for a specific
+object to allow for initialization of the object or modification of the
+members involved in the member bounds declarations. The member bounds
+declaration is declared to hold again after the initialization or modification is done.
+Here is an example of variable of type \code{S} being initialized:
+
+\begin{lstlisting}
+void f(int len) {
+    S y 
+    where suspends(y.data);
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
+    y.data = newarr;
+    y.num = len
+    where holds(y.data);    // the member bounds for y.data now holds
+    ...
+}
+\end{lstlisting}
+
+\subsection{Bounds declarations for variables with structure types}
+
+To describe facts about members of specific variables, the left-hand
+sides of bound declarations are generalized to allow members of
+variables. The term \emph{variable member path} stands for variables or
+variables with member accesses. Variable member paths are used where
+variables were allowed:
+\begin{tabbing}
+\var{bounds}\=\var{-decl:}\\
+\> \var{var-member-path} \code{:} \var{bounds-exp} \\
+\\
+\var{var-member-path:} \\
+\> \var{identifier} \\
+\> \var{var-member-path} \code{.} \var{identifier}
+\end{tabbing}
+
+The first identifier in a variable member path must be the name of a
+variable. The rest of the path, if there is one, must
+describe a member path for the structure type that has an
+\arrayptr\ type. The member path can be used as a name for its
+associated member bounds. Inline bounds declarations are still
+restricted to variables.
+
+\keyword{Suspends} and \keyword{holds} are dataflow-sensitive declarations of 
+the states of the member bounds declarations for specific members of variables. They can be
+applied to variable members that have member bounds.
+
+They also can be applied to variables or variable members with structure
+types as syntactic short-hand. In that case, they apply to the nested
+members of the variable or variable member. The example could also be
+written as:
+
+\begin{lstlisting}
+void f(int len) {
+    S y 
+    where suspends(y);
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len))
+    y.data = newarr;
+    y.num = len
+    where holds(y);    // the member bounds for y.data now holds
+    ...
+}
+\end{lstlisting}
+
+The member bounds
+declaration may be suspended temporarily for specific objects while they are being
+initialized or modified.
+
+\subsection{Declaring the state of member bounds declarations for variables}
+
+Programmers may declare the state of a member bounds declaration
+for a variable using two kinds of facts:
+\begin{tabbing}
+\var{fact:}\= \\
+\> \var{\ldots{}} \\
+\> \code{suspends(}\var{var-member-path}\code{)} \\
+\> \code{holds(}\var{var-member-path}\code{)}
+\end{tabbing}
+
+If the \var{var-member-path} has an \arrayptr\ type, it must
+have the form \var{x.path,} where \var{x} is a variable name. 
+The fact \code{suspends}(\var{x\code{.}path}\code{)} means that the
+member bounds declared by the type of \var{x} for \var{path} may not
+hold for \var{x}. The fact \code{holds(}\var{x\code{.}path}\code{)}
+means that the member bounds declared by the type of x for \var{path}
+holds now for \var{x}.
+
+As a convenient short-hand notation, the \var{var-member-path} can have
+a structure type. In that case, the declaration applies to all member
+bounds for the structure type and child members of the structure type.
+
+\subsubsection{Parameters and return values}
+
+The state of member bounds declarations can be declared for parameters and
+return values using \keyword{suspends} and \keyword{holds} as well. By
+default, the state is \code{holds}.
+
+Consider the following structure type definitions:
+
+\begin{lstlisting}
+struct S {
+    array_ptr<int> data : count(num);
+    int num;
+}
+
+struct T {
+    S arr1;
+    S arr2;
+    array_ptr<float> weights : count(len);
+    int len;
+}
+\end{lstlisting}
+
+Here are some function declarations involving the state of member
+bounds:
+\begin{lstlisting}
+T f(T x where holds(x)) where holds(return_value)   // the default 
+
+T f(T x where suspends(x.arr1))
+where suspends(return_value.arr2)
+
+T f(T x where suspends(x.arr1.data)
+where suspends(return_value.arr1.data)
+\end{lstlisting}
+
+\subsubsection{Extent of declarations of member bounds state for variables}
+\label{section:member-bounds-state-extent}
+
+Declarations of the state of member bounds declarations are dataflow-sensitive
+and follow rules similar to flow-sensitive bounds declarations.
+
+We first define the set of state declarations that apply to a function
+component, where a function component is a statement or
+variable declaration.
+
+The state declarations for variables and variable members with structure
+types are expanded to state declarations of the individual members with
+\arrayptr\ type. It is assumed that declarations of automatic
+structure variables without initializers implicitly have \keyword{suspends}
+declarations for the variables. All other declarations of structure
+variables are assumed implicitly to have \keyword{holds} declarations for the
+variables. The other declarations are either automatic variables with
+initializers or variables with static storage, which are initialized to
+0. Any \arrayptr\ members initialized to 0 have \boundsany, so
+they satisfy their member bounds declarations.
+
+For any declaration of member bounds state for \var{v}.\var{mp}, where
+\var{v} is a variable and \var{mp} is a member path, if
+\begin{enumerate}
+\item
+  There is some path from the declaration to the function component, and
+\item
+  \var{v} occurs in the function component, and
+\item
+  There is no other declaration of member bounds state for \var{v.mp}
+  along the path
+\end{enumerate}
+then the declaration of member bounds state applies to the function
+component.
+
+Member bounds state declarations must be consistent and agree
+along all paths to a function component.   If a variable occurring in a
+function component has more than one state declaration that applies to
+it at the component, then all the state declarations applying to it at
+the component must be syntactically identical. This avoids ambiguity
+about which state declaration applies to an occurrence of a variable.
+It is an error for the member bounds state declarations to disagree.
+
+The following example illustrates the declaration of member bounds
+state. The structure \code{S} represents a variable length array,
+where \code{data} holds a pointer to an array and \code{num} is the 
+length of the array. The function \code{f} takes a length parameter  
+\code{len} and creates an initialized instance of \code{S} in the 
+variable \code{y}.  It then copies \code{y} to \code{z}.
+
+\begin{lstlisting}
+struct S {
+   array_ptr<int> data
+   where count(data)== num;
+   int num;
+};
+\end{lstlisting}
+
+Here is a version of \code{f} where all member bounds state declarations are
+made explicit. For structure variable members whose member bounds are
+suspended, the bounds declarations are made explicit as well.
+
+\begin{lstlisting}
+void f(int len) {
+    S y where suspends(y.data);
+    S z where suspends(z.data);
+    int i, j;
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
+    y.data = newarr
+    where y.data : count(len);
+    y.num = len
+    where holds(y.data);   // the member bounds for y.data now holds
+    z = y
+    where holds(z.data);
+}
+\end{lstlisting}
+
+This can be written more succinctly as:
+
+\begin{lstlisting}
+void f(int len) {
+    S y;
+    S z;
+    int i, j;
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
+    y.data = newarr
+    where y.data : count(len);
+    y.num = len
+    where holds(y);   // y is initialized now
+    z = y
+    where holds(z);   // z is initialized now
+}
+\end{lstlisting}
+
+\subsection{Integration of member bounds and bounds for variables}
+
+A member of a structure variable may be covered by its member bounds
+declaration and a bounds declaration at the same time. This coexistence
+happens when a member is initialized to satisfy its member bounds
+declaration. Here is a version of \code{f} that is annotated with both member
+bounds and bounds declarations for variable members.
+\begin{lstlisting}
+void f(int len) {
+    S y;
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
+    y.data = newarr
+    where newarr : count(len) && y.data : count(len);
+    y.num = len
+    where holds(y.data) && y.data : count(len) && 
+          y.data : count(y.num);
+    ...
+}
+\end{lstlisting}
+
+After the assignment \code{y.num = len}, the member bounds holds for
+\code{y.data} and the bounds declaration \code{y.data : count(y.num)}
+holds as well.
+
+\subsection{Determining bounds for a use of an \arrayptr\ member of a variable}
+\label{section:determining-variable-member-bounds}
+
+When a member path \var{mp} of a variable \var{x} is used and
+\var{x}\code{.}\var{mp} has type \arrayptr, the bounds for
+\var{x}\code{.}\var{mp} are determined using these rules:
+
+\begin{itemize}
+\item
+  If the use is within the extent of a bounds declaration
+  \var{x}\code{.}\var{mp} \code{:} \var{bounds-exp} and
+  \var{bounds-exp} is not \boundsunknown, \var{bounds-exp} is
+  the bounds.
+\item
+  Otherwise, if the state of the member bounds for
+  \var{x}\code{.}\var{mp} is \code{holds}, the member bounds for
+  \var{x}\code{.}\var{mp} is used.
+\item
+  Otherwise, the bounds of \var{x}\code{.}\var{mp} is
+  \boundsunknown.
+\end{itemize}
+
+\subsubsection{Suspends declarations and bounds for variables.}
+
+When the member bounds declaration \var{mb} for a variable member is
+suspended by a statement of the form:
+
+\var{e2} \keyword{where} \code{suspends(}\var{x\code{.}mp}\code{);}
+
+where \var{x} is a variable and \var{mp} is a member path, there is an
+implicit bounds declaration for \var{x}\code{.}\var{mp} at the point
+of suspension. This happens unless \var{e2} modifies a member \var{m}
+of \var{x} that occurs in \var{mb}. In addition, the state of the
+member bounds for \var{x}\code{.}\var{mp} must be \code{holds}
+before the statement. The member bounds declaration \var{mb} is
+converted to a bounds declaration by prefixing each occurrence of a
+member path in \var{mb} with the expression ``\var{x}\code{.}''.
+
+For example, given
+
+\begin{lstlisting}
+S copy_and_resize(S arg, int len) {
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
+       where suspends(arg);
+    for (int i = 0; i < arg.num; i++) {
+       newarr[i] = arg.data[i];
+    }
+    arg.data = newarr where arg.data : count(len);
+    arg.num = len where arg.data : count(arg.num)
+    where holds(arg);   // member bounds for arg holds now
+    return arg;
+}
+\end{lstlisting}
+
+
+There is implicitly a bounds declaration at the suspension of the member
+bounds for arg:
+
+\begin{lstlisting}
+    array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
+       where suspends(arg) && arg.data : count(arg.num);
+\end{lstlisting}
+
+If the suspends were done after the assignment to \code{arg.data}:
+
+\begin{lstlisting}
+    arg.data = newarr
+    suspends(arg);
+\end{lstlisting}
+
+there would not be an implicit bounds declaration because \code{arg.data} is
+modified by the assignment.
+
+At a declaration of a structure variable x, no implicit bounds
+declarations are inserted if the declaration suspends the member bounds
+for a member of x. There was no point at which the member bounds was
+known to be true. For example,
+
+\begin{lstlisting}
+f(S arg where suspends(arg))
+\end{lstlisting}
+
+does not have an implicit bounds declaration of the form \lstinline|arg.data :count(arg.len)|.
+
+\subsubsection{Holds declarations and bounds for variables}
+
+At a \keyword{holds} declaration for a variable member path \var{x.mp},
+the member bounds for \var{x.mp} must be implied by the bounds
+declarations that are true about members of \var{x} and any facts that 
+true at the point of the \keyword{holds} declaration.
+
+
+
+
+
