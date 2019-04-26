@@ -331,38 +331,6 @@ result of accessing memory via the other pointer.  We largely side-stepped alias
 treatment of variables by disallowing taking the address of variables.  With pointer dereferences,
 we must reason about aliasing.
 
-The extended checking works as follows:
-\begin{itemize}
-\item An assignment to a structure member implies that an invariant about a specific
-object must hold.  In Chapter~\ref{chapter:tracking-bounds}, we were able to use
-declarations of variables to track what invariants need to be checked.    These were
-described as  the {\em declared context}.  In this checking, we add an {\em implied context}.
-which tracks new invariants created by assignments to members of objects.  The implied
-context must be passed through the checking routines.   The implied context is a map
-from non-modifying lvalue expressions to the bounds expression that must be true at the
-end of evaluating the expression.
-\item The sets of pending variables become {\em pending lvalue expressions}.   These
-describe lvalues that may or may not have been updated yet.   It is undefined for an expression
-to read memory and write to the same memory in an unordered fashion, as well as for an 
-expression to have multiple writes to the same memory that are unordered.  
-\item We introduce functions{\em IsDisjoint} and {\em IsDisjointLValue} that determines when 
-two pointer-typed expressions or two lvalue expressions do not alias.  It return true when two 
-pointers must point to disjoint ranges of memory that are accessible or two lvalue expressions must 
-denote disjoint ranges of memory. Otherwise it return false. This is used to detect when there are 
-conflicting reads/write and writes/writes involving lvalue expressions.
-
-These functions are pessimistic: they assume aliasing unless aliasing can be disproven.  Currently, 
-Checked C have no notation for describing the lack of aliasing in data structures or during function calls.   
-The functions could be made less pessimistic with this information.
-
-\item Because the checking works in terms of lvalue expressions, we must make sure that we 
-do not lose track of lvalues during the checking.  When a variable that is used in computing an
-lvalue expression changes, for example, we must make sure that we can compute the original
-value of the expression.  If we cannot, we made to signal an error.  In assignment through a pointer
-may invalidate an lvalue expression that reads a pointer, if the two pointers are potentially alised.
-In this case, we will need to signal an error.
-\end{itemize}
-
 Checking of bounds declarations only enforces that member bounds invariants hold after member
 assignments or structure assignments.  For example, if \code{struct S} has a member \code{m}
 with a bound declaration, checking of bounds declarations will enforce that bounds invariants hold 
@@ -379,13 +347,49 @@ However, programs will be comprised of code that is also unchecked or that has
 \code{bounds\_only} scopes (which allow pointer casts).   Programmers can create pointers
 to members by casting to other pointer types and using pointer arithmetic.
 If, at runtime, a program does a store via such a pointer to a member of an object
-with a bounds declaration, the programmer is responsible for ensuring that bounds declaration invariant
-is true.  The programmer must ensure that after the assignment, the bounds declaration invariant
-holds for the object before any member involved in the bounds declaration is read.
-Checking of bounds declaration will not enforce that member bounds invariants hold after 
-those assignments.  An example  \lstinline|ptr<int> p = ... ; *p = ...|,
+with a bounds declaration, the programmer is responsible for ensuring that the bounds declaration
+invariant remains true.  Checking of bounds declaration will not enforce that member bounds invariants hold after 
+those assignments.  
+Specifically, the programmer must ensure that after the assignment, 
+the bounds declaration invariant holds for the object before any member involved in the
+ bounds declaration is read.
+An example  \lstinline|ptr<int> p = ... ; *p = ...|,
 where \code{p} points to struct member with a bounds declaration, it is the programmer
 responsibility to ensure that the bounds invariant is true after \code{*p}.
+
+The extended checking works as follows:
+\begin{itemize}
+\item An assignment to a structure member implies that an invariant about a specific
+object must hold.  In Chapter~\ref{chapter:tracking-bounds}, we were able to use
+declarations of variables to track what invariants need to be checked.    These were
+described as  the {\em declared context}.  In this checking, we add an {\em implied context}.
+which tracks new invariants created by assignments to members of objects.  The implied
+context must be passed through the checking routines.   The implied context is a map
+from non-modifying lvalue expressions to the bounds expressions that must be true at the
+end of evaluating the expression.
+\item The sets of pending variables become {\em pending lvalue expressions}.   These
+describe lvalues that may or may not have been updated yet.   It is undefined for an expression
+to read memory and write to the same memory in an unordered fashion, as well as for an 
+expression to have multiple writes to the same memory that are unordered.  
+\item We introduce functions{\em IsDisjoint} and {\em IsDisjointLValue} that determine when 
+two pointer-typed expressions or two lvalue expressions do not alias. IsDisjoint returns
+true when two  pointers must point to disjoint accessible ranges of memory  or two lvalue
+expressions must denote disjoint ranges of memory. Otherwise it return false. This is used
+to detect when there are  conflicting reads/write and writes/writes involving lvalue expressions.
+
+These functions are pessimistic: they assume aliasing except in a few cases.  Currently, 
+Checked C has no notation for describing the lack of aliasing in data structures or during
+function calls. The functions could be made less pessimistic with this information.
+
+\item Because the checking works in terms of lvalue expressions, we must make sure that we 
+do not lose track of lvalues during the checking.  When a variable that is used in computing an
+lvalue expression changes, for example, we must make sure that we can compute the original
+value of the expression.  If we cannot, we made to signal an error.  In assignment through a pointer
+may invalidate an lvalue expression that reads a pointer, if the two pointers are potentially alised.
+In this case, we will need to signal an error.
+\end{itemize}
+
+
 
 \subsection{Aliasing assumptions and implications}
 
@@ -398,20 +402,21 @@ Any unchecked pointer can be cast to another unchecked
 pointer type.  Even in checked code, we take great care because unchecked code
 may create unexpected aliasing.  
 
-To check anything about bounds declarations involving pointer dereferences, we must make some assumptions.  In code that is entirely checked, these assumptions will always be met.  However,
+To check anything about bounds declarations involving pointer dereferences, we must make some
+assumptions.  In code that is entirely checked, these assumptions will always be met.  However,
 unchecked code might break these assumptions via casts and pointer arithmetic.   Here are our
 assumptions during checking of bounds declarations:
 \begin{itemize}
 \item Bounds declarations are not circular: if the upper and lower bounds expressions of a
 bounds declaration access lvalues, the lvalues are not within the memory range given
-by the bounds This code is not allowed:
+by the bounds. This code is not allowed:
 \begin{lstlisting}
 array_ptr<int> p : bounds(p, p + 1) = NULL;
 p = dynamic_bounds_cast<ptr<int>>(&p);
 \end{lstlisting}
 Note that the code will be rejected because it takes the address of a variable used in bounds.
 \item Accesses via different members of the same struct type do not overlap, even
-when the base lvalues may overlap.  For example, given
+when the base lvalues may overlaps.  For example, given
 \begin{lstlisting}
 struct S {
   int len1;
@@ -429,8 +434,8 @@ void copy(ptr<struct S> dest, ptr<struct S> src) {
 }
 \end{lstlisting}
 The lvalues \code{*dest} and \code{*src} may denote the same object (this happens when the
-same pointer is passed for both arguments). We assume that the lvalue \code{dest->len1} does not overlap 
-with the lvalue \code{src->len2} or \code{src->buf}.
+same pointer is passed for both arguments). We assume that the lvalue \code{dest->len1}
+does not overlap with the lvalue \code{src->len2} or \code{src->buf}.
 \item Lvalues that denote distinct struct types do not overlap, unless one struct type is 
 a structural prefix of the other struct type or a structural prefix of a member of the other struct type.
 The prefix is determined by enumerating a list of leaf members
@@ -455,13 +460,15 @@ void copy(ptr<struct S> dest, ptr<struct T> src) {
 \end{lstlisting}
 \item At a function call, we assume that the function call may read or write any memory accessible
 to the function being called.  For local variables whose addresses are not taken, we can assume that 
-function call does not modify them. For data structures, we assume that a function may read or write them.
-This implies that structure member bounds declarations must hold before function calls.  That in
-turn implies that unordered calls and assignments via pointers to structure members involved in bounds declarations will not be allowed in the same expression.
+the function call does not modify them. For data structures, we assume that a function may read or 
+write them.  This implies that structure member bounds declarations must hold before function calls.
+That in turn implies that unordered calls and assignments via pointers to structure members involved
+in bounds declarations will not be allowed in the same expression.
 
-Note that C places a sequence point after the arguments and function target for a call have been 
-evaluated and before the call.  So an assignment that is part of argument expression would be allowed,
-unless there were multiple unsequenced calls within the entire expression,  C also states that
+Note that the C Standard places a sequence point after the arguments and function target for a call have been 
+evaluated and before the call.  So an assignment to a structure member that is part of an argument 
+expression would be allowed, unless there were multiple unsequenced calls within the entire 
+The C Standard also states that
 function evaluations are not interleaved, even when the calls themselves are unordered.  We do
 not have to wory about unordered function calls conflicting with each other with respect to preserving
 structure member bounds declarations.
