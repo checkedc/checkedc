@@ -1069,10 +1069,10 @@ Similarly, during checking, it is important not to use equality information
 from $UEQ$ or $G$ that depends on pending variables.
 
 The function $CheckLValue(e, C, EQ, PV)$ is similar to $Check$.  It takes the
-same first 4 arguments as $Check$, except that $e$ evalutes to an lvalue.
+same first 4 arguments as $Check$, except that $e$ evaluates to an lvalue.
 It returns:
 \begin{enumerate}
-\item A bounds expression $B$ for for the lvalues produced by $e$.
+\item A bounds expression $B$ for the lvalues produced by $e$.
 \item A bounds expression $RB$ for values read from the lvalues produced by $e$.
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
