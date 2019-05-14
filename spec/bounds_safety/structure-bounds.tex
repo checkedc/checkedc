@@ -512,37 +512,47 @@ $S$.  It produces new sets by removing any expressions that use the value
 of lvalue expressions in $S$.
 \end{enumerate}
 
-In Chapter~\ref{chapter:checking-bounds}, we had a notion of a declared context.  This
-was the context that we wanted to prove was valid at the end of evaluating an expression.
-Checking would compute a context $C$ and then show that it implied the declared context. 
-The declared context was constructed from bounds declarations for variables.  With assignments to 
-structure members, the declared context becomes a set of bounds invariants that we must
-establish are true at the end of an expression.  An assignment to a structure member with
-a bounds declaration or used in ab ounds in a bounds declaration adds a bound
-invariant to establish.  We will use the variable $BI$ to for bound invariants
-to prove.  This will be passed in as an argument to the checking functions and
-returned as a value.
+The checking in Chapter~\ref{chapter:checking-bounds} uses a declared context.
+The declared context is constructed from bounds declarations for variables.  
+and is the context that we want to show is valid at the end of evaluating an expression.
+Checking computes a context $C$ and then shows that it implies the declared context. 
 
-In Chapter~\ref{chapter:checking-bounds}, we introduced the notion of $Pending$ sets.
-These sets were computed and then pass as arguments to recursive calls to $Check$
-and $CheckLValue$.  Unfortunately, that approach becomes complex for lvalue expressions
-because the lvalue expressions may use lvalues that are side-effected by the expressions.
-The $Pending$ set computations would have to make adjustments for side-effects.  That
-is confusing because the $Check$ and $CheckLValue$ expressions already make adjustments
-for side-effects.
+Checking of assignments to structure members must show for a specific
+object that the bounds invariants for members of that object are valid at the 
+end of evaluating an expression.  To do this, we generalize the declared
+context to an {\em object invariant context}. This is a mapping from lvalue
+expressions to bounds expressions.  The object invariant context is constructed
+as part of checking an expression: it is passed as an argument to checking functions
+and an updated context is returned as a value.  As checking sees assignments, 
+it adds entries to the object invariant context.  Note that one complication is
+that assignments may change the values of lvalues used in the lvalue expressions in the
+object invariant context.  To handle this, we update the lvalue expressions so that
+they are invariants that must be valid in the program state after the assignment has 
+completed.
 
-Instead of computing $Pending$ sets, we compute more direct information that can be
-used to implement the same checks that were done using the $Pending$ sets.  We
-modify $Check$ and $CheckLValue$ to compute $Read$ and $Write$ sets for each
-subexpression.  We then make sure that there are not read/write or write/write
-conflicts for subexpressions that do not have a defined order of evaluation with
-respect to reach other.
+In Chapter~\ref{chapter:checking-bounds}, the checking used $Pending$ sets of 
+variables.   These sets were computed and then pass as arguments to recursive
+calls to $Check$ and $CheckLValue$.  Unfortunately, that approach does not generalize
+well to lvalue expressions.  Lvalue expressions may use lvalues that are side-effected
+as part of an expression.  The $Pending$ set comptuations would have to make
+adjusts for side-effects, which the main checking functions are already doing.
 
-The function $Check(e, C, EQ, Form, FB)$ takes as inputs:
+We continue to compute $Pending$ sets for variables.  For non-variable lvalue expressions,
+the checking functions compute $Read$ and $Write$ sets.  These are used to
+check for read/write and write/write conflicts.\footnote{We considered just
+using Read and Write sets, but this causes problems when determining the
+original value of an expression.  The original value may be available in 
+an a variable, but we must ensure that variable is not itself modified 
+by an unordered assignment.}
+
+The function $Check(e, IV, C, EQ, PV, Form, FB)$ takes as inputs:
 \begin{enumerate}
 \item An expression $e$ that evaluates to a value.
-\item A context $C$.
+\item An object invariant context $IV$ that describes the bounds invariants for objects
+that must be established to be valid at the end of evaluating an expression.
+\item A context $C$
 \item Sets of equivalent expressions $EQ$.
+\item A set $PV$ of indeterminate variables.
 \item Whether $e$ is special instruction form.  This can have 3 values: $No$, $PostIncDec$,
 and $Compound$.
 \item An optional bounds $FB$ for the first operand of $e$.  
@@ -553,6 +563,7 @@ expanded to the form $e1~=~e1~op~e2$ where $e1$ is only processed once.
 $Check$ returns:
 \begin{enumerate}
 \item A bounds expression $B$ for the values at runtime to which $e$ evaluates.
+\item An updated object invariant context $UIV$.
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that will produce the same value as $e$. 
@@ -561,15 +572,15 @@ $Check$ returns:
 \item It may also report an error.
 \end{enumerate}
 The results produced by $Check$ are valid in the program state
-{\em after} the assignments in $e$ have been completed.  In particular,
-lvalue expressions that themselves read or write lvalues 
+{\em after} the assignments in $e$ have been completed.
 
-The function $CheckLValue(e, C, EQ)$ is similar to $Check$.  It takes the
-same first 3 arguments as $Check$, except that $e$ evaluates to an lvalue.
+The function $CheckLValue(e, IV, C, PV, EQ)$ is similar to $Check$.  It takes the
+same first 5 arguments as $Check$, except that $e$ evaluates to an lvalue.
 It returns:
 \begin{enumerate}
 \item A bounds expression $B$ for the lvalues produced by $e$.
 \item A bounds expression $RB$ for values read from the lvalues produced by $e$.
+\item An update object invariant context $UIV$.
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that produce the same lvalue as $e$.
@@ -578,32 +589,34 @@ It returns:
 \item It may also report an error.
 \end{enumerate}
 
-The definition of $Check(e, C, EQ, Form, FB)$ is:
+\subsubsection{Definition of Check function}
+
+%
+%
+%
+%
+
+The definition of $Check(e, IV, C, EQ, PV, Form, FB)$ is:
 \begin{enumerate}
 \item If $e$ is an lvalue expression
 \begin{enumerate}
-\item Let $(B_{lv}, RB, \mathit{UC}, UEQ, G_{lv}, R_{lv}, W_{lv}) = CheckLValue(e, C, EQ,PV)$.
+\item Let $(B_{lv}, RB, \mathit{UIV}, \mathit{UC}, UEQ, G_{lv}, R_{lv}, W_{lv}) = 
+         CheckLValue(e, IV, C, EQ, PV)$.
 \item If $e$ has array type, let $B = B_{lv}$, $G = G_{lv}$, $R = R_{lv}$, and $W = W_{lv}$.
 \item If $e$ does not have array type, there will an implicit read of the lvalue produced by $e$
 at runtime:
 \begin{enumerate}
-\item If $W_{lv}$ is non-empty, check for read/write conflicts:
-\begin{enumerate}
-\item \item Let $nme$ by a non-modifying version of $e$: if $e$ is non-modifying, $nme = e$.  Otherwise,
-let $nme$ by some element of $G_{lv}$.  If $G_{lv}$ is empty, signal an error.  TODO: can $G_{lv}$ be empty?$.
-\item Call $CheckOverlap(\{nme\}, W_{lv})$ to make sure that the implicit read is not for
-an lvalue that was already written during the evaluation of $e$.   That would be an unordered read/write.
 \item If $NeedsBoundsCheck(e)$ returns true, a compiler will insert a bounds check 
 to ensure $e$ is a valid memory location to access. Let $R_B$ be the set of lvalues read by $B_{lv}$.
-Call $CheckOverlap(B_{lv}, W_{lv})$ to make sure that the bounds check isn't reading any lvalues
+Call $CheckOverlap(R_B, W_{lv})$ to make sure that the bounds check is not reading any lvalues
 written during the evaluation of $e$.
-\end{enumerate}
+\item Let $nme$ be a non-modifying version of $e$ (if $e$ is non-modifying, let $nme = e$.  Otherwise, let $nme$ be some element of $G_{lv}$).
+% TODO: can $G_{lv}$ be empty?.
+\item Call $CheckOverlap(\{nme\}, W_{lv})$ to make sure that the implicit read is not for
+an lvalue that was already written during the evaluation of $e$.
 \item Let $B = RB$. 
-\item Compute $G$:
-\begin{enumerate}
-\item If $nme$ is an element of a set of equivalent expressions $F$ in $EQ - W_{lv}$, let $G = F$. 
-\item Otherwise, let $G = \{ nme \}$. 
-end{enumerate}
+\item If $nme$ is an element of a set of equivalent expressions $F$ in $EQ$, 
+let $G = F$.  Otherwise, let $G = \{ nme \}$. 
 \item Let $R = R_{lv} \cup R_B \cup nme$.  Let $W = W_{lv}$.
 \end{enumerate}
 \end{enumerate}
@@ -615,56 +628,79 @@ end{enumerate}
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
         and $P_{rhs}$ describe variables that are pending during the evaluations of $lhs$ and $rhs$.
-\item Let $(B_{lhs}, RB, \mathit{UC}_{lhs}, {UEQ}_{lhs}, G_{lhs}, R_{rhs}, W_{rhs}) = CheckLValue(lhs, C, EQ)$.  
-\item Let $(B_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}, R_{rhs}, W_{rhs}) = 
-Check(rhs, \mathit{UC}_{lhs}, {UEQ}_{lhs}, Form, RB)$.
-\item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
-$PV \cup Pending(lhs) \cup Pending(rhs)$.  If it does, report an error.
-\item  If $lhs$ is a variable $v$ (that is, $GetLValueVariable(lhs) = { v }$),
+\item Let $(B_{lhs}, RB, \mathit{UIV}_{lhs}, \mathit{UC}_{lhs}, {UEQ}_{lhs}, G_{lhs}, R_{lhs}, W_{lhs}) =
+        CheckLValue(lhs, IV, C, P_{rhs}, EQ)$.  
+\item Let $(B_{rhs}, \mathit{UIV}_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}, R_{rhs}, W_{rhs}) = \\
+        Check(rhs, \mathit{UIV}_{rhs}, \mathit{UC}_{lhs}, {UEQ}_{lhs}, P_{rhs}, Form, RB)$.
+\item Check for conflicts involving the evaluation of $lhs$ and $rhs$, whose evaluations
+are unordered with respect to each other:
 \begin{enumerate}
-\item Check that $v \notin PV \cup Pending(lhs) \cup Pending(rhs)$.  If it is, report an error.  
-There are multiple unsequenced assignments to $v$.
-\item Choose an expression that computes the old value of $v$:
+\item Call $CheckOverlap(W_{lhs}, W_{rhs})$.
+\item Call $CheckOverlap(W_{lhs}, R_{rhs})$.
+\item Call $CheckOverlap(W_{rhs}, W_{lhs})$.
+\item Call $CheckOverlap(W_{rhs}, R_{lhs})$.
+\end{enumerate}
+\item Let $nme$ be a a non-modifying version of $lhs$.
+\item Check for conflicts involving the assignment and the writes in $lhs$ and $rhs$, whose
+evaluations are unordered with respect to the assignment:
 \begin{enumerate}
-\item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$. 
-\item Otherwise, if $EQ - (PV \cup Pending(lhs) \cup Pending(rhs))$ contains a set of equivalent expressions $F$ that contains $v$ as 
-an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
-\item Otherwise, let $iv = $ {\it None}.
+\item If $NeedsBoundsCheck(lhs)$ returns true, a compiler will insert a bounds check to ensure that 
+$lhs$ is memory that is valid to write.  Let $R_B$ be the set of lvalues read by $B_{lhs}$.
+Call $CheckOverlap(R_B, W_{lhs} \cup W_{rhs})$.
+\item Call $CheckOverlap(\{nme\}, W_{lhs} \cup W_{rhs})$.  If there is an overlap, there may be
+multiple unsequenced assignments to $lhs$.
 \end{enumerate}
-\item Let $(B, \mathit{UC}, UEQ, G) = Update(v, iv, B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$.
+\item Choose an expression that computes the old value of $lhs$:
+\begin{enumerate}
+\item If $rhs$ can be inverted with respect to $nme$, let $inv = inverse(nme, rhs)$. 
+\item Otherwise, if $EQ - (PV \cup Pending(lhs) \cup Pending(rhs))$ contains a set of equivalent expressions $F$ that contains $lhs$ as 
+an element, and $F$ contains a variable $w \neq lhs$, set $iv$ to $w$.
+\item Otherwise, let $inv = $ {\it None}.
 \end{enumerate}
-\item If $lhs$ is not a variable, let $(B, \mathit{UC}, UEQ, G) = (B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$
+\item Let $R = R_{lhs} \cup R_{rhs}$.  Let $W = W_{lhs} \cup W_{rhs} \cup nme$.
+\item Let $(B, UIV, \mathit{UC}, UEQ, G, R, W) = Update(nme, inv, B_{rhs}, \mathit{UIV}_{rhs}, 
+                                                                         \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs}, R, W)$.
 \end{enumerate}
 
 % lhs op= rhs
 
 \item If $e$ has the form $lhs~op= rhs$, the result is 
-$Check (lhs = lhs~op~rhs, C, EQ, PV, Compound, None)$.
+$Check(lhs = lhs~op~rhs, IV, C, EQ, PV, Compound, None)$.
 
 \item For pre- and post-increment/decrement forms, if $e$ has the form:
 \begin{enumerate}
-\item \code{++}$e1$, the result is  $Check(e1$ \code{ = } $e1$ \code{ + 1}$,C, EQ, PV, 
+\item \code{++}$e1$, the result is  $Check(e1$ \code{ = } $e1$ \code{ + 1}$, IV, C, EQ, PV,
 Compound, None)$.
-\item \code{--}$e1$, the result is $Check(e1$ \code{ = } $e1$ \code { - 1}$, C, EQ, PV,
+\item \code{--}$e1$, the result is $Check(e1$ \code{ = } $e1$ \code { - 1}$, IV, C, EQ, PV,
 Compound, None)$.
 \item $e1$\code{++}, the result is  $Check(e1$ \code{ = } $ e1$ \code { + 1}$,
 C, EQ, PV, PostIncDec, None)$.
-\item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, C, EQ, PV, PostIncDec, None)$.
+\item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, IV, C, EQ, PV,
+        PostIncDec, None)$.
 \end{enumerate}
-\item If $e$ has the form \code{&}$e1$, let $(B, \_, \mathit{UC}, UEQ, G) = CheckLValue(e1, C, EQ, PV)$.
+\item If $e$ has the form \code{&}$e1$, let $(B, \_, \mathit{UC}, UEQ, G) = CheckLValue(e1, IV, C, EQ, PV)$.
       
 \item Otherwise, $e$ is some expression with $n$ subexpressions (n may be 0).  The
 result is 
 \label{list:check-unordered-operands}
 \begin{enumerate}
-\item Let $\mathit{UC} = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
-\item Visit the $n$ subexpressions in some order, accumulating results into $\mathit{UC}$ and $UEQ$.  If the current subexpression being visited is $S_i$,
+\item Let  $\mathit{UIV} = IV$, $\mathit{UC} = C$ and $UEQ = EQ$.  
+        Let $S_k$ designate the $k^{th}$ subexpression.
+\item Visit the $n$ subexpressions in some order, accumulating results into $\mathit{UIV}$, $\mathit{UC}$
+         and $UEQ$.  If the current subexpression being visited is $S_i$,
 \begin{enumerate}
 \item If $i = 1$ and $Form = PostIncDec$ or $Form = Compound$, $S_1$ has already
 been checked, so use the results from that.  Let $B_1 = FB$.  If $S_1$ appears in some set $F$ in $UEQ$,
- let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.
-\item Otherwise, let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
-Let $(B_i, \_, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, None)$.
+ let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.    The side-effects of $S_1$ have also
+ been computed and any conflicts will be detected at the assignment, so let $R_1 = \emptyset$
+ and $W_1 = \emptyset$.
+\item Otherwise,  let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
+Let $(B_i, \mathit{UIV}, \mathit{UC}, UEQ, G_i, R_i, W_i) =$  
+     $Check(S_i, \mathit{UIV}, \mathit{UC}, UEQ, PV_i, No, None)$.
+\item See if there are conflicts between the different operands.  For $i$ in $1 \ldots n$,
+let $OW_{i} = \bigcup_{j= 1, j <> i}^{n} W_j$. Call $CheckOverlap(OW_{i}, W_{i})$ and
+$CheckOverlap(OW_{i}, R_{i})$.
+\item Let $R = \bigcup_{j=1}^{n} R_j$ and $W = \bigcup_{j=1}^{n} W_j$
 \end{enumerate}
 \item Determine the set of equivalent expressions for $e$.  Recall that the equivalent expressions must be non-modifying expressions.
 \begin{enumerate}
@@ -675,19 +711,18 @@ Let $(B_i, \_, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No
       as $Val$ but is a non-modifying expression. 
       
       For any subexpression $S_i$ that is a modifying expression, 
-      use an expression from $G_i$ (or $G_1$ when $Form = PostIncDec$). If $G_i$ is empty, $Val^\prime$ cannot
-      be constructed.
+      use an expression from $G_i $ (or $G_1$ when $Form = PostIncDec$). If the set 
+      is empty, $Val^\prime$ cannot be constructed.
       
-      Note that an invariant about each $G_i$ is that it will not contain any uses of variables in $PV_i$.
-      This means that side-effects in other subexpressions do not affect the value of expressions in $G_i$.
+      Using $G_i - {OW}_i$ means that side-effects in other subexpressions will not affect
+      the value of the expression.
 \item If $Val^\prime$ can be constructed, let $G = \{ Val^\prime \}$.  Otherwise, let $G = \emptyset$.	
 \end{enumerate}
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$. 
-\item If computing $B$ introduces a temporary $t$ to hold the value produced by evaluating $e$, add $t$ to $G$.
+\item If computing $B$ introduces a temporary $t$ to hold the value produced by evaluating $e$, add $t$ to $G$
+
 \end{enumerate}
 \end{enumerate}
-
-
 
 \subsection{Old stuff}
 

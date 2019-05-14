@@ -1101,8 +1101,8 @@ $PV$.  If it does, report an error.
 \item If $e$ is a variable $v$ and $v \in PV$, report an error.  There is an unsequenced use and
 assignment of $v$.
 \item Let $B = RB$. 
-\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ - PV$, let $G = F$. 
-\item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.  
+\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ$, let $G = F$.
+\item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.
 \item Otherwise, let $G = \emptyset$ (we address aliasing of memory accesses in another section).
 \end{enumerate}
 \end{enumerate}
@@ -1163,7 +1163,7 @@ result is
 been checked, so use the results from that.  Let $B_1 = FB$.  If $S_1$ appears in some set $F$ in $UEQ$,
  let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.
 \item Otherwise, let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
-Let $(B_i, \_, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, None)$.
+Let $(B_i, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, None)$.
 \end{enumerate}
 \item Determine the set of equivalent expressions for $e$.  Recall that the equivalent expressions must be non-modifying expressions.
 \begin{enumerate}
