@@ -1177,8 +1177,11 @@ Let $(B_i, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, No
       use an expression from $G_i$ (or $G_1$ when $Form = PostIncDec$). If $G_i$ is empty, $Val^\prime$ cannot
       be constructed.
       
-      Note that an invariant about each $G_i$ is that it will not contain any uses of variables in $PV_i$.
-      This means that side-effects in other subexpressions do not affect the value of expressions in $G_i$.
+      Note that an invariant about each $G_i$ is that it will not contain any uses of variables in $PV_i$ or $PV$.
+      This means that assignments to variables in other subexpressions (the $S_k$) or expressions whose
+      evaluation is unordered with respect to $S_i$ to do not affect the value of $G_i$.  This is a 
+      consequence of the check at 
+
 \item If $Val^\prime$ can be constructed, let $G = \{ Val^\prime \}$.  Otherwise, let $G = \emptyset$.	
 \end{enumerate}
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$. 

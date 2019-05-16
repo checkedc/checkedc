@@ -537,13 +537,19 @@ well to lvalue expressions.  Lvalue expressions may use lvalues that are side-ef
 as part of an expression.  The $Pending$ set comptuations would have to make
 adjusts for side-effects, which the main checking functions are already doing.
 
-We continue to compute $Pending$ sets for variables.  For non-variable lvalue expressions,
-the checking functions compute $Read$ and $Write$ sets.  These are used to
-check for read/write and write/write conflicts.\footnote{We considered just
+We continue to compute $Pending$ sets for variables whose addresses are not taken.
+We will refer to all other lvalue expressions as {\em possibly-aliased lvalue expressions}.
+meaning that some other lvalue expression may produce the same lvalue.
+The checking functions compute $Read$ and $Write$ set of non-modifying
+possibly-aliased lvalue expressions. These are used  to
+check for read/write and write/write conflicts for expressions whose
+evaluations are unordered with respect to each other.\footnote{We considered just
 using Read and Write sets, but this causes problems when determining the
 original value of an expression.  The original value may be available in 
 an a variable, but we must ensure that variable is not itself modified 
 by an unordered assignment.}
+We introduce a special symbol that can be used in the $Read$ and $Write$ 
+sets: $AnyAliasedLValue$ designates any lvalue that may possibly be aliased.
 
 The function $Check(e, IV, C, EQ, PV, Form, FB)$ takes as inputs:
 \begin{enumerate}
@@ -567,8 +573,10 @@ $Check$ returns:
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that will produce the same value as $e$. 
-\item A set of non-modifying lvalue expressions $R$ that may be read during evaluation of $e$.
-\item A set of non-modifying lvalue expressions $W$ that may be written during evaluation of $e$
+\item A set of non-modifying possibly-aliased lvalue expressions $R$ that may be read during evaluation of 
+        $e$.
+\item A set of non-modifying possibly-alised lvalue expressions $W$ that may be written during evaluation 
+        of $e$
 \item It may also report an error.
 \end{enumerate}
 The results produced by $Check$ are valid in the program state
@@ -584,17 +592,23 @@ It returns:
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that produce the same lvalue as $e$.
-\item A set of non-modifying lvalue expressions $R$ that may be read during evaluation of $e$.
-\item A set of non-modifying lvalue expressions $W$ that may be written during evaluation of $e$
+\item A set of non-modifying possibly-aliased lvalue expressions $R$ that may be read during evaluation of
+        $e$.
+\item A set of non-modifying possibly-aliased lvalue expressions $W$ that may be written during evaluation of
+        $e$
 \item It may also report an error.
 \end{enumerate}
 
-\subsubsection{Definition of Check function}
+The function $NonModifying(e, G)$ takes an expression $e$ and set of equivalent (non-modifying)
+expressions.  It returns a non-modifying expression that produces the same value as $e$ or
+the special value {\it None}.  It is defined as:
+\begin{enumerate}
+\item If $e$ is a non-modifying expression, return $e$.
+\item If $G$ is non-empty, return an element of $G$.
+\item Otherwise, return $None$.
+\end{enumerate}
 
-%
-%
-%
-%
+\subsubsection{Definition of Check function}
 
 The definition of $Check(e, IV, C, EQ, PV, Form, FB)$ is:
 \begin{enumerate}
@@ -607,24 +621,27 @@ The definition of $Check(e, IV, C, EQ, PV, Form, FB)$ is:
 at runtime:
 \begin{enumerate}
 \item If $NeedsBoundsCheck(e)$ returns true, a compiler will insert a bounds check 
-to ensure $e$ is a valid memory location to access. Let $R_B$ be the set of lvalues read by $B_{lv}$.
-Call $CheckOverlap(R_B, W_{lv})$ to make sure that the bounds check is not reading any lvalues
-written during the evaluation of $e$.
-\item Let $nme$ be a non-modifying version of $e$ (if $e$ is non-modifying, let $nme = e$.  Otherwise, let $nme$ be some element of $G_{lv}$).
-% TODO: can $G_{lv}$ be empty?.
-\item Call $CheckOverlap(\{nme\}, W_{lv})$ to make sure that the implicit read is not for
-an lvalue that was already written during the evaluation of $e$.
+to ensure $e$ is a valid memory location to access. Check that $B_{lv}$ does not use any variables in
+$PV$.  If it does, report an error.
+
+Let $R_B$ be the possibly-aliased lvalue expressions read by $B_{lv}$.   
+Call $CheckOverlap(R_B, W_{lv})$ to ensure that the bounds check does not read any possibly-aliased
+lvalues that may be written during the evaluation of $e$.
+\item If $e$ is a non-address taken variable $v$ and $v \in PV$, report an error.  There is an unsequenced 
+use and assignment of $v$.
+\item Otherwise, let $nme = NonModifying(e, G_{lv})$.  Call $CheckOverlap(AliasedSet(nme), W_{lv})$ to make  sure that the  implicit read is not for an lvalue that may have been written during the evaluation of $e$. 
 \item Let $B = RB$. 
-\item If $nme$ is an element of a set of equivalent expressions $F$ in $EQ$, 
-let $G = F$.  Otherwise, let $G = \{ nme \}$. 
-\item Let $R = R_{lv} \cup R_B \cup nme$.  Let $W = W_{lv}$.
+\item If $nme$ is an element of a set of equivalent expressions $F$ in $EQ$, let $G = F$.
+\item Otherwise, if $nme$ is not {\it None}, let $G = \{ nme \}$.
+\item Otherwise, let $G = \emptyset$.
+\item Let $R = R_{lv} \cup R_B \cup AliasedSet(nme)$.  Let $W = W_{lv}$.
 \end{enumerate}
 \end{enumerate}
 
 % lhs = rhs
 
 \item If $e$ has the form $lhs = rhs$,
-\label{list:check-assignment-struct}
+\label{list:check-lval-assignment}
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
         and $P_{rhs}$ describe variables that are pending during the evaluations of $lhs$ and $rhs$.
@@ -632,48 +649,55 @@ let $G = F$.  Otherwise, let $G = \{ nme \}$.
         CheckLValue(lhs, IV, C, P_{rhs}, EQ)$.  
 \item Let $(B_{rhs}, \mathit{UIV}_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}, R_{rhs}, W_{rhs}) = \\
         Check(rhs, \mathit{UIV}_{rhs}, \mathit{UC}_{lhs}, {UEQ}_{lhs}, P_{rhs}, Form, RB)$.
-\item Check for conflicts involving the evaluation of $lhs$ and $rhs$, whose evaluations
-are unordered with respect to each other:
+\item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
+$PV \cup Pending(lhs) \cup Pending(rhs)$.  If it does, report an error.
+\item If $lhs$ is a variable $v$ (that is, $GetLvalueVariable(lhs) = { v }$), 
+check that $v \notin PV \cup Pending(lhs) \cup Pending(rhs)$.  If it is, report an error.  
+There are multiple unsequenced assignments to $v$.
+\item Check for conflicts involving possibly-aliased lvalue expressions. First check for conflicts
+involving the evaluation of $lhs$ and $rhs$:
 \begin{enumerate}
 \item Call $CheckOverlap(W_{lhs}, W_{rhs})$.
 \item Call $CheckOverlap(W_{lhs}, R_{rhs})$.
 \item Call $CheckOverlap(W_{rhs}, W_{lhs})$.
 \item Call $CheckOverlap(W_{rhs}, R_{lhs})$.
 \end{enumerate}
-\item Let $nme$ be a a non-modifying version of $lhs$.
-\item Check for conflicts involving the assignment and the writes in $lhs$ and $rhs$, whose
-evaluations are unordered with respect to the assignment:
+\item Next, check for conflicts involving the bounds check for the assignment.
+If $NeedsBoundsCheck(e)$ returns true, let $R_B$ be the possibly-aliased lvalue expressions read by
+$B_{lv}$.  Call $CheckOverlap(R_B, W_{lhs} \cup W_{rhs})$ to ensure that the bounds check does
+not read possibly-aliased lvalues that may be written during the evaluation of $e$.
+\item Finally, check for conflicts involving the assignment. If $lhs$ is a possibly-aliased
+lvalue expression,
 \begin{enumerate}
-\item If $NeedsBoundsCheck(lhs)$ returns true, a compiler will insert a bounds check to ensure that 
-$lhs$ is memory that is valid to write.  Let $R_B$ be the set of lvalues read by $B_{lhs}$.
-Call $CheckOverlap(R_B, W_{lhs} \cup W_{rhs})$.
-\item Call $CheckOverlap(\{nme\}, W_{lhs} \cup W_{rhs})$.  If there is an overlap, there may be
-multiple unsequenced assignments to $lhs$.
+\item Let $nme = NonModifying(lhs, G_{lv})$. 
+\item Call $CheckOverlap(AliasedSet(nme), W_{lhs} \cup W_{rhs})$.  If there is 
+an overlap, there may be multiple unsequenced assignments to $lhs$.
 \end{enumerate}
 \item Choose an expression that computes the old value of $lhs$:
+\label{list:check-lval-original}
 \begin{enumerate}
-\item If $rhs$ can be inverted with respect to $nme$, let $inv = inverse(nme, rhs)$. 
-\item Otherwise, if $EQ - (PV \cup Pending(lhs) \cup Pending(rhs))$ contains a set of equivalent expressions $F$ that contains $lhs$ as 
-an element, and $F$ contains a variable $w \neq lhs$, set $iv$ to $w$.
+\item If $nme$ is {\it None}, let $inv = $ {\it None}.
+\item Otherwise, if $rhs$ can be inverted with respect to $nme$, let $inv = inverse(nme, rhs)$. 
+\item Otherwise, if $EQ - (PV \cup Pending(lhs) \cup Pending(rhs))$ contains a set of equivalent expressions $F$ that contains $nme$ as  an element, and $F$ contains a variable $w \neq nme$, let $inv = w$.
 \item Otherwise, let $inv = $ {\it None}.
 \end{enumerate}
-\item Let $R = R_{lhs} \cup R_{rhs}$.  Let $W = W_{lhs} \cup W_{rhs} \cup nme$.
+\item Let $R = R_{lhs} \cup R_{rhs}$.  Let $W = W_{lhs} \cup W_{rhs} \cup AliasedSet(nme)$.
 \item Let $(B, UIV, \mathit{UC}, UEQ, G, R, W) = Update(nme, inv, B_{rhs}, \mathit{UIV}_{rhs}, 
                                                                          \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs}, R, W)$.
+\label{list:check-lval-update}
 \end{enumerate}
 
 % lhs op= rhs
 
 \item If $e$ has the form $lhs~op= rhs$, the result is 
 $Check(lhs = lhs~op~rhs, IV, C, EQ, PV, Compound, None)$.
-
 \item For pre- and post-increment/decrement forms, if $e$ has the form:
 \begin{enumerate}
 \item \code{++}$e1$, the result is  $Check(e1$ \code{ = } $e1$ \code{ + 1}$, IV, C, EQ, PV,
 Compound, None)$.
 \item \code{--}$e1$, the result is $Check(e1$ \code{ = } $e1$ \code { - 1}$, IV, C, EQ, PV,
 Compound, None)$.
-\item $e1$\code{++}, the result is  $Check(e1$ \code{ = } $ e1$ \code { + 1}$,
+\item $e1$\code{++}, the result is  $Check(e1$ \code{ = } $ e1$ \code { + 1}$, IV,
 C, EQ, PV, PostIncDec, None)$.
 \item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, IV, C, EQ, PV,
         PostIncDec, None)$.
@@ -691,13 +715,16 @@ result is
 \begin{enumerate}
 \item If $i = 1$ and $Form = PostIncDec$ or $Form = Compound$, $S_1$ has already
 been checked, so use the results from that.  Let $B_1 = FB$.  If $S_1$ appears in some set $F$ in $UEQ$,
- let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.    The side-effects of $S_1$ have also
- been computed and any conflicts will be detected at the assignment, so let $R_1 = \emptyset$
- and $W_1 = \emptyset$.
+ let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.    
+ 
+ Reads and writes of possibly-aliased lvalue expressions in $S_1$ have been computed already. 
+ Any conflicts will be detected at the assignment containing containing this expression, 
+ so let $R_1 = \emptyset$ and $W_1 = \emptyset$.
 \item Otherwise,  let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
 Let $(B_i, \mathit{UIV}, \mathit{UC}, UEQ, G_i, R_i, W_i) =$  
      $Check(S_i, \mathit{UIV}, \mathit{UC}, UEQ, PV_i, No, None)$.
-\item See if there are conflicts between the different operands.  For $i$ in $1 \ldots n$,
+\item See if there are conflicts involving possibly-aliased lvalue expressions for the different
+operands. For $i$ in $1 \ldots n$,
 let $OW_{i} = \bigcup_{j= 1, j <> i}^{n} W_j$. Call $CheckOverlap(OW_{i}, W_{i})$ and
 $CheckOverlap(OW_{i}, R_{i})$.
 \item Let $R = \bigcup_{j=1}^{n} R_j$ and $W = \bigcup_{j=1}^{n} W_j$
@@ -714,8 +741,24 @@ $CheckOverlap(OW_{i}, R_{i})$.
       use an expression from $G_i $ (or $G_1$ when $Form = PostIncDec$). If the set 
       is empty, $Val^\prime$ cannot be constructed.
       
-      Using $G_i - {OW}_i$ means that side-effects in other subexpressions will not affect
-      the value of the expression.
+      Note that there are two invariants about each $G_i$.  First, each $G_i$ does not contain any uses
+      of variables in $PV_i$ or $PV$.  This means that assignments to variables in other subexpressions (the
+      $S_k$) or expressions whose evaluation is unordered with respect  to $S_i$ to do not affect the value
+      of $G_i$.
+      
+      Second, each $G_i$ only contains reads of lvalues that may also be done by the 
+      corresponding $S_i$.  This means that if checking passes, the values stored at those lvalues will not 
+      be affected by side effects in other expressions (the $S_k$) or other expressions whose evaluation is
+      unordered with respect to $S_i$.  This implies that the $G_i$ are not affected by
+      side-effects in those expressions also.
+      
+      (The proof of the invariants is by induction on the size of expressions. It  is trivially true for constant
+       expressions and variable expressions.  In the inductive step, we assume that is true
+       about the $G$ returned by $Check$ for smaller expressions.  If we consider the assignment
+       case (\ref{list:check-lval-assignment}, the original value expressions
+       constructed in case~\ref{list:check-lval-original} meet this invariant. The call to $Update$ in
+       case~\ref{list:check-lval-update} preserves the invariant.  Other expression cases follow
+       by similar reasoning).
 \item If $Val^\prime$ can be constructed, let $G = \{ Val^\prime \}$.  Otherwise, let $G = \emptyset$.	
 \end{enumerate}
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$. 
