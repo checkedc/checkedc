@@ -139,6 +139,64 @@ should be renamed to be distinct from other variables.  Similarly, parameter
 variables that have the same name as a variable with file scope or a
 variable with an enclosing block scope should be renamed.
 
+\subsection{Introducing temporaries}
+
+Sometimes we need to discuss bounds that are given in terms of the value
+of an expression or a subexpression.   For example, a function call expression may
+return an \arrayptr\ pointer to an array of constant size
+\var{n}. The bounds for that pointer value would be (the
+\arrayptr\ pointer, the \arrayptr\ pointer +
+\var{n}).
+
+We use {\em temporaries} to denote the values of expressions or subexpressions
+in these cases.   A temporary is a compiler-introduced temporary variable.
+The scope and lifetime of a temporary is the entire full expression where the
+temporary  is used.   If the full expression is an initializer or part of an initializer,
+the scope and lifetime extend to the declarator being initialized.  All temporaries
+are typed, and their address cannot be taken.  Temporaries must always
+be assigned to first before being used.
+
+Temporaries have a different behavior for assignments than source-level
+variables.  When a temporary variable is assigned to, the assignment happens
+immediately after the right-hand side expression has been evaluated.  This differs from
+a source-level variable, whose assignment may happen at some less-precisely
+specified time.
+
+Sometimes the bounds for an expression may depend on a variable
+that is modified by the expression.  This is a problem if the expression
+is then used to access memory: the bounds check depends on a variable
+that has been modified by an expression.  Given the semantics of
+C for variable assignment, the variable is an indeterminate state:
+the assignment may or may have been completed.  A case where this can happen
+is when using pre or post-increment variables:
+\begin{lstlisting}
+array_ptr<int> current : bounds(current, end) = ...
+// current has bounds that depend on itself, so current++ makes
+// bounds(current, end) indeterminate at the * operation.
+while (current < end && *current++ != sentinel) {
+ ...
+}
+\end{lstlisting}
+
+We introduce temporaries for this case also,  so that bounds checks
+are not using variables that are in an indeterminate state.
+
+Here is a list of expressions where temporaries should be introduced to hold
+the results of the expressions.
+\begin{itemize}
+\item Function calls, where the called functions have return bounds
+that use  the return values.
+\item String or array literal expressions.
+\item Compound assignments to variables used in bound expressions.
+\item Pre-or post-increment/decrements to variables used in bounds declarations.
+\item Call arguments that are modifying expressions, where the corresponding
+parameters are used in the return bounds expressions for the called functions.
+all argument that is a modifying expression and
+\end{itemize}
+
+We introduce a special syntactic form to represent the initialization of a temporary:
+\lstinline|init-temporary| $t$, $e$ initializes a temporary $t$ to $e$.
+
 \section{Inferring bounds expressions for expressions}
 \label{section:inferring-expression-bounds}
 
@@ -148,20 +206,6 @@ declaration context, which maps variables to their
 bounds expressions.  We will use $\vdash$ to denote the
 valid bounds for an expression. The notation \boundsinfer{\var{e}}{\var{bounds-exp}}
 means that expression \var{e} has valid bounds \var{bounds-exp}.
-
-At times, we need to discuss bounds that are given in terms of the value
-of an expression or a subexpression.   For example, a function call expression may
-return an \arrayptr\ pointer to an array of constant size
-\var{n}. The bounds for that pointer value would be (the
-\arrayptr\ pointer, the \arrayptr\ pointer +
-\var{n}). We use temporaries to denote the values
-of expressions or subexpressions.   A temporary is a compiler-introduced
-temporary variable that is initialized immediately upon evaluation of an
-expression.   It differs from a source-level variable, whose assignment
-may happen at some less-precisely specified time.   The evaluation of
-expressions at runtime needs to store values in a temporary, 
-if the temporary is used in a runtime
-bounds check.
 
 \subsection{Null pointers}
 
@@ -213,8 +257,7 @@ A string literal \lstinline+''abc''+ evaluates to an lvalue with array type,
 as does a compound literal of the form \lstinline+(int []) { 0, 1, 2, 3}+.
 These lvalues are then converted implicitly to values with pointer type.
 
-During bounds checking, a temporary is introduced for the result
-of evaluating a string literal or compound literal expression.
+A temporary was introduced for the result of the literal expression.
 If a literal \var{e} has array type and \var{n} elements, the bounds
 exclude the null terminator, if there is one.
 \begin{itemize}
@@ -282,9 +325,9 @@ Suppose there is a function call expression of the form
 
 The special variable \lstinline|return_value| may appear in \var{exp1}. It
 is the value of the function call expression. If \lstinline|return_value|
-is used, a temporary variable is introduced to hold the result of the
+is used, a temporary variable was introduced to hold the result of the
 function call.  The occurrences of \lstinline|return_value| are replaced
-with the the temporary variable.
+with the temporary variable.
 
 There needs to be validation that the bounds for argument expressions
 match the required bounds for formal parameters. This is described in
@@ -546,10 +589,12 @@ Given an expression of the form \code{++}\var{e1}, \code{--}\var{e1},
  \var{e1}\code{++} or \var{e1}\code{--}, where $e1$ has a pointer type,
  the bounds for $e1$ are the bounds for the entire expression.
  
- If $e1$ appears in its own bounds, the compiler should introduce a
- temporary to hold the value of $e1$ before the update, and use
- the temporary in the bounds.  In the case of post-increment operators, 
- the C semantics already require  introducing a temporary for the value of $e1$.
+ If $e1$ appears in its own bounds, the temporary introduced to hold
+ the result value of $e1$ should be used in the bounds in place of
+ $e1$.   For post-increment/decrement operators, the temporary can
+ be used in place of $e1$ in the bounds.  For pre-increment operators,
+ the temporary - 1 should be used in place of $e1$.  For pre-decrement operators,
+ the temporary + 1 should be used in place of $e1$. 
 
 \section{Bounds declaration checking for simple assignments}
 \label{section:checking-simple-assignment}
@@ -1069,10 +1114,10 @@ Similarly, during checking, it is important not to use equality information
 from $UEQ$ or $G$ that depends on pending variables.
 
 The function $CheckLValue(e, C, EQ, PV)$ is similar to $Check$.  It takes the
-same first 4 arguments as $Check$, except that $e$ evalutes to an lvalue.
+same first 4 arguments as $Check$, except that $e$ evaluates to an lvalue.
 It returns:
 \begin{enumerate}
-\item A bounds expression $B$ for for the lvalues produced by $e$.
+\item A bounds expression $B$ for the lvalues produced by $e$.
 \item A bounds expression $RB$ for values read from the lvalues produced by $e$.
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
@@ -1101,8 +1146,8 @@ $PV$.  If it does, report an error.
 \item If $e$ is a variable $v$ and $v \in PV$, report an error.  There is an unsequenced use and
 assignment of $v$.
 \item Let $B = RB$. 
-\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ - PV$, let $G = F$. 
-\item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.  
+\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ$, let $G = F - PV$.
+\item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.
 \item Otherwise, let $G = \emptyset$ (we address aliasing of memory accesses in another section).
 \end{enumerate}
 \end{enumerate}
@@ -1163,26 +1208,27 @@ result is
 been checked, so use the results from that.  Let $B_1 = FB$.  If $S_1$ appears in some set $F$ in $UEQ$,
  let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.
 \item Otherwise, let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
-Let $(B_i, \_, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, None)$.
+Let $(B_i, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, None)$.
 \end{enumerate}
 \item Determine the set of equivalent expressions for $e$.  Recall that the equivalent expressions must be non-modifying expressions.
 \begin{enumerate}
 \item  If $Form = PostIncDec$, let $Val = S_1$.  Otherwise, let $Val = e$.
-\item If $Val$ is a non-modifying expression, let $G  = \{ Val \}$.
+\item If $e$ is a non-modifying expression, let $G  = \{ Val \}$.
 \item If $Val$ is a call expression, let $G = \emptyset$.
 \item Otherwise, try to construct a version $Val^\prime$ of $Val$ that computes the same value 
       as $Val$ but is a non-modifying expression. 
       
       For any subexpression $S_i$ that is a modifying expression, 
-      use an expression from $G_i$ (or $G_1$ when $Form = PostIncDec$). If $G_i$ is empty, $Val^\prime$ cannot
-      be constructed.
-      
+      use an expression from $G_i $(or $G_1$ when $Form = PostIncDec$).
+      If $G_i$ is empty, $Val^\prime$ cannot be constructed.
+
       Note that an invariant about each $G_i$ is that it will not contain any uses of variables in $PV_i$.
       This means that side-effects in other subexpressions do not affect the value of expressions in $G_i$.
+      The same invariant applies to the $B_i$.
+
 \item If $Val^\prime$ can be constructed, let $G = \{ Val^\prime \}$.  Otherwise, let $G = \emptyset$.	
 \end{enumerate}
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$. 
-\item If computing $B$ introduces a temporary $t$ to hold the value produced by evaluating $e$, add $t$ to $G$.
 \end{enumerate}
 \end{enumerate}
 
@@ -1283,7 +1329,7 @@ and another expression whose evaluation is unordered with respect to the arm.
 The side-effects in the unordered expression may not be reflected in the
 context being validated.
 One approach would be for $Check$ to produce two contexts,
-one for each arm. This turn require that $Check$ take a set of contexts as
+one for each arm. This in turn would require that $Check$ take a set of contexts as
  inputs.  The number of contexts could grow exponentially.
 To keep checking from becoming too expensive, we disallow such expressions.
 
