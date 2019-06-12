@@ -17,7 +17,7 @@ Bounds expressions for expressions are inferred using inference
 rules.  The inference rules are defined by induction over expressions, 
 the same way that typechecking rules work.  Given an expression
 and bounds expressions for its subexpressions, a bounds expression
-is constructed.  The induction base casses are variables (for which
+is constructed.  The induction base cases are variables (for which
 bounds expressions are declared by the programmer) and constants.
 The inference may require the compiler to introduce temporaries to
 hold the values of subexpressions.
@@ -53,9 +53,9 @@ The analysis of expressions is complicated by C's evaluation
 rules for expressions.  C does not have a precise order of evaluation
 for expressions.  The times at which assignments
 must happen within expressions are only partially constrained.
-C also allows allows control flow within 
+C also allows control flow within 
 expressions via comma expressions, conditional expressions, and
-logical boolean expressions (the \code{&&} and \code{||} expressions).
+logical boolean expressions (the \code{&&} and \code{\|\|} expressions).
 
 To handle this, the analysis tracks sets of variables where assignments
 to those variables may not have been completed yet.  We call these
@@ -886,7 +886,7 @@ To detect undefined behavior, the checking tracks
 sets of variables with pending assignments.  Pending
 assignments may or may not have been completed yet, which means
 that the variables being assigned to have {\em indeterminate}
-values.  The sets are used to used to detect:
+values.  The sets are used to detect:
 \begin{enumerate}
 \item Uses of variables whose values are indeterminate.
 \item Accessing memory with pointers whose bounds expressions
