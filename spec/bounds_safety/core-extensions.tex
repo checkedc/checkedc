@@ -1235,7 +1235,7 @@ fail silently:
 
 \begin{lstlisting}[escapechar=\@]
 void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer,
-            size_t input_len|\textit{, size\_t output\_len}|)
+            size_t input_len, size_t output_len)
 {
   ...
       case UNCOMPRESSED_BYTES: {
@@ -1375,7 +1375,7 @@ void append(array_ptr<char> dst: count(dest_count),
 }
 \end{lstlisting}
 
-The compiler now knows that \lstinline+i < src_count<= dst\_count+,
+The compiler now knows that \lstinline+i < src_count<= dst_count+,
 so it can eliminate the check.
 
 A compiler would not introduce this dynamic\_check because it would
@@ -1557,7 +1557,7 @@ The aim is to be able to show partial correctness of programs for the
 first item (avoiding out-of-bounds pointer accesses). A
 partial correctness guarantee has the form ``assuming X holds, then Y is
 true''. Informally, one might say ``assuming that memory allocation and
-type casts are correct and that unchecked code never reads or write though
+type casts are correct and that unchecked code never reads or writes through
 out-of-bounds pointers, then checked code never reads or writes through
 out-of-bounds pointers.'' These assumptions can be turned into formal
 statements about program behavior at runtime. Given those assumptions,

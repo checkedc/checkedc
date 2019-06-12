@@ -27,7 +27,7 @@ resulting file will be called checkedc.pdf.
 
 ## Obtaining LaTex 
 There are many widely
-used free distributions of LaTex available.   One version is [MikTex](http://www.miktek.org),
+used free distributions of LaTex available.   One version is [MikTex](http://www.miktex.org),
 which is widely used on Windows.  Another version is [TexLive](http://tug.org/texlive/),
 which is often used on Linux system.
 
