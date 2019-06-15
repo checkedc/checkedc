@@ -1,7 +1,7 @@
 # High-Level Dynamic Check Tests
 
 These tests all compile and run programs, making sure that their 
-dynamic behaviour includes exiting/stopping when dynamic checks fail.
+dynamic behavior includes exiting/stopping when dynamic checks fail.
 
 ## Bounds-checking Tests
 
@@ -35,7 +35,7 @@ The test file for `subscript` is re-used for `deref-arith`. The file
 `deref-arith` only contains test suite driver commands.
 
 This results in 56 total test configurations at the current count. There are 8 test 
-configurations each for `deref`, `deref-artih`, and `subscript`: 4 operators
+configurations each for `deref`, `deref-arith`, and `subscript`: 4 operators
 using the lvalue expression x 2 optimization configurations.  There are 16 test 
 configurations  for `deref-member-expr` and `subscript-member-expr`: 4 operators
 x 2 optimization configurations x 2 kinds of member expression operators.
@@ -46,7 +46,7 @@ words in the name need elevated privileges to run because they might be an insta
 even if they don't actually install anything. Documentation is here:
 https://msdn.microsoft.com/en-us/enus/library/aa905330.aspx
 
-### Optimised versions
+### Optimized versions
 
 Each of these tests has an optimized counterpart, (the files with `-opt` as
 a filename suffix). This runs the original test, but with `-O3`, and tests
