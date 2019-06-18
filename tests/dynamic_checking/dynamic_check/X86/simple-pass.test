@@ -1,0 +1,3 @@
+// REQUIRES: x86-registered-target
+// RUN: %clang -Xclang -verify -o %t.exe %S/../Inputs/simple-pass.c
+// RUN: %t.exe

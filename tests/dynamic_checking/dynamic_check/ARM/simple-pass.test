@@ -1,0 +1,7 @@
+// REQUIRES: CHECKEDC_LIT_ARM
+
+// RUN: %clang -Xclang -verify -o %t.exe %S/../Inputs/simple-pass.c \
+// RUN: -target arm-linux-gnueabihf -march=armv7-a -static \
+// RUN: --sysroot=%checkedc_arm_sysroot/arm-linux-gnueabihf/libc \
+// RUN: --gcc-toolchain=%checkedc_arm_sysroot
+// RUN: %checkedc_arm_rununder %t.exe
