@@ -1,3 +1,4 @@
-// REQUIRES: x86-registered-target
+// REQUIRES: x86-registered-target, checkedc-lit-x86
+
 // RUN: %clang -Xclang -verify -o %t.exe %S/../Inputs/simple-pass.c
 // RUN: %t.exe

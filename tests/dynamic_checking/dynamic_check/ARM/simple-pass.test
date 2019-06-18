@@ -1,4 +1,4 @@
-// REQUIRES: CHECKEDC_LIT_ARM
+// REQUIRES: arm-registered-target, checkedc-lit-arm
 
 // RUN: %clang -Xclang -verify -o %t.exe %S/../Inputs/simple-pass.c \
 // RUN: -target arm-linux-gnueabihf -march=armv7-a -static \
