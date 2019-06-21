@@ -29,7 +29,7 @@ _Opaque _Ptr _Reveal _Where  _Unchecked
 It is desirable to have all-lowercase versions of the
 identifiers for readability and ease of typing. The C
 preprocessor is used to provide these. A standard header
-file \keyword{stdcheckedc.h} is provided that has macros
+file \keyword{stdchecked.h} is provided that has macros
 that map the lowercase versions of keywords to the actual keywords.
 Programs that do not have identifiers that conflict with the
 lowercase versions of the keywords can include it.
@@ -49,7 +49,7 @@ has a macro that maps \lstinline+bool+ to \lstinline+_Bool+.
 
 Throughout this document, we use the shorter and easier-to-read
 lowercase versions of the keywords.  It is assumed
-that \keyword{checkedc.h} is included before examples.
+that \keyword{stdchecked.h} is included before examples.
 
 \section{New kinds of pointer types}
 Three new checked pointer types are added to C. Each pointer type can be
@@ -208,8 +208,7 @@ types. Consider a method that adds 2x2 integer arrays \lstinline+a+ and
 \lstinline+b+ so that \lstinline+a+ = \lstinline+a+ + \lstinline+b+:
 
 \begin{lstlisting}
-void add(int a checked[2][2], int b checked[2][2])
-{
+void add(int a checked[2][2], int b checked[2][2]) {
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 2; j++) {
       a[i][j] += b[i][j];
@@ -1236,7 +1235,7 @@ fail silently:
 
 \begin{lstlisting}[escapechar=\@]
 void decode(array_ptr<char> output_buffer, array_ptr<char> input_buffer,
-            size_t input_len|\textit{, size\_t output\_len}|)
+            size_t input_len, size_t output_len)
 {
   ...
       case UNCOMPRESSED_BYTES: {
@@ -1376,7 +1375,7 @@ void append(array_ptr<char> dst: count(dest_count),
 }
 \end{lstlisting}
 
-The compiler now knows that \lstinline+i < src_count<= dst\_count+,
+The compiler now knows that \lstinline+i < src_count<= dst_count+,
 so it can eliminate the check.
 
 A compiler would not introduce this dynamic\_check because it would
@@ -1558,7 +1557,7 @@ The aim is to be able to show partial correctness of programs for the
 first item (avoiding out-of-bounds pointer accesses). A
 partial correctness guarantee has the form ``assuming X holds, then Y is
 true''. Informally, one might say ``assuming that memory allocation and
-type casts are correct and that unchecked code never reads or write though
+type casts are correct and that unchecked code never reads or writes through
 out-of-bounds pointers, then checked code never reads or writes through
 out-of-bounds pointers.'' These assumptions can be turned into formal
 statements about program behavior at runtime. Given those assumptions,
