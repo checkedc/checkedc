@@ -147,7 +147,7 @@ int vscanf(const char * restrict format : itype(restrict _Nt_array_ptr<const cha
 #undef vsnprintf
 _Unchecked
 int vsnprintf(char * restrict s : count(n), size_t n,
-              const char * restrict format,
+              const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
               va_list arg);
 #endif
 
@@ -189,10 +189,12 @@ int fgetpos(FILE * restrict stream : itype(restrict _Ptr<FILE>),
             fpos_t * restrict pos : itype(restrict _Ptr<fpos_t>));
 
 int fseek(FILE *stream : itype(_Ptr<FILE>), long int offset, int whence);
+int fseeko(FILE *stream : itype(_Ptr<FILE>), off_t offset, int whence);
 int fsetpos(FILE *stream : itype(_Ptr<FILE>),
             const fpos_t *pos :  itype(_Ptr<const fpos_t>));
 
 long int ftell(FILE *stream : itype(_Ptr<FILE>));
+off_t ftello(FILE *stream : itype(_Ptr<FILE>));
 void rewind(FILE *stream : itype(_Ptr<FILE>));
 
 void clearerr(FILE *stream : itype(_Ptr<FILE>));
