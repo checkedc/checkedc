@@ -280,7 +280,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   g12 = arg3;
   g13 = arg3;
 
-    // locals assigned from parameters
+  // locals assigned from parameters
   nt_array_ptr<int> t1 : bounds(unknown);
   nt_array_ptr<int> t2 = 0;
   nt_array_ptr<int> t3 : count(1) = 0;
@@ -296,6 +296,19 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   t1 = arg3;
   t2 = arg3;
   t3 = arg3;
+
+  // locals assigned from locals
+  nt_array_ptr<int> c1 = 0;
+  unsigned int u1, u2;
+  int i1;
+  nt_array_ptr<int> c2 : count(u1) = 0;
+  nt_array_ptr<int> c3 : count(u1 * u2 + 2 * i1) = 0;
+  nt_array_ptr<int> c4 : count(i1) = 0;
+  
+  c1 = c2;
+  c2 = c1;            // expected-warning {{cannot prove declared bounds for c2 are valid after assignment}}
+  c1 = c3;
+  c1 = c4;            // expected-warning {{cannot prove declared bounds for c1 are valid after assignment}}
 
   // spot-check locals assigned from globals
   t1 = g13;
@@ -401,10 +414,12 @@ extern void test_f2(ptr<int> p);
 extern void test_f3(array_ptr<int> p);
 extern void test_f4(array_ptr<int> p : count(1));
 extern void test_f5(array_ptr<int> p : count(len), int len);
+extern void test_f6(array_ptr<int> p : count(0));
 
 extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
                             array_ptr<int> arg4 : count(1), 
-                            array_ptr<int> arg5 : count(arglen), int arglen) {
+                            array_ptr<int> arg5 : count(arglen), int arglen,
+                            array_ptr<int> arg6 : count(arglen_u), unsigned int arglen_u) {
   test_f1(arg1);
   test_f2(arg1);     // expected-error {{expression has unknown bounds}}
   test_f3(arg1);
@@ -439,6 +454,13 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   int count = arglen - 1;
   test_f5(arg5, ++count);  // expected-error {{increment expression not allowed}}
   test_f5(arg5, count++);  // expected-error {{increment expression not allowed}}
+
+  test_f1(arg6);               // expected-error {{incompatible type}}
+  test_f2(arg6);
+  test_f3(arg6);
+  test_f4(arg6);               // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_f5(arg6, arglen_u);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_f6(arg6);
 }
 
 extern void test_nullterm_f1(nt_array_ptr<char> p : bounds(unknown));
@@ -450,7 +472,8 @@ extern void check_nullterm_call_args(
   nt_array_ptr<char> arg1 : bounds(unknown),
   nt_array_ptr<char> arg2,
   nt_array_ptr<char> arg3 : count(1),
-  nt_array_ptr<char> arg4 : count(arglen), int arglen) {
+  nt_array_ptr<char> arg4 : count(arglen), int arglen,
+  nt_array_ptr<char> arg5 : count(arglen_u), unsigned int arglen_u) {
   test_nullterm_f1(arg1);
   test_nullterm_f2(arg1);     // expected-error {{argument has unknown bounds}}
   test_nullterm_f3(arg1);     // expected-error {{argument has unknown bounds}}
@@ -475,6 +498,10 @@ extern void check_nullterm_call_args(
   int count = arglen - 1;
   test_nullterm_f4(arg4, ++count);  // expected-error {{increment expression not allowed}}
   test_nullterm_f4(arg4, count++);  // expected-error {{increment expression not allowed}}
+
+  test_nullterm_f1(arg5);
+  test_nullterm_f2(arg5);
+  test_nullterm_f3(arg5);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
 }
 
 //
