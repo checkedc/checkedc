@@ -1081,7 +1081,7 @@ signed or unsigned integer as \code{e2}.
   must cast \sizeof{\var{T}} to a signed integer. We introduce a
   signed integer type \code{signed_size_t} that is large enough for
   this cast. \code{e1 + e2} expands to \code{e1} \plusovf\ 
-  \code{((signed_size_t)} \sizeof{\var{T}}\code{)} \plusovf\ \code{e2}. This cast is
+  \code{((signed_size_t)} \sizeof{\var{T}}\code{)} \mulovf\ \code{e2}. This cast is
   necessary because in C, multiplying a signed integer by an unsigned
   integer implicitly converts the signed integer to be an unsigned
   integer.
@@ -1093,7 +1093,7 @@ There will be concerns about the effect of overflow checks on the speed
 of pointer arithmetic using the new pointer types. These concerns are an
 empirical question to be settled after implementing and using the new
 pointer types. It is unclear what the actual cost will be. First, there
-will be sometimes be additional conditions on expressions used in
+will be sometimes additional conditions on expressions used in
 pointer arithmetic that prevent overflow from occurring. Second,
 compiler optimizations often can remove the checks. Third, programmers
 can use lightweight invariants to show statically that checks are not
@@ -1276,7 +1276,7 @@ The problems with requiring functions that validate buffer lengths to
 return status codes for errors are analyzed by O'Donell and Sebor\cite{ODonell2015}. 
 Annex K of the C Standard \cite{ISO2011} introduced a new set of standard library functions to replace
 functions that provide no way to validate their arguments. These
-functions return status codes to indicate success or failure A classic
+functions return status codes to indicate success or failure. A classic
 example of a function prone to misuse is
 \lstinline+strcpy(char *dst, const char *src)+.
 It copies all bytes in \lstinline+src+ to \lstinline+dst+ until
@@ -1386,7 +1386,7 @@ try to deduce a precondition for the loop
 that prevents the bounds check from failing, but this is
 not possible because the precondition depends on the contents of
 \lstinline+src+. A compiler would have to clone code to maintain the same
-behavior. This increases code size, so production compilers do not this
+behavior. This increases code size, so production compilers do not do this
 sort of transformation or do it sparingly. Programmer control produces
 better results.   Here is the code a compiler might generate with cloning.
 
