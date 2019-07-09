@@ -1717,3 +1717,57 @@ extern void test_function_pointer(void) SCOPE_KIND {
   array_ptr<int> apa = &val0;
 }
 
+
+//
+// Test for casting from ptr or array_ptr to nt_array_ptr.
+// These two types of casting are forbidden in checked regions.
+//
+extern void test_cast_to_nt_array_ptr(void) checked {
+  int i = 0;
+  char c = 'c';
+  int arr_i checked[5];
+  char arr_c checked[5];
+
+  // Test casting ptr to nt_array_ptr.
+  ptr<int> p0 = (ptr<int>)&i;
+  nt_array_ptr<int> p1 = (nt_array_ptr<int>)p0; // expected-error {{'_Ptr<int>' cannot be cast to '_Nt_array_ptr<int>' in a checked scope because '_Ptr<int>' might not point to a null-terminated array}} 
+  ptr<char> p2 = (ptr<char>)&c;
+  nt_array_ptr<char> p3 = (nt_array_ptr<char>)p2; // expected-error {{'_Ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Ptr<char>' might not point to a null-terminated array}} 
+  ptr<char> p4 = "hello";
+  p2 = (nt_array_ptr<char>)p4;  // expected-error {{'_Ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Ptr<char>' might not point to a null-terminated array}}
+
+  // Test casting array_ptr to nt_array_ptr.
+  array_ptr<int> p5 : count(5) = arr_i;
+  nt_array_ptr<int> p6 = (nt_array_ptr<int>)arr_i; // expected-error {{'_Array_ptr<int>' cannot be cast to '_Nt_array_ptr<int>' in a checked scope because '_Array_ptr<int>' might not point to a null-terminated array}}
+  p6 = (nt_array_ptr<int>)p5; // expected-error {{'_Array_ptr<int>' cannot be cast to '_Nt_array_ptr<int>' in a checked scope because '_Array_ptr<int>' might not point to a null-terminated array}}
+  array_ptr<char> p7 : count(5) = arr_c;
+  nt_array_ptr<char> p8 = (nt_array_ptr<char>)arr_c; // expected-error {{'_Array_ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Array_ptr<char>' might not point to a null-terminated array}}
+  p8 = (nt_array_ptr<char>)p7; // expected-error {{'_Array_ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Array_ptr<char>' might not point to a null-terminated array}}
+
+  // Test casting nt_array_ptr to nt_array_ptr
+  nt_array_ptr<char> p9 = "hello";
+  nt_array_ptr<char> p10 = (nt_array_ptr<char>)p9;  // legal casting
+
+  // Test casting to nt_array_ptr in a unchecked scope.
+  unchecked {
+    // Test casting ptr to nt_array_ptr.
+    p1 = (nt_array_ptr<int>)p0;   // allowed here; disallowed in a checked scope.
+    p3 = (nt_array_ptr<char>)p2;  // allowed here; disallowed in a checked scope.
+    p2 = (nt_array_ptr<char>)p4;  // allowed here; disallowed in a checked scope.
+  
+    // Test casting array_ptr to nt_array_ptr.
+    p6 = (nt_array_ptr<int>)arr_i; // allowed here; disallowed in a checked scope.
+    p6 = (nt_array_ptr<int>)p5;    // allowed here; disallowed in a checked scope.
+    p8 = (nt_array_ptr<char>)p7;   // allowed here; disallowed in a checked scope.
+
+    // Test casting nt_array_ptr to nt_array_ptr
+    p10 = (nt_array_ptr<char>)p9;  // allowed in both checked and unchecked scopes.
+    
+    // Test casting from unchecked pointers to nt_array_ptr.
+    int arr_i_unchecked[5];
+    p6 = (nt_array_ptr<int>)arr_i_unchecked;  // allowed
+    char arr_c_unchecked[5];
+    p8 = (nt_array_ptr<char>)arr_c_unchecked; // allowed
+  }
+}
+
