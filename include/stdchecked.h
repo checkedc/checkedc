@@ -6,6 +6,7 @@
 #define nt_array_ptr _Nt_array_ptr
 #define checked _Checked
 #define nt_checked _Nt_checked
+#define mmsafe_ptr _MMSafe_ptr
 #define unchecked _Unchecked
 #define bounds_only _Bounds_only
 #define where _Where

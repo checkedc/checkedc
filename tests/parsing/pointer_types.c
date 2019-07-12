@@ -15,6 +15,14 @@
 
 #include <stdchecked.h>
 
+
+typedef struct node {
+  int val;
+  mmsafe_ptr<struct node> next;
+  unsigned long ID;
+} Node;
+
+
 //
 // parameters have new pointer types
 //
@@ -60,6 +68,30 @@ extern void f9(nt_array_ptr<int> p : count(1), int y) {
 extern void f10(nt_array_ptr<nt_array_ptr<int>> p : count(1),
                 nt_array_ptr<int> y) {
   *p = y;
+}
+
+extern void f11(mmsafe_ptr<Node> p) {
+  p->val = 0;
+}
+
+extern void f12(const mmsafe_ptr<Node> p) {
+  p->ID = 1;
+}
+
+extern void f13(mmsafe_ptr<const Node> p, int y) {
+  y = p->val;
+}
+
+extern void f14(mmsafe_ptr<mmsafe_ptr<Node>> p) {
+  (*p)->val = 0;
+}
+
+extern void f15(mmsafe_ptr<mmsafe_ptr<mmsafe_ptr<Node>>> p) {
+    (**p)->val = 0;
+}
+
+extern void f16(mmsafe_ptr<Node> p, mmsafe_ptr<Node> next) {
+    p->next = next;
 }
 
 //
@@ -147,6 +179,33 @@ extern nt_array_ptr<ptr<int>> h9(int y, nt_array_ptr<ptr<int>> p : count(1)) {
   return p;
 }
 
+extern mmsafe_ptr<Node> h10(int y, mmsafe_ptr<Node> p) {
+  p->val = y;
+  return p;
+}
+
+extern const mmsafe_ptr<Node> h11(int y, const mmsafe_ptr<Node> p) {
+  p->val = y;
+  return p;
+}
+
+extern mmsafe_ptr<const Node> h12(int y, mmsafe_ptr<const Node> p) {
+    y = p->val;
+    return p;
+}
+
+extern mmsafe_ptr<mmsafe_ptr<Node>> h13(int y, mmsafe_ptr<mmsafe_ptr<Node>> p) {
+  (*p)->val = y;
+  return p;
+}
+
+extern mmsafe_ptr<mmsafe_ptr<mmsafe_ptr<Node>>> h14(int y,
+                                mmsafe_ptr<mmsafe_ptr<mmsafe_ptr<Node>>> p) {
+  (**p)->val = y;
+  return p;
+}
+
+
 //
 // Local variables with pointer types
 //
@@ -161,6 +220,10 @@ extern void k1(int y)
    *t1 = 0;
    *t2 = 0;
    *t3 = 0;
+
+   Node n;
+   mmsafe_ptr<Node> node = &n;
+   node->val = v;
 }
 
 //
@@ -195,6 +258,10 @@ extern int Multiply2(ptr<struct Vector> vec1p, ptr<struct Vector> vec2p) {
 struct StringWrapper {
   nt_array_ptr<char> str : count(0);
 };
+
+extern void setValOfNextNode(mmsafe_ptr<Node> p, int y) {
+    p->next->val = y;
+}
 
 //
 // Declaring pointers to functions
@@ -232,35 +299,42 @@ int *array_of_unchecked_ptrs[5];
 ptr<int> array_of_ptrs[5];
 array_ptr<int> array_of_array_ptrs[5];
 nt_array_ptr<int> array_of_nullterm_pointers[5];
+mmsafe_ptr<Node> array_of_mmsafe_ptrs[5];
+array_ptr<mmsafe_ptr<Node>> array_of_array_mmsafe_ptrs[5];
 
 // Declaring null-terminated arrays of pointers
 int *nullterm_array_of_unchecked_ptrs nt_checked[5];
 ptr<int> nullterm_array_of_ptrs nt_checked[5];
 array_ptr<int> nullterm_array_of_array_ptrs nt_checked[5];
 nt_array_ptr<int> nullterm_array_of_nullterm_pointers nt_checked[5];
+mmsafe_ptr<Node> nullterm_array_of_mmsafe_ptrs nt_checked[5];
 
 // Declare an unchecked pointer to arrays of pointers
 int *(*uncheckedptr_to_array_of_unchecked_ptrs)[5];
 ptr<int>(*unchecked_ptr_to_array_of_ptrs)[5];
 array_ptr<int>(*unchecked_ptr_to_array_of_array_ptrs)[5];
 nt_array_ptr<int>(*unchecked_ptr_to_array_of_null_term_array_ptrs)[5];
+mmsafe_ptr<Node>(*uncheckedptr_to_array_of_mmsafe_ptrs)[5];
 
 int *(*uncheckedptr_to_nullterm_array_of_unchecked_ptrs) nt_checked[5];
 ptr<int>(*unchecked_ptr_to_nullterm_array_of_ptrs) nt_checked[5];
 array_ptr<int>(*unchecked_ptr_to_null_termarray_of_array_ptrs) nt_checked[5];
 nt_array_ptr<int>(*unchecked_ptr_to_null_term_array_of_null_term_array_ptrs)nt_checked[5];
+mmsafe_ptr<Node>(*unchecked_ptr_to_nullterm_array_of_mmsafe_ptrs)nt_checked[5];
 
 // Declare ptr to arrays of pointers
 ptr<int *[5]> ptr_to_array_of_unchecked_ptrs;
 ptr<ptr<int>[5]> ptr_to_array_of_ptrs;
 ptr<array_ptr<int>[5]> ptr_to_array_of_array_ptrs;
 ptr<nt_array_ptr<int>[5]> ptr_to_array_of_nullterm_array_ptrs;
+ptr<mmsafe_ptr<Node>[5]> ptr_to_array_of_mmsafe_ptrs;
 
 // Declare ptr to nullterm arrays of pointers
 ptr<int *nt_checked[5]> ptr_to_nullterm_array_of_unchecked_ptrs;
 ptr<ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_ptrs;
 ptr<array_ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_array_ptrs;
 ptr<nt_array_ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_nullterm_array_ptrs;
+ptr<mmsafe_ptr<Node>nt_checked[5]> ptr_to_nullterm_array_of_mmsafe_ptrs;
 
 
 // Declare ptr to an array of function pointers
@@ -279,6 +353,7 @@ typedef array_ptr<int> t_array_ptr_int;
 typedef array_ptr<ptr<int>> t_array_ptr_ptr_int;
 typedef nt_array_ptr<int> t_nullterm_array_ptr_int;
 typedef nt_array_ptr<ptr<int>> t_nullterm_array_ptr_ptr_int;
+typedef mmsafe_ptr<Node> t_mmsafe_ptr_node;
 
 //
 // Operators that take types
@@ -316,6 +391,16 @@ void parse_operators_with_types(void) {
     // These are OK
     int s30 = _Alignof(ptr<int(int x, int y)>);
     int s31 = _Alignof(int(*)(int x, int y));
+
+    int s32 = sizeof(mmsafe_ptr<Node>);
+    int s33 = sizeof(mmsafe_ptr<Node>[5]);
+    int s34 = sizeof(mmsafe_ptr<Node>(int x, int y));
+    int s35 = sizeof(ptr<mmsafe_ptr<Node>(int x, int y)>);
+
+    int s36 = _Alignof(mmsafe_ptr<Node>);
+    int s37 = _Alignof(mmsafe_ptr<Node>[5]);
+    int s38 = _Alignof(mmsafe_ptr<Node>(int x, int y));
+    int s39 = _Alignof(ptr<mmsafe_ptr<Node>(int x, int y)>);
 
     // Test parsing of some cast operations that should pass checking
     // of bounds declarations.
