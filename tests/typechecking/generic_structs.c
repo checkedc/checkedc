@@ -81,6 +81,6 @@ void T6_MultArgs() {
   struct T6_Pair<char, int> pair2;
   int *p11 = pair1.u;
   char *p12 = pair1.v;
-  int *p21 = pair2.u;
+  char *p21 = pair2.u;
   int *p22 = pair2.v;
 }
