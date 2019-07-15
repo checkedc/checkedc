@@ -84,3 +84,46 @@ void T6_MultArgs() {
   char *p21 = pair2.u;
   int *p22 = pair2.v;
 }
+
+//
+// Test a list (this requires support for recursive structs).
+//
+struct T7_List _For_any(T) {
+  T *head;
+  struct T7_List<T> *tail;
+};
+
+void T7_RecursiveStruct() {
+  struct T7_List<char> *list;
+  char *l1 = list->head;
+  char *l2 = list->tail->head;
+  char *l3 = list->tail->tail->head;
+
+  // Test that the pointer types are compatible:
+  struct T7_List<char> *list2 = list; 
+  list->head = list2->head;
+  list->tail->head = list2->tail->head;
+  list->tail->tail->head = list2->tail->tail->head;
+  list->tail->head = list2->head;
+}
+
+//
+// Test polymorphic recursion (a type application within a definition which uses
+// different type arguments).
+//
+struct T8_Foo _For_any(U) {
+  U *x;	
+};
+
+struct T8_Bar _For_any(V) {
+  struct T8_Foo<V> *foo;
+  struct T8_Foo<char> *foo_char;
+  struct T8_Bar<char> *bar_char;
+};
+
+void T8_PolyRec() {
+  struct T8_Bar<int> *bar;
+  struct T8_Foo<int> *foo = bar->foo;
+  struct T8_Foo<char> *foo_char = bar->foo_char;
+  struct T8_Bar<char> *bar_char = bar->bar_char;
+}
