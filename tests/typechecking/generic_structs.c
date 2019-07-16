@@ -127,3 +127,31 @@ void T8_PolyRec() {
   struct T8_Foo<char> *foo_char = bar->foo_char;
   struct T8_Bar<char> *bar_char = bar->bar_char;
 }
+
+//
+// Test expanding cycles.
+// There are cases where, if we're not careful, dependencies between
+// generic structs can lead to the creation of infinitely many record instances (crashing the compiler).
+// These are ruled out via a check for "expanding cycles".
+// See "On Decidability of Nominal Subtyping with Variance" by Kennedy and Pierce for the similar
+// notion of "expanding inheritance".
+//
+struct T9_List _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+  struct T9_List<struct T9_List<T> > *expanding;
+};
+
+struct T9_Foo _For_any(T) {
+  T *x;
+};
+
+struct T9_Bad _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+  struct T9_Bad<struct T9_Foo<T> > *bad;
+};
+
+struct T9_Good _For_any(T) {
+  struct T9_Foo<struct T9_Good<T> > *good;
+};
+
+struct T9_Good2 _For_any(T) {
+  struct T9_Foo<struct T9_Foo<T> > *good;
+};
