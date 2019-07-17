@@ -25,6 +25,19 @@ void TestOnlyPointersInFields() {
 }
 
 //
+// Test that instantiating a struct with the wrong number of type arguments
+// raises an error.
+//
+void TestWrongNumArgs() {
+  struct Foo _For_any(U, V) {
+  };
+
+  struct Foo<int, char> FooOk;
+  struct Foo<int> FooWrong1; // expected-error {{generic struct takes 2 type arguments, but instantiation provided 1}}
+  struct Foo<int, int, int> FooWrong2; // expected-error {{generic struct takes 2 type arguments, but instantiation provided 3}}
+}
+
+//
 // Test a simple type application where the struct
 // isn't recursive.
 //
