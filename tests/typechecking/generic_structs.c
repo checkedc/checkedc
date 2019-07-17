@@ -165,3 +165,34 @@ void TestExpandingCycles() {
   struct Foo<int> *s3 = s2->x;
   int *x = s3->x;
 }
+
+void TestExpandingCyclesWithForwardDecls() {
+  // Mutually-recursive structs that are valid because
+  // there are no expanding cycles.
+  struct A _For_any(T);
+  struct B _For_any(T);
+
+  struct A _For_any(T) {
+    struct B<T> *other;
+  };
+
+  struct B _For_any(T) {
+    struct A<T> *other;
+  };
+
+  struct A<int>* a;
+  struct B<int>* b = a->other;
+  struct A<int>* b2 = a->other->other;
+
+  // Invalid because of expanding cyclec.
+  struct Bad1 _For_any(T);
+  struct Bad2 _For_any(T);
+
+  struct Bad1 _For_any(T) {
+    struct Bad2<T> *x;
+  };
+
+  struct Bad2 _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct Bad1<struct Bad2<T> > *x;
+  };
+}
