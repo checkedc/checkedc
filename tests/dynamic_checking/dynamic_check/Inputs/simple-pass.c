@@ -1,4 +1,4 @@
-// Feature tests of dynamic checking in Checked C
+// Feature tests of dynamic checking in Checked C.
 //
 // expected-no-diagnostics
 

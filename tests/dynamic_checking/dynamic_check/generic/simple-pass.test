@@ -1,2 +1,9 @@
-// RUN: %clang -Xclang -verify -o %t.exe %S/../Inputs/simple-pass.c
-// RUN: %t.exe
+// RUN: echo CC=%clang > %t
+// RUN: echo BIN=%t.exe >> %t
+// RUN: echo TOP=%S >> %t
+// RUN: echo CFLAGS= >> %t
+// RUN: echo RUNUNDER= >> %t
+
+// RUN: cat %S/../Inputs/simple-pass.build >> %t
+// RUN: cat %S/../Inputs/simple-pass.run >> %t
+// RUN: %t
