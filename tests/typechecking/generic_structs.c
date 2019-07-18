@@ -244,3 +244,24 @@ void TestExpandingCyclesLongCycle() {
   struct B4 _For_any(T) { struct B5<T> *x; };
   struct B5 _For_any(T) { struct B1<T> *x; }; // expected-error {{expanding cycle in struct definition}}
 }
+
+//
+// Test that the type application completion logic trigers in the right places
+//
+void TestApplicationOrder() {
+  struct B _For_any(U);
+
+  struct A _For_any(T) {
+    T *t;
+    struct B<T> *b; // Can't be completed at this point
+  };
+
+  struct B _For_any(U) {
+    struct A<U> *a; // Needs to be completed, even though it's a field
+  };
+
+  struct A<char> *a;
+  char *c = a->t;
+  struct B<char> *b = a->b;
+  struct A<char> *a2 = b->a;
+}
