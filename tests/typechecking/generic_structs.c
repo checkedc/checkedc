@@ -209,3 +209,38 @@ void TestExpandingCyclesWithForwardDecls() {
     struct Bad1<struct Bad2<T> > *x;
   };
 }
+
+void TestExpandingCyclesLongCycle() {
+  // No expanding cycle here since there are no expanding edges.
+  struct A1 _For_any(T);
+  struct A2 _For_any(T);
+  struct A3 _For_any(T);
+  struct A4 _For_any(T);
+  struct A5 _For_any(T);
+
+  struct A1 _For_any(T) { struct A2<T> *x; };
+  struct A2 _For_any(T) { struct A3<T> *x; };
+  struct A3 _For_any(T) { struct A4<T> *x; };
+  struct A4 _For_any(T) { struct A5<T> *x; };
+  struct A5 _For_any(T) { struct A1<T> *x; };
+
+  struct A1<int> *a1;
+  struct A2<int> *a2 = a1->x;
+  struct A3<int> *a3 = a2->x;
+  struct A4<int> *a4 = a3->x;
+  struct A5<int> *a5 = a4->x;
+  a1 = a5->x;
+
+  // B3 has an expanding edge
+  struct B1 _For_any(T);
+  struct B2 _For_any(T);
+  struct B3 _For_any(T);
+  struct B4 _For_any(T);
+  struct B5 _For_any(T);
+
+  struct B1 _For_any(T) { struct B2<T> *x; };
+  struct B2 _For_any(T) { struct B3<T> *x; };
+  struct B3 _For_any(T) { struct B4<struct B5<T> > *x; };
+  struct B4 _For_any(T) { struct B5<T> *x; };
+  struct B5 _For_any(T) { struct B1<T> *x; }; // expected-error {{expanding cycle in struct definition}}
+}
