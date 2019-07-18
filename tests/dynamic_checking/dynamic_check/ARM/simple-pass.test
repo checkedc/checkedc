@@ -1,11 +1,9 @@
 // REQUIRES: arm-registered-target, checkedc-lit-arm
 
 // RUN: echo CC=%clang > %t
-// RUN: echo BIN=%t.exe >> %t
-// RUN: echo TOP=%S >> %t
+// RUN: echo EXE=%t.exe >> %t
 // RUN: echo CFLAGS=\"-target arm-linux-gnueabihf -march=armv7-a -static --sysroot=%checkedc_arm_sysroot/arm-linux-gnueabihf/libc --gcc-toolchain=%checkedc_arm_sysroot\" >> %t
 // RUN: echo RUNUNDER=%checkedc_arm_rununder >> %t
 
-// RUN: cat %S/../Inputs/simple-pass.build >> %t
 // RUN: cat %S/../Inputs/simple-pass.run >> %t
 // RUN: %t

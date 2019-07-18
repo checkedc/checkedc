@@ -1,1 +1,0 @@
-$CC -Xclang -verify -o $BIN $TOP/../Inputs/simple-pass.c $CFLAGS

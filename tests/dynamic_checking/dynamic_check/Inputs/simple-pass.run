@@ -1,1 +1,2 @@
-$RUNUNDER $BIN
+$CC -Xclang -verify -o $EXE simple-pass.c $CFLAGS
+$RUNUNDER $EXE
