@@ -127,7 +127,7 @@ void TestRecursiveStruct() {
 // Test polymorphic recursion (a type application within a definition which uses
 // different type arguments).
 //
-void T8_PolyRec() {
+void TestPolyRec() {
   struct Foo _For_any(U) {
     U *x;	
   };
