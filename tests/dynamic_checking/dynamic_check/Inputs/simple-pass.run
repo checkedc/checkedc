@@ -1,2 +1,2 @@
-$CC -Xclang -verify -o $EXE simple-pass.c $CFLAGS
-$RUNUNDER $EXE
+__CC__ -Xclang -verify -o __EXE__ __SRC__ __TARGET_FLAGS__
+__RUNUNDER__ __EXE__ | FileCheck __SRC__

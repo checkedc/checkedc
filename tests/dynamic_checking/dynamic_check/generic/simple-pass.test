@@ -1,5 +1,9 @@
-// RUN: echo CC=%clang > %t
-// RUN: echo EXE=%t.exe >> %t
+// RUN: sed -e "s,__CC__,%clang,g" \
+// RUN:     -e "s,__SRC__,%S/../Inputs/simple-pass.c,g" \
+// RUN:     -e "s,__EXE__,%t.exe,g" \
+// RUN:     -e "s,__TARGET_FLAGS__,,g" \
+// RUN:     -e "s,__RUNUNDER__,,g" \
+// RUN: %S/../Inputs/simple-pass.run > %t
 
-// RUN: cat %S/../Inputs/simple-pass.run >> %t
+// RUN: chmod 755 %t
 // RUN: %t

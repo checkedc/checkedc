@@ -1,9 +1,9 @@
-// REQUIRES: arm-registered-target, checkedc-lit-arm
+// RUN: sed -e "s,__CC__,%clang,g" \
+// RUN:     -e "s,__SRC__,%S/../Inputs/simple-pass.c,g" \
+// RUN:     -e "s,__EXE__,%t.exe,g" \
+// RUN:     -e "s,__TARGET_FLAGS__,-target arm-linux-gnueabihf -march=armv7-a -static --sysroot=%checkedc_arm_sysroot/arm-linux-gnueabihf/libc --gcc-toolchain=%checkedc_arm_sysroot,g" \
+// RUN:     -e "s,__RUNUNDER__,%checkedc_arm_rununder,g" \
+// RUN: %S/../Inputs/simple-pass.run > %t
 
-// RUN: echo CC=%clang > %t
-// RUN: echo EXE=%t.exe >> %t
-// RUN: echo CFLAGS=\"-target arm-linux-gnueabihf -march=armv7-a -static --sysroot=%checkedc_arm_sysroot/arm-linux-gnueabihf/libc --gcc-toolchain=%checkedc_arm_sysroot\" >> %t
-// RUN: echo RUNUNDER=%checkedc_arm_rununder >> %t
-
-// RUN: cat %S/../Inputs/simple-pass.run >> %t
+// RUN: chmod 755 %t
 // RUN: %t
