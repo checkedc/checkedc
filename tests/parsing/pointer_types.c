@@ -11,6 +11,7 @@
 // The following lines are for the LLVM test harness:
 //
 // RUN: %clang_cc1 -verify %s
+// expected-no-diagnostics
 
 #include <stdchecked.h>
 
@@ -395,46 +396,4 @@ void parse_operators_with_types(void) {
     // ptr to function type
     ptr<int (int x, int y)> pfunc = (ptr<int (int x, int y)>) 0;
     ptr<ptr<int (int x, int y)>[5]> ptr_to_pfunc_arr = (ptr<ptr<int (int x, int y)>[5]>) 0;
-}
-
-
-//
-// Test the type of the pointee of a mmsafe_ptr<T> pointer.
-//
-extern void check_pointee_type_of_mmsafe_ptr(void) {
-    // Test pointing to int.
-    int x = 0;
-    mmsafe_ptr<int> p0 = &x; // expected-error {{'p0' declared as _MMSafe_ptr to type 'int'; only struct types are allowed}}
-        
-    // Test pointing to char.
-    char c = 'c';
-    mmsafe_ptr<char> p1 = &c; // expected-error {{'p1' declared as _MMSafe_ptr to type 'char'; only struct types are allowed}}
-
-    // Test pointer to double.
-    double d = 1.0;
-    mmsafe_ptr<double> p2 = &d; // expected-error {{'p2' declared as _MMSafe_ptr to type 'double'; only struct types are allowed}}
-    
-    // Test pointing to enum.
-    enum Color {
-        Red,
-        Blue,
-        Yellow
-    };
-    enum Color color = Blue;
-    mmsafe_ptr<enum Color> p3 = &color; // expected-error {{'p3' declared as _MMSafe_ptr to type 'enum Color'; only struct types are allowed}}
-
-    // Test pointing to union.
-    union Data {
-        int i;
-        float f;
-    };
-    union Data data;
-    mmsafe_ptr<union Data> p4 = &data; // expected-error {{'p4' declared as _MMSafe_ptr to type 'union Data'; only struct types are allowed}}
-
-    // Testing pointing to function.
-    mmsafe_ptr<int (ptr<int>, int)> p5 = &f1; // expected-error {{'p5' declared as _MMSafe_ptr to type 'int (_Ptr<int>, int)'; only struct types are allowed}}
-
-    // Test pointing to struct.
-    Node node;
-    mmsafe_ptr<Node> p6 = &node;  // Legal declaration.
 }

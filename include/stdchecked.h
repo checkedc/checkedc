@@ -14,5 +14,6 @@
 #define dynamic_bounds_cast _Dynamic_bounds_cast
 #define assume_bounds_cast _Assume_bounds_cast
 #define return_value _Return_value
+#define for_any _For_any
 
 #endif /* __STDCHECKED_H */
