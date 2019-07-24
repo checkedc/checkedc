@@ -34,8 +34,7 @@ void test1(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  // Github issue #595: improve bounds declaration checking involving unsigned/signed int conversions.
-  ip = alloc<int>(len); // // Github issue #595: addressed by solution to issue #599
+  ip = alloc<int>(len);
 }
 
 void test2(_Array_ptr<int> ip : byte_count(len), 
@@ -44,7 +43,7 @@ void test2(_Array_ptr<int> ip : byte_count(len),
   f1<float>(ip, len);  // expected-error {{incompatible type}}
   f1<int>(fp, len);    // expected-error {{incompatible type}}
   _Ptr<int> p = alloc<double>(sizeof(double)); // expected-error {{incompatible type}}
-  ip = alloc<float>(len);                       // expected-error {{incompatible type}}
+  ip = alloc<float>(len);                      // expected-error {{incompatible type}}
 }
 
 void test3(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -52,7 +51,7 @@ void test3(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_cou
   f1<void>(ip, len);   // TODO: this should be an error.
   f1<void>(fp, len);   // TODO: this should be an error.
   _Ptr<double> p = alloc<void>(sizeof(double));  // TODO: Github issue #571: this should be an error.
-  ip = alloc<void>(len);                         // TODO: Github issue #571: this should be an error.  Github issue #595: addressed by solution to issue #599
+  ip = alloc<void>(len);                         // TODO: Github issue #571: this should be an error.
 }
 
 void test4(_Array_ptr<int> ip : count(len), _Array_ptr<float> fp : count(len),
@@ -73,7 +72,7 @@ void test11(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc<int>(len);
 }
 
 void test12(_Array_ptr<int> ip : byte_count(len), 
@@ -91,7 +90,7 @@ void test13(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f1<void>(ip, len);
   f1<void>(fp, len);
   _Ptr<double> p = alloc<void>(sizeof(double));
-  ip = alloc<void>(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc<void>(len);
 }
 
 void test14(_Array_ptr<int> ip : byte_count(len), 
@@ -113,7 +112,7 @@ void test21(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc<int>(len);
 }
 
 void test22(_Array_ptr<int> ip : byte_count(len), 
@@ -122,7 +121,7 @@ void test22(_Array_ptr<int> ip : byte_count(len),
   f1<float>(ip, len);  // expected-error {{incompatible type}}
   f1<int>(fp, len);    // expected-error {{incompatible type}}
   _Ptr<int> p = alloc<double>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error Github issue #595: addressed by solution to issue #599
+  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error.
 
 }
 
@@ -132,7 +131,7 @@ void test23(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f1<void>(ip, len);
   f1<void>(fp, len);
   _Ptr<double> p = alloc<void>(sizeof(double));
-  ip = alloc<void>(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc<void>(len);
 }
 
 void test24(_Array_ptr<int> ip : byte_count(len), 
@@ -141,7 +140,7 @@ void test24(_Array_ptr<int> ip : byte_count(len),
   f1(ip, len);
   f1(fp, len);
   _Ptr<double> p = alloc(sizeof(double));
-  ip = alloc(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc(len);
 }
 
 //
@@ -154,7 +153,7 @@ void test31(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc<int>(len);
 }
 
 
@@ -164,7 +163,7 @@ void test32(_Array_ptr<int> ip : byte_count(len),
   f1<float>(ip, len);  // expected-error {{incompatible type}}
   f1<int>(fp, len);    // expected-error {{incompatible type}}
   _Ptr<int> p = alloc<double>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error.  Github issue #595: addressed by solution to issue #599
+  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error.
 }
 
 
@@ -173,7 +172,7 @@ void test33(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f1<void>(ip, len);
   f1<void>(fp, len);
   _Ptr<int> p = alloc<void>(sizeof(double));
-  ip = alloc<void>(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc<void>(len);
 }
 
 void test34(_Array_ptr<int> ip : byte_count(len), 
@@ -182,7 +181,7 @@ void test34(_Array_ptr<int> ip : byte_count(len),
   f1(ip, len);
   f1(fp, len);
   _Ptr<double> p = alloc(sizeof(double));
-  ip = alloc(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc(len);
 }
 
 //-------------------------------------------------
@@ -197,7 +196,7 @@ void test41(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc<int>(len);
 }
 
 
@@ -217,7 +216,7 @@ void test43(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);   // TODO: this should be an error.
   f2<void, void>(fp, ip, len);   // TODO: this should be an error.
   _Ptr<double> p = alloc2<void, void>(sizeof(double));  // TODO: this should be an error.
-  ip = alloc2<void, void>(len);                         // TODO: this should be an error.  Github issue #595: addressed by solution to issue #599
+  ip = alloc2<void, void>(len);
 
 }
 
@@ -241,7 +240,7 @@ void test51(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc2<int, double>(sizeof(double));
-  ip = alloc2<double, int>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc2<double, int>(len);
 }
 
 
@@ -261,7 +260,7 @@ void test53(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);
   f2<void, void>(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc2<void, void>(len);
 }
 
 void test54(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -282,7 +281,7 @@ void test61(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc<int>(len);
 }
 
 
@@ -292,7 +291,7 @@ void test62(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(ip, ip, len);  // expected-error {{incompatible type}}
   f2<int, float>(fp, fp, len);  // expected-error {{incompatible type}}
   _Ptr<double> p = alloc2<int, int>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc2<int, double>(len);                     // Github issue #595: addressed by solution to issue #599
+  ip = alloc2<int, double>(len);
 }
 
 void test63(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -302,7 +301,7 @@ void test63(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);
   f2<void, void>(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc2<void, void>(len);
 }
 
 void test64(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -310,7 +309,7 @@ void test64(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2(ip, fp, len);
   f2(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len); // Github issue #595: addressed by solution to issue #599
+  ip = alloc2<void, void>(len);
 }
 
 //
@@ -324,7 +323,7 @@ void test71(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc<int>(len);
 }
 
 
@@ -334,7 +333,7 @@ void test72(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(ip, ip, len);  // expected-error {{incompatible type}}
   f2<int, float>(fp, fp, len);  // expected-error {{incompatible type}}
   _Ptr<double> p = alloc2<int, int>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc2<int, double>(len);                     // TODO: Github issue #587: this should be a type error.  Github issue #595: addressed by solution to issue #599
+  ip = alloc2<int, double>(len);                     // TODO: Github issue #587: this should be a type error.
 }
 
 void test73(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -344,7 +343,7 @@ void test73(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);
   f2<void, void>(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc2<void, void>(len);
 }
 
 void test74(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -352,5 +351,5 @@ void test74(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2(ip, fp, len);
   f2(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);  // Github issue #595: addressed by solution to issue #599
+  ip = alloc2<void, void>(len);
 }
