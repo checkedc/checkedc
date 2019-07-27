@@ -61,3 +61,13 @@ void TestItypeForAnyScopes() {
     _Ptr<char> z4 = foo4.x;
   }
 }
+
+//
+// Test new compatibilty rules in bounds interfaces.
+//
+void TestListIType() {
+  struct List _Itype_for_any(T) {
+    void *head : itype(_Ptr<T>);
+    struct List *next : itype(_Ptr<struct List<T> >);
+  };
+}
