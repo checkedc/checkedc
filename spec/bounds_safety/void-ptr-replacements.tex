@@ -217,7 +217,7 @@ for_any(T) array_ptr<T> calloc(size_t nmemb, size_t size :
 for_any(T) void free(array_ptr<T> pointer : count(1));
 
 for_any(T) array_ptr<T> memcpy(restrict array_ptr<T> dest : byte_count(n),
-                               array_ptr<const T> src, byte_count(n),
+                               array_ptr<const T> src : byte_count(n),
                                size_t n where n % sizeof(T) == 0) :
                                byte_count(n);
 \end{lstlisting}
