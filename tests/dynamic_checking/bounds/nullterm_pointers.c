@@ -1,26 +1,26 @@
 // Test runtime bounds checking in checked scopes of uses of pointers
 // and arrays with bounds-safe interfaces.
 //
-// RUN: %clang %s -o %t1 -Werror -Wno-unused-value -Wno-check-memory-accesses
-// RUN:  %t1 1 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-1
-// RUN:  %t1 2 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 3 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 4 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 5 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-2
-// RUN:  %t1 6 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 7 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 8 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 9 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-3
-// RUN:  %t1 10 | FileCheck %s --check-prefixes=CHECK
+// RUN: %clang %s -o %t1 -Werror -Wno-unused-value -Wno-check-memory-accesses %checkedc_target_flags
+// RUN: %checkedc_rununder %t1 1 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-1
+// RUN: %checkedc_rununder %t1 2 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 3 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 4 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 5 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-2
+// RUN: %checkedc_rununder %t1 6 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 7 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 8 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 9 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-3
+// RUN: %checkedc_rununder %t1 10 | FileCheck %s --check-prefixes=CHECK
 //
-// RUN:  %t1 21 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-4
-// RUN:  %t1 22 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 23 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 24 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 25 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-5
-// RUN:  %t1 26 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 27| FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 28 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 21 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-4
+// RUN: %checkedc_rununder %t1 22 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 23 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 24 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 25 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-5
+// RUN: %checkedc_rununder %t1 26 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 27| FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 28 | FileCheck %s --check-prefixes=CHECK
 
 #include <assert.h>
 #include <signal.h>

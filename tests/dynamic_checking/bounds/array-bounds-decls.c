@@ -3,20 +3,20 @@
 // override bounds based on the size of the 1st 
 // dimension of the array.
 //
-// RUN: %clang %s -o %t1 -Werror -Wno-unused-value
-// RUN:  %t1 0 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES
-// RUN:  %t1 1 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 2 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 3 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 4 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 5 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 6 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 7 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 8 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 9 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 10 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 11 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 12 | FileCheck %s --check-prefixes=CHECK
+// RUN: %clang %s -o %t1 -Werror -Wno-unused-value %checkedc_target_flags
+// RUN: %checkedc_rununder %t1 0 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES
+// RUN: %checkedc_rununder %t1 1 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 2 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 3 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 4 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 5 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 6 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 7 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 8 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 9 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 10 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 11 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 12 | FileCheck %s --check-prefixes=CHECK
 
 #include <assert.h>
 #include <signal.h>

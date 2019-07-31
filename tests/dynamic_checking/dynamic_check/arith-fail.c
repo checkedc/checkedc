@@ -2,9 +2,9 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang -Xclang -verify -o %t.exe %s
+// RUN: %clang -Xclang -verify -o %t.exe %s %checkedc_target_flags
 // LLVM thinks that exiting via llvm.trap() is a crash.
-// RUN: %t.exe
+// RUN: %checkedc_rununder %t.exe
 
 // The dynamic_check in f1 cannot be statically checked by clang yet
 // expected-no-diagnostics

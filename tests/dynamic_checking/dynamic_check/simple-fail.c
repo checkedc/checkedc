@@ -2,8 +2,8 @@
 //
 // The following lines are for the LLVM test harness:
 //
-// RUN: %clang -Xclang -verify -o %t.exe %s
-// RUN: %t.exe
+// RUN: %clang -Xclang -verify -o %t.exe %s %checkedc_target_flags
+// RUN: %checkedc_rununder %t.exe
 
 #include <stdbool.h>
 #include <signal.h>
