@@ -18,118 +18,118 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang %s -DTEST_READ -o %t1 -Werror -Wno-unused-value
-// RUN: %t1 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t1 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t1 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t1 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t1 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t1 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
-// RUN: %t1 3            | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 -1           | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 5          | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 9        | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 0 5    | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t1 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t1 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t1 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %clang %s -DTEST_READ -o %t1 -Werror -Wno-unused-value %checkedc_target_flags
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %checkedc_rununder %t1 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %checkedc_rununder %t1 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %checkedc_rununder %t1 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %checkedc_rununder %t1 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %checkedc_rununder %t1 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %checkedc_rununder %t1 3            | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 -1           | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 5          | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 9        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 0 0 5    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t1 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
-// RUN: %clang %s -DTEST_WRITE -o %t2 -Werror
-// RUN: %t2 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t2 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t2 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t2 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t2 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t2 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
-// RUN: %t2 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %clang %s -DTEST_WRITE -o %t2 -Werror %checkedc_target_flags
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %checkedc_rununder %t2 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %checkedc_rununder %t2 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %checkedc_rununder %t2 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %checkedc_rununder %t2 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %checkedc_rununder %t2 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %checkedc_rununder %t2 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
 // Skip the case for testing string literals.
-// RUN: %t2 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t2 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t2 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t2 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t2 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
-// RUN: %clang %s -DTEST_INCREMENT -o %t3 -Werror
-// RUN: %t3 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t3 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t3 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t3 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t3 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t3 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
-// RUN: %t3 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %clang %s -DTEST_INCREMENT -o %t3 -Werror %checkedc_target_flags
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %checkedc_rununder %t3 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %checkedc_rununder %t3 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %checkedc_rununder %t3 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %checkedc_rununder %t3 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %checkedc_rununder %t3 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %checkedc_rununder %t3 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
 // Skip the case for testing string literals.
-// RUN: %t3 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t3 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t3 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t3 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t3 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 //
-// RUN: %clang %s -DTEST_COMPOUND_ASSIGN -o %t4 -Werror
-// RUN: %t4 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
-// RUN: %t4 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
-// RUN: %t4 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
-// RUN: %t4 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
-// RUN: %t4 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
-// RUN: %t4 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
-// RUN: %t4 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %clang %s -DTEST_COMPOUND_ASSIGN -o %t4 -Werror %checkedc_target_flags
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  0 0   0 0 0  | FileCheck %s
+// RUN: %checkedc_rununder %t4 1 2 4 4 2 2  1 2   1 1 1  | FileCheck %s
+// RUN: %checkedc_rununder %t4 2 4 8 8 4 4  2 1   2 2 2  | FileCheck %s
+// RUN: %checkedc_rununder %t4 2 4 8 8 3 3  0 4   0 3 2  | FileCheck %s
+// RUN: %checkedc_rununder %t4 2 4 8 8 3 3  1 3   0 1 5  | FileCheck %s
+// RUN: %checkedc_rununder %t4 2 4 8 8 3 3  2 -1  2 -1 2 | FileCheck %s
+// RUN: %checkedc_rununder %t4 3          | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 -1         | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 5        | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 -1       | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 0 9      | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 0 -1     | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 0 0 9    | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 0 0 -1   | FileCheck %s --check-prefix=CHECK-FAIL-1
 // Skip the case for testing string literals.
-// RUN: %t4 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
-// RUN: %t4 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
-// RUN: %t4 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
-// RUN: %t4 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 5  | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 -1 | FileCheck %s --check-prefix=CHECK-FAIL-1
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  3 0   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  2 3   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  0 9   | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-2
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  0 0  3 0 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  0 0  2 9 0    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  0 0  2 2 3    | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  0 0  0 0 27   | FileCheck %s --check-prefix=CHECK-FAIL-3
+// RUN: %checkedc_rununder %t4 0 0 0 0 0 0  0 0  -1 -1 -1 | FileCheck %s --check-prefix=CHECK-FAIL-3
 
 #include <signal.h>
 #include <stdlib.h>

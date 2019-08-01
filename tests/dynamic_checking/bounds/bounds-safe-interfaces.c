@@ -1,50 +1,50 @@
 // Test bounds checking in checked scopes of uses of pointers
 // and arrays with bounds-safe interfaces.
 //
-// RUN: %clang %s -o %t1 -Wno-unused-value
-// RUN:  %t1 0 0 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES
-// RUN:  %t1 1 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 2 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 3 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 4 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 5 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 6 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 7 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 8 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 9 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 10 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 11 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 12 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 13 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 14 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 15 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 16 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 17 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 18 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 19 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 20 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 21 0 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 1 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 2 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 3 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 4 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 5 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 6 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 7 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 8 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 9 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 10 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 11 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 12 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 13 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 14 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 15 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 16 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 17 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 18 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 19 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 20 | FileCheck %s --check-prefixes=CHECK
-// RUN:  %t1 0 21 | FileCheck %s --check-prefixes=CHECK
+// RUN: %clang %s -o %t1 -Wno-unused-value %checkedc_target_flags
+// RUN: %checkedc_rununder %t1 0 0 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES
+// RUN: %checkedc_rununder %t1 1 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 2 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 3 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 4 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 5 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 6 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 7 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 8 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 9 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 10 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 11 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 12 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 13 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 14 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 15 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 16 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 17 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 18 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 19 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 20 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 21 0 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 1 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 2 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 3 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 4 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 5 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 6 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 7 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 8 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 9 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 10 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 11 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 12 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 13 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 14 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 15 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 16 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 17 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 18 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 19 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 20 | FileCheck %s --check-prefixes=CHECK
+// RUN: %checkedc_rununder %t1 0 21 | FileCheck %s --check-prefixes=CHECK
 
 #include <assert.h>
 #include <signal.h>
