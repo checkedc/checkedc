@@ -265,3 +265,37 @@ void TestApplicationOrder() {
   struct B<char> *b = a->b;
   struct A<char> *a2 = b->a;
 }
+
+//
+// Test that we can detect expanding cycles involving function types.
+//
+void TestExpandingCycleFunctionTypes() {
+  struct A _For_any(T) { // ok: no expanding cycles
+    void (*f1)(struct A<struct A<char> >);
+    struct A<struct A<char> > (*f2)();
+    void (*f3)(struct A<T>);
+    struct A<T> (*f4)();
+    struct A<void (*)(struct A<int>)> *a;
+  };
+
+  struct B _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    void (*f)(struct B<struct B<T> >); // expanding cycle in param
+  };
+
+  struct C _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct C<struct C<T> > (*f)(void); // expanding cycle in return type
+  };
+
+  // Test K&R style functions
+  struct C2 _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct C2<struct C2<T> > (*f)(); // expanding cycle in return type
+  };
+
+  struct D _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct D<void (*)(T)> *d; // expanding cycle in type application
+  };
+
+  struct E _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct E<T* (*)(int)> *e; // expanding cycle in type application
+  };
+}
