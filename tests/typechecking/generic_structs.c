@@ -269,7 +269,7 @@ void TestApplicationOrder() {
 //
 // Test that we can detect expanding cycles involving function types.
 //
-void TestExpandingCycleFunctionTypes() {
+void TestExpandingCycleInFunctionTypes() {
   struct A _For_any(T) { // ok: no expanding cycles
     void (*f1)(struct A<struct A<char> >);
     struct A<struct A<char> > (*f2)();
@@ -297,5 +297,26 @@ void TestExpandingCycleFunctionTypes() {
 
   struct E _For_any(T) { // expected-error {{expanding cycle in struct definition}}
     struct E<T* (*)(int)> *e; // expanding cycle in type application
+  };
+}
+
+//
+// Test that we can detect expanding cycles involving array types.
+//
+void TestExpandinCycleInArrayType() {
+  struct A _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct A<T*[]> *a; // array within generic leads to expanding cycle
+  };
+
+  struct A2 _For_any(T) {
+    T* a[10]; // allowed
+  };
+
+  struct B _For_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct B<struct B<T> > *b[10]; // generic inside array leads to expanding cycle
+  };
+
+  struct B2 _For_any(T) {
+      struct B2<T> *b[10]; // allowed
   };
 }
