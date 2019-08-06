@@ -71,3 +71,36 @@ void TestListIType() {
     struct List *next : itype(_Ptr<struct List<T> >);
   };
 }
+
+//
+// Test that we can detect expanding cycles that go through
+// itypes.
+//
+void TestExpandingCycles() {
+  struct FooGood _Itype_for_any(T) {
+    struct FooGood *next : itype(_Ptr<struct FooGood<T> >); // ok: cycle is non-expanding
+  };
+
+  // Expanding cycle with one node.
+  struct FooBad _Itype_for_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct FooBad *next : itype(_Ptr<struct FooBad<struct FooBad<T> > >); // itype causes expanding cycle
+  };
+
+  // Expanding cycle with three nodes.
+  // The cycle passes through both for_any and itype_forany nodes.
+  struct A _For_any(T);
+  struct B _Itype_for_any(T);
+  struct C _Itype_for_any(T);
+
+  struct A _For_any(T) {
+    struct B<T> *b;
+  };
+
+  struct B _Itype_for_any(T) {
+    struct C *c: itype(_Ptr<struct C<struct B<T> > >);
+  };
+
+  struct C _Itype_for_any(T) { // expected-error {{expanding cycle in struct definition}}
+    struct A<T> *a;
+  };
+}
