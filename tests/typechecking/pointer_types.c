@@ -3099,8 +3099,7 @@ extern void check_pointee_type_of_mmsafe_ptr(void) {
 // Test using a generic type as the pointee type of a mmsafe_ptr in a 
 // generic function.
 extern for_any(T) mmsafe_ptr<T> check_generic_func_with_mmsafe_ptr(mmsafe_ptr<T> p) {
-    mmsafe_ptr<T> p0;  // legal
-    p0 = p;            // legal
+    mmsafe_ptr<T> p0 = p;  // legal
     
     mmsafe_ptr<int> p1; // expected-error {{'p1' declared as _MMSafe_ptr to type 'int'; only struct types are allowed}}
     return p0;         // legal

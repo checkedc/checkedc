@@ -407,3 +407,17 @@ void f12 (void) {
   ListChecker list3 = {{1,2,3,4}}; // expected-error {{null terminator expected in _Nt_checked array initializer}}
   int integer_array_checker nt_checked[] = {1, 2, 3, 4, 0};
 }
+
+
+//
+// Test initializing mmsafe_ptr<T>.
+//
+typedef struct {
+    unsigned long ID;
+    int val;
+} Node;
+
+void f13 (void) {
+    mmsafe_ptr<Node> p; // expected-error {{automatic variable 'p' with _Ptr type must have initializer}}
+}
+
