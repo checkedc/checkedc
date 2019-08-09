@@ -34,7 +34,8 @@ void test1(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);
+  ip = alloc<int>(len);  //expected-warning {{cannot prove declared bounds}}
+                         // Github issue #595: improve bounds declaration checking involving unsigned/signed int conversions.
 }
 
 void test2(_Array_ptr<int> ip : byte_count(len), 
@@ -51,7 +52,7 @@ void test3(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_cou
   f1<void>(ip, len);   // TODO: this should be an error.
   f1<void>(fp, len);   // TODO: this should be an error.
   _Ptr<double> p = alloc<void>(sizeof(double));  // TODO: Github issue #571: this should be an error.
-  ip = alloc<void>(len);                         // TODO: Github issue #571: this should be an error.
+  ip = alloc<void>(len);                         // TODO: Github issue #571: this should be an error.  TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test4(_Array_ptr<int> ip : count(len), _Array_ptr<float> fp : count(len),
@@ -72,7 +73,7 @@ void test11(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);
+  ip = alloc<int>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test12(_Array_ptr<int> ip : byte_count(len), 
@@ -90,7 +91,7 @@ void test13(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f1<void>(ip, len);
   f1<void>(fp, len);
   _Ptr<double> p = alloc<void>(sizeof(double));
-  ip = alloc<void>(len);
+  ip = alloc<void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test14(_Array_ptr<int> ip : byte_count(len), 
@@ -112,7 +113,7 @@ void test21(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);
+  ip = alloc<int>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test22(_Array_ptr<int> ip : byte_count(len), 
@@ -121,7 +122,7 @@ void test22(_Array_ptr<int> ip : byte_count(len),
   f1<float>(ip, len);  // expected-error {{incompatible type}}
   f1<int>(fp, len);    // expected-error {{incompatible type}}
   _Ptr<int> p = alloc<double>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error.
+  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}.
 
 }
 
@@ -131,7 +132,7 @@ void test23(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f1<void>(ip, len);
   f1<void>(fp, len);
   _Ptr<double> p = alloc<void>(sizeof(double));
-  ip = alloc<void>(len);
+  ip = alloc<void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test24(_Array_ptr<int> ip : byte_count(len), 
@@ -140,7 +141,7 @@ void test24(_Array_ptr<int> ip : byte_count(len),
   f1(ip, len);
   f1(fp, len);
   _Ptr<double> p = alloc(sizeof(double));
-  ip = alloc(len);
+  ip = alloc(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 //
@@ -153,7 +154,7 @@ void test31(_Array_ptr<int> ip : byte_count(len),
   f1<float>(fp, len);
   f1<int>(ip, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);
+  ip = alloc<int>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 
@@ -163,7 +164,7 @@ void test32(_Array_ptr<int> ip : byte_count(len),
   f1<float>(ip, len);  // expected-error {{incompatible type}}
   f1<int>(fp, len);    // expected-error {{incompatible type}}
   _Ptr<int> p = alloc<double>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error.
+  ip = alloc<float>(len);                      // TODO: Github issue #587: this should be a type error.  TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 
@@ -172,7 +173,7 @@ void test33(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f1<void>(ip, len);
   f1<void>(fp, len);
   _Ptr<int> p = alloc<void>(sizeof(double));
-  ip = alloc<void>(len);
+  ip = alloc<void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test34(_Array_ptr<int> ip : byte_count(len), 
@@ -181,7 +182,7 @@ void test34(_Array_ptr<int> ip : byte_count(len),
   f1(ip, len);
   f1(fp, len);
   _Ptr<double> p = alloc(sizeof(double));
-  ip = alloc(len);
+  ip = alloc(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 //-------------------------------------------------
@@ -196,7 +197,7 @@ void test41(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);
+  ip = alloc<int>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 
@@ -216,7 +217,7 @@ void test43(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);   // TODO: this should be an error.
   f2<void, void>(fp, ip, len);   // TODO: this should be an error.
   _Ptr<double> p = alloc2<void, void>(sizeof(double));  // TODO: this should be an error.
-  ip = alloc2<void, void>(len);
+  ip = alloc2<void, void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 
 }
 
@@ -240,7 +241,7 @@ void test51(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc2<int, double>(sizeof(double));
-  ip = alloc2<double, int>(len);
+  ip = alloc2<double, int>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 
@@ -260,7 +261,7 @@ void test53(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);
   f2<void, void>(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);
+  ip = alloc2<void, void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test54(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -281,7 +282,7 @@ void test61(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);
+  ip = alloc<int>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 
@@ -291,7 +292,7 @@ void test62(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(ip, ip, len);  // expected-error {{incompatible type}}
   f2<int, float>(fp, fp, len);  // expected-error {{incompatible type}}
   _Ptr<double> p = alloc2<int, int>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc2<int, double>(len);
+  ip = alloc2<int, double>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test63(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -301,7 +302,7 @@ void test63(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);
   f2<void, void>(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);
+  ip = alloc2<void, void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test64(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -309,7 +310,7 @@ void test64(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2(ip, fp, len);
   f2(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);
+  ip = alloc2<void, void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 //
@@ -323,7 +324,7 @@ void test71(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(fp, ip, len);
   f2<int, float>(ip, fp, len);
   _Ptr<double> p = alloc<double>(sizeof(double));
-  ip = alloc<int>(len);
+  ip = alloc<int>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 
@@ -333,7 +334,7 @@ void test72(_Array_ptr<int> ip : byte_count(len),
   f2<float, int>(ip, ip, len);  // expected-error {{incompatible type}}
   f2<int, float>(fp, fp, len);  // expected-error {{incompatible type}}
   _Ptr<double> p = alloc2<int, int>(sizeof(double)); // TODO: Github issue #587: this should be a type error.
-  ip = alloc2<int, double>(len);                     // TODO: Github issue #587: this should be a type error.
+  ip = alloc2<int, double>(len);                     // TODO: Github issue #587: this should be a type error. Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test73(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -343,7 +344,7 @@ void test73(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2<void, void>(fp, fp, len);
   f2<void, void>(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);
+  ip = alloc2<void, void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
 
 void test74(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_count(len),
@@ -351,5 +352,5 @@ void test74(_Array_ptr<int> ip : byte_count(len), _Array_ptr<float> fp : byte_co
   f2(ip, fp, len);
   f2(fp, ip, len);
   _Ptr<double> p = alloc2<void, void>(sizeof(double));
-  ip = alloc2<void, void>(len);
+  ip = alloc2<void, void>(len);  // TODO: Github issue #595: expected-warning {{cannot prove declared bounds}}
 }
