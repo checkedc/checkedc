@@ -459,7 +459,7 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_f2(arg6);
   test_f3(arg6);
   test_f4(arg6);               // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
-  test_f5(arg6, arglen_u);
+  test_f5(arg6, arglen_u);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
   test_f6(arg6);
 }
 
