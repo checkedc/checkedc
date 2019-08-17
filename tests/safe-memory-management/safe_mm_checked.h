@@ -50,7 +50,10 @@ for_any(T) mmsafe_ptr<T> mmsafe_alloc(unsigned long struct_size) {
 // @param p - a _MMSafe_ptr whose pointee is going to be freed.
 //
 for_any(T) void mmsafe_free(mmsafe_ptr<T> p) {
-  _MMSafe_ptr_Rep *mmsafe_ptr_ptr = (_MMSafe_ptr_Rep *)&p;
+  // Declare a _MMSafe_ptr_Rep so that we can manipulate the real _MMSafe_ptr
+  // conveniently. The "volatile" keyword is needed because without which
+  // The compiler may optimize away the statement that zeros out the ID.
+  volatile _MMSafe_ptr_Rep *mmsafe_ptr_ptr = (_MMSafe_ptr_Rep *)&p;
 
   // This step may not be necessary in some cases. In some implementation,
   // free() zeros out all bytes of the memory region of the freed object.
