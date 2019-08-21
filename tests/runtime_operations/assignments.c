@@ -1,6 +1,6 @@
 // The following lines are for the clang automated test suite
 //
-// RUN: %clang -fcheckedc-extension %s -o %t -Werror -Wno-check-memory-accesses
+// RUN: %clang %s -o %t -Werror -Wno-check-memory-accesses
 // RUN: %t | FileCheck %s --check-prefixes=CHECK
 
 #include <stdchecked.h>
