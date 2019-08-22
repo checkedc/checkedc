@@ -321,6 +321,19 @@ void TestExpandinCycleInArrayType() {
   };
 }
 
+// Test that we can handle typedefs used as arguments
+// to type applications.
+void TestTypedefArg() {
+  typedef int int1;
+  typedef int int2;
+  struct Foo _For_any(T) {
+    T *x;
+  };
+  struct Foo<int1> f1;
+  struct Foo<int2> f2;
+  f1 = f2; // ok
+  f2 = f1; // ok
+}
 //
 // Test that we raise an error if the type arguments are missing from a generic
 // struct instance.
