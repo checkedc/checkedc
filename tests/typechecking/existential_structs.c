@@ -24,3 +24,39 @@ void TestPackReturnType() {
 	struct Foo<int> fooInt;
 	_Exists(T, struct Foo<T>) foo = _Pack(fooInt, _Exists(U, struct Foo<U>), int);
 }
+
+// Test that the type of the witness in _Pack(witness-expr, exist-type, subst-type)
+// matches the given existential type.
+void TestWitnessMismatch() {
+  struct Foo<int> fooInt;
+  struct Foo<struct Foo<int> > fooNested;
+  _Exists(T, struct Foo<T>) foo = _Pack(fooInt, _Exists(T, struct Foo<T>), int); // ok: witness and expected types match
+  _Pack(fooInt, _Exists(T, struct Foo<T>), char); // expected-error {{witness type does not match existential type}}
+  _Pack(fooNested, _Exists(T, struct Foo<T>), int); // expected-error {{witness type does not match existential type}}
+  _Exists(T, struct Foo<struct Foo<T> >) e = _Pack(fooNested, _Exists(T, struct Foo<struct Foo<T> >), int); // ok
+  _Exists(T, struct Foo<T>) e2 = _Pack(fooNested, _Exists(T, struct Foo<T>), struct Foo<int>); // ok
+}
+
+// Test that the same expression can be packed in different ways,
+// if we change the substitution and return types.
+void TestMultiplePacks() {
+  struct Foo<struct Foo<struct Foo<int> > > fooInt3;
+  _Pack(fooInt3, _Exists(T, struct Foo<T>), struct Foo<struct Foo<int> >); // expected-warning {{expression result unused}}
+  _Pack(fooInt3, _Exists(T, struct Foo<struct Foo<T> >), struct Foo<int>); // expected-warning {{expression result unused}}
+  _Pack(fooInt3, _Exists(T, struct Foo<T>), struct Foo<struct Foo<int> >); // expected-warning {{expression result unused}}
+}
+
+// Test different packings of a struct that contains multiple type parameters.
+void TestMultipleTypeParams() {
+	struct Bar _For_any(A, B, C) {
+	};
+	struct Cat;
+	struct Dog;
+	struct Sheep;
+	struct Bar<struct Cat, struct Dog, struct Sheep> bar;
+	_Pack(bar, _Exists(T, struct Bar<T, struct Dog, struct Sheep>), struct Cat); // expected-warning {{expression result unused}}
+	_Pack(bar, _Exists(T, struct Bar<struct Cat, T, struct Sheep>), struct Dog); // expected-warning {{expression result unused}}
+	_Pack(bar, _Exists(T, struct Bar<struct Cat, struct Dog, T>), struct Sheep); // expected-warning {{expression result unused}}
+
+	_Pack(bar, _Exists(T, struct Bar<T, T, T>), struct Cat); // expected-error {{witness type does not match existential type}}
+}
