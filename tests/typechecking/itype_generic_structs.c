@@ -53,7 +53,7 @@ void TestItypeForAnyScopes() {
   _Ptr<void> y2 = foo2.x; // ok: conversion from void* to _Ptr<void>
 
   _Checked {
-    struct Foo foo3; // expected-error {{expected '<'}}	expected-error {{unknown type name 'foo3'}}
+    struct Foo foo3; // expected-error {{expected a type argument list for an instance of a struct with a bounds-safe interface, since we are in a checked scope}}
 
     struct Foo<char> foo4;
     _Ptr<void> x4 = foo4.x; // ok: widening conversion
