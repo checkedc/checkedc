@@ -329,6 +329,6 @@ void TestMissingTypeArguments() {
   struct A _For_any(T) {
     T *x;
   };
-  struct A a; // expected-error {{expected a type argument list for an instance of a generic struct}}
+  struct A a; // expected-error {{expected a type argument list for a generic struct type}}
   struct A<int> a2; // ok
 }
