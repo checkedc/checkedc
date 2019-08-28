@@ -320,3 +320,15 @@ void TestExpandinCycleInArrayType() {
       struct B2<T> *b[10]; // allowed
   };
 }
+
+//
+// Test that we raise an error if the type arguments are missing from a generic
+// struct instance.
+//
+void TestMissingTypeArguments() {
+  struct A _For_any(T) {
+    T *x;
+  };
+  struct A a; // expected-error {{expected a type argument list for a generic struct type}}
+  struct A<int> a2; // ok
+}
