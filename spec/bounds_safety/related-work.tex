@@ -193,7 +193,7 @@ when only checking writes. For SPEC CPU2006, average memory usage is
 
 Light-weight Bounds Checking \cite{Hasabnis2012} is an optimized implementation of bound
 checking that uses ``red zones''.
-it focuses solely on bounds checking.  It uses a bitmap to track
+It focuses solely on bounds checking.  It uses a bitmap to track
 which bytes in memory correspond to allocated objects and which do not.
 It uses a two-level table to avoid allocating a table equal to 1/8 of the
 address space.  It optimizes memory reads by filling red zones with special
@@ -253,7 +253,8 @@ objects into separate pools.  The pool information is used to partition
 the splay tree and  to avoid having to create entries for single-element arrays 
 or scalar objects in the splay tree.
 
-Baggy Bounds Checking \cite{Akritidis2008} provides a faster implementation
+Baggy Bounds Checking \cite{Akritidis:2009:BBC:1855768.1855772}
+provides a faster implementation
 of the side data structure in Jones and Kelly.  The implementation 
 calculates the bounds for any pointer in constant-time.   To achieve this,
 the implementation constrains object sizes to be powers of 2.  It also reserves 
@@ -280,7 +281,7 @@ SPEC 2006 programs and find that checking all pointer reads and writes
 increases average program execution time by 56\% and checking only writes 
 increases average execution time by 13\%. In \cite{Duck2017}, the authors extended 
 Low Fat Pointers to also provide stack bounds protection, incurring a 17\% overhead when checking 
-only writes. Low Fat Pointers for heap \cite{Duck2016} and stack {Duck2017} bounds protection were
+only writes. Low Fat Pointers for heap \cite{Duck2016} and stack \cite{Duck2017} bounds protection were
 integrated and released as an open source research prototype available at 
 \url{https://github.com/GJDuck/LowFat}.
 
@@ -345,7 +346,7 @@ the program call  stack to execute a series of small pieces of machine code and 
 a arbitrary program.  There are other ways to manipulate program state to
 change control-flow, such as changing the target of an indirect function call.  
 This can be done by 
-ovewriting a function pointer or the virtual table of an object.
+overwriting a function pointer or the virtual table of an object.
 \item Data modification: an attacker may be able to write data to a process, causing the process to take an incorrect action on behalf of an attacker.
 \item  Data disclosure: an attacker may be able to read data from a process 
 and obtain data, including data that is meant to be confidential.  
@@ -363,12 +364,12 @@ Checked C provides protection against data modification and
 data disclosure attacks, which the other approaches do not.
 Chen {\it et al.} \cite{Chen2005} show that data modification
 attacks that do not alter control-flow pose a serious long-term threat.
-The Heartbleed attack on OpenSSL illustrates the damage that is
-possible from even data disclosure attacks.
+The Heartbleed attack on OpenSSL~\cite{Heartbleed} illustrates the damage that
+is possible from even data disclosure attacks.
 
 Checked C addresses the fundamental problem, which is incorrect programs
 with undetected errors. Checked C enhances existing security mitigations by
-providing protection against data modification and data modification attacks.
+providing protection against data modification and data disclosure attacks.
 ASLR, DEP, CFI, and stack canaries can be 
 defeated by determined attackers using data modification and data disclosure
 attacks.  Shadow stacks do not protect stack-allocated buffers or arrays, 
