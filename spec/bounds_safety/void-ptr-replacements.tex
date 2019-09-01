@@ -118,10 +118,10 @@ can be re-used, they typically use the \uncheckedptrvoid{} in place of a pointer
 to some type \var{T}.  At calls to the function, pointers to \var{T} are cast
 implicitly to \uncheckedptrvoid{} or back from \uncheckedptrvoid{}.  
 Sometimes the function is re-used by casting integers to \uncheckedptrvoid{} pointers.
-We want to able to check these uses and ensure they do not cause type confusion.
+We want to be able to check these uses and ensure they do not cause type confusion.
 
 We want there to be a single copy of a generic function so that programmers
-retain low-level control and updated code is binary ompatible with existing code.  
+retain low-level control and updated code is binary compatible with existing code.
 This means that the code cloning as is done in C++ templates cannot be used.  
 We instead require that a uniform representation for generic data be used.
 Generic data must either be treated as an incomplete type (with no assumption
