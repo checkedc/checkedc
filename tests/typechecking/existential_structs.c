@@ -60,3 +60,26 @@ void TestMultipleTypeParams() {
 
 	_Pack(bar, _Exists(T, struct Bar<T, T, T>), struct Cat); // expected-error {{witness type does not match existential type}}
 }
+
+// Test that we can pack and unpack a simple generic.
+void TestSimpleUnpack() {
+    struct Foo _For_any(A) {
+        A *a;
+        void (*op)(A*);
+    };
+    struct Foo<int> fooInt;
+    _Exists(T2, struct Foo<T2>) packedFoo = _Pack(fooInt, _Exists(T2, struct Foo<T2>), int);
+
+    // TODO: the error message should reference 'struct Foo<F>' and not 'struct Foo<T2>'.
+    // This is happening because incorrect canonicalization of existential types (and of type applications).
+    // Fix once that problem is fixed.
+    // Let's do an incorrect unpack.
+    // This is incorrect because _Unpack leaves 'U' abstract, so we can't recover the original
+    // 'int' type argument.
+    _Unpack (F) struct Foo<int> incorrect = packedFoo; // expected-error {{initializing 'struct Foo<int>' with an expression of incompatible type 'struct Foo<T2>'}}
+
+    // Now let's try a correct unpack.
+    _Unpack (U) struct Foo<U> unpackedFoo = packedFoo;
+    U *a2 = unpackedFoo.a;
+    unpackedFoo.op(a2);
+}
