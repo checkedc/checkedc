@@ -16,7 +16,7 @@ void TestParseExistentialType(_Exists(T, struct Foo<T>) exist) {
 // Test that we can't directly access fields of an existential:
 // we need to unwrap the existential first.
 void TestCantAccessFieldsInExistential(_Exists(T, struct Foo<T>) exist) {
-	exist.elem = 0; // expected-error {{member reference base type 'Exists((0, 0), struct Foo<T>)' is not a structure or union}}
+	exist.elem = 0; // expected-error {{member reference base type 'Exists(T, struct Foo<T>)' is not a structure or union}}
 }
 
 // Test that pack returns an existential type.
