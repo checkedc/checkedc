@@ -5,12 +5,10 @@
 // RUN: %checkedc_rununder %t1 1 | FileCheck %s --check-prefix PASS1
 // RUN: %checkedc_rununder %t1 100 | FileCheck %s --check-prefix FAIL1
 
-#include <assert.h>
 #include <signal.h>
+#include <stdchecked.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdchecked.h>
 
 void handle_error(int err) {
   puts("Error: out-of-bounds access of predefined literal");
