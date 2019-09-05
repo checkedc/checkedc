@@ -3,6 +3,7 @@
 // RUN: %clang %s -o %t1 %checkedc_target_flags
 
 // RUN: %checkedc_rununder %t1 1 | FileCheck %s --check-prefix PASS1
+// RUN: %checkedc_rununder %t1 100 | FileCheck %s --check-prefix FAIL1
 
 #include <assert.h>
 #include <signal.h>
@@ -12,15 +13,32 @@
 #include <stdchecked.h>
 
 void handle_error(int err) {
-  puts("Error: null pointer arithmetic");
+  puts("Error: out-of-bounds access of predefined literal");
   _Exit(0);
 }
 
-void funcPass1(_Ptr<const char> s) {
+void pass1(_Ptr<const char> s) {
   // PASS1: main
-  // PASS1-NEXT: funcPass1
+  // PASS1-NEXT: pass1
+  // PASS1-NEXT: p
+  // PASS1-NEXT: a
+  // PASS1-NEXT: s
+  // PASS1-NEXT: s
+  // PASS1-NEXT: 1
   printf("%s\n", s);
   printf("%s\n", __func__);
+  printf("%c\n", __func__[0]);
+  printf("%c\n", __func__[1]);
+  printf("%c\n", __func__[2]);
+  printf("%c\n", __func__[3]);
+  printf("%c\n", __func__[4]);
+}
+
+void fail1() {
+// FAIL1: Error: out-of-bounds access of predefined literal
+#pragma CHECKED_SCOPE ON
+  char c = __func__[100];
+#pragma CHECKED_SCOPE OFF
 }
 
 int main(int argc, array_ptr<char*> argv : count(argc)) {
@@ -44,7 +62,10 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   int testcase = atoi(argv[1]);
   switch (testcase) {
     case 1:
-      funcPass1(__func__);
+      pass1(__func__);
+      break;
+    case 100:
+      fail1();
       break;
 
     default:
