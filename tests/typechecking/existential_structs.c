@@ -83,3 +83,80 @@ void TestSimpleUnpack() {
     U *a2 = unpackedFoo.a;
     unpackedFoo.op(a2);
 }
+
+_Exists(A, struct Foo<A>) foo1;
+_Exists(A, _Exists(B, struct Foo<A>)) foo2;
+_Exists(A, _Exists(B, struct Foo<B>)) foo3;
+_Exists(A, _Exists(B, _Exists(C, struct Foo<int>))) foo4;
+
+// Test that existential types can handle different levels of
+// depth while still being detected as compatible.
+_For_any(T) void TestCanonicalization(T *x) {
+    _Exists(A, struct Foo<A>) bar1;
+    _Exists(A, _Exists(B, struct Foo<A>)) bar2;
+    _Exists(A, _Exists(B, struct Foo<B>)) bar3;
+    _Exists(A, _Exists(B, _Exists(C, struct Foo<int>))) bar4;
+
+    bar1 = foo1;
+    bar2 = foo2;
+    bar3 = foo3;
+    bar4 = foo4;
+
+    foo1 = bar1;
+    foo2 = bar2;
+    foo3 = bar3;
+    foo4 = bar4;
+
+    foo1 = foo1;
+    foo2 = foo2;
+    foo3 = foo3;
+    foo4 = foo4;
+
+    bar1 = bar1;
+    bar2 = bar2;
+    bar3 = bar3;
+    bar4 = bar4;
+
+    // TODO: fix 'struct Foo<T>' in canonical types below after we've fixed canonicalization of type applications
+    bar1 = foo2; // expected-error {{assigning to 'Exists(A, struct Foo<B>)' from incompatible type 'Exists(A, Exists(B, struct Foo<T>))'}}
+    bar2 = foo3; // expected-error {{assigning to 'Exists(A, Exists(B, struct Foo<B>))' (aka 'Exists((0, 0), Exists((1, 0), struct Foo<T>))') from incompatible type 'Exists(A, Exists(B, struct Foo<B>))' (aka 'Exists((0, 0), Exists((1, 0), struct Foo<B>))')}}
+    bar3 = foo4; // expected-error {{assigning to 'Exists(A, Exists(B, struct Foo<B>))' from incompatible type 'Exists(A, Exists(B, Exists(C, struct Foo<int>)))'}}
+    bar4 = foo1; // expected-error {{assigning to 'Exists(A, Exists(B, Exists(C, struct Foo<int>)))' from incompatible type 'Exists(A, struct Foo<T>)'}}
+
+    _Exists(A, _Exists(B, struct Foo<T>)) zoom1;
+    zoom1 = foo2; // expected-error {{assigning to 'Exists(A, Exists(B, struct Foo<T>))' (aka 'Exists((1, 0), Exists((2, 0), struct Foo<T>))') from incompatible type 'Exists(A, Exists(B, struct Foo<T>))' (aka 'Exists((0, 0), Exists((1, 0), struct Foo<T>))')}}
+    zoom1 = foo3; // expected-error {{assigning to 'Exists(A, Exists(B, struct Foo<T>))' from incompatible type 'Exists(A, Exists(B, struct Foo<B>))'}}
+}
+
+// Test that the names of bound variables inside existential types don't matter
+// for compatibility purposes.
+void TestAlphaEquivalence() {
+    struct Pair _For_any(T1, T2) {
+    };
+
+    _Exists(A, struct Foo<A>) a1;
+    _Exists(B, struct Foo<B>) a2;
+    a1 = a2;
+    a2 = a1;
+
+    _Exists(A, _Exists(B, struct Pair<int, char>)) b1;
+    _Exists(T1, _Exists(T2, struct Pair<int, char>)) b2;
+    b1 = b2;
+    b2 = b1;
+
+    _Exists(A, A*****) c1;
+    _Exists(B, B*****) c2;
+    c1 = c2;
+    c2 = c1;
+
+    struct Foo<_Exists(A, A *)> foo1;
+    struct Foo<_Exists(B, B *)> foo2;
+    foo1 = foo2;
+    foo2 = foo1;
+
+    _Exists(A, _Exists(B, struct Foo<_Exists(C, struct Foo<B>)>)) d1;
+    _Exists(T1, _Exists(T2, struct Foo<_Exists(T3, struct Foo<T2>)>)) d2;
+    d1 = d2;
+    d2 = d1;
+}
+
