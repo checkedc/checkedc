@@ -160,3 +160,12 @@ void TestAlphaEquivalence() {
     d2 = d1;
 }
 
+// Test that parsing malformed existential types fails without
+// a compiler crash.
+void TestParseMalformedExistential() {
+    _Exists(int, T) e1; // expected-error {{expected type variable identifier}} expected-warning {{type specifier missing, defaults to 'int'}}
+    _Exists(int T) e2;  // expected-error {{expected type variable identifier}} expected-warning {{type specifier missing, defaults to 'int'}}
+    _Exists(T int) e3;  // expected-error {{expected ','}} expected-warning {{type specifier missing, defaults to 'int'}}
+    _Exists(T, int e4;  // expected-error {{expected ')'}} expected-warning {{type specifier missing, defaults to 'int'}}
+    _Exists(T, T*)) e5; // expected-error {{expected identifier or '('}}
+}
