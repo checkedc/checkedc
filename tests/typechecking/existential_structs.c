@@ -169,3 +169,12 @@ void TestParseMalformedExistential() {
     _Exists(T, int e4;  // expected-error {{expected ')'}} expected-warning {{type specifier missing, defaults to 'int'}}
     _Exists(T, T*)) e5; // expected-error {{expected identifier or '('}}
 }
+
+// Test that while typechecking _Pack expressions we check that the return type
+// (which is the second argument to the pack) is an existential type.
+// If not, we should display an error.
+void TestPackReturnExpectsExistential() {
+    struct Foo _For_any(T) {};
+    struct Foo<int> fooInt;
+    _Exists(T, struct Foo<T>) fooExists = _Pack(fooInt, struct Foo<int>, int); // expected-error {{the return type of a pack expression must be an existential type, but got 'struct Foo<int>' instead}}
+}
