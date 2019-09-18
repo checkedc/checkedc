@@ -196,3 +196,9 @@ void TestUnpackRequiresExistentialInit() {
   _Unpack (A) struct Foo<A> fooA = fooInt; // expected-error {{unpack specifer expects an initializer that has an existential type}}
   _Unpack (B) struct Foo<B> fooB = fooExist;
 }
+
+// Test that we can handle a malformed unpack specifier that's missing the type variable.
+void TestUnpackMissingTypeVariable() {
+  struct Foo _For_any(T) {};
+  _Unpack (int) struct Foo<A> fooA; // expected-error {{expected type variable identifier}} expected-error {{unknown type name 'A'}}
+}
