@@ -163,18 +163,36 @@ void TestAlphaEquivalence() {
 // Test that parsing malformed existential types fails without
 // a compiler crash.
 void TestParseMalformedExistential() {
-    _Exists(int, T) e1; // expected-error {{expected type variable identifier}} expected-warning {{type specifier missing, defaults to 'int'}}
-    _Exists(int T) e2;  // expected-error {{expected type variable identifier}} expected-warning {{type specifier missing, defaults to 'int'}}
-    _Exists(T int) e3;  // expected-error {{expected ','}} expected-warning {{type specifier missing, defaults to 'int'}}
-    _Exists(T, int e4;  // expected-error {{expected ')'}} expected-warning {{type specifier missing, defaults to 'int'}}
-    _Exists(T, T*)) e5; // expected-error {{expected identifier or '('}}
+  _Exists(int, T) e1; // expected-error {{expected type variable identifier}} expected-warning {{type specifier missing, defaults to 'int'}}
+  _Exists(int T) e2;  // expected-error {{expected type variable identifier}} expected-warning {{type specifier missing, defaults to 'int'}}
+  _Exists(T int) e3;  // expected-error {{expected ','}} expected-warning {{type specifier missing, defaults to 'int'}}
+  _Exists(T, int e4;  // expected-error {{expected ')'}} expected-warning {{type specifier missing, defaults to 'int'}}
+  _Exists(T, T*)) e5; // expected-error {{expected identifier or '('}}
 }
 
 // Test that while typechecking _Pack expressions we check that the return type
 // (which is the second argument to the pack) is an existential type.
 // If not, we should display an error.
 void TestPackReturnExpectsExistential() {
-    struct Foo _For_any(T) {};
-    struct Foo<int> fooInt;
-    _Exists(T, struct Foo<T>) fooExists = _Pack(fooInt, struct Foo<int>, int); // expected-error {{the return type of a pack expression must be an existential type, but got 'struct Foo<int>' instead}}
+  struct Foo _For_any(T) {};
+  struct Foo<int> fooInt;
+  _Exists(T, struct Foo<T>) fooExists = _Pack(fooInt, struct Foo<int>, int); // expected-error {{return type of a pack expression must be an existential type, but got 'struct Foo<int>' instead}}
+}
+
+// Test that we display an error message if the user tries
+// to unpack multiple type variables (this will be supported in the future).
+void TestUnpackWithMultipleTypeVars() {
+  struct Foo _For_any(T) {};
+  _Exists(T, struct Foo<T>) fooExist;
+  _Unpack (A, B, C) struct Foo<A> fooAbs = fooExist; // expected-error {{expected ')'}} expected-error {{expected identifier or '('}}
+}
+
+// Test that we check that the initializer to an unpack declaration
+// has an existential type.
+void TestUnpackRequiresExistentialInit() {
+  struct Foo _For_any(T) {};
+  struct Foo<int> fooInt;
+  _Exists(B, struct Foo<B>) fooExist = _Pack(fooInt, _Exists(C, struct Foo<C>), int);
+  _Unpack (A) struct Foo<A> fooA = fooInt; // expected-error {{unpack specifer expects an initializer that has an existential type}}
+  _Unpack (B) struct Foo<B> fooB = fooExist;
 }
