@@ -1040,13 +1040,17 @@ produced by the expression being checked.  $Check$ is parameterized so
 that the same logic can  be re-used across assignments, compound assignments,
 and pre/post-increment expressions.
 
-The function $Check(e, C, EQ, PV, Form, FB)$ takes as inputs:
+The function $Check(e, C, EQ, PV, BES, EES, Form, FB)$ takes as inputs:
 \begin{enumerate}
 \item An expression $e$ that evaluates to a value.
 \item A context $C$.
 \item Sets of equivalent expressions $EQ$.
 \item A set $PV$ of indeterminate variables.  The variables 
 may be modified by other expressions whose  evaluation is unordered with respect to $e$'s evaluation.
+\item A stack of bounds expressions $BES$ that need to be updated if any variables in those bounds
+expressions are modified.
+\item A stack of sets of equivalent expressions $EES$ that also need to be updated if any variables
+in those expressions are modified.
 \item Whether $e$ is special instruction form.  This can have 3 values: $No$, $PostIncDec$,
 and $Compound$.
 \item An optional bounds $FB$ for the first operand of $e$.  
@@ -1059,7 +1063,9 @@ $Check$ returns:
 \item A bounds expression $B$ for the values at runtime to which $e$ evaluates.
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
-\item A set of equivalent expressions $G$ that will produce the same value as $e$. 
+\item A set of equivalent expressions $G$ that will produce the same value as $e$.
+\item An updated stack of bounds expressions $UBES$.
+\item An updated stack of equivalent expressions $UEES$.
 \item It may also report an error.
 \end{enumerate}
 The results produced by $Check$ are valid in the program state
@@ -1068,8 +1074,8 @@ $\mathit{UC}$ depend on pending variables, it is important not to use them durin
 Similarly, during checking, it is important not to use equality information
 from $UEQ$ or $G$ that depends on pending variables.
 
-The function $CheckLValue(e, C, EQ, PV)$ is similar to $Check$.  It takes the
-same first 4 arguments as $Check$, except that $e$ evaluates to an lvalue.
+The function $CheckLValue(e, C, EQ, PV, BES, EES)$ is similar to $Check$.  It takes the
+same first 6 arguments as $Check$, except that $e$ evaluates to an lvalue.
 It returns:
 \begin{enumerate}
 \item A bounds expression $B$ for the lvalues produced by $e$.
@@ -1077,6 +1083,8 @@ It returns:
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that produce the same lvalue as $e$.
+\item An updated stack of bounds expressions $UBES$.
+\item An updated stack of equivalent expressions $UEES$.
 \item It may also report an error.
 \end{enumerate}
 
@@ -1090,7 +1098,7 @@ The definition of $Check(e, C, EQ, PV, Form, FB)$ is:
 \begin{enumerate}
 \item If $e$ is an lvalue expression
 \begin{enumerate}
-\item Let $(B_{lv}, RB, \mathit{UC}, UEQ, G_{lv}) = CheckLValue(e, C, EQ,PV)$.
+\item Let $(B_{lv}, RB, \mathit{UC}, UEQ, G_{lv}, UBES, UEES) = CheckLValue(e, C, EQ, PV, BES, EES)$.
 \item If $e$ has array type, let $B = B_{lv}$ and $G = G_{lv}$.
 \item If $e$ does not have array type, there will an implicit read of the lvalue produced by $e$
 at runtime:
@@ -1101,7 +1109,7 @@ $PV$.  If it does, report an error.
 \item If $e$ is a variable $v$ and $v \in PV$, report an error.  There is an unsequenced use and
 assignment of $v$.
 \item Let $B = RB$. 
-\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ - PV$, let $G = F$. 
+\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ$, let $G = F$. 
 \item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.  
 \item Otherwise, let $G = \emptyset$ (we address aliasing of memory accesses in another section).
 \end{enumerate}
@@ -1114,9 +1122,9 @@ assignment of $v$.
 \begin{enumerate}
 \item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
         and $P_{rhs}$ describe variables that are pending during the evaluations of $lhs$ and $rhs$.
-\item Let $(B_{lhs}, RB, \mathit{UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ, P_{lhs})$.  
-\item Let $(B_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = 
-Check(rhs, \mathit{UC}_{lhs}, {UEQ}_{lhs},P_{rhs}, Form, RB)$.
+\item Let $(B_{lhs}, RB, \mathit{UC}_{lhs}, {UEQ}_{lhs}, \_, {UBES}_{lhs}, {UEES}_{lhs}) = CheckLValue(lhs, C, EQ, P_{lhs}, BES, EES)$.  
+\item Let $(B_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}, {UBES}_{rhs}, {UEES}_{rhs}) = 
+Check(rhs, \mathit{UC}_{lhs}, {UEQ}_{lhs},P_{rhs}, {UBES}_{lhs}, {UEES}_{lhs}, Form, RB)$.
 \item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
 $PV \cup Pending(lhs) \cup Pending(rhs)$.  If it does, report an error.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValueVariable(lhs) = { v }$),
@@ -1126,11 +1134,11 @@ There are multiple unsequenced assignments to $v$.
 \item Choose an expression that computes the old value of $v$:
 \begin{enumerate}
 \item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$. 
-\item Otherwise, if $EQ - (PV \cup Pending(lhs) \cup Pending(rhs))$ contains a set of equivalent expressions $F$ that contains $v$ as 
-an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
+\item Otherwise, if $UEQ_{rhs}$ contains a set of equivalent expressions $F$ that contains $v$ as an element,
+and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
 \item Otherwise, let $iv = $ {\it None}.
 \end{enumerate}
-\item Let $(B, \mathit{UC}, UEQ, G) = Update(v, iv, B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$.
+\item Let $(B, \mathit{UC}, UEQ, G, UBES, UEES) = Update(v, iv, B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$.
 \end{enumerate}
 \item If $lhs$ is not a variable, let $(B, \mathit{UC}, UEQ, G) = (B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$
 \end{enumerate}
