@@ -1076,3 +1076,35 @@ extern int f211_1(_Array_ptr<int> b : bounds(*(&arr), arr + 5));
 extern int f211_2(_Array_ptr<int> b : bounds(&arr, &arr));
 extern int f211_2(_Array_ptr<int> b : bounds((int (*) _Checked[10]) arr, (int (*) _Checked[10]) arr));
 extern int f211_2(_Array_ptr<int> b : bounds(&arr, (int (*) _Checked[10]) arr));
+
+//-----------------------------------------------------//
+// Checked C bounds cast expressions.                  //
+//-----------------------------------------------------// 
+
+// _Dynamic_bounds_cast and _Assume_bounds_cast should not be treated as value-preserving casts for unevaluated expressions.
+
+_Array_ptr<char> ga;
+
+extern void f212_1(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Dynamic_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
+extern void f212_1(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Dynamic_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
+
+extern void f212_2(_Array_ptr<char> a : bounds(_Assume_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(ga, count(2)) + 3));
+extern void f212_2(_Array_ptr<char> a : bounds(_Assume_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(ga, count(2)) + 3));
+
+extern void f212_3(_Array_ptr<char> a : bounds(_Assume_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
+extern void f212_3(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
+
+extern void f212_4(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
+extern void f212_4(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Dynamic_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
+
+extern void f212_5(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
+extern void f212_5(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(5)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
+
+extern void f212_6(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
+extern void f212_6(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, bounds(a, a + 2)) + 3)); // expected-error {{conflicting parameter bounds}}
+
+extern void f212_7(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(b, count(1)), b + 3), _Array_ptr<int> b : count(1));
+extern void f212_7(_Array_ptr<char> a : bounds(b, b + 3), _Array_ptr<int> b : count(1)); // expected-error {{conflicting parameter bounds}}
+
+extern void f212_8(_Array_ptr<char> a : bounds(b, _Assume_bounds_cast<_Array_ptr<int>>(b, count(1)) + 3), _Array_ptr<int> b : count(1));
+extern void f212_8(_Array_ptr<char> a : bounds(b, b + 3), _Array_ptr<int> b : count(1)); // expected-error {{conflicting parameter bounds}}
