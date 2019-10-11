@@ -58,7 +58,8 @@ extern void f3() {
   // For the statement below, the compiler figures out that r + 2 is out of bounds r : count(1).
   // r : count(1) normals to bounds(r, r + 1), and r + 2 is out of that range.
   *(_Dynamic_bounds_cast<array_ptr<int>>(r, count(1)) + 2) = 4; // expected-error {{expression has unknown bounds}} \
-                                                         // TODO: GitHub checkedc-clang issue #695. Re-enable this expected warning. expected warning {{out-of-bounds memory access}}
+                                                         // TODO: GitHub checkedc-clang issue #695. Re-enable the expected warning. \
+                                                         // expected warning {{out-of-bounds memory access}}
   s1 = _Dynamic_bounds_cast<array_ptr<int>>(p, count(5)); // expected-error {{expression has unknown bounds}}
   s2 = _Assume_bounds_cast<array_ptr<int>>(r, count(5));
 }
