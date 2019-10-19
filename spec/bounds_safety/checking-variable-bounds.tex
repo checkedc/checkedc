@@ -882,11 +882,17 @@ of variables by calculating an updated context.
 The updated context and equivalence information are used to prove that bounds
 declarations remain valid. 
 
-To detect undefined behavior, the checking tracks
-sets of variables with pending assignments.  Pending
-assignments may or may not have been completed yet, which means
-that the variables being assigned to have {\em indeterminate}
-values.  The sets are used to detect:
+To detect undefined behavior, the checking tracks the set of variables that
+may be read (used) or written (assigned to) by an expression.   When checking an expression with
+subexpressions that have an undefined order of evaluation with respect to each
+other, there is a check that the variables read or assigned to by one subexpression
+do not overlap with the variables assigned to by another subexpression.  This is undefined
+behavior according to the C Standard.
+
+When two expressions have no order of evaluation specifed, an assignment in one expression
+may or may not completed the other expression (or its subexpressions) are evaluated.
+This means that the variable beign assigned to has an {\em indeterminate} value when the
+other expression is evaluated. The checking detects to detect:
 \begin{enumerate}
 \item Uses of variables whose values are indeterminate.
 \item Accessing memory with pointers whose bounds expressions
@@ -922,11 +928,8 @@ of variables in $S$.
 
 The checking is done by the following functions:
 \begin{enumerate}
-\item $Pending$: calculates the set of pending variables for
-an expression.  These are the set of variables that are assigned
-to by the expression.  If the evaluation of the expression is indeterminately
-ordered with respect to another expression, these variables are
-pending during the evaluation of the other expression.
+\item $CheckOverlap$: given the read and write sets for two expressions, check if
+the variables read or written by one expression are written by other expression.
 \item $Update$: updates the context, the sets of equivalent expressions,
 and other information to be valid for the program state after
 a side-effect is completed.
@@ -944,39 +947,6 @@ and sets of equivalent expressions imply that the declared bounds for
 variables are valid.
 \item $CheckFullExpr$: checks that declared bounds are valid after
 evaluating a full expression.  
-\end{enumerate}
-
-\subsection{Computing pending variables}
-
-The function $Pending(e)$ uses the helper functions,
-$GetLValueVariable(e)$ and $GetRValueVariable(e)$.  Those functions
-return a singleton set containing a variable name or the empty set.
-
-The definition of $Pending(e)$ is as follows. If $e$ has the form:
-\begin{enumerate}
-\item $e1 = e2$, let $V = GetLValueVariable(e1)$.
-$P = Pending(e1) \cup Pending(e2) \cup V$.
-\item$e1~op= e2$, let $V = GetLValueVariable(e1)$.
-$P = Pending(e1) \cup Pending(e2) \cup V$.
-\item \code{++}$e1$, \code{--}$e1$, $e1$\code{++}, or $e1$\code{--}.
-let $V =  GetLValueVariable(e1)$.  $P = Pending(e1) \cup V$.
-\item Otherwise, $e$ has $n$ subexpressions, let $S_i$ be
-the $i^{th}$ subexpression.  Let $P = \cup_{i=1}^{n} Pending(S_i)$.
-\end{enumerate}
-
-The definition of $GetLValueVariable(e)$ is as follows. If $e$ has the form:
-\begin{enumerate}
-\item A variable $v$, $\{ v \}$.
-\item $(e1)$, $GetLValueVariable(e1)$.
-\item $*e1$, $GetRValueVariable(e1)$.
-\item Otherwise, $\emptyset$.
-\end{enumerate}
-
-The definition of $GetRValueVariable(e)$ is as follows. If $e$ has the form:
-\begin{enumerate}
-\item \code{&}$e1$, $GetLValueVariable(e1)$.
-\item$(e1)$, $GetRValueVariable(e1)$.
-\item Otherwise, $\emptyset$
 \end{enumerate}
 
 \subsection{Checking expressions with unordered evaluation of operands}
@@ -1040,13 +1010,11 @@ produced by the expression being checked.  $Check$ is parameterized so
 that the same logic can  be re-used across assignments, compound assignments,
 and pre/post-increment expressions.
 
-The function $Check(e, C, EQ, PV, Form, FB)$ takes as inputs:
+The function $Check(e, C, EQ, Form, FB)$ takes as inputs:
 \begin{enumerate}
 \item An expression $e$ that evaluates to a value.
 \item A context $C$.
 \item Sets of equivalent expressions $EQ$.
-\item A set $PV$ of indeterminate variables.  The variables 
-may be modified by other expressions whose  evaluation is unordered with respect to $e$'s evaluation.
 \item Whether $e$ is special instruction form.  This can have 3 values: $No$, $PostIncDec$,
 and $Compound$.
 \item An optional bounds $FB$ for the first operand of $e$.  
@@ -1060,16 +1028,15 @@ $Check$ returns:
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that will produce the same value as $e$. 
+\item A set $R$ of variables that may be read during evaluation of $e$.
+\item A set $W$ of variables that may be written during evaluation of $e$.
 \item It may also report an error.
 \end{enumerate}
 The results produced by $Check$ are valid in the program state
-{\em after} the assignments in $e$ have been completed.   When $B$ or entries in 
-$\mathit{UC}$ depend on pending variables, it is important not to use them during runtime bounds checking.
-Similarly, during checking, it is important not to use equality information
-from $UEQ$ or $G$ that depends on pending variables.
+{\em after} the assignments in $e$ have been completed.
 
-The function $CheckLValue(e, C, EQ, PV)$ is similar to $Check$.  It takes the
-same first 4 arguments as $Check$, except that $e$ evaluates to an lvalue.
+The function $CheckLValue(e, C, EQ)$ is similar to $Check$.  It takes the
+same first 3 arguments as $Check$, except that $e$ evaluates to an lvalue.
 It returns:
 \begin{enumerate}
 \item A bounds expression $B$ for the lvalues produced by $e$.
@@ -1077,31 +1044,54 @@ It returns:
 \item An updated context $\mathit{UC}$.
 \item Updated sets of equivalent expressions $UEQ$.
 \item A set of equivalent expressions $G$ that produce the same lvalue as $e$.
+\item A set $R$ of variables that may be read during evaluation of $e$.
+\item A set $W$ of variables that may be written during evaluation of $e$.
 \item It may also report an error.
 \end{enumerate}
+
+The function $CheckOverlap(R_1, W_1, R_2, W_2)$ takes the set of variables read and written
+by expressions $e_1$ and $e_2$:
+\begin{enumerate}
+\item  $R_1$ and $W_1$ are the variables read and written by $e_1$, respectively.
+\item  $R_2$ and $W_2$ are the variables read and written by $e_2$, respecitively.
+\end{enumerate}
+It reports an error if $(R_1 \cup W_1) \cap W_2$ is not empty, or 
+$(R_2 \cup W_2) \cap W_1$ is not empty.
 
 The function $NeedsBoundsCheck(e)$ takes
 an expression that evaluates to an lvalue and determines if an 
 assignment to $e$ requires a bounds check.
 
-Before $Check$ calls itself recursively on a subexpression of $e$, it calculates 
-additional variables that are pending due to other subexpressions of $e$.
 The definition of $Check(e, C, EQ, PV, Form, FB)$ is:
 \begin{enumerate}
 \item If $e$ is an lvalue expression
 \begin{enumerate}
-\item Let $(B_{lv}, RB, \mathit{UC}, UEQ, G_{lv}) = CheckLValue(e, C, EQ,PV)$.
-\item If $e$ has array type, let $B = B_{lv}$ and $G = G_{lv}$.
+\item Let $(B_{lv}, RB, \mathit{UC}, UEQ, G_{lv}, R_{lv}, W_{lv}) = CheckLValue(e, C, EQ)$.
+\item If $e$ has array type, let $B = B_{lv}$, $G = G_{lv}$, $R = R_{lv}$, and $W = W_{lv}$.
 \item If $e$ does not have array type, there will an implicit read of the lvalue produced by $e$
-at runtime:
+at runtime.  There are 3 cases.  The first case is that $e$ is a (possibly-parenthesized) variable $v$:
+\begin{enumerate} 
+\item Let $R = R_{lv} \cup \{ v \}$.
+\item Let $W= W_{lv}$ (note that $W_{lv}$ should be empty in this case).
+\end{enumerate}
+The second case is that $e$ is not a variable and $NeedsBoundsCheck(e)$ returns true.  In this case,
+a compiler will insert a bounds check  to ensure $e$ is a valid memory location to access. 
 \begin{enumerate}
-\item If $NeedsBoundsCheck(e)$ returns true, a compiler will insert a bounds check 
-to ensure $e$ is a valid memory location to access.  Check that $B_{lv}$ does not use any variables in 
-$PV$.  If it does, report an error.
-\item If $e$ is a variable $v$ and $v \in PV$, report an error.  There is an unsequenced use and
-assignment of $v$.
+\item Let $BR$ be the variables that may be read by $B_{lv}$.
+\item Check that $B_{lv}$ does not use any variables written by $e$ by calling $CheckOverlap(BR, W_lv)$.
+\item Let $R = R_{lv} \cup BR$.
+\item Let $W = W_{lv}$.
+\end{enumerate}
+The third case is that $e$ is not a variable and that $NeedBoundsCheck(e)$ return false.
+\begin{enumerate}
+\item Let $R = R_{lv}$.
+\item Let $W= W_{lv}$.
+\end{enumerate}
+For all 3 cases:
+\begin{enumerate}
 \item Let $B = RB$. 
-\item If $e$ is an element of a set of equivalent expressions $F$ in $EQ - PV$, let $G = F$. 
+% TODO - come back to the next point.  Should this be $EQ$ or $UEQ$?
+\item If $e$ is an element of a set of equivalent expressions $F$ in $UEQ$, let $G = F$. 
 \item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.  
 \item Otherwise, let $G = \emptyset$ (we address aliasing of memory accesses in another section).
 \end{enumerate}
