@@ -13,10 +13,10 @@ and test code.
 
 # We are hiring.
 
-We have a position available for a
-[Principal Software Engineer](https://careers.microsoft.com/us/en/job/725522/Principal-Software-Engineer) or a
+We have positions available for a
+[Principal Software Engineer](https://careers.microsoft.com/us/en/job/725522/Principal-Software-Engineer) and
 [Senior Software Engineer](https://careers.microsoft.com/us/en/job/725509/Senior-Software-Engineer).
-We are looking for an engineer who has production compiler development experience and who values shipping software.
+We are looking for engineers who have production compiler development experience and who value shipping software.
 
 # Papers
 We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
