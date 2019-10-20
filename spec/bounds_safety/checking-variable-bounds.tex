@@ -1194,7 +1194,7 @@ Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
 \item Let $RB = $ \boundsunknown (Checked C does not allow bounds for values stored in arrays).
 \end{enumerate}
 \end{enumerate}
-\item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, EQ, \_) = Check(e1, C, EQ, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown (Checked C does not allow bounds for values pointed to by pointers).
+\item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, EQ, \_, R, W) = Check(e1, C, EQ, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown (Checked C does not allow bounds for values pointed to by pointers).
 \item If $e$ has the form $e1[e2]$,
 \label{list:check-unordered-subscript-operands}
 \begin{enumerate}
@@ -1368,7 +1368,7 @@ $CheckFullExpr(e=$~\code{x = alloc(5)}\code{, len = 5}$)$\\
    \>\>\>$CheckLValue($\code{len}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\})$\\
    \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}$, RB = $\code{bounds(unknown)}$,$
                             $\mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},$\\
-   \>\>\>\>\>~$UEQ = \{\{tmp, x\}\},  PV = \emptyset, R = \emptyset, W = \emptyset)$\\
+   \>\>\>\>\>~$UEQ = \{\{tmp, x\}\},  R = \emptyset, W = \emptyset)$\\
    \>\>\>$Check(e = $\code{5}, $\mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, EQ = \{\{tmp, x\}\},
           Form = No, FB = None)$\\
    \>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
@@ -1406,32 +1406,32 @@ x = (len = getlen()) ? alloc(len) : 0;
 $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 \>$DC = \{x \mapsto$\code{bounds(x, x + len)}$\}$\\
 \>$Check(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$,$\\
-\>\>\>\>~$C=\{x \mapsto$\code{bounds(x, x + len)}$\},EQ=\emptyset,PV=\emptyset,
+\>\>\>\>~$C=\{x \mapsto$\code{bounds(x, x + len)}$\},EQ=\emptyset,
            Form = No, FB = None)$\\ \\
 
-\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset)$ \\
 \>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(x, x + len)}$,
-                    \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
+                    \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\}, R = \emptyset, W = \emptyset)$\\
 \>\>$Check(e=$~\code{(len = getlen()) ? alloc(len) : 0}$,$\\
-\>\>\>\>~$C=\{x \mapsto$\code{bounds(x, x + len)}$\},EQ=\emptyset,PV=\emptyset,
+\>\>\>\>~$C=\{x \mapsto$\code{bounds(x, x + len)}$\},EQ=\emptyset,
            Form = No, FB = None)$\\ \\
 
 % The condition expression
 \>\>\>{\tt Process the condition:}\\
 \>\>\>$Check(e=$~\code{(len = getlen())}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},
-       EQ=\emptyset,PV=\emptyset, Form = No,$\\
+       EQ=\emptyset, Form = No,$\\
 \>\>\>\>\>\>$FB = None)$\\
 \>\>\>\>$Check(e=$~\code{len = getlen()}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},
-         EQ=\emptyset,PV=\emptyset, Form = No,$\\
+         EQ=\emptyset, Form = No,$\\
 \>\>\>\>\>\>\>$FB = None)$\\
-\>\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+\>\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset)$ \\
 \>\>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}, $RB = $\code{bounds(unknown)}$,
                      \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
-\>\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&len}\}$)$ \\
-\>\>\>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset,
+\>\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&len}\}$, R = \emptyset, W = \emptyset)$ \\
+\>\>\>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset,
                          Form = No, FB = None)$\\
 \>\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
-               G = \emptyset)$\\
+               G = \emptyset, R = \emptyset, G = \emptyset)$\\
 \>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
                G = \emptyset)$\\
 \>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
@@ -1439,7 +1439,7 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 % first arm
 \>\>\>{\tt Process the first arm:}\\
 \>\>\>$Check(e=$~\code{alloc(len)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-         EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
+         EQ=\emptyset, Form = No, FB = None)$\\
 \>\>\>\>$(B_1 = $ \code{bounds(tmp1, tmp1 + len)}$, \mathit{UC}_1 = \{x\mapsto$\code{bounds(unknown)}$,
                 {UEQ}_1 = \emptyset, G_1 = \{tmp1\})$\\
 
@@ -1447,7 +1447,7 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 \\
 \>\>\>{\tt Process the second arm:}\\
 \>\>\>$Check(e=$~\code{0}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-         EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
+         EQ=\emptyset, Form = No, FB = None)$\\
 \>\>\>\>$(B_2 = $ \code{bounds(any)}$, \mathit{UC}_2 = \{x\mapsto$\code{bounds(unknown)}$,
                {UEQ}_2 = \emptyset, G_2 = \{ 0 \}$\\ \\
 
@@ -1490,39 +1490,39 @@ array_ptr<int> x : count(len) = 0;
 $CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), len = 1)}$)$\\
 \>$DC = \{x \mapsto$\code{bounds(x, x + len)}$\}$\\
 \>$Check(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), len = 1)}$,$\\
-\>\>\>\>~$C=\{x \mapsto$\code{bounds(x, x + len)}$\},EQ=\emptyset,PV=\emptyset,
+\>\>\>\>~$C=\{x \mapsto$\code{bounds(x, x + len)}$\},EQ=\emptyset,
            Form = No, FB = None)$\\ \\
 % The condition expression
 \>\>{\tt Process the condition:}\\
 \>\>$Check(e=$~\code{(len = getlen())}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},
-       EQ=\emptyset,PV=\emptyset, Form = No,$\\
+       EQ=\emptyset, Form = No,$\\
 \>\>\>\>\>$FB = None)$\\
 \>\>\>$Check(e=$~\code{len = getlen()}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},
-         EQ=\emptyset,PV=\emptyset, Form = No,$\\
+         EQ=\emptyset, Form = No,$\\
 \>\>\>\>\>\>$FB = None)$\\
-\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset)$ \\
 \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}, $RB = $\code{bounds(unknown)}$,
                      \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
-\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&len}\}$)$ \\
-\>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset,
+\>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&len}\}$, R = \emptyset, W = \emptyset)$ \\
+\>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset,
                          Form = No, FB = None)$\\
 \>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
-               G = \emptyset)$\\
+               G = \emptyset, R = \emptyset, G = \emptyset)$\\
 \>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
-               G = \emptyset)$\\
+               G = \emptyset, R = \emptyset, W = \{$\code{len}$\})$\\
 \>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
-          G = \emptyset)$\\  \\
+          G = \emptyset, R = \emptyset, W = \{$\code{len}$\})$\\  \\
 % first arm
 \>\>{\tt Process the first arm:}\\
 \>\>$Check(e=$~\code{(x = alloc(len))}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-         EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
+         EQ=\emptyset, Form = No, FB = None)$\\
 \>\>\>$Check(e=$~\code{x = alloc(len)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-          EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
-\>\>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+          EQ=\emptyset, Form = No, FB = None)$\\
+\>\>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset)$ \\
 \>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(unknown)}$,
                      \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
 \>\>\>\>\>~$UEQ = \emptyset, G = \{$\code{&x}\}$)$ \\
-\>\>\>$Check($\code{alloc(len)}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset,
+\>\>\>$Check($\code{alloc(len)}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset,
                        Form = No, FB = None)$\\
 \>\>\>\>$(B = $ \code{bounds(tmp1, tmp1 + len)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                 UEQ = \emptyset G = \{tmp1\})$\\
@@ -1532,33 +1532,32 @@ $CheckFullExpr(e=$~\code{(len = getlen()) ? (x = alloc(len)) : (x = alloc(1), le
 % process the second arm
 \>\>{\tt Process the second arm:}\\
 \>\>$Check(e=$~\code{((len = 1, x = alloc(1))}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-         EQ=\emptyset,PV=\emptyset, Form = No,$\\
+         EQ=\emptyset, Form = No,$\\
 \>\>\>\>\>$FB = None)$\\
 \>\>\>$Check(e=$~\code{len = 1, x = alloc(1)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-          EQ=\emptyset,PV=\emptyset, Form = No,$\\
+          EQ=\emptyset, Form = No,$\\
 \>\>\>\>\>\>$FB = None)$\\
 \>\>\>\>$Check(e=$~\code{len = 1}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-          EQ=\emptyset,PV=\emptyset, Form = No, FB = None)$\\
-\>\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ =  \emptyset,
-                   PV = \emptyset)$ \\
+          EQ=\emptyset, Form = No, FB = None)$\\
+\>\>\>\>\>$CheckLValue($\code{len}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, EQ =  \emptyset)$ \\
 \>\>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}, $RB = $\code{bounds(unknown)}$,
                      \mathit{UC} = \{x \mapsto$\code{bounds(unknown)}$\},$\\
 \>\>\>\>\>\>~$UEQ =  \emptyset, G = \{$\code{&len}\}$)$ \\
-\>\>\>\>\>$Check($\code{1}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset, PV = \emptyset,
+\>\>\>\>\>$Check($\code{1}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \emptyset,
                        Form = No, FB = None)$\\
 \>\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                   UEQ = \emptyset, G = \{1\})$\\
 \>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                   UEQ = \{\{len, 1\}\}, G = \{len, 1\})$\\
 \>\>\>\>$Check(e=$~\code{x = alloc(1)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
-          EQ=\{\{len, 1\}\},PV=\emptyset, Form = No,$\\
+          EQ=\{\{len, 1\}\}, Form = No,$\\
 \>\>\>\>~$FB = None)$\\
 \>\>\>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(unknown)}$\}, 
-                                      EQ = \{\{len, 1\}\}, PV = \emptyset)$ \\
+                                      EQ = \{\{len, 1\}\})$ \\
 \>\>\>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(unknown)}$,
                      \mathit{UC} = \{x \mapsto$\code{bounds(unknown)}$\},$\\
 \>\>\>\>\>\>~$UEQ = \{\{len, 1\}\}, G = \{$\code{&x}\}$)$ \\
-\>\>\>\>\>$Check($\code{alloc(1)}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \{\{len, 1\}\}, PV = \emptyset,
+\>\>\>\>\>$Check($\code{alloc(1)}$,C  =\{x\mapsto$\code{bounds(unknown)}$\}, EQ = \{\{len, 1\}\},
                        Form = No, FB = None)$\\
 \>\>\>\>\>\>$(B = $ \code{bounds(tmp2, tmp2 + 1)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$,
                       UEQ = \{\{len, 1\}\},G = \{tmp2\})$\\
