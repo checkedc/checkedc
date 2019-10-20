@@ -1070,9 +1070,7 @@ The definition of $Check(e, C, EQ, Form, FB)$ is:
 \item If $e$ does not have array type, there will an implicit read of the lvalue produced by $e$
 at runtime. 
 \begin{enumerate}
-\item Let $R = R_{lv}$.
-\item Let $W = W_{lv}$.
-\item Let $B = RB$. 
+\item Let $R = R_{lv}$,  $W = W_{lv}$, and $B = RB$. 
 \item If $e$ is a (possibly-parenthesized) variable $v$, let $R = R \cup \{ v \}$.
 \item Otherwise, if $NeedsBoundsCheck(e)$ returns true,
 a compiler will insert a bounds check  to ensure $e$ is a valid memory location to access. 
@@ -1105,6 +1103,7 @@ Check that the bound check does not use any variables written by either $lhs$ or
 calling $CheckOverlap(Q, W)$.   Let $R = R \cup Q$.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValueVariable(lhs) = { v }$),
 \begin{enumerate}
+\item Let $W = W \cup \{ v \}$.
 \item Determine whether there is an expression that computes the old value of $v$:
 \begin{enumerate}
 \item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$. 
@@ -1351,31 +1350,34 @@ Here is a list of checking steps:
 $CheckFullExpr(e=$~\code{x = alloc(5)}\code{, len = 5}$)$\\
 \>$DC = \{x \mapsto$\code{bounds(x, x + len)}$\}$\\
 \>$Check(e=$~\code{x = alloc(5)}\code{, len = 5}$, C=\{x \mapsto$\code{bounds(x, x + len)}$\},  EQ=\emptyset,
-           PV=\emptyset, Form = No, FB = None)$\\
+           Form = No, FB = None)$\\
 \>\>$Check(e=$~\code{x = alloc(5)}$,C=\{x\mapsto$\code{bounds(x,x + len)}$\},
-                EQ=\emptyset, PV=\emptyset, Form=No, FB=None)$ \\
-  \>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset)$ \\
+                EQ=\emptyset, Form=No, FB=None)$ \\
+  \>\>\>$CheckLValue($\code{x}$, C = \{x \mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset)$ \\
   \>\>\>\>$(B = $ \code{bounds(&x, &x + 1)}, $RB = $\code{bounds(x, x + len)}$,
                            \mathit{UC} = \{x \mapsto$\code{bounds(x, x + len)}$\},$\\
-  \>\>\>\>~$UEQ = \emptyset, G = \{$\code{&x}\}$)$ \\
-  \>\>\>$Check($\code{alloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, PV = \emptyset, Form = No, FB = None)$\\
-  \>\>\>\>$(B = $ \code{bounds(tmp, tmp + 5)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
-              G = \{$\code{tmp}$\})$\\
+  \>\>\>\>~$UEQ = \emptyset, G = \{$\code{&x}\}$, R = \emptyset, W = \emptyset)$ \\
+  \>\>\>$Check($\code{alloc(5)}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset, Form = No, FB = None)$\\
+  \>\>\>\>$(B = $ \code{bounds(tmp, tmp + 5)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , 
+              G = \{$\code{tmp}$\}, R = \emptyset, W = \emptyset)$\\
  \>\>\>$(B = $\code{bounds(tmp, tmp + 5)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},
-          G = \{tmp, x\})$ \\
+          G = \{tmp, x\},$\\
+  \>\>\>~$R = \emptyset, W = \{x\})$ \\
   \>\>$Check(e=$~\code{len = 5}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},
-        PV=\emptyset, Form = No, FB = None)$\\
-   \>\>\>$CheckLValue($\code{len}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\},
-                              PV = \emptyset)$\\
+        Form = No, FB = None)$\\
+   \>\>\>$CheckLValue($\code{len}$, C = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, UEQ= \{\{tmp, x\}\})$\\
    \>\>\>\>\>$(B = $ \code{bounds(&len, &len + 1)}$, RB = $\code{bounds(unknown)}$,$
                             $\mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},$\\
-   \>\>\>\>\>~$UEQ = \{\{tmp, x\}\},  PV = \emptyset)$\\
-   \>\>\>$Check(e = $\code{5}, $\mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, EQ = \{\{tmp, x\}\}, PV = \emptyset,
+   \>\>\>\>\>~$UEQ = \{\{tmp, x\}\},  PV = \emptyset, R = \emptyset, W = \emptyset)$\\
+   \>\>\>$Check(e = $\code{5}, $\mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\}, EQ = \{\{tmp, x\}\},
           Form = No, FB = None)$\\
    \>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
-            EQ = \{\{tmp, x\},\{5\}\},  G = \{5\})$\\
+            EQ = \{\{tmp, x\},\{5\}\},  G = \{5\},$\\
+  \>\>\>\>~$R = \emptyset, W = \emptyset)$\\
    \>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
-             EQ = \{\{tmp, x\},\{5, len\}\},  G = \{5\})$\\
+             EQ = \{\{tmp, x\},\{5, len\}\},  G = \{5\},$\\
+   \>\>\>~$R = \emptyset, W = \{ len \})$\\
+  \>\>$CheckOverlap(\emptyset, \{x\}, \emptyset, \{ len \})$\\
   \>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\},
                    \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
                    EQ = \{\{tmp, x\},\{5, len\}\})$\\
