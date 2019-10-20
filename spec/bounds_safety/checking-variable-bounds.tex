@@ -891,7 +891,7 @@ behavior according to the C Standard.
 
 When two expressions have no order of evaluation specifed, an assignment in one expression
 may or may not completed the other expression (or its subexpressions) are evaluated.
-This means that the variable beign assigned to has an {\em indeterminate} value when the
+This means that the variable being assigned to has an {\em indeterminate} value when the
 other expression is evaluated. The checking detects to detect:
 \begin{enumerate}
 \item Uses of variables whose values are indeterminate.
@@ -912,8 +912,7 @@ Given an assignment of the form $e1 = e2$,
 the value computations of $e1$ and $e2$ are sequenced before the
 assignment. The checking takes into account both forms of sequencing.
 For side-effects that must be completed before the evaluation of another
-expression $e$, those side-effects do not cause variables to
-be added to the pending set for $e$.
+expression $e$, we do not check that those side-effect conflicts with $e$.
 
 We introduce the following notation:
 \begin{enumerate}
@@ -1237,7 +1236,7 @@ that is valid when $\mathit{UC}$ is valid.  It checks that $\mathit{UC}$ and $EQ
 $CheckFullExpr(e)$ is defined as follows:
 \begin{enumerate}
 \item Let $DC$ be the context formed from declared bounds.
-\item Let $(\_, \mathit{UC}, UEQ, \_) = Check(e, DC, \emptyset, \emptyset, No, None)$.
+\item Let $(\_, \mathit{UC}, UEQ, \_, \_, \_) = Check(e, DC, \emptyset, No, None)$.
 \item Call $Validate(DC, \mathit{UC}, UEQ)$.
 \end{enumerate}
 
@@ -1247,10 +1246,11 @@ This section covers how to check bounds declarations for expressions
 with control flow: comma expressions, conditional expressions, and
 logical boolean expressions.
 
-For a comma expression $e1$~\lstinline|,|~$e2$, $Check(e, C, EQ, PV, Form, FB)$ is defined as follows:
+For a comma expression $e1$~\lstinline|,|~$e2$, $Check(e, C, EQ, Form, FB)$ is defined as follows:
 \begin{enumerate}
-\item Let $(B_{e1}, \mathit{UC}_{e1}, {UEQ}_{e1}, \_)$ = $Check(e1, C, EQ, PV, No, None)$
-\item Let $(B, \mathit{UC}, UEQ, UG) = Check(e2, \mathit{UC}_{e1}, {UEQ}_{e1}, PV, No, None)$
+\item Let $(B_{e1}, \mathit{UC}_{e1}, {UEQ}_{e1}, \_, R_1, W_1)$ = $Check(e1, C, EQ, No, None)$
+\item Let $(B, \mathit{UC}, UEQ, UG, R_2, W_2) = Check(e2, \mathit{UC}_{e1}, {UEQ}_{e1}, No, None)$
+\item Let $R = R_1 \cup R_2$ and $W = W_1 \cup W_2$.
 \end{enumerate}
 
 For a conditional expression $e1$~\lstinline+?+~$e2$~\lstinline+:+~$e3$, we must
@@ -1279,9 +1279,9 @@ one for each arm. This turn require that $Check$ take a set of contexts as
 To keep checking from becoming too expensive, we disallow such expressions.
 
 \begin{enumerate}
-\item Let $(\_, \mathit{UC}_{e1}, {UEQ}_{e1}, \_)= Check(e1, C, EQ, PV, No, None)$
+\item Let $(\_, \mathit{UC}_{e1}, {UEQ}_{e1}, \_, RC, WC)= Check(e1, C, EQ, No, None)$
 \item For each arm $e_i$ of the conditional branch,
-        let $(B_i, \mathit{UC}_i, {UEQ}_i, _) = Check(e_i, \mathit{UC}_{e1}, EQ, PV, No, None)$.
+        let $(B_i, \mathit{UC}_i, {UEQ}_i, G_i, R_i, W_i) = Check(e_i, \mathit{UC}_{e1}, EQ, No, None)$.
 \item Handle uses of temporaries bound in only one branch.  These temporaries
 will be uninitialized when the other branch of the conditional arm is evaluated.
 If some $B_i$, $\mathit{UC}_i$ or ${UEQ}_i$ uses a temporary bound in $e_i$,
@@ -1302,11 +1302,9 @@ and $G_i$.
 \item Otherwise,
 \begin{enumerate}
 \item Let $DC$ be the context formed from declared bounds.
-Let $DC^\prime$ be $DC$ restricted to variables in $Pending(e1) \cup Pending(e2)$:
-for each variable $v \in dom(DC)$, keep the entry if $v \in Pending(e1) \cup Pending(e2)$
-or $DC[v]$ uses the value of a variable in $Pending(e1) \cup Pending(e2)$.
-\item If there is a bounds expression in $DC^\prime$ that uses variables in $PV$,
-report an error.   Not all side-effects may have been seen.
+Let $DC^\prime$ be $DC$ restricted to variables in $W_1 \cup W_2$:
+for each variable $v \in dom(DC)$, keep the entry if $v \in W_1 \cup W_2$
+or $DC[v]$ uses the value of a variable in $W_1 \cup W_2$.
 \item For each arm $e_i$, call $Validate(DC^\prime, \mathit{UC}_i, {UEQ}_i)$.
 \item Let $\mathit{UC} = C$.  Update $\mathit{UC}$ so that any variables modified by the conditional expression
 have the top-level declared bounds (which were just validated after each arm).
@@ -1317,13 +1315,19 @@ For any variable $v$ in $DC^\prime$, let $\mathit{UC}[v] = DC^\prime[v]$.
 to produce the set of sets.  Empty or singleton sets are removed.
 \item Let $G = G_1 \cap G_2$.  If $e$ has no side-effects,add $\{ e \}$ to $G$.  If a
 temporary was introduced for the value of $e$,  also add the temporary to $G$.
+\item Let $R = RC \cup R_1 \ cup R_2$.  Let $W = WC \cup W_1 \cup W_2$.
+\item Make sure that all assignments to variables used in $DC^\prime$ have been seen before
+validating $DC^prime$ (otherwise the validation may be incorrect).
+For each bounds expression $B$ in $DC^\prime$, let $Q$ by the variables read by $B$.
+Let $R = R \cup Q$ (if an unordered assignment to a variable used in $Q$ is 
+subsequently processed, this will cause a checking failure).
 \end{enumerate}
 
 Logical boolean expressions are treated as forms of conditional expressions.
-For  $Check(e1$ \code{&&} $ e2, C, PV, Form, FB)$, use
-$Check(e1$ \code{ ?  } $e2$ \code{: 0}$, C, EQ, PV, Form, None)$.
-For $Check(e1$ \code{ \|\| } $ e2, C, EQ, PV, Form, FB)$,  use
-$Check(e1 $ \code{ ? 1 : } $e2, C, EQ, PV, No, None)$.
+For  $Check(e1$ \code{&&} $ e2, C, Form, FB)$, use
+$Check(e1$ \code{ ?  } $e2$ \code{: 0}$, C, EQ, Form, None)$.
+For $Check(e1$ \code{ \|\| } $ e2, C, EQ, Form, FB)$,  use
+$Check(e1 $ \code{ ? 1 : } $e2, C, EQ, No, None)$.
 
 \subsection{Examples}
 
