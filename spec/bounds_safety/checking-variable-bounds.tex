@@ -968,7 +968,7 @@ or the special value {\it None}.
 \end{itemize}
 It returns updated bounds $\mathit{UB}$, context $\mathit{UC}$, and 
 sets of equivalent expression ($\mathit{UEQ}$, and $\mathit{UG}$)
-that are valid in the program state after the assignment
+that are valid in the program state after the assignment.
 
 Its definition is:
 \begin{enumerate}
@@ -1062,37 +1062,30 @@ The function $NeedsBoundsCheck(e)$ takes
 an expression that evaluates to an lvalue and determines if an 
 assignment to $e$ requires a bounds check.
 
-The definition of $Check(e, C, EQ, PV, Form, FB)$ is:
+The definition of $Check(e, C, EQ, Form, FB)$ is:
 \begin{enumerate}
 \item If $e$ is an lvalue expression
 \begin{enumerate}
 \item Let $(B_{lv}, RB, \mathit{UC}, UEQ, G_{lv}, R_{lv}, W_{lv}) = CheckLValue(e, C, EQ)$.
 \item If $e$ has array type, let $B = B_{lv}$, $G = G_{lv}$, $R = R_{lv}$, and $W = W_{lv}$.
 \item If $e$ does not have array type, there will an implicit read of the lvalue produced by $e$
-at runtime.  There are 3 cases.  The first case is that $e$ is a (possibly-parenthesized) variable $v$:
-\begin{enumerate} 
-\item Let $R = R_{lv} \cup \{ v \}$.
-\item Let $W= W_{lv}$ (note that $W_{lv}$ should be empty in this case).
-\end{enumerate}
-The second case is that $e$ is not a variable and $NeedsBoundsCheck(e)$ returns true.  In this case,
-a compiler will insert a bounds check  to ensure $e$ is a valid memory location to access. 
-\begin{enumerate}
-\item Let $BR$ be the variables that may be read by $B_{lv}$.
-\item Check that $B_{lv}$ does not use any variables written by $e$ by calling $CheckOverlap(BR, W_lv)$.
-\item Let $R = R_{lv} \cup BR$.
-\item Let $W = W_{lv}$.
-\end{enumerate}
-The third case is that $e$ is not a variable and that $NeedBoundsCheck(e)$ return false.
+at runtime. 
 \begin{enumerate}
 \item Let $R = R_{lv}$.
-\item Let $W= W_{lv}$.
-\end{enumerate}
-For all 3 cases:
-\begin{enumerate}
+\item Let $W = W_{lv}$.
 \item Let $B = RB$. 
-% TODO - come back to the next point.  Should this be $EQ$ or $UEQ$?
-\item If $e$ is an element of a set of equivalent expressions $F$ in $UEQ$, let $G = F$. 
-\item Otherwise, if evaluating $e$ does not read memory via a pointer or have a side-effect, let $G = \{ e \}$.  
+\item If $e$ is a (possibly-parenthesized) variable $v$, let $R = R \cup \{ v \}$.
+\item Otherwise, if $NeedsBoundsCheck(e)$ returns true,
+a compiler will insert a bounds check  to ensure $e$ is a valid memory location to access. 
+\begin{enumerate}
+\item Let $Q$ be the variables that may be read by $B_{lv}$.
+\item Check that $B_{lv}$ does not use any variables written by $e$ by calling $CheckOverlap(Q, W_lv)$.
+\item Let $R = R \cup Q$.
+\end{enumerate}
+\item If $e$ is an element of a set of equivalent expressions $F$ in $UEQ$ , let $G = F$ (note that
+in this case, $e$ must be a non-modifying expression.  This implies that the sets of equivalent
+expressions do not change during $CheckLValue(e, C, EQ)$ and $EQ = UEQ$).
+\item Otherwise, if $e$ is non-modifying expression and $e$ does not read memory via a pointer, let $G = \{ e \}$.  
 \item Otherwise, let $G = \emptyset$ (we address aliasing of memory accesses in another section).
 \end{enumerate}
 \end{enumerate}
@@ -1102,22 +1095,23 @@ For all 3 cases:
 \item If $e$ has the form $lhs = rhs$,
 \label{list:check-assignment}
 \begin{enumerate}
-\item Let $P_{lhs} = PV \cup Pending(rhs)$ and $P_{rhs} = PV \cup Pending(lhs).$   $P_{lhs}$
-        and $P_{rhs}$ describe variables that are pending during the evaluations of $lhs$ and $rhs$.
-\item Let $(B_{lhs}, RB, \mathit{UC}_{lhs}, {UEQ}_{lhs}, \_) = CheckLValue(lhs, C, EQ, P_{lhs})$.  
-\item Let $(B_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}) = 
-Check(rhs, \mathit{UC}_{lhs}, {UEQ}_{lhs},P_{rhs}, Form, RB)$.
-\item If $NeedsBoundsCheck(lhs)$ returns true, check that $B_{lhs}$ does not use any variables in 
-$PV \cup Pending(lhs) \cup Pending(rhs)$.  If it does, report an error.
+\item Let $(B_{lhs}, RB, \mathit{UC}_{lhs}, {UEQ}_{lhs}, \_, R_{lhs}, W_{lhs}) = CheckLValue(lhs, C, EQ)$.  
+\item Let $(B_{rhs},  \mathit{UC}_{rhs}, {UEQ}_{rhs}, G_{rhs}, R_{rhs}, W_{rhs}) = 
+Check(rhs, \mathit{UC}_{lhs}, {UEQ}_{lhs}, Form, RB)$.
+\item $lhs$ and $rhs$ do not have a specified order of evaluation with respect to each other,
+so call $CheckOverlap(R_{lhs}, W_{lhs}, R_{rhs}, W_{rhs})$.
+\item Let $R = R_{lhs} \cup R_{rhs}$ and $W = W_{lhs} \cup W_{rhs}$.
+\item If $NeedsBoundsCheck(lhs)$ returns true, let $Q$ be the variable that may be read by $B_lhs$.
+Check that the bound check does not use any variables written by either $lhs$ or $rhs$ by
+calling $CheckOverlap(Q, W)$.   Let $R = R \cup Q$.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValueVariable(lhs) = { v }$),
 \begin{enumerate}
-\item Check that $v \notin PV \cup Pending(lhs) \cup Pending(rhs)$.  If it is, report an error.  
-There are multiple unsequenced assignments to $v$.
-\item Choose an expression that computes the old value of $v$:
+\item Determine whether there is an expression that computes the old value of $v$:
 \begin{enumerate}
 \item If $rhs$ can be inverted with respect to $v$, let $iv = inverse(v, rhs)$. 
-\item Otherwise, if $EQ - (PV \cup Pending(lhs) \cup Pending(rhs))$ contains a set of equivalent expressions $F$ that contains $v$ as 
-an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
+\item Otherwise, if $UEQ$ contains a set of equivalent expressions $F$ that contains $v$ as 
+an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$ (Note that $w$ is a representative
+from $F$.  If during later processing  an assignment to $w$ is seen, another variable from $F$ will be chosen).
 \item Otherwise, let $iv = $ {\it None}.
 \end{enumerate}
 \item Let $(B, \mathit{UC}, UEQ, G) = Update(v, iv, B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$.
@@ -1128,36 +1122,43 @@ an element, and $F$ contains a variable $w \neq v$, set $iv$ to $w$.
 % lhs op= rhs
 
 \item If $e$ has the form $lhs~op= rhs$, the result is 
-$Check (lhs = lhs~op~rhs, C, EQ, PV, Compound, None)$.
+$Check (lhs = lhs~op~rhs, C, EQ, Compound, None)$.
 
 \item For pre- and post-increment/decrement forms, if $e$ has the form:
 \begin{enumerate}
-\item \code{++}$e1$, the result is  $Check(e1$ \code{ = } $e1$ \code{ + 1}$,C, EQ, PV, 
+\item \code{++}$e1$, the result is  $Check(e1$ \code{ = } $e1$ \code{ + 1}$,C, EQ, 
 Compound, None)$.
-\item \code{--}$e1$, the result is $Check(e1$ \code{ = } $e1$ \code { - 1}$, C, EQ, PV,
+\item \code{--}$e1$, the result is $Check(e1$ \code{ = } $e1$ \code { - 1}$, C, EQ,
 Compound, None)$.
 \item $e1$\code{++}, the result is  $Check(e1$ \code{ = } $ e1$ \code { + 1}$,
-C, EQ, PV, PostIncDec, None)$.
-\item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, C, EQ, PV, PostIncDec, None)$.
+C, EQ, PostIncDec, None)$.
+\item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, C, EQ, PostIncDec, None)$.
 \end{enumerate}
-\item If $e$ has the form \code{&}$e1$, let $(B, \_, \mathit{UC}, UEQ, G) = CheckLValue(e1, C, EQ, PV)$.
+\item If $e$ has the form \code{&}$e1$, let $(B, \_, \mathit{UC}, UEQ, G) = CheckLValue(e1, C, EQ)$.
       
 \item Otherwise, $e$ is some expression with $n$ subexpressions (n may be 0).  The
 result is 
 \label{list:check-unordered-operands}
 \begin{enumerate}
 \item Let $\mathit{UC} = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
-\item Visit the $n$ subexpressions in some order, accumulating results into $\mathit{UC}$ and $UEQ$.  If the current subexpression being visited is $S_i$,
+\item Visit the $n$ subexpressions in an order where the subexpression whose bounds is used to compute the bounds
+of this expression is visited last, accumulating results into $\mathit{UC}$ and $UEQ$.  If the current subexpression being visited is $S_i$,
 \begin{enumerate}
 \item If $i = 1$ and $Form = PostIncDec$ or $Form = Compound$, $S_1$ has already
-been checked, so use the results from that.  Let $B_1 = FB$.  If $S_1$ appears in some set $F$ in $UEQ$,
- let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.
-\item Otherwise, let $PV_i = PV \cup \bigcup_{j= 1, j <> i}^{n} Pending(S_j)$.
-Let $(B_i, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, None)$.
+been checked, so use the results from that.  Let $B_1 = FB, R_1 = \emptyset, W_1 = \emptyset$.  
+If $S_1$ appears in some set $F$ in $UEQ$,  let $G_1 = F$. Otherwise, let $G_1 = \emptyset$.
+\item Otherwise, let $(B_i, \mathit{UC}, UEQ, G_i, R_i, W_i) =$  $Check(S_i, \mathit{UC}, UEQ, No, None)$.
+\item For any subexpression $k$ whose bounds $B_k$ has already been computed,
+\begin{enumerate}
+\item Let $Q$ be the variables read by $B_k$.  If $Q \cup W_i$, let $B_i = $ \boundsunknown.  
+\item  Also let $G_k = G_k - W_i$.
 \end{enumerate}
+\end{enumerate}
+\item Check that no subexpression writes variables that are read or written by another subexpression. 
+For each pair of subexpressions $(i, k)$, $CheckOverlap(R_i, W_i, R_k, W_k)$.
 \item Determine the set of equivalent expressions for $e$.  Recall that the equivalent expressions must be non-modifying expressions.
 \begin{enumerate}
-\item  If $Form = PostIncDec$, let $Val = S_1$.  Otherwise, let $Val = e$.
+\item If $Form = PostIncDec$, let $Val = S_1$.  Otherwise, let $Val = e$.
 \item If $Val$ is a non-modifying expression, let $G  = \{ Val \}$.
 \item If $Val$ is a call expression, let $G = \emptyset$.
 \item Otherwise, try to construct a version $Val^\prime$ of $Val$ that computes the same value 
@@ -1166,9 +1167,6 @@ Let $(B_i, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, No
       For any subexpression $S_i$ that is a modifying expression, 
       use an expression from $G_i$ (or $G_1$ when $Form = PostIncDec$). If $G_i$ is empty, $Val^\prime$ cannot
       be constructed.
-      
-      Note that an invariant about each $G_i$ is that it will not contain any uses of variables in $PV_i$.
-      This means that side-effects in other subexpressions do not affect the value of expressions in $G_i$.
 \item If $Val^\prime$ can be constructed, let $G = \{ Val^\prime \}$.  Otherwise, let $G = \emptyset$.	
 \end{enumerate}
 \item Use the rules in Section~\ref{section:inferring-expression-bounds} to compute B using the $B_i$. 
@@ -1176,7 +1174,7 @@ Let $(B_i, \mathit{UC}, UEQ, G_i) =$  $Check(S_i, \mathit{UC}, UEQ, PV_i, No, No
 \end{enumerate}
 \end{enumerate}
 
-The definition of $CheckLValue(e, C, EQ, PV)$ is:
+The definition of $CheckLValue(e, C, EQ)$ is:
 \begin{enumerate}
 \item If $e$ is a variable $v$, let $\mathit{UC} = C$, $UEQ=EQ$,
 \begin{enumerate}
@@ -1198,18 +1196,21 @@ Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
 \item Let $RB = $ \boundsunknown (Checked C does not allow bounds for values stored in arrays).
 \end{enumerate}
 \end{enumerate}
-\item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, EQ, \_) = Check(e1, C, EQ, PV, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown (Checked C does not allow bounds for values pointed to by pointers).
+\item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, EQ, \_) = Check(e1, C, EQ, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown (Checked C does not allow bounds for values pointed to by pointers).
 \item If $e$ has the form $e1[e2]$,
 \label{list:check-unordered-subscript-operands}
 \begin{enumerate}
-\item Let $(B_{e1}, \mathit{UC}_{e1}, {UEQ}_{e1}, \_) = Check(e1, C, EQ, PV \cup Pending(e2), No, 
+\item Let $(B_{e1}, \mathit{UC}_{e1}, {UEQ}_{e1}, \_, R_{e1}, W_{e1}) = Check(e1, C, EQ,  No,
          None)$.
-\item Let $(B_{e2}, \mathit{UC}_{e2}, {UEQ}_{e2}, \_) = Check(e2, \mathit{UC}_{e1}, {EQ}_{e1},
-         PV \cup Pending(e1), No, None)$
+\item Let $(B_{e2}, \mathit{UC}_{e2}, {UEQ}_{e2}, \_, R_{e2}, W_{e2}) = Check(e2, \mathit{UC}_{e1}, {EQ}_{e1},
+         No, None)$
+\item The order of evaluation of $e1$ and $e2$ is unspecified, so 
+         call $CheckOverlap(R_{e1}, W_{e1}, R_{e2}, W_{e2})$.
 \item Choose the $e_i$ that has pointer type.   Let $B = B_{e_i}$, $\mathit{UC} = \mathit{UC}_{e2}$, 
-$UEQ  = {UEQ}_2$,  $G=\emptyset$, and $RB = $ \boundsunknown.
+$UEQ  = {UEQ}_2$,  $G=\emptyset$, $RB = $ \boundsunknown, $R = R_{e1} \cup R_{e2}$, and
+$W = W_{e1} \cup W_{e2}$.
 \end{enumerate}
-\item If $e$ has the form $(e1)$, the result is $CheckLValue(e1, C, EQ, PV)$
+\item If $e$ has the form $(e1)$, the result is $CheckLValue(e1, C, EQ)$
 \end{enumerate}
 
 The definition of $NeedsBoundsCheck(e)$ is:
