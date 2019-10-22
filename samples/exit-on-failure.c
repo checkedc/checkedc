@@ -20,7 +20,7 @@ int main(int argc, nt_array_ptr<char> argv checked[] : count(argc)) {
   // runtime check fails.
 
   // BUG: Compiler crashes when this is done in a checked scope, so put it
-  // in a unhecked scope.   Checked C clang github issue #478.
+  // in a unchecked scope.   Checked C clang github issue #478.
   unchecked { signal(SIGILL, handle_error); }
 
   // Read the integer and print the corresponding argument.
