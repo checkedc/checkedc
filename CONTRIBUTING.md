@@ -30,7 +30,7 @@ to the specification, tests, examples, or implement compiler features.
  - For more substantial changes or changes where discussion is likely needed, please use the Github issues 
    system for the appropriate repo to track your changes.   For the specification, tests, and examples use
  [Checked C issues](https://github.com/Microsoft/checkedc/issues).
-   For compiler implementation issues, use [Checked C clang issues](https://github.com/Microsoft/checkedc-clang). 
+   For compiler implementation issues, use [Checked C clang issues](https://github.com/Microsoft/checkedc-clang/issues). 
  - Please be sure to test your changes before making the pull request. 
 
 ## Licensing
