@@ -23,16 +23,14 @@ to the specification, tests, examples, or implement compiler features.
 
  - To submit changes, please create a personal fork of the appropriate repo.  For specification changes,
    examples, and tests, fork the  [Checked C repo](https://github.com/Microsoft/checkedc).   For compiler
-   changes, fork the [Checked C clang repo](https://github.com/Microsoft/checkedc-clang).   Less commonly,
-   you may need to fork the [Checked C LLVM repo](https://github.com/Microsoft/checkedc-llvm).
+   changes, fork the [Checked C clang repo](https://github.com/Microsoft/checkedc-clang).
 -  Make your changes in  your fork and then make a pull request to merge those changes into  the master branch of the appropriate
    repo.
  - For small changes (such as typos and clarifying wording), you can just directly submit a pull request.
  - For more substantial changes or changes where discussion is likely needed, please use the Github issues 
    system for the appropriate repo to track your changes.   For the specification, tests, and examples use
  [Checked C issues](https://github.com/Microsoft/checkedc/issues).
-   For compiler implementation issues, use [Checked C clang issues](https://github.com/Microsoft/checkedc-clang) or
-   [Checked C LLVM issues](https://github.com/Microsoft/checkedc-llvm). 
+   For compiler implementation issues, use [Checked C clang issues](https://github.com/Microsoft/checkedc-clang). 
  - Please be sure to test your changes before making the pull request. 
 
 ## Licensing
@@ -56,7 +54,7 @@ to use the contribution later.
 Contributions of test and sample code to the Checked C repo are subject to the
 [licensing terms](https://github.com/Microsoft/CheckedC/blob/master/LICENSE.TXT)
 for the repo (MIT license).  Contributions of code to the Checked C LLVM/clang implementation are
-subject to the [CLANG/LLVM licensing terms](https://github.com/Microsoft/checkedc-clang/blob/master/LICENSE.TXT).
+subject to the [CLANG/LLVM licensing terms](https://github.com/microsoft/checkedc-clang/blob/master/clang/LICENSE.TXT).
 
 For minor changes, such as fixing typos, you do not need to sign anything. For other changes, we will ask that you 
 sign a [contribution license agreement (CLA)](https://cla.microsoft.com/) before accepting your change. 
