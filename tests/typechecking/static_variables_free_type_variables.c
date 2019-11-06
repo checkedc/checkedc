@@ -13,37 +13,37 @@ static _Exists(T, struct S<T, T, T>) gs;
 //
 
 _For_any(T, U, V) void f1(_Ptr<T> pt, struct S<T, U, V> s) {
-  static T t; // expected-error {{illegal use of free type variable 'T' in declaration of static variable 't'}} \
-              // expected-note@15 {{free type variable 'T' declared here}}
+  static T t; // expected-error {{static variable 't' cannot have type variable 'T' that is bound by an enclosing scope}} \
+              // expected-note@15 {{type variable 'T' declared here}}
 
-  static _Ptr<U> p; // expected-error {{illegal use of free type variable 'U' in declaration of static variable 'p'}} \
-                    // expected-note@15 {{free type variable 'U' declared here}}
+  static _Ptr<U> p; // expected-error {{static variable 'p' cannot have type variable 'U' that is bound by an enclosing scope}} \
+                    // expected-note@15 {{type variable 'U' declared here}}
 
-  static _Array_ptr<V> a1; // expected-error {{illegal use of free type variable 'V' in declaration of static variable 'a1'}} \
-                           // expected-note@15 {{free type variable 'V' declared here}}
+  static _Array_ptr<V> a1; // expected-error {{static variable 'a1' cannot have type variable 'V' that is bound by an enclosing scope}} \
+                           // expected-note@15 {{type variable 'V' declared here}}
 
-  static _Array_ptr<_Array_ptr<T>> a2; // expected-error {{illegal use of free type variable 'T' in declaration of static variable 'a2'}} \
-                                       // expected-note@15 {{free type variable 'T' declared here}}
+  static _Array_ptr<_Array_ptr<T>> a2; // expected-error {{static variable 'a2' cannot have type variable 'T' that is bound by an enclosing scope}} \
+                                       // expected-note@15 {{type variable 'T' declared here}}
 
-  static struct S<T, U, T> s1; // expected-error {{illegal use of free type variable 'T' in declaration of static variable 's1'}} \
-                               // expected-note@15 {{free type variable 'T' declared here}} \
-                               // expected-error {{illegal use of free type variable 'U' in declaration of static variable 's1'}} \
-                               // expected-note@15 {{free type variable 'U' declared here}}
+  static struct S<T, U, T> s1; // expected-error {{static variable 's1' cannot have type variable 'T' that is bound by an enclosing scope}} \
+                               // expected-note@15 {{type variable 'T' declared here}} \
+                               // expected-error {{static variable 's1' cannot have type variable 'U' that is bound by an enclosing scope}} \
+                               // expected-note@15 {{type variable 'U' declared here}}
 
-  static _Exists(T, _Ptr<U>) e1; // expected-error {{illegal use of free type variable 'U' in declaration of static variable 'e1'}} \
-                                 // expected-note@15 {{free type variable 'U' declared here}}
+  static _Exists(T, _Ptr<U>) e1; // expected-error {{static variable 'e1' cannot have type variable 'U' that is bound by an enclosing scope}} \
+                                 // expected-note@15 {{type variable 'U' declared here}}
 
-  static _Exists(T, struct S<T, U, V>) e2; // expected-error {{illegal use of free type variable 'U' in declaration of static variable 'e2'}} \
-                                           // expected-note@15 {{free type variable 'U' declared here}} \
-                                           // expected-error {{illegal use of free type variable 'V' in declaration of static variable 'e2'}} \
-                                           // expected-note@15 {{free type variable 'V' declared here}}
+  static _Exists(T, struct S<T, U, V>) e2; // expected-error {{static variable 'e2' cannot have type variable 'U' that is bound by an enclosing scope}} \
+                                           // expected-note@15 {{type variable 'U' declared here}} \
+                                           // expected-error {{static variable 'e2' cannot have type variable 'V' that is bound by an enclosing scope}} \
+                                           // expected-note@15 {{type variable 'V' declared here}}
 
-  static _Exists(A, struct S<T, U, V>) e3; // expected-error {{illegal use of free type variable 'T' in declaration of static variable 'e3'}} \
-                                           // expected-note@15 {{free type variable 'T' declared here}} \
-                                           // expected-error {{illegal use of free type variable 'U' in declaration of static variable 'e3'}} \
-                                           // expected-note@15 {{free type variable 'U' declared here}} \
-                                           // expected-error {{illegal use of free type variable 'V' in declaration of static variable 'e3'}} \
-                                           // expected-note@15 {{free type variable 'V' declared here}}
+  static _Exists(A, struct S<T, U, V>) e3; // expected-error {{static variable 'e3' cannot have type variable 'T' that is bound by an enclosing scope}} \
+                                           // expected-note@15 {{type variable 'T' declared here}} \
+                                           // expected-error {{static variable 'e3' cannot have type variable 'U' that is bound by an enclosing scope}} \
+                                           // expected-note@15 {{type variable 'U' declared here}} \
+                                           // expected-error {{static variable 'e3' cannot have type variable 'V' that is bound by an enclosing scope}} \
+                                           // expected-note@15 {{type variable 'V' declared here}}
 
   // Static variable declarations can use integral and pointer types and bound type variables.
   static int i;
