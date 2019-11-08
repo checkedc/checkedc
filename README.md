@@ -15,7 +15,7 @@ and test code.
 
 We have positions available for a
 [Principal Software Engineer](https://careers.microsoft.com/us/en/job/725522/Principal-Software-Engineer) and
-[Senior Software Engineer](https://careers.microsoft.com/us/en/job/725509/Senior-Software-Engineer).
+[Senior Software Engineer](https://careers.microsoft.com/us/en/job/731826/Senior-Software-Engineer).
 We are looking for engineers who have production compiler development experience and who value shipping software.
 
 # Papers
