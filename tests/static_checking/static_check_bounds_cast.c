@@ -207,21 +207,21 @@ extern void f20(void *p) {
 
 extern void f21(array_ptr<char> buf : count(len), int len) {
   array_ptr<int> intbuf : count(12) = _Dynamic_bounds_cast<array_ptr<int>>(buf, bounds(intbuf, intbuf + 12));
-  int i = intbuf[12]; // expected-warning {{out-of-bounds memory access}} \
+  int i = intbuf[12]; // expected-error {{out-of-bounds memory access}} \
                       // expected-note {{accesses memory at or above the upper bound}} \
                       // expected-note {{(expanded) inferred bounds are 'bounds(intbuf, intbuf + 12)'}}
 }
 
 extern void f22() {
   array_ptr<int> intbuf : count(2) = _Dynamic_bounds_cast<array_ptr<int>>(h8(), count(2));
-  int i = intbuf[2]; // expected-warning {{out-of-bounds memory access}} \
+  int i = intbuf[2]; // expected-error {{out-of-bounds memory access}} \
                      // expected-note {{accesses memory at or above the upper bound}} \
                      // expected-note {{(expanded) inferred bounds are 'bounds(intbuf, intbuf + 2)'}}
 }
 
 extern void f23() {
   array_ptr<char> buf : count(10) = _Assume_bounds_cast<array_ptr<char>>(h7(), count(10));
-  char c = buf[10]; // expected-warning {{out-of-bounds memory access}} \
+  char c = buf[10]; // expected-error {{out-of-bounds memory access}} \
                     // expected-note {{accesses memory at or above the upper bound}} \
                     // expected-note {{(expanded) inferred bounds are 'bounds(buf, buf + 10)'}}
 }
@@ -229,14 +229,14 @@ extern void f23() {
 extern void f24() {
   array_ptr<char> buf : count(3) = "abc";
   buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3));
-  char c = buf[3]; // expected-warning {{out-of-bounds memory access}} \
+  char c = buf[3]; // expected-error {{out-of-bounds memory access}} \
                    // expected-note {{accesses memory at or above the upper bound}} \
                    // expected-note {{(expanded) inferred bounds are 'bounds(buf, buf + 3)'}}
 }
 
 extern void f25(array_ptr<char> buf : count(len), int len) {
   array_ptr<int> intbuf : count(6) = _Dynamic_bounds_cast<array_ptr<int>>(buf + 5, count(6));
-  int i = intbuf[6]; // expected-warning {{out-of-bounds memory access}} \
+  int i = intbuf[6]; // expected-error {{out-of-bounds memory access}} \
                      // expected-note {{accesses memory at or above the upper bound}} \
                      // expected-note {{(expanded) inferred bounds are 'bounds(intbuf, intbuf + 6)'}}
 }

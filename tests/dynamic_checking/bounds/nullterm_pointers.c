@@ -1,7 +1,7 @@
 // Test runtime bounds checking in checked scopes of uses of pointers
 // and arrays with bounds-safe interfaces.
 //
-// RUN: %clang %s -o %t1 -Werror -Wno-unused-value -Wno-check-memory-accesses %checkedc_target_flags
+// RUN: %clang %s -o %t1 -Werror -Wno-unused-value -Wno-check-memory-accesses -Wno-check-bounds-decls-unchecked-scope %checkedc_target_flags
 // RUN: %checkedc_rununder %t1 1 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-1
 // RUN: %checkedc_rununder %t1 2 | FileCheck %s --check-prefixes=CHECK
 // RUN: %checkedc_rununder %t1 3 | FileCheck %s --check-prefixes=CHECK
@@ -182,9 +182,9 @@ int test1(void) {
 // to cause a runtime fault.
 int test2(void) {
   array_ptr<char> s : count(0) = "hello";
-  int i = 0;
-  while (*s) {
-    i += *s;
+  int i = 0, j = 0;
+  while (*(s+j)) {
+    i += *(s+j);
     s++;
   }
   // CHECK-NOT: expected bounds failure on read
@@ -210,7 +210,8 @@ void test3(void) {
 void test4(void) {
   char data checked[6] = "hello";
   array_ptr<char> s : count(6) = data;
-  *(s + 6) = 'd';
+  int k = 6;
+  *(s + k) = 'd';
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return;
@@ -233,7 +234,8 @@ void test6(void) {
   char data checked[6] = "hello";
   array_ptr<char> s : count(6) = data;
   char result = 0;
-  s[6] = result;
+  int k = 6;
+  s[k] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return;
@@ -246,7 +248,8 @@ void test7(void) {
   char data nt_checked[6] = "hello";
   array_ptr<char> s : count(5) = data;
   char result = 0;
-  s[5 + 1] = result;
+  int k = 5;
+  s[k + 1] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return;
@@ -258,7 +261,8 @@ void test8(void) {
   char data checked[6] = "hello";
   array_ptr<char> s : count(6) = data;
   char result = 0;
-  s[6 + 1] = result;
+  int k = 6;
+  s[k + 1] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return;
@@ -281,7 +285,8 @@ void test9(void) {
 void test10(void) {
   char data nt_checked[6] = "hello";
   nt_array_ptr<char> s : bounds(data + 6, data + 5) = data;
-  s[6] = 0;
+  int k = 6;
+  s[k] = 0;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
   return;

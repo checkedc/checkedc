@@ -273,9 +273,10 @@ void failing_test_3(void) {
 void failing_test_4(void) {
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
   array_ptr<int> s : count(3) = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
-  
+
+  int k = 5;
   printf("Printable1\n");
-  printf("Unprintable2: %d\n", *(s+5));
+  printf("Unprintable2: %d\n", *(s+k));
   
   puts("Unexpected Success");
 }

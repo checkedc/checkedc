@@ -333,7 +333,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
 
   // assignment through pointer
   *t1 = 1;            // expected-error {{expression has unknown bounds}}
-  *t2 = 2;            // expected-warning {{out-of-bounds memory access}}
+  *t2 = 2;
   *t3 = 3;
 
   // read through a pointer
@@ -343,7 +343,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
 
   // assignment via subcript
   t1[0] = 1;          // expected-error {{expression has unknown bounds}}
-  t2[0] = 3;          // expected-warning {{out-of-bounds memory access}}
+  t2[0] = 3;
   t3[0] = 4;
 
   // read via subscript
@@ -354,19 +354,19 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
 
   // pre-increment/post-increment
   ++(*t1);            // expected-error {{expression has unknown bounds}}
-  ++(*t2);            // expected-warning {{out-of-bounds memory access}}
+  ++(*t2);            // expected-error {{out-of-bounds memory access}}
   ++(*t3);
 
   --(*t1);            // expected-error {{expression has unknown bounds}}
-  --(*t2);            // expected-warning {{out-of-bounds memory access}}
+  --(*t2);            // expected-error {{out-of-bounds memory access}}
   --(*t3);
 
   (*t1)++;            // expected-error {{expression has unknown bounds}}
-  (*t2)++;            // expected-warning {{out-of-bounds memory access}}
+  (*t2)++;            // expected-error {{out-of-bounds memory access}}
   (*t3)++;
 
   --(*t1);            // expected-error {{expression has unknown bounds}}
-  --(*t2);            // expected-warning {{out-of-bounds memory access}}
+  --(*t2);            // expected-error {{out-of-bounds memory access}}
   --(*t3);
 
   // operations involving struct members
