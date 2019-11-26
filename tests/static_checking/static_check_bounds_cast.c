@@ -58,10 +58,10 @@ extern void f3() {
   *(_Assume_bounds_cast<ptr<int>>(r) + 2) = 4; // expected-error{{arithmetic on _Ptr type}}
   // For the statement below, the compiler figures out that r + 2 is out of bounds r : count(1).
   // r : count(1) normals to bounds(r, r + 1), and r + 2 is out of that range.
-  *(_Dynamic_bounds_cast<array_ptr<int>>(r, count(1)) + 2) = 4; // expected-error {{expression has unknown bounds}} expected-warning {{out-of-bounds memory access}}
+  *(_Dynamic_bounds_cast<array_ptr<int>>(r, count(1)) + 2) = 4; // expected-error {{expression has unknown bounds}} expected-error {{out-of-bounds memory access}}
   // For the statement below, the compiler figures out that t[3] is out of bounds t : count(3).
   // t : count(3) normals to bounds(t, t + 3), and t[3] is out of that range.
-  int n = (_Dynamic_bounds_cast<array_ptr<int>>(t, count(3)))[3]; // expected-warning {{out-of-bounds memory access}}
+  int n = (_Dynamic_bounds_cast<array_ptr<int>>(t, count(3)))[3]; // expected-error {{out-of-bounds memory access}}
   s1 = _Dynamic_bounds_cast<array_ptr<int>>(p, count(5)); // expected-error {{expression has unknown bounds}}
   s2 = _Assume_bounds_cast<array_ptr<int>>(r, count(5));
 }
