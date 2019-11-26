@@ -1,7 +1,7 @@
 // Test runtime bounds checking in checked scopes of uses of pointers
 // and arrays with bounds-safe interfaces.
 //
-// RUN: %clang %s -o %t1 -Werror -Wno-unused-value -Wno-check-memory-accesses -Wno-check-bounds-decls-unchecked-scope %checkedc_target_flags
+// RUN: %clang %s -o %t1 -Werror -Wno-unused-value -Wno-check-bounds-decls-unchecked-scope %checkedc_target_flags
 // RUN: %checkedc_rununder %t1 1 | FileCheck %s --check-prefixes=CHECK,NO-BOUNDS-FAILURES-1
 // RUN: %checkedc_rununder %t1 2 | FileCheck %s --check-prefixes=CHECK
 // RUN: %checkedc_rununder %t1 3 | FileCheck %s --check-prefixes=CHECK
@@ -40,15 +40,15 @@ struct CountedString {
 };
 
 int test1(void);
-int test2(void);
+int test2(int k);
 void test3(void);
-void test4(void);
+void test4(int k);
 void test5(void);
-void test6(void);
-void test7(void);
-void test8(void);
+void test6(int k);
+void test7(int k);
+void test8(int k);
 void test9(void);
-void test10(void);
+void test10(int k);
 
 int test21(struct CountedNullTermString *p);
 int test22(struct CountedString *p);
@@ -105,31 +105,31 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
       test1();
       break;
     case 2:
-      test2();
+      test2(0);
       break;
     case 3:
       test3();
       break;
     case 4:
-      test4();
+      test4(6);
       break;
     case 5:
       test5();
       break;
     case 6:
-      test6();
+      test6(6);
       break;
     case 7:
-      test7();
+      test7(5);
       break;
     case 8:
-      test8();
+      test8(6);
       break;
     case 9:
       test9();
       break;
     case 10:
-      test10();
+      test10(6);
       break;
 
     case 21:
@@ -179,12 +179,12 @@ int test1(void) {
 }
 
 // Read exactly at the upper bound of a plain array_ptr.  Expected
-// to cause a runtime fault.
-int test2(void) {
+// to cause a runtime fault (k = 0)
+int test2(int k) {
   array_ptr<char> s : count(0) = "hello";
-  int i = 0, j = 0;
-  while (*(s+j)) {
-    i += *(s+j);
+  int i = 0;
+  while (*(s+k)) {
+    i += *(s+k);
     s++;
   }
   // CHECK-NOT: expected bounds failure on read
@@ -206,11 +206,10 @@ void test3(void) {
   return;
 }
 
-// Write a non-zero character exactly at the upper bound of an array_ptr.
-void test4(void) {
+// Write a non-zero character exactly at the upper bound of an array_ptr (k = 6).
+void test4(int k) {
   char data checked[6] = "hello";
   array_ptr<char> s : count(6) = data;
-  int k = 6;
   *(s + k) = 'd';
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
@@ -229,12 +228,11 @@ void test5(void) {
 }
 
 // Write 0 at the upper bound of an array_ptr<char>.  Should cause
-// a runtime fault.
-void test6(void) {
+// a runtime fault (k = 6).
+void test6(int k) {
   char data checked[6] = "hello";
   array_ptr<char> s : count(6) = data;
   char result = 0;
-  int k = 6;
   s[k] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
@@ -243,12 +241,11 @@ void test6(void) {
 
 
 // Write 0 at memory location one past the upper bound of a string.
-// Expected to cause a runtime fault.
-void test7(void) {
+// Expected to cause a runtime fault (k = 5).
+void test7(int k) {
   char data nt_checked[6] = "hello";
   array_ptr<char> s : count(5) = data;
   char result = 0;
-  int k = 5;
   s[k + 1] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
@@ -256,12 +253,11 @@ void test7(void) {
 }
 
 // Write 0 at memory location one past the upper bound of an array_ptr<char>.
-// Expected to a cause a runtime fault.
-void test8(void) {
+// Expected to a cause a runtime fault (k = 6).
+void test8(int k) {
   char data checked[6] = "hello";
   array_ptr<char> s : count(6) = data;
   char result = 0;
-  int k = 6;
   s[k + 1] = result;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
@@ -281,11 +277,10 @@ void test9(void) {
 
 
 // Write 0 at the upper bound of a range for a null-terminated pointer,  where
-// the lower bound is above the upper bound.  Expected to cause a runtime fault.
-void test10(void) {
+// the lower bound is above the upper bound.  Expected to cause a runtime fault (k = 6).
+void test10(int k) {
   char data nt_checked[6] = "hello";
   nt_array_ptr<char> s : bounds(data + 6, data + 5) = data;
-  int k = 6;
   s[k] = 0;
   // CHECK-NOT: expected bounds failure on write
   puts("expected bounds failure on write");
