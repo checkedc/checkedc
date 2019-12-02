@@ -1,6 +1,6 @@
 // The following lines are for the clang automated test suite
 //
-// RUN: %clang %s -o %t -Werror -Wno-check-memory-accesses
+// RUN: %clang %s -o %t -Werror
 // RUN: %t pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
 // RUN: %t pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
 // RUN: %t pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-3
@@ -27,7 +27,7 @@ void passing_test_3(void);
 void failing_test_1(void);
 void failing_test_2(void);
 void failing_test_3(void);
-void failing_test_4(void);
+void failing_test_4(int k);
 void failing_test_5(array_ptr<char> pc : count(len), unsigned len);
 void failing_test_6(array_ptr<char> pc : count(len), unsigned len);
 void failing_test_7(array_ptr<char> pc : count(len), unsigned len);
@@ -113,7 +113,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-FAIL-4 : Printable1
     // CHECK-FAIL-4-NOT: Unprintable2
     // CHECK-FAIL-4-NOT: Unexpected Success
-    failing_test_4();
+    failing_test_4(5);
   } else if (strcmp(argv[1], "fail5") == 0) {
     array_ptr<char> p : count(12) = "\0\0\0\0\0\0\0\0abcd";
     // CHECK-FAIL-5: Successful pointer conversion
@@ -270,12 +270,13 @@ void failing_test_3(void) {
 
 // bounds_cast insert dynamic_check(r <= r && (r+5) <= r+10) -> OK;
 // dereference insert dynamic_check(s <= s+5 && (s+5) < s+3) -> FAIL
-void failing_test_4(void) {
+// k = 5
+void failing_test_4(int k) {
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
   array_ptr<int> s : count(3) = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
-  
+
   printf("Printable1\n");
-  printf("Unprintable2: %d\n", *(s+5));
+  printf("Unprintable2: %d\n", *(s+k));
   
   puts("Unexpected Success");
 }

@@ -32,10 +32,10 @@ void pass1(_Ptr<const char> s) {
   printf("%c\n", __func__[4]);
 }
 
-void fail1() {
+void fail1(int x) {
 // FAIL1: Error: out-of-bounds access of predefined literal
 #pragma CHECKED_SCOPE ON
-  char c = __func__[100];
+  char c = __func__[x];
 #pragma CHECKED_SCOPE OFF
 }
 
@@ -63,7 +63,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
       pass1(__func__);
       break;
     case 100:
-      fail1();
+      fail1(100);
       break;
 
     default:

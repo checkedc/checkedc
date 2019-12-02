@@ -7,7 +7,7 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang %s -o %t1 -DTEST_READ -Werror -Wno-unused-value -Wno-check-memory-accesses %checkedc_target_flags
+// RUN: %clang %s -o %t1 -DTEST_READ -Werror -Wno-unused-value -Wno-check-bounds-decls-unchecked-scope %checkedc_target_flags
 // RUN: %checkedc_rununder %t1 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-READ
 // RUN: %checkedc_rununder %t1 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-READ
 // RUN: %checkedc_rununder %t1 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-READ
@@ -16,7 +16,7 @@
 // RUN: %checkedc_rununder %t1 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
 // RUN: %checkedc_rununder %t1 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 //
-// RUN: %clang %s -o %t2 -DTEST_WRITE -Werror -Wno-check-memory-accesses %checkedc_target_flags
+// RUN: %clang %s -o %t2 -DTEST_WRITE -Werror -Wno-check-bounds-decls-unchecked-scope %checkedc_target_flags
 // RUN: %checkedc_rununder %t2 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-WRITE
 // RUN: %checkedc_rununder %t2 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-WRITE
 // RUN: %checkedc_rununder %t2 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-WRITE
@@ -25,7 +25,7 @@
 // RUN: %checkedc_rununder %t2 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
 // RUN: %checkedc_rununder %t2 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 
-// RUN: %clang %s -o %t3 -DTEST_INCREMENT -Werror -Wno-check-memory-accesses %checkedc_target_flags
+// RUN: %clang %s -o %t3 -DTEST_INCREMENT -Werror -Wno-check-bounds-decls-unchecked-scope %checkedc_target_flags
 // RUN: %checkedc_rununder %t3 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-INCREMENT
 // RUN: %checkedc_rununder %t3 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-INCREMENT
 // RUN: %checkedc_rununder %t3 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-INCREMENT
@@ -34,7 +34,7 @@
 // RUN: %checkedc_rununder %t3 fail3 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-3
 // RUN: %checkedc_rununder %t3 fail4 | FileCheck %s --check-prefixes=CHECK,CHECK-FAIL,FAIL-4
 
-// RUN: %clang %s -o %t4 -DTEST_COMPOUND_ASSIGN -Werror -Wno-check-memory-accesses %checkedc_target_flags
+// RUN: %clang %s -o %t4 -DTEST_COMPOUND_ASSIGN -Werror -Wno-check-bounds-decls-unchecked-scope %checkedc_target_flags
 // RUN: %checkedc_rununder %t4 pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-1-COMPOUND-ASSIGN
 // RUN: %checkedc_rununder %t4 pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-2-COMPOUND-ASSIGN
 // RUN: %checkedc_rununder %t4 pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,PASS-3-COMPOUND-ASSIGN
@@ -66,13 +66,15 @@
 #define TEST_OP(e1, e2) e1 -= e2;
 #endif
 
+int g_zero = 0;
+
 void passing_test_1(void);
 void passing_test_2(array_ptr<int> a : count(1));
 void passing_test_3(array_ptr<int> a : count(len), int len);
 
-void failing_test_1(void);
-void failing_test_2(void);
-void failing_test_3(array_ptr<int> a : count(0));
+void failing_test_1(int k);
+void failing_test_2(int k);
+void failing_test_3(array_ptr<int> a : count(g_zero));
 void failing_test_4(array_ptr<int> a : count(len), int len);
 
 // Handle an out-of-bounds reference by immediately exiting. This causes
@@ -146,12 +148,12 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   else if (strcmp(argv[1], "fail1") == 0) {
     // FAIL-1-NOT: Unreachable
     // FAIL-1-NOT: Unexpected Success
-    failing_test_1();
+    failing_test_1(0);
   }
   else if (strcmp(argv[1], "fail2") == 0) {
     // FAIL-2-NOT: Unreachable
     // FAIL-2-NOT: Unexpected Success
-    failing_test_2();
+    failing_test_2(2);
   }
   else if (strcmp(argv[1], "fail3") == 0) {
     // FAIL-3-NOT: Unreachable
@@ -205,10 +207,10 @@ void passing_test_3(array_ptr<int> a : count(len), int len) {
   puts("Expected Success");
 }
 
-// Bounds describe empty range, no deref
-void failing_test_1(void) {
+// Bounds describe empty range (function is called with k=0), no deref
+void failing_test_1(int k) {
   int a checked[2] = { 0, 0 };
-  array_ptr<int> b : bounds(a, a) = a;
+  array_ptr<int> b : bounds(a, a + k) = a;
   
   TEST_OP(*b, 1);
   printf("Unreachable: %d\n", *b);
@@ -216,10 +218,10 @@ void failing_test_1(void) {
   puts("Unexpected Success");
 }
 
-// Bounds describe empty range (a + 2 > a), no deref
-void failing_test_2(void) {
+// Bounds describe invalid range (function is called with k=2, a + 2 > a), no deref
+void failing_test_2(int k) {
   int a checked[3] = { 0, 0, 0 };
-  array_ptr<int> b : bounds(a + 2, a) = a;
+  array_ptr<int> b : bounds(a + k, a) = a;
 
   TEST_OP(*b, 2);
   printf("Unreachable: %d\n", *b);
@@ -228,7 +230,7 @@ void failing_test_2(void) {
 }
 
 // Bounds describe empty range, no deref
-void failing_test_3(array_ptr<int> a : count(0)) {
+void failing_test_3(array_ptr<int> a : count(g_zero)) {
   TEST_OP(*a, 3);
   printf("Unreachable: %d\n", *a);
 
