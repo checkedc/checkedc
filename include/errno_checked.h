@@ -23,6 +23,8 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 __declspec(dllimport) int* __cdecl _errno(void) : itype(_Ptr<int>);
+#elif defined(__APPLE__)
+extern int* __errno_location(void) : itype(_Ptr<int>);
 #else
 extern int* __errno_location(void) : itype(_Ptr<int>) __THROW __attribute_const__;
 #endif
