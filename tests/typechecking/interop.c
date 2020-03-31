@@ -607,3 +607,23 @@ void g82(callback_fn3 fn) {
   int arr checked[10][10];
   (*fn)(arr);
 }
+
+//
+// Test assignments involving non-variable lvalues
+// and bounds-safe interfaces
+//
+
+// Assign a checked pointer to the dereference of an
+// unchecked pointer with a bounds-safe interface.
+void g90(int **interop_ptr : itype(ptr<ptr<int>>), ptr<int> checked_ptr) {
+  *interop_ptr = checked_ptr;
+  *(interop_ptr - 1) = checked_ptr;
+  *(2 + interop_ptr) = checked_ptr;
+}
+
+// Assign a checked pointer to an element of an 
+// unchecked array with a bounds-safe interface.
+void g91(int *arr[3] : itype(ptr<int> checked [3]), ptr<int> checked_ptr) {
+  arr[0] = checked_ptr;
+  2[arr] = checked_ptr;
+}
