@@ -1882,3 +1882,23 @@ extern void check_vla(int i) {
   int z checked[10][i]; // expected-error {{checked variable-length array not allowed}}
   int a nt_checked[i];  // expected-error {{checked variable-length array not allowed}}
 }
+
+// Test assigning an unchecked pointer with an nt_array_ptr
+// bounds-safe interface to a checked nt_array_ptr.
+extern void check_nt_bounds_safe_interface(const char *interop_string : itype(nt_array_ptr<const char>),
+                                           char **interop_ptr : itype(nt_array_ptr<ptr<char>>),
+                                           char checked_arr nt_checked[3],
+                                           char interop_arr[3] : itype(char nt_checked[3])) {
+  // LHS of assignment has nt_array_ptr<T> type and RHS of assignment
+  // is an unchecked pointer with nt_array_ptr<T> bounds-safe interface.
+  nt_array_ptr<const char> checked_str = interop_string;
+  nt_array_ptr<ptr<char>> checked_ptr = interop_ptr;
+
+  // LHS of assignment has nt_array_ptr<T> type and RHS of assigment
+  // is an unchecked pointer with nt_array_ptr<U> bounds-safe interface,
+  // where T and U are not assignment-compatible.
+  checked_str = interop_ptr; // expected-error {{assigning to '_Nt_array_ptr<const char>' from incompatible type 'char **'}}
+
+  // LHS of assignment does not have nt_array_ptr<T> type.
+  checked_arr = interop_arr; // expected-error {{assigning to '_Nt_array_ptr<char>' from incompatible type 'char *'}}
+}
