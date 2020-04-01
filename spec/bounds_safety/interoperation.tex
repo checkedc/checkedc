@@ -954,6 +954,18 @@ They are done at:
      implicitly to the unchecked pointer type.
 \item
     Member assignments: a similar conversion is done for member assignments.
+\item Assignments to pointer dereferences: if the pointer dereference expression
+  being assigned to has an unchecked pointer type and a bounds-safe interface, the
+  right-hand side expression has a checked pointer type, and the right-hand side
+  expression referent type is assignment compatible with the referent type of the
+  pointer dereference expression, then the right-hand side expression will be
+  converted implicitly to the unchecked pointer type.
+\item Assignments to array subscripts: if the array subscript expression being
+  assigned to has an unchecked pointer type and a bounds-safe interface, the
+  right-hand side expression has a checked pointer type, and the right-hand
+  side expression referent type is assignment compatible with the referent
+  type of the array subscript expression, then the right-hand side expression
+  wil be converted implicitly to the unchecked pointer type.
 \item Return statements: if a function has an unchecked pointer return type and a
   return bounds-safe interface, and a return statement in the body of the function
   has an expression with a checked pointer type, and the return statement expression is
