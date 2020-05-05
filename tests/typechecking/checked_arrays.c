@@ -1888,7 +1888,7 @@ extern void check_vla(int i) {
 extern void check_nt_bounds_safe_interface(const char *interop_string : itype(nt_array_ptr<const char>),
                                            char **interop_ptr : itype(nt_array_ptr<ptr<char>>),
                                            char checked_arr nt_checked[3],
-                                           char interop_arr[3] : itype(char nt_checked[3])) {
+                                           char unchecked_arr[3]) {
   // LHS of assignment has nt_array_ptr<T> type and RHS of assignment
   // is an unchecked pointer with nt_array_ptr<T> bounds-safe interface.
   nt_array_ptr<const char> checked_str = interop_string;
@@ -1899,6 +1899,6 @@ extern void check_nt_bounds_safe_interface(const char *interop_string : itype(nt
   // where T and U are not assignment-compatible.
   checked_str = interop_ptr; // expected-error {{assigning to '_Nt_array_ptr<const char>' from incompatible type 'char **'}}
 
-  // LHS of assignment does not have nt_array_ptr<T> type.
-  checked_arr = interop_arr; // expected-error {{assigning to '_Nt_array_ptr<char>' from incompatible type 'char *'}}
+  // RHS of assignment has no bounds-safe interface type.
+  checked_arr = unchecked_arr; // expected-error {{assigning to '_Nt_array_ptr<char>' from incompatible type 'char *'}}
 }
