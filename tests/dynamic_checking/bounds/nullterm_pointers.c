@@ -198,7 +198,11 @@ void test3(void) {
   char data nt_checked[6] = "hello";
   nt_array_ptr<char> s : count(0) = data;
   while (*s) {
-    *s = 'd';
+    // After we have established that the value at the upper bound of an
+    // nt_array_ptr is non-null, we widen its bounds by 1. So in this case, the
+    // new bounds of s are (s, s+1). So (s+1) now refers to the new upper bound
+    // of the string.
+    *(s+1) = 'd';
     s++;
   }
   // CHECK-NOT: expected bounds failure on write
