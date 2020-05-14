@@ -33,7 +33,7 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   // address-of
   int tmp1 = 0;
   arg4 = &tmp1;
-  arg4 = &*arg4;
+  arg4 = &*arg4;          // expected-error {{expression has unknown bounds}}
   arg4 = &*arg1;          // expected-error {{expression has unknown bounds}}
   arg4 = &s.f;
   ptr<struct S1> ps = &s;
@@ -230,11 +230,11 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   arg1 = &*arr;           // TODO: investigate why this isn't a typechecking error.
   arg1 = &arr[1];         // expected-error {{incompatible type}}
   arg2 = &*arg1;          // expected-error {{expression has unknown bounds}}
-  arg2 = &*arg2;
+  arg2 = &*arg2;          // expected-error {{expression has unknown bounds}}
   arg2 = &*arg3;
   arg3 = &*arg1;          // expected-error {{expression has unknown bounds}}
   arg3 = &*arg2;          // expected-error {{declared bounds for arg3 are invalid after assignment}}
-  arg3 = &*arg3;
+  arg3 = &*arg3;          // expected-error {{expression has unknown bounds}}
 
   // variables
 

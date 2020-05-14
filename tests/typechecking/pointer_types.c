@@ -2049,8 +2049,8 @@ void check_pointer_arithmetic(void)
    s_tmp = s--;
    s_tmp = ++s;
    s_tmp = --s;
-   s_tmp = (s += 1);
-   s_tmp = (s -= 1);
+   s_tmp = (s += 1); // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
+   s_tmp = (s -= 1); // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
    // 0 interpreted as an integer, not null
    s_tmp = s + 0;
    s_tmp = 0 + s;

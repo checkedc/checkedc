@@ -97,7 +97,7 @@ extern void f10() {
 extern void f11() {
   array_ptr<int> r : count(3) = 0;
   ptr<int> q = 0;
-  r = _Assume_bounds_cast<array_ptr<int>>(h4(), bounds(r, r + 4)  rel_align(int));
+  r = _Assume_bounds_cast<array_ptr<int>>(h4(), bounds(r, r + 4)  rel_align(int)); // expected-error {{expression has unknown bounds}}
   q = _Assume_bounds_cast<ptr<int>>(h4());
 }
 
