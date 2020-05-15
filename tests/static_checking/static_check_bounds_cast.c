@@ -152,7 +152,7 @@ extern void f18(int i) {
   r = _Dynamic_bounds_cast<array_ptr<int>>(q, bounds(q, q + 1)); // expected-error {{arithmetic on _Ptr type}}
 
   r = _Dynamic_bounds_cast<array_ptr<int>>(r, count(1));        // expected-error {{declared bounds for r are invalid after assignment}}
-  r = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(r, r + 1)); // expected-error {{expression has unknown bounds}} TODO: revert to 'declared bounds for r are invalid after assignment' after checkedc-clang PR #834 is merged
+  r = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(r, r + 1)); // expected-error {{declared bounds for r are invalid after assignment}}
 
   p = _Dynamic_bounds_cast<char *>(p); // expected-warning{{incompatible pointer types assigning}} expected-error{{expression has unknown bounds}}
 
