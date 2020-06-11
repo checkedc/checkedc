@@ -33,7 +33,7 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   // address-of
   int tmp1 = 0;
   arg4 = &tmp1;
-  arg4 = &*arg4;          // expected-error {{inferred bounds for 'arg4' are unknown after statement}} TODO: remove this expected error after merging checkedc-clang PR #840
+  arg4 = &*arg4;
   arg4 = &*arg1;          // expected-error {{inferred bounds for 'arg4' are unknown after statement}}
   arg4 = &s.f;
   ptr<struct S1> ps = &s;
@@ -231,13 +231,13 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   arg1 = &*arr;           // TODO: investigate why this isn't a typechecking error.
   arg1 = &arr[1];         // expected-error {{incompatible type}}
   arg2 = &*arg1;          // expected-error {{inferred bounds for 'arg2' are unknown after statement}}
-  arg2 = &*arg2;          // expected-error {{inferred bounds for 'arg2' are unknown after statement}} TODO: remove this expected error after merging checkedc-clang PR #840
+  arg2 = &*arg2;
   // TODO: checkedc-clang issue #845: equality between arg2 and &*arg3
   // needs to be recorded in order to properly validate the bounds of arg2.
   arg2 = &*arg3;          // expected-warning {{cannot prove declared bounds for 'arg2' are valid after statement}}
   arg3 = &*arg1;          // expected-error {{inferred bounds for 'arg3' are unknown after statement}}
   arg3 = &*arg2;          // expected-error {{declared bounds for 'arg3' are invalid after statement}}
-  arg3 = &*arg3;          // expected-error {{inferred bounds for 'arg3' are unknown after statement}} TODO: remove this expected error after merging checkedc-clang PR #840
+  arg3 = &*arg3;
 
   // variables
 
