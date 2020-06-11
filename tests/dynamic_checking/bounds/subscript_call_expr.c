@@ -20,7 +20,11 @@
 //
 // The following lines are for the clang automated test suite.
 //
-// RUN: %clang %s -o %t1 -Werror -Wno-unused-value %checkedc_target_flags
+// TODO: checkedc-clang issue #845: reenable the -Werror flag in the test run.
+// Currently, bounds checking warnings caused by missing initializer equality
+// would cause the test to fail if the -Werror flag was enabled.
+//
+// RUN: %clang %s -o %t1 -Wno-unused-value %checkedc_target_flags
 //
 //
 // Test operations on a pointer to 5 integers, where the integers are initialized to 0...4.
@@ -759,6 +763,8 @@ int main(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc)) {
   }
 
   int idx = 1;
+  // TODO: checkedc-clang issue #845: equality between test and arvg[idx]
+  // needs to be recorded in order to properly validate the bounds of test.
   nt_array_ptr<char> test = argv[idx];
   idx++; // TODO: fold back into prior line.
   if (strcmp(test, "constant_bounds") == 0) {

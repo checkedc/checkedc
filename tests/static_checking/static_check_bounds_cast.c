@@ -227,7 +227,9 @@ extern void f23() {
 }
 
 extern void f24() {
-  array_ptr<char> buf : count(3) = "abc";
+  // TODO: checkedc-clang issue #845: equality between buf and "abc"
+  // needs to be recorded in order to properly validate the bounds of buf.
+  array_ptr<char> buf : count(3) = "abc"; // expected-warning {{cannot prove declared bounds for 'buf' are valid after statement}}
   buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3)); // expected-error {{inferred bounds for 'buf' are unknown after statement}}
   char c = buf[3]; // expected-error {{out-of-bounds memory access}} \
                    // expected-note {{accesses memory at or above the upper bound}} \

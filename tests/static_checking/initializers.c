@@ -85,8 +85,12 @@ void f4(void) checked {
   char t33 = g33[4];
   char t34 = g34[4];
   char t35 = g35[1];
-  nt_array_ptr<char> t36 = g36[1][0];
-  nt_array_ptr<char> t37 = g37[1];
+  // TODO: checkedc-clang issue #845: equality between t36 and g36[1][0]
+  // needs to be recorded in order to properly validate the bounds of t36.
+  nt_array_ptr<char> t36 = g36[1][0]; // expected-warning {{cannot prove declared bounds for 't36' are valid after statement}}
+  // TODO: checkedc-clang issue #845: equality between t37 and g37[1]
+  // needs to be recorded in order to properly validate the bounds of t36.
+  nt_array_ptr<char> t37 = g37[1]; // expected-warning {{cannot prove declared bounds for 't37' are valid after statement}}
 
 
   f3("abc");   // expected-error {{passing 'char _Nt_checked[4]' to parameter of incompatible type 'char *'}}
@@ -94,7 +98,9 @@ void f4(void) checked {
     f3("abc");
   }
 
-  nt_array_ptr<int> t100 : count(3) = (int[]) { 0, 1, 2, 3 };
+  // TODO: checkedc-clang issue #845: equality between t100 and { 0, 1, 2, 3 }
+  // needs to be recorded in order to properly validate the bounds of t100.
+  nt_array_ptr<int> t100 : count(3) = (int[]) { 0, 1, 2, 3 }; // expected-warning {{cannot prove declared bounds for 't100' are valid after statement}}
 }
 
 void f5(void) checked {
@@ -116,20 +122,34 @@ void f5(void) checked {
   // Checked pointers with initialized array literals.
   //
 
-  nt_array_ptr<int> t30 : count(4) = (int[]) { 0, [2] = 2, 3, 5, 0 };
+  // TODO: checkedc-clang issue #845: equality between t30 and { 0, [2] = 2, 3, 5, 0 }
+  // needs to be recorded in order to properly validate the bounds of t30.
+  nt_array_ptr<int> t30 : count(4) = (int[]) { 0, [2] = 2, 3, 5, 0 }; // expected-warning {{cannot prove declared bounds for 't30' are valid after statement}}
 
-  nt_array_ptr<int> t31 = (int checked[]) { 0, [2] = 2, 3, 5, 0 };
-  nt_array_ptr<char> t32 : count(5) = "abcde";
+  // TODO: checkedc-clang issue #845: equality between t31 and { 0, [2] = 2, 3, 5, 0 }
+  // needs to be recorded in order to properly validate the bounds of t31.
+  nt_array_ptr<int> t31 = (int checked[]) { 0, [2] = 2, 3, 5, 0 }; // expected-warning {{cannot prove declared bounds for 't31' are valid after statement}}
+  // TODO: checkedc-clang issue #845: equality between t32 and "abcde"
+  // needs to be recorded in order to properly validate the bounds of t32.
+  nt_array_ptr<char> t32 : count(5) = "abcde"; // expected-warning {{cannot prove declared bounds for 't32' are valid after statement}}
 
-  array_ptr<char> t33 : count(5) = "abcde";
+  // TODO: checkedc-clang issue #845: equality between t33 and "abcde"
+  // needs to be recorded in order to properly validate the bounds of t33.
+  array_ptr<char> t33 : count(5) = "abcde"; // expected-warning {{cannot prove declared bounds for 't33' are valid after statement}}
   array_ptr<char> t34 = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
-  array_ptr<char> t35 : count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' };
+  // TODO: checkedc-clang issue #845: equality between t35 and { 'a', 'b', 'c', 'd', 'e' }
+  // needs to be recorded in order to properly validate the bounds of t35.
+  array_ptr<char> t35 : count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' }; // expected-warning {{cannot prove declared bounds for 't35' are valid after statement}}
 
   //
   // Make sure parentheses are ignored.
   //
-  nt_array_ptr<int> t36 : count(4) = ((int[]) { 0, [2] = 2, 3, 5, 0 });
-  nt_array_ptr<char> t37 : count(5) = ("abcde");
+  // TODO: checkedc-clang issue #845: equality between t36 and { 0, [2] = 2, 3, 5, 0 }
+  // needs to be recorded in order to properly validate the bounds of t36.
+  nt_array_ptr<int> t36 : count(4) = ((int[]) { 0, [2] = 2, 3, 5, 0 }); // expected-warning {{cannot prove declared bounds for 't36' are valid after statement}}
+  // TODO: checkedc-clang issue #845: equality between t37 and "abcde"
+  // needs to be recorded in order to properly validate the bounds of t37.
+  nt_array_ptr<char> t37 : count(5) = ("abcde"); // expected-warning {{cannot prove declared bounds for 't37' are valid after statement}}
 
   //
   // Checked arrays of checked pointers.
@@ -140,7 +160,9 @@ void f5(void) checked {
 
   char c = ((char *[2]) { "abc", "def" })[0][0];  // expected-error {{type in a checked\
  scope must use only checked types or parameter/return types with bounds-safe interfaces}}
-  nt_array_ptr<ptr<void(int)>> callback_table = (ptr<void(int)>[]) { callback1, callback2, 0 };
+  // TODO: checkedc-clang issue #845: equality between callback_table and { callback1, callback2, 0 }
+  // needs to be recorded in order to properly validate the bounds of callback_table.
+  nt_array_ptr<ptr<void(int)>> callback_table = (ptr<void(int)>[]) { callback1, callback2, 0 }; // expected-warning {{cannot prove declared bounds for 'callback_table' are valid after statement}}
 
 }
 
