@@ -232,9 +232,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   arg1 = &arr[1];         // expected-error {{incompatible type}}
   arg2 = &*arg1;          // expected-error {{inferred bounds for 'arg2' are unknown after statement}}
   arg2 = &*arg2;
-  // TODO: checkedc-clang issue #845: equality between arg2 and &*arg3
-  // needs to be recorded in order to properly validate the bounds of arg2.
-  arg2 = &*arg3;          // expected-warning {{cannot prove declared bounds for 'arg2' are valid after statement}}
+  arg2 = &*arg3;
   arg3 = &*arg1;          // expected-error {{inferred bounds for 'arg3' are unknown after statement}}
   arg3 = &*arg2;          // expected-error {{declared bounds for 'arg3' are invalid after statement}}
   arg3 = &*arg3;
@@ -395,9 +393,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   t3 = s.f2;          // expected-error {{declared bounds for 't3' are invalid after statement}}
   t3 = s.f3;
 
-  // TODO: checkedc-clang issue #845: equality between ntp and { 0, 1, 2, 3, 0 }
-  // needs to be recorded in order to properly validate the bounds of ntp.
-  nt_array_ptr<int> ntp = (int nt_checked[]) { 0, 1, 2, 3, 0 }; // expected-warning {{cannot prove declared bounds for 'ntp' are valid after statement}}
+  nt_array_ptr<int> ntp = (int nt_checked[]) { 0, 1, 2, 3, 0 };
 /* HACK:
   Taking the address of pointers with bounds is not allowed.  Disable this code and
   stop the verification checking by converting "expected-error" to "expected error".
@@ -619,12 +615,8 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
     *arg8 = arg3;
 
     arg3 = arg1;
-    // TODO: checkedc-clang issue #845: equality between arg3 and *arg7
-    // needs to be recorded in order to properly validate the bounds of arg3.
-    arg3 = *arg7;               // expected-warning {{cannot prove declared bounds for 'arg3' are valid after statement}}
-    // TODO: checkedc-clang issue #845: equality between arg3 and *arg7
-    // needs to be recorded in order to properly validate the bounds of arg3.
-    arg3 = *arg8;               // expected-warning {{cannot prove declared bounds for 'arg3' are valid after statement}}
+    arg3 = *arg7;
+    arg3 = *arg8;
 
     arg4 = *arg7;               // expected-error {{declared bounds for 'arg4' are invalid after statement}}
   }

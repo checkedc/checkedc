@@ -1745,9 +1745,7 @@ extern void test_cast_to_nt_array_ptr(void) checked {
   p8 = (nt_array_ptr<char>)p7; // expected-error {{'_Array_ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Array_ptr<char>' might not point to a null-terminated array}}
 
   // Test casting nt_array_ptr to nt_array_ptr
-  // TODO: checkedc-clang issue #845: equality between p9 and "hello"
-  // needs to be recorded in order to properly validate the bounds of p9.
-  nt_array_ptr<char> p9 = "hello"; // expected-warning {{cannot prove declared bounds for 'p9' are valid after statement}}
+  nt_array_ptr<char> p9 = "hello";
   nt_array_ptr<char> p10 = (nt_array_ptr<char>)p9;  // legal casting
 
   // Test casting to nt_array_ptr in a unchecked scope.
