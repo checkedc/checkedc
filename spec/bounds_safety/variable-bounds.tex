@@ -32,7 +32,7 @@ the form:
 \end{tabbing}
 
 where \var{x} is a variable. Additional forms for handling
-\void\ pointers and casts are described in 
+\void\ pointers and casts are described in
 Sections~\ref{section:pointers-to-void} and \ref{section:pointer-cast-results}.
 
 A bounds expression describes the memory that can be accessed using the
@@ -67,7 +67,7 @@ include counts, pairs that specify an upper bound and lower bound,
 Bounds expression use ``non-modifying'' expressions. These are a subset
 of C expressions that do not modify variables or memory. They include
 local variables, parameters, constant expressions, casts, and operators
-such as addition, subtraction, and address-of. 
+such as addition, subtraction, and address-of.
 Section~\ref{section:non-modifying-expressions}  describes
 non-modifying expressions in detail.
 
@@ -80,8 +80,8 @@ type of \var{e1} is a character, a short integer, a bit field, or an enumeration
 the expression is promoted to an \keyword{int} type if that is large
 enough to  hold all values of the type or an \keyword{unsigned int} type otherwise.}
 For \boundsdecl{\var{x}}{\bounds{\var{e1}}{\var{e2}}}, \var{e1} and
-\var{e2} must be pointers to the same type.  Typically \var{x} is also 
-a pointer to that type or an array of that type.  
+\var{e2} must be pointers to the same type.  Typically \var{x} is also
+a pointer to that type or an array of that type.
 However, \var{x} can be a pointer to or an array of a different type.
 This is useful for describing the results of casts and
 bounds for \arrayptrvoid\ pointers.
@@ -140,7 +140,7 @@ have been derived via a sequence of operations from a pointer to some
 object \var{obj} with \bounds{\var{low}}{\var{high}}.
 The following statement will be true at runtime:
 \var{ev} \lstinline@== 0 || (@\var{low} \lstinline|<=| \var{lbv} \lstinline|&&|
-\var{ubv} \lstinline|<=| \var{high}\lstinline|)|. In other words, 
+\var{ubv} \lstinline|<=| \var{high}\lstinline|)|. In other words,
 if \var{ev} is null, the bounds
 may or may not be valid. If \var{ev} is non-null, the bounds must be
 valid. This implies that any access to memory where \var{ev}
@@ -155,10 +155,10 @@ acceptable to use the address of an address-taken variable in a bounds
 declaration. This is provided that the resulting address is not used to
 access memory in the bounds declaration (that is, indirectly access the
 value of a variable). For example, given the declaration \code{int x},
-the expression \code{&x} may appear in a bounds expression.  
+the expression \code{&x} may appear in a bounds expression.
 Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} extends the
-design to avoid these restrictions.  It covers pointers to data with 
-\arrayptr\ values,  pointers to variables used in bounds, and bounds 
+design to avoid these restrictions.  It covers pointers to data with
+\arrayptr\ values,  pointers to variables used in bounds, and bounds
 that use pointers.
 
 \section{Using bounds declarations}
@@ -169,7 +169,7 @@ by following the declarator with \code{:} \var{bounds-exp}. In that
 case, the bounds expression applies to the variable that is the subject
 of the declarator. By making the bounds be part of the program, this
 preserves the control and efficiency of C. The bounds declarations will
-be checked statically for correctness using rules described in 
+be checked statically for correctness using rules described in
 Chapter~\ref{chapter:checking-bounds}.
 
 \subsection{Bounds declarations at variable declarations}
@@ -182,13 +182,13 @@ between \code{start} and \code{end}, where the integer stored at
 
 \begin{lstlisting}
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
-{ 
+{
     int result = 0;
     array_ptr<int> current : bounds(start, end) = start;
     while (current < end) {
-       result += *current++; // *current is bounds-checked.  The checking ensures 
-                             // that current is within the bounds of (start, end) 
-                             // at the memory access.                           
+       result += *current++; // *current is bounds-checked.  The checking ensures
+                             // that current is within the bounds of (start, end)
+                             // at the memory access.
     }
     return result;
 }
@@ -198,13 +198,13 @@ This can be written using \keyword{where} clauses as well, at the
 inconvenience of typing variable names twice in declarations:
 
 \begin{lstlisting}
-int sum(array_ptr<int> start where start : bounds(start, end), 
+int sum(array_ptr<int> start where start : bounds(start, end),
         array_ptr<int> end)
-{ 
+{
     int result = 0;
     array_ptr<int> current where current : bounds(start, end) = start;
     while (current < end) {
-       result += *current++;                          
+       result += *current++;
     }
     return result;
 }
@@ -249,12 +249,12 @@ int bad_find(int key, array_ptr<int> a : count(len), int len)
 This function adds two arrays of 2x2 arrays.
 
 \begin{lstlisting}
-int add(int a checked[][2][2] : count(len), int b checked[][2][2] : count(len), 
-        int len) 
+int add(int a checked[][2][2] : count(len), int b checked[][2][2] : count(len),
+        int len)
 {
     for (int i = 0; i < len; i++) {
         // All array accesses are bounds checked
-        a[i][0][0] += b[i][0][0]; 
+        a[i][0][0] += b[i][0][0];
         a[i][0][1] += b[i][0][1];
         a[i][1][0] += b[i][1][0];
         a[i][1][1] += b[i][1][1];
@@ -282,9 +282,9 @@ int sum(void)
 This is a declaration of a function that copies bytes provided that the
 pointers and lengths are aligned:
 \begin{lstlisting}
-int aligned_memcpy(array<char> dst where dst : count(len) && 
+int aligned_memcpy(array<char> dst where dst : count(len) &&
                                          aligned(dst, 4),
-                   array<char> src where src : count(len) && 
+                   array<char> src where src : count(len) &&
                                          aligned(src, 4),
                    int len where len % 4 == 0);
 \end{lstlisting}
@@ -374,7 +374,7 @@ statements. It does not make sense to have dataflow-sensitive bounds for
 externally-scoped variables and variables with static or thread storage.
 The bounds extend to the next assignment to any variable in the bounds
 declaration, with some exceptions for pointer incrementing or
-decrementing. Section~\ref{section:extent-of-declarations} 
+decrementing. Section~\ref{section:extent-of-declarations}
 describes the extent of flow-sensitive bounds
 in more detail.
 
@@ -384,7 +384,7 @@ elements and then points to an array with 10 elements; the bounds are
 adjusted accordingly.
 
 \begin{lstlisting}
-void f(void) 
+void f(void)
 {
    int x[5];
    int y[10];
@@ -401,7 +401,7 @@ lazily to either \code{a} or \code{b}, depending on another parameter \code{val}
 \begin{lstlisting}
 /* use either a or b depending on val */
 int choose(int val, array_ptr<int> a : count(alen), int alen,
-                    array_ptr<int> b : count(blen), int blen) 
+                    array_ptr<int> b : count(blen), int blen)
 {
     array_ptr<int> c;
     int clen;
@@ -412,7 +412,7 @@ int choose(int val, array_ptr<int> a : count(alen), int alen,
     else {
         clen = blen;
         c = b where c : count(clen);
-    }    
+    }
     ...
 }
 \end{lstlisting}
@@ -425,7 +425,7 @@ the update. Consider the following example:
 \begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
-{ 
+{
     ...
     // Adjusting end. Can declare new bounds for start at the assignment
     end = end - 1 where start : bounds(start, end + 1);
@@ -466,11 +466,11 @@ added:
 
 \code{byte_count} is the identifier \code{byte_count}.
 The bounds declaration \boundsdecl{\var{x}}{\boundsbytecount{\var{e1}}}
-describes the number of bytes that are accessible beginning at \var{x}. 
-Only memory that is at or above \var{x} and below 
-\lstinline|(|\arrayptrchar\lstinline|)| \var{x} \code{+} \var{e1} can be accessed through 
+describes the number of bytes that are accessible beginning at \var{x}.
+Only memory that is at or above \var{x} and below
+\lstinline|(|\arrayptrchar\lstinline|)| \var{x} \code{+} \var{e1} can be accessed through
 \var{x}. The type of \var{e1} must be an integral type.  The usual C integer conversions are
-applied to \var{e1}.  This bounds declaration is a synonym for 
+applied to \var{e1}.  This bounds declaration is a synonym for
 \boundsdecl{\var{x}}
            {\boundsrel{\lstinline|(|\arrayptrchar)\lstinline|)| \var{x}}
                       {\lstinline|(|\arrayptrchar)\lstinline|)| \var{x} \code{+} \var{e1}}
@@ -479,7 +479,7 @@ applied to \var{e1}.  This bounds declaration is a synonym for
 The standard C library functions for \code{malloc}, \code{memcmp}, and
 \code{memcpy} will be
 given bounds-safe interfaces to avoid breaking existing code as
-described in Section~\ref{section:function-bounds-safe-interfaces}. 
+described in Section~\ref{section:function-bounds-safe-interfaces}.
 However, if they were to return checked pointer
 types, their bounds declarations would be:
 
@@ -509,7 +509,7 @@ in-line bounds declarations and \keyword{where} clauses for declarations:
 \begin{tabbing}
 \var{init-}\=\var{declarator:} \\
 \>\var{declarator inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
-\>\var{declarator inline-bounds-specifier\textsubscript{opt} 
+\>\var{declarator inline-bounds-specifier\textsubscript{opt}
 where-clause\textsubscript{opt}} \lstinline|=| \var{initializer
 where-clause\textsubscript{opt}} \\
 \>\ldots{} \\
@@ -518,7 +518,7 @@ where-clause\textsubscript{opt}} \\
 \>\var{declaration-specifiers declarator} \var{inline-bounds-specifier\textsubscript{opt} where-clause\textsubscript{opt}} \\
 \\
 \var{inline-bounds-specifier:}\\
-\>\lstinline|:| \var{bounds-exp} \\ 
+\>\lstinline|:| \var{bounds-exp} \\
 \\
 \var{where-clause}: \\
 \>\keyword{where} \var{facts} \\
@@ -573,7 +573,7 @@ must be the identifier \code{any} or the identifier \code{unknown}.
 The semantics of C expressions is subtle.  The expression
 \lstinline|*|\var{e1} does not dereference memory.  It
 produces an lvalue that can be used to access memory. If the expression
-occurs on the left-hand side of an assigment, the memory pointed to
+occurs on the left-hand side of an assignment, the memory pointed to
 by the lvalue is updated with the value of the right-hand side of
 the assignment.
 For example, given \lstinline|*|\var{e1} \lstinline|=| \var{e2},
@@ -645,7 +645,7 @@ is used to access memory.   The compiler computes the bounds of
 runtime checks that \var{e1} \lstinline|+| \var{e2} is within this bounds as
 part of the evaluation of \var{e1}\lstinline|[|\var{e2}\lstinline|]|. For example,
 given \lstinline|x[5]| where \lstinline|x| has \lstinline|bounds(x, x + c)|, the
-compiler inserts runtime checks that \lstinline|x <= x + 5 < x + c|. 
+compiler inserts runtime checks that \lstinline|x <= x + 5 < x + c|.
 The runtime checks simplify to \lstinline|5 < c|.
 
 For a multi-dimensional array access, only one bounds check is done.
@@ -685,11 +685,11 @@ has {\bounds{\var{e2}}{\var{e3}}}:
 \begin{itemize}
 \item Given an assignment of the form \lstinline|*|\var{e1} \lstinline|=| \var{e4}, the
 value of \var{e4} is computed to some temporary \var{v}.  The
-check is \lstinline|(|\var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} \lstinline|<| 
-\var{e3}\lstinline@) || (@ \var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} 
+check is \lstinline|(|\var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t} \lstinline|<|
+\var{e3}\lstinline@) || (@ \var{e2} \lstinline|<=| \var{t} \lstinline|&&| \var{t}
 \lstinline|==| \var{e3} \lstinline|&&| \var{v} \lstinline|== 0)|.
 
-When checking for a write of \code{0} exactly at the upper bound, we 
+When checking for a write of \code{0} exactly at the upper bound, we
 include the first element of the sequence in the allowed memory range.
 The second lower bound comparison \var{e2} \lstinline|<=| \var{t}
 prevents an assignment
@@ -740,7 +740,7 @@ Additional storage would be particularly
 problematic when bounds declarations are extend to structure members.
 It would cause the size and layout of data structures to change.
 Deferring evaluation also avoids complications when \code{x} is
-\code{null}. Section~\ref{section:bounds-declarations-alternate-semantics} 
+\code{null}. Section~\ref{section:bounds-declarations-alternate-semantics}
 discusses eager evaluation of bounds expressions at
 bounds declarations in more detail and explains why this was not chosen.
 
@@ -750,7 +750,7 @@ It is common in C code to use multiple statements to update program state.
 This can cause problems when variables in a bounds declaration are updated.
 Invariant bounds declarations must be valid at the end of every statement.
 When updates involve multiple statements, a bounds declaration may be valid only
-after all the updates are done.  In Checked C, statements and declarations can be 
+after all the updates are done.  In Checked C, statements and declarations can be
 grouped into bundled blocks.  Bounds declarations are checked only at the end of bundled blocks.
 
 Consider the following example where a function is added to the earlier \code{sum}
@@ -770,7 +770,7 @@ int sum(void)
 }
 
 /* buggy resize function */
-void resize(int len) 
+void resize(int len)
 {
     array_ptr<int> tmp : count(len) = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
@@ -787,7 +787,7 @@ The updates to \code{buflen} and \code{buf} can be grouped together,
 so the checker considers them to be one action:
 \begin{lstlisting}
 /* correct resize function */
-void resize(int len) 
+void resize(int len)
 {
     array_ptr<int> tmp : count(len) = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
@@ -812,7 +812,7 @@ The C syntax for is extended with:
 \\
 \var{bundled-item:}\\
 \> \var{declaration}\\
-\> \var{expression-statement} 
+\> \var{expression-statement}
 \end{tabbing}
 
 There is some subtlety with bundled blocks and function calls. The
@@ -825,7 +825,7 @@ results in temporary variables and updating static variables \textit{en
 masse} after the required function calls have been made.
 
 Bundled blocks expose an interesting difference between regular C
-and Checked C programs.  In regular C, 
+and Checked C programs.  In regular C,
 \begin{lstlisting}
 expr1, expr2;
 \end{lstlisting}
@@ -843,7 +843,7 @@ statements.  Thus bounds could be valid after
 In the \code{resize} example, the following suceeds with a bundle
 block:
 \begin{lstlisting}
-void resize(int len) 
+void resize(int len)
 {
     array_ptr<int> tmp = malloc(sizeof(int) * len);
     copy(tmp, buf, buflen);
@@ -1043,7 +1043,7 @@ the declaration.
 \label{section:integer-overflow-informal}
 
 When objects are allocated dynamically in C, programmers have to compute
-the amount of memory to allocate for the objects. It is well-known 
+the amount of memory to allocate for the objects. It is well-known
 that integer overflow or wraparound in these computations can lead to buffer
 overruns \cite{Howard2003,Mitre2015-128,Mitre2015-190,Mitre2015-680,Dietz2015}.
  In Checked C, the explicit size computations are not enough
@@ -1073,10 +1073,10 @@ a mismatch when overflow or wraparound can happen, which causes static
 checking to fail.
 
 We expand the count expression; to integer arithmetic to make its size
-computation clear. \lstinline|count(|\var{e1}\lstinline|)| expands to 
+computation clear. \lstinline|count(|\var{e1}\lstinline|)| expands to
 \bounds{\code{p}}{\code{p +} \var{e1}}.
 Following the rules in Section~\ref{section:pointers-as-integers},
-the expansion of \lstinline|p +| \var{e1} from pointer arithmetic to integer 
+the expansion of \lstinline|p +| \var{e1} from pointer arithmetic to integer
 arithmetic depends on the type of \var{e1}:
 
 \begin{itemize}
@@ -1086,7 +1086,7 @@ arithmetic depends on the type of \var{e1}:
   \var{e1}.
 \item
   If \var{e1} is a signed integer, \lstinline|p +| \var{e1} expands to
-  \lstinline|p| \lstinline{+}\textsubscript{ovf} 
+  \lstinline|p| \lstinline{+}\textsubscript{ovf}
       \lstinline|((signed_size_t)| \sizeof{\var{T}}\lstinline|)| \lstinline{*}\textsubscript{ovf}
   \var{e1}.
 \end{itemize}
@@ -1103,11 +1103,11 @@ Values differ?\tabularnewline
 \midrule
 \endhead
 Unsigned integer & \sizeof{\var{T}} \lstinline|*|\textsubscript{ovf} \var{e1} &
-                   \sizeof{\var{T}} \lstinline|* |\var{e1} & 
+                   \sizeof{\var{T}} \lstinline|* |\var{e1} &
                    On overflow\tabularnewline
 Signed integer   & \lstinline|(signed_size_t)| \sizeof{\var{T}}
-                   \lstinline|*|\textsubscript{ovf} \var{e1} & 
-                   \sizeof{\var{T}} \lstinline|* (size_t)| \var{e1} & 
+                   \lstinline|*|\textsubscript{ovf} \var{e1} &
+                   \sizeof{\var{T}} \lstinline|* (size_t)| \var{e1} &
                    On overflow or when \code{e1 < 0}.\tabularnewline
 \bottomrule
 \end{longtable}
@@ -1166,7 +1166,7 @@ Function types can be declared to have parameters and return values that have bo
 declarations, just like functions.  The bounds declarations become part of the function types.
 Here are simple examples of function pointer types with bounds declarations:
 \begin{lstlisting}
-// Function that takes a pointer to a 5 element array and returns an 
+// Function that takes a pointer to a 5 element array and returns an
 // integer.
 int (array_ptr<int> arr : count(5))
 // checked function pointer
@@ -1233,7 +1233,7 @@ the pointer has type
 \arrayptrT. The
 bounds specify a range of memory that is exactly the size of some array
 of \var{T} and the pointer points exactly at an element of that array. For
-example, suppose short ints are 2 bytes in size and 
+example, suppose short ints are 2 bytes in size and
 {\boundsdecl{\code{x}}{\bounds{\code{y}}{\code{z}}}}, where the types of \code{x},
 \code{y}, \code{z} are \arrayptrinst{\code{short int}} .
 
@@ -1264,7 +1264,7 @@ becomes more expensive. With relative alignment, the bounds check is
 alignment, the check for the upper bound needs to compute the highest
 address that will be accessed using x. For this example, the highest
 address accessed will be
-\lstinline|(|\arrayptrchar\lstinline|) x + sizeof(short int) - 1|, so the check becomes 
+\lstinline|(|\arrayptrchar\lstinline|) x + sizeof(short int) - 1|, so the check becomes
 \code{y <= x} and \code{x + 1 < z}.
 
 A pointer cast can create a pointer that is not relatively aligned to
@@ -1309,8 +1309,8 @@ instead of \code{char}) usually already are doing these checks.
 \subsection{Representing relative alignment in bounds declarations}
 \label{section:representing-relative-alignment}
 
-Bounds expressions are extended with an optional relative alignment 
-clause to represent situations where an \arrayptrT\ is not relatively 
+Bounds expressions are extended with an optional relative alignment
+clause to represent situations where an \arrayptrT\ is not relatively
 aligned to its bounds for type \var{T}:
 
 \begin{tabbing}
@@ -1321,7 +1321,7 @@ aligned to its bounds for type \var{T}:
 \\
 \var{relative-alignment-clause:}\\
 \> \relalign{\var{type}} \\
-\> \relalignval{\var{constant-exp}} 
+\> \relalignval{\var{constant-exp}}
 \end{tabbing}
 
 This clause is only added to bounds pairs because (by definition) count
@@ -1331,9 +1331,9 @@ identifiers.  The optional clause specifies a
 relative alignment type \var{T} or the required relative alignment in
 bytes.  Given
 \boundsdecl{\var{x}}{\boundsrel{\var{e1}}{\var{e2}}{\var{T}}},
-\lstinline|((|\arrayptrchar\lstinline|)| \var{x} \lstinline|- (|\arrayptrchar\lstinline|)| \var{e1}) 
+\lstinline|((|\arrayptrchar\lstinline|)| \var{x} \lstinline|- (|\arrayptrchar\lstinline|)| \var{e1})
         \lstinline|%| \sizeof{\var{T}}\lstinline|== 0| and
-\lstinline|((|\arrayptrchar\lstinline|)| \var{e2} \lstinline|- (|\arrayptrchar\lstinline|)| \var{x}) 
+\lstinline|((|\arrayptrchar\lstinline|)| \var{e2} \lstinline|- (|\arrayptrchar\lstinline|)| \var{x})
         \lstinline|% sizeof(|\var{T}\lstinline|) == 0| must be true. If the number of bytes is
 specified, \sizeof{\var{T}} is replaced by the
 constant expression.  The relative alignment clause \relalign{\var{type}}
@@ -1346,7 +1346,7 @@ If the default relative alignment has been overridden and
 \sizeof{referent-type(\var{e1})} is a common factor of \sizeof{\var{T}}
 If it is, it inserts the same
 runtime check as before. Otherwise, it inserts a runtime check that
-\var{e2} \lstinline|<=| \var{e1} \lstinline|&&| 
+\var{e2} \lstinline|<=| \var{e1} \lstinline|&&|
 \var{e1} \lstinline|+ sizeof(|\var{T}) \lstinline|- 1 <| \var{e3}.
 
 \subsection{Examples of uses of bounds declarations that specify relative alignment}
@@ -1403,7 +1403,7 @@ possible.  For simplicity, it is assumed that the memory pointed to by
 \code{dst} and \code{src} does not overlap and that \code{sizeof(int)} is 4:
 \begin{lstlisting}
 void copy(array_ptr<char> dst : bounds(dst, dst + num),
-          array_ptr<char> src : bounds(src, src + num), 
+          array_ptr<char> src : bounds(src, src + num),
           size_t num)
 {
   if (num % 4 == 0) {
@@ -1429,7 +1429,7 @@ relative alignment can be changed:
 
 \begin{lstlisting}
 void copy(array_ptr<char> dst : bounds(dst, dst + num),
-          array_ptr<char> src : bounds(src, src + num), 
+          array_ptr<char> src : bounds(src, src + num),
           size_t num)
 {
   if (num % 4 == 0) {
@@ -1444,7 +1444,7 @@ void copy(array_ptr<char> dst : bounds(dst, dst + num),
       aligned_dst[i] = aligned_src[i];
     }
  }
- else  
+ else
    ...
 }
 \end{lstlisting}
@@ -1472,12 +1472,12 @@ array_ptr<int> r : count(2) = (array_ptr<int>) p;
 Variables that have bounds declared for them at expression statements
 have dataflow-sensitive bounds declarations. There are two aspects to
 dataflow-sensitive bounds: extent and consistency. The extent of a
-flow-sensitive bounds declaration is the part of the program to which 
+flow-sensitive bounds declaration is the part of the program to which
 a flow-sensitive bounds
-declaration applies. Within the extent of a flow-sensitive 
+declaration applies. Within the extent of a flow-sensitive
 bounds declaration, the
 bounds for the variable for memory dereferences are given by the bounds
-declaration. Consistency is that all the flow-sensitive bounds 
+declaration. Consistency is that all the flow-sensitive bounds
 declarations flowing to a statement agree with each other.
 
 As mentioned in Section~\ref{section:statement-declarations},
@@ -1511,19 +1511,19 @@ lead to unexpected bounds checks failures.
 \subsection{Definition of extent}
 \label{section:extent-definition}
 
-We first define the set of flow-sensitive bounds declarations that apply to a 
+We first define the set of flow-sensitive bounds declarations that apply to a
 component of a function.  A component is an expression statement,
 variable declaration, or a compound statement. For any flow-sensitive bounds
 declaration for a variable \var{v}, if
 
 \begin{compactenum}
 \item
-  There is some path from the bounds declaration to the 
+  There is some path from the bounds declaration to the
   component, and
 \item
   \var{v} occurs in the component, and
 \item
-  there is no other flow-sensitive bounds declaration for 
+  there is no other flow-sensitive bounds declaration for
   \var{v} along the path
 \end{compactenum}
 
@@ -1531,26 +1531,26 @@ then
 
 \begin{compactenum}
 \item
-  if all the variables occurring in the bounds declaration are 
+  if all the variables occurring in the bounds declaration are
   in-scope at the component, and
-  \begin{compactenum} 
+  \begin{compactenum}
   \item No expressions or statements on the path modify a variable
   occurring in the bounds declaration
   \item or
   \begin{compactenum}
   \item The only expressions or statements on the path that
-   modify a variable occurring in the bounds declaration 
+   modify a variable occurring in the bounds declaration
    are pointer increments or decrements of \var{v}, and
    \item \var{v} does not occur in the bounds expression, and
    \item the bounds expression is not a count expression
    \end{compactenum}
    \end{compactenum}
-   then the bounds declaration applies to the component   
-\item 
+   then the bounds declaration applies to the component
+\item
    Otherwise, the bounds declaration \boundsdecl{\var{v}}{\boundsunknown}
    applies to the component.
 \end{compactenum}
-  
+
  \subsection{Consistency}
 
 These conditions ensure the consistency of bounds declarations:
@@ -1582,7 +1582,7 @@ rejected by the compiler.
 /* buggy function */
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
-{ 
+{
     end = end + 1; // bounds(start, end) does not hold after this, so program is
                    // rejected
     start[5] = 0;
@@ -1595,22 +1595,22 @@ A correct function declares new bounds for \code{start}:
 \begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : bounds(start, end), array_ptr<int> end)
-{ 
+{
   end = end + 1 where start : bounds(start, end - 1);
-  start[5] = 0; // program accepted by compiler; may fail bounds check 
+  start[5] = 0; // program accepted by compiler; may fail bounds check
                 // at run time
   ...
 }
 \end{lstlisting}
 
 The following example shows the extents of the two bounds declarations for
-\code{start}.  The bounds declaration at the declaration of \code{start} and 
-its extent is highlighted in blue. The bounds declaration at the assignment 
+\code{start}.  The bounds declaration at the declaration of \code{start} and
+its extent is highlighted in blue. The bounds declaration at the assignment
 to \code{end} and its extent is highlighted in yellow:
 
 \sethlcolor{lightblue}
 \begin{lstlisting}[escapechar=\|]
-/* sum integers stored between start and end, where end is not included */  
+/* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start : |\hl{bounds(start, end)}|, array_ptr<int> end)
 |\hl{\{\\
  start[5] = 0; // bounds checked using (start, end)}\\
@@ -1620,14 +1620,14 @@ start[5] = 0; // bounds checked using (start, end - 1)\\
 }
 \end{lstlisting}
 
-Figure~\ref{fig:bounds-extent:choose} expands on the \code{choose} function earlier. 
+Figure~\ref{fig:bounds-extent:choose} expands on the \code{choose} function earlier.
 There are 4 explicit bounds declarations for \code{c}. The bounds declarations
 and their extents are also color-coded. Three bounds declarations for \code{c}
 have the form \boundsdecl{\code{c}}{\boundscount{\code{clen}}}. They must be syntactically
 identical because there are statements that they cover in common. Their
 extents are highlighted in blue.  Another bounds declaration has
 the form \boundsdecl{\code{c}}{\boundscount{\code{clen - 1}}}.   Its extent is highlighted
-in yellow. It covers code where \code{c} is incremented and the 
+in yellow. It covers code where \code{c} is incremented and the
 length is decremented.  The increment invalidates the bounds declaration
 \boundsdecl{\code{c}}{\boundscount{\code{clen}}}.  A different bounds declaration for \code{c}
 is needed after the increment.
@@ -1650,16 +1650,16 @@ int choose(int val, array_ptr<int> a: count(alen), int alen,
     clen = blen;
     c = b where |\hl{c : count(clen);}|
   |\hl{\}}|
-  
+
   |\hl{if (clen > 1) \{}|
     |\hl{result = c[0];}|
   |\hl{\}}|
-  
+
   |\hl{if (cond \&\& clen > 1) \{}|
     c = |\hl{c + 1}| where |\sethlcolor{lightyellow}\hl{c : count(clen - 1);}|
     clen = |\sethlcolor{lightyellow}\hl{clen - 1}| where |\sethlcolor{lightblue}\hl{c : count(clen);}|
     |\hl{result += c[0];}|
-  |\hl{\}}| 
+  |\hl{\}}|
   |\hl{...}|
   |\hl{return result;}|
 }
@@ -1687,8 +1687,8 @@ function. In functions that do not have loops in their control-flow, the
 dataflow analysis can be done in O(N*M) time.
 
 The dataflow analysis uses a lattice of values, assigning one lattice
-value to each variable at each program point in the function.  
-Figure~\ref{fig:extent-dataflow-lattice} shows the lattice of values.  
+value to each variable at each program point in the function.
+Figure~\ref{fig:extent-dataflow-lattice} shows the lattice of values.
 It includes singleton values consisting of the bounds
 expressions in the flow-sensitive bounds declaration for variables in
 the function, \boundsunknown\ (indicating absence of bounds
@@ -1706,11 +1706,11 @@ information), and \code{Top} (indicating contradiction or error):
 \caption{The lattice of values used in dataflow computation of extent}
 \label{fig:extent-dataflow-lattice}
 \end{figure}
- 
+
 For an assignment to an \arrayptr\ variable, the existing
 lattice value for the \arrayptr\ variable is killed, unless
 the special conditions described in Section~\ref{section:extent-of-declarations}
-are met. 
+are met.
 A new lattice value is generated for the \arrayptr\ variable. If the
 assignment declares bounds for the \arrayptr\ variable, the new
 lattice value is the bounds expression in the bounds declaration.
@@ -1749,7 +1749,7 @@ loop. The loop modifies \code{current}, but the bounds for
 \begin{lstlisting}
 /* sum integers stored between start and end, where end is not included */
 int sum(array_ptr<int> start where start : bounds(start, end), array_ptr<int> end)
-{ 
+{
     int sum = 0;
     array_ptr<int> current : (start, end) = start;
 
@@ -1776,10 +1776,10 @@ eliminate the runtime bounds checks easily.
 
 \begin{lstlisting}
 /* lexicographic comparison of two arrays of integers */
-int compare(array_ptr<int> x : bounds(x, x_end), 
+int compare(array_ptr<int> x : bounds(x, x_end),
             array_ptr<int> y : bounds(y, y_end)
             array_ptr<int> x_end, array_ptr<int> y_end)
-{ 
+{
   while (x < x_end && y < y_end) {
     if (*x == *y) { // bounds check: x >= x && x < x_end; easily
                     // optimizable.
@@ -1802,7 +1802,7 @@ int compare(array_ptr<int> x : bounds(x, x_end),
     return 1;
   }
   else {
-    return -1; 
+    return -1;
   }
 }
 \end{lstlisting}
