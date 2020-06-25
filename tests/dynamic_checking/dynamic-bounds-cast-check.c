@@ -1,10 +1,6 @@
 // The following lines are for the clang automated test suite
 //
-// TODO: checkedc-clang issue #845: reenable the -Werror flag in the test run.
-// Currently, bounds checking warnings caused by missing initializer equality
-// would cause the test to fail if the -Werror flag was enabled.
-//
-// RUN: %clang %s -o %t
+// RUN: %clang %s -o %t -Werror
 // RUN: %t pass1 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-1
 // RUN: %t pass2 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-2
 // RUN: %t pass3 | FileCheck %s --check-prefixes=CHECK,CHECK-PASS,CHECK-PASS-3
@@ -119,8 +115,6 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-FAIL-4-NOT: Unexpected Success
     failing_test_4(5);
   } else if (strcmp(argv[1], "fail5") == 0) {
-    // TODO: checkedc-clang issue #845: equality between p and "\0\0\0\0\0\0\0\0abcd"
-    // needs to be recorded in order to properly validate the bounds of p.
     array_ptr<char> p : count(12) = "\0\0\0\0\0\0\0\0abcd";
     // CHECK-FAIL-5: Successful pointer conversion
     // CHECK-FAIL-5-NOT: Unexpected Success
@@ -128,16 +122,12 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     failing_test_5(p, sizeof(int) + 1);
     failing_test_5(p, sizeof(int) - 1);
   } else if (strcmp(argv[1], "fail6") == 0) {
-    // TODO: checkedc-clang issue #845: equality between p and "abcd"
-    // needs to be recorded in order to properly validate the bounds of p.
     array_ptr<char> p : count(4) = "abcd";
     // CHECK-FAIL-6: Successful conversion to ptr<void>
     // CHECK-FAIL-6-NOT: Unexpected Success
     failing_test_6(p, 1);
     failing_test_6(p, 0);
   } else if (strcmp(argv[1], "fail7") == 0) {
-    // TODO: checkedc-clang issue #845: equality between p and "abcd"
-    // needs to be recorded in order to properly validate the bounds of p.
     array_ptr<char> p : count(4) = "abcd";
     // CHECK-FAIL-7: Successful conversion to void *
     // CHECK-FAIL-7-NOT: Unexpected Success
@@ -183,8 +173,6 @@ void passing_test_1(void) {
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
   printf("Printable3\n");
 
-  // TODO: checkedc-clang issue #845: equality between p and "abcdef"
-  // needs to be recorded in order to properly validate the bounds of p.
   nt_array_ptr<const char> p : count(2) =
     _Dynamic_bounds_cast<nt_array_ptr<const char>>("abcdef", count(2));
   printf("Printable4\n");
@@ -323,8 +311,6 @@ void failing_test_7(array_ptr<char> pc : count(len), unsigned len) {
 // Test dynamic checks involving possibly failing conversions from
 // string literals.
 void failing_test_8(unsigned len) {
- // TODO: checkedc-clang issue #845: equality between p and "123456"
- // needs to be recorded in order to properly validate the bounds of p.
  nt_array_ptr<const char> p : count(len) =
    _Dynamic_bounds_cast<nt_array_ptr<const char>>("123456", count(len));
   if (len > 6)
