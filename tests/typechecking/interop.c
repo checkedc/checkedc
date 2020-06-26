@@ -615,7 +615,7 @@ void g82(callback_fn3 fn) {
 
 // Assign a checked pointer to the dereference of an
 // unchecked pointer with a bounds-safe interface.
-void g90(int **interop_ptr : itype(ptr<ptr<int>>), ptr<int> checked_ptr) {
+void g90(int **interop_ptr : itype(array_ptr<ptr<int>>) count(3), ptr<int> checked_ptr) {
   *interop_ptr = checked_ptr;
   *(interop_ptr - 1) = checked_ptr;
   *(2 + interop_ptr) = checked_ptr;
