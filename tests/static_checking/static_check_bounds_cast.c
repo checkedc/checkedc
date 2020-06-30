@@ -228,7 +228,16 @@ extern void f23() {
 
 extern void f24() {
   array_ptr<char> buf : count(3) = "abc";
+  
+  // The declared bounds of h7() use the value of buf, but buf is overwritten
+  // in the assignment. The value of buf (used in the declared bounds (buf, buf + 3))
+  // is lost, so the inferred bounds for the cast expression are unknown.
   buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3)); // expected-error {{inferred bounds for 'buf' are unknown after statement}}
+  
+  // The declared bounds of h7() do not use the value of buf, so the bounds of the
+  // cast expression are not invalidated.
+  buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), count(3));
+
   char c = buf[3]; // expected-error {{out-of-bounds memory access}} \
                    // expected-note {{accesses memory at or above the upper bound}} \
                    // expected-note {{(expanded) inferred bounds are 'bounds(buf, buf + 3)'}}
