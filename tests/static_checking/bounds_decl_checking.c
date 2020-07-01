@@ -151,10 +151,8 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
 
   // nested assignments
   array_ptr<int> t5 : count(1) = 0;
-  // TODO: handle equalities created by nested assignments during checking of
-  // bounds declarations.
-  t5 = (arg4 = t4);   // expected-warning {{cannot prove declared bounds for t5 are valid after assignment}}
-  t5 = (t4 = arg4);   // expected-warning {{cannot prove declared bounds for t5 are valid after assignment}}
+  t5 = (arg4 = t4);
+  t5 = (t4 = arg4);
   t5 = (t4 = t3);     // expected-error 2 {{expression has unknown bounds}}
 
   // assignment through pointer
@@ -323,12 +321,10 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   // expressions
 
   // nested assignments
-   // TODO: handle equalities created by nested assignments during checking of
-  // bounds declarations.
   nt_array_ptr<int> t4 : count(1) = 0;
-  t4 = (arg3 = t3);   // expected-warning {{cannot prove declared bounds for t4 are valid after assignment}}
-  t4 = (t3 = arg3);   // expected-warning {{cannot prove declared bounds for t4 are valid after assignment}}
-  t4 = (t2 = arg3);   // expected-warning {{cannot prove declared bounds for t4 are valid after assignment}}
+  t4 = (arg3 = t3);
+  t4 = (t3 = arg3);
+  t4 = (t2 = arg3);
   t4 = (t2 = t1);     // expected-error 2 {{expression has unknown bounds}}
 
   // assignment through pointer

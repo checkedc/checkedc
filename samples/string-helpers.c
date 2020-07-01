@@ -7,11 +7,11 @@
 //  clang -o string-helpers string-helper.c
 // On Windows use:
 //  clang -o string-helpers.exe string-helpers.c
-// 
+//
 // Then run the program with 6 string arguments, the 3rd of which should
 // be an integer  For example:
 //   string-helpers hello meet -125 fed brown red
-//  
+//
 // Overview of using null-terminated arrays in Checked C:
 //
 //   In Checked C, pointers to null-terminated data are represented using the
@@ -52,7 +52,7 @@
 //   int f(nt_array_ptr<char> p : count(n), int n) {
 //     if (p[n]) {  // read element at upper bound.
 //       ...
-// 
+//
 //    If v != 0, the following code fails at runtime for an nt_array_ptr.  It
 //    always fails for an array_ptr.
 //
@@ -67,13 +67,13 @@
 //    int set_zero(nt_array_ptr<char> p : count(n), int n) {
 //      p[n] = 0;  // allowed for nt_array_ptr.  Runtime error for array_ptr!
 //    }
-// 
+//
 //   The following example illustrates how bounds differ from
 //   the count:
 //
 //   nt_array_ptr<char> : count(5) = "hello";
 //
-//   The string "hello" contains 6 characters, the last of which is 
+//   The string "hello" contains 6 characters, the last of which is
 //   a null terminator.  The valid bounds is count(5).
 //
 //
@@ -84,7 +84,7 @@
 // 1. Nt_array_ptrs with no bounds declared have a default bounds of count(0).
 // 2. If you are using array subscripting to access the nt_array_ptr,
 //    you'll need to widen the bounds as you determine the last character
-//    is not a null terminator.  This is typically done by 
+//    is not a null terminator.  This is typically done by
 //    declaring bounds involving a separate counter:
 //        array_ptr<char> p : count(0);
 //        int i = 0;
@@ -108,7 +108,7 @@
 //      for ( ; arr[i] !=0; i++) {
 //         nt_array_ptr<char> : count(i+1) tmp = p;
 //         tmp[i] = ...
-//      
+//
 //  The function my_strlen show points 1 and 2.  It is less
 //  frequent for string functions to modify strings.  The function squeeze,
 //  which does do that, shows point 3.
@@ -136,7 +136,7 @@ checked int my_strlen(nt_array_ptr<char> p) {
 }
 
 // Delete all c from p (adapted from p. 47, K&R 2nd Edition)
-// p implicltly has count(0).
+// p implicitly has count(0).
 checked void squeeze(nt_array_ptr<char> p, char c) {
   int i = 0, j = 0;
   // Create a temporary whose count of elements can

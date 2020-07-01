@@ -228,7 +228,7 @@ extern void f23() {
 
 extern void f24() {
   array_ptr<char> buf : count(3) = "abc";
-  buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3));
+  buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3)); // expected-error {{expression has unknown bounds}}
   char c = buf[3]; // expected-error {{out-of-bounds memory access}} \
                    // expected-note {{accesses memory at or above the upper bound}} \
                    // expected-note {{(expanded) inferred bounds are 'bounds(buf, buf + 3)'}}
