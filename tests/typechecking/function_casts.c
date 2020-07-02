@@ -307,6 +307,31 @@ void const_field_call(struct S1_Const s1, union U1_Const u1) {
   u1.f2(0, 0);
 }
 
+// Check _Assume_bounds_casts
+void assume_bounds_casts(struct S1 s1, struct S1_Const s1_const, ptr<int(int)> f1, int(*f2)(int, int), void(*g2)(void)) {
+  // _Assume_bounds_casts can be used to cast a checked function pointer
+  // to a checked function pointer.
+  ptr<int(int, int)> safe = _Assume_bounds_cast<ptr<int(int, int)>>(s1.f1);
+
+  // _Assume_bounds_casts can be used to cast an unchecked function pointer
+  // to a checked function pointer (if the unchecked pointer's pointee type
+  // is compatible with the checked pointer's pointee type).
+  ptr<int(int, int)> unsafe_to_safe = _Assume_bounds_cast<ptr<int(int, int)>>(s1.f2);
+  const ptr<int(int, int)> unsafe_to_safe_const = _Assume_bounds_cast<const ptr<int(int, int)>>(s1_const.f2);
+  s1.f1 = _Assume_bounds_cast<ptr<int(int, int)>>(f2);
+  s1.f1 = _Assume_bounds_cast<ptr<int(int, int)>>(s1.f2);
+
+  // _Assume_bounds_casts can be used to cast null to a checked function pointer.
+  ptr<int(void)> null_to_safe = _Assume_bounds_cast<ptr<int(void)>>(0);
+  s1.f1 = _Assume_bounds_cast<ptr<int(int, int)>>(0);
+
+  // _Assume_bounds_casts cannot be used to cast to a checked function pointer
+  // from an incompatible checked or unchecked type.
+  ptr<void(void)> incompat_safe = _Assume_bounds_cast<ptr<void(void)>>(f1); // expected-error {{cast to checked function pointer type '_Ptr<void (void)>' from incompatible checked pointer type '_Ptr<int (int)>'}}
+  ptr<int(int)> incompat_unsafe = _Assume_bounds_cast<ptr<int(int)>>(f2); // expected-error {{cast to checked function pointer type '_Ptr<int (int)>' from incompatible type 'int (*)(int, int)'}} 
+  s1.f1 = _Assume_bounds_cast<ptr<int(int, int)>>(g2); // expected-error {{cast to checked function pointer type '_Ptr<int (int, int)>' from incompatible type 'void (*)(void)'}}
+}
+
 // Constness propagated via member access.
 struct myops {
   _Ptr<void (void)> myfptr;
