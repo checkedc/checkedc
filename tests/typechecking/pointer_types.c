@@ -2045,12 +2045,12 @@ void check_pointer_arithmetic(void)
    s_tmp = 5 + s;
    s_tmp = s_tmp - 2;
    s_tmp = 2 - s_tmp; // expected-error {{invalid operands to binary expression}}
-   s_tmp = s++; // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
-   s_tmp = s--; // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
-   s_tmp = ++s; // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
-   s_tmp = --s; // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
-   s_tmp = (s += 1); // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
-   s_tmp = (s -= 1); // expected-warning {{cannot prove declared bounds for s are valid after assignment}}
+   s_tmp = s++; // expected-warning {{cannot prove declared bounds for 's' are valid after statement}}
+   s_tmp = s--; // expected-warning {{cannot prove declared bounds for 's' are valid after statement}}
+   s_tmp = ++s; // expected-warning {{cannot prove declared bounds for 's' are valid after statement}}
+   s_tmp = --s; // expected-warning {{cannot prove declared bounds for 's' are valid after statement}}
+   s_tmp = (s += 1); // expected-warning {{cannot prove declared bounds for 's' are valid after statement}}
+   s_tmp = (s -= 1); // expected-warning {{cannot prove declared bounds for 's' are valid after statement}}
    // 0 interpreted as an integer, not null
    s_tmp = s + 0;
    s_tmp = 0 + s;

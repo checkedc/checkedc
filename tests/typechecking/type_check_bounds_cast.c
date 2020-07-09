@@ -21,8 +21,8 @@ extern void f2() {
   char p[10];
   array_ptr<int> a : count(1) = 0;
   int b checked[10];
-  array_ptr<int> c : count(10) = (array_ptr<int>)a; // expected-error {{declared bounds for 'c' are invalid after initialization}}
-  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, count(5)); // expected-error {{declared bounds for 'd' are invalid after initialization}}
+  array_ptr<int> c : count(10) = (array_ptr<int>)a; // expected-error {{declared bounds for 'c' are invalid after statement}}
+  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, count(5)); // expected-error {{declared bounds for 'd' are invalid after statement}}
   a = _Assume_bounds_cast<array_ptr<int>>(p); // expected-error {{expected _Ptr or * type}}
 }
 
@@ -114,7 +114,16 @@ extern void f8() {
 extern void f9() {
   array_ptr<int> r : count(3) = 0;
   ptr<int> q = 0;
-  r = _Assume_bounds_cast<array_ptr<int>>(h4(), bounds(r, r + 4) rel_align(int)); // expected-error {{expression has unknown bounds}}
+
+  // The declared bounds of h4() use the value of r, but r is overwritten
+  // in the assignment. The value of r (used in the declared bounds (r, r + 4))
+  // is lost, so the inferred bounds for the cast expression are unknown.
+  r = _Assume_bounds_cast<array_ptr<int>>(h4(), bounds(r, r + 4) rel_align(int)); // expected-error {{inferred bounds for 'r' are unknown after statement}}
+  
+  // The declared bounds of h4() do not use the value of r, so the bounds of the
+  // cast expression are not invalidated.
+  r = _Assume_bounds_cast<array_ptr<int>>(h4(), count(4));
+
   q = _Assume_bounds_cast<ptr<int>>(h4(), bounds(r, r + 4) rel_align_value(sizeof(int))); // expected-error {{expected _Array_ptr type}}
 }
 
