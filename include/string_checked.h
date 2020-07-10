@@ -48,6 +48,7 @@
 #undef strncmp
 #undef strpbrk
 #undef strspn
+#undef strdup
 #endif
 
 // We wrap each definition in a complex conditional, there two boolean values:
