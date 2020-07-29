@@ -1076,7 +1076,7 @@ at runtime.
 a compiler will insert a bounds check  to ensure $e$ is a valid memory location to access. 
 \begin{enumerate}
 \item Let $Q$ be the variables that may be read by $B_{lv}$.
-\item Check that $B_{lv}$ does not use any variables written by $e$ by calling $CheckOverlap(Q, W_lv)$.
+\item Check that $B_{lv}$ does not use any variables written by $e$ by calling $CheckOverlap(Q, W_{lv})$.
 \item Let $R = R \cup Q$.
 \end{enumerate}
 \item If $e$ is an element of a set of equivalent expressions $F$ in $UEQ$ , let $G = F$ (note that
@@ -1098,8 +1098,8 @@ Check(rhs, \mathit{UC}_{lhs}, {UEQ}_{lhs}, Form, RB)$.
 \item $lhs$ and $rhs$ do not have a specified order of evaluation with respect to each other,
 so call $CheckOverlap(R_{lhs}, W_{lhs}, R_{rhs}, W_{rhs})$.
 \item Let $R = R_{lhs} \cup R_{rhs}$ and $W = W_{lhs} \cup W_{rhs}$.
-\item If $NeedsBoundsCheck(lhs)$ returns true, let $Q$ be the variable that may be read by $B_lhs$.
-Check that the bound check does not use any variables written by either $lhs$ or $rhs$ by
+\item If $NeedsBoundsCheck(lhs)$ returns true, let $Q$ be the variable that may be read by $B_{lhs}$.
+Check that the bounds check does not use any variables written by either $lhs$ or $rhs$ by
 calling $CheckOverlap(Q, W)$.   Let $R = R \cup Q$.
 \item  If $lhs$ is a variable $v$ (that is, $GetLValueVariable(lhs) = { v }$),
 \begin{enumerate}
@@ -1115,6 +1115,7 @@ from $F$.  If during later processing  an assignment to $w$ is seen, another var
 \item Let $(B, \mathit{UC}, UEQ, G) = Update(v, iv, B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$.
 \end{enumerate}
 \item If $lhs$ is not a variable, let $(B, \mathit{UC}, UEQ, G) = (B_{rhs}, \mathit{UC}_{rhs}, UEQ_{rhs}, G_{rhs})$
+(we address aliasing of memory accesses in another section).
 \end{enumerate}
 
 % lhs op= rhs
@@ -1132,15 +1133,20 @@ Compound, None)$.
 C, EQ, PostIncDec, None)$.
 \item $e1$\code{--}, the result is $Check(e1$ \code{ = } $ e1$ \code{ - 1}$, C, EQ, PostIncDec, None)$.
 \end{enumerate}
-\item If $e$ has the form \code{&}$e1$, let $(B, \_, \mathit{UC}, UEQ, G) = CheckLValue(e1, C, EQ)$.
+\item If $e$ has the form \code{&}$e1$, let $(B, \_, \mathit{UC}, UEQ, G, R, W) = CheckLValue(e1, C, EQ)$.
       
 \item Otherwise, $e$ is some expression with $n$ subexpressions (n may be 0).  The
 result is 
 \label{list:check-unordered-operands}
 \begin{enumerate}
 \item Let $\mathit{UC} = C$ and $UEQ = EQ$.  Let $S_k$ designate the $k^{th}$ subexpression.
-\item Visit the $n$ subexpressions in an order where the subexpression whose bounds is used to compute the bounds
-of this expression is visited last, accumulating results into $\mathit{UC}$ and $UEQ$.  If the current subexpression being visited is $S_i$,
+\item Visit the $n$ subexpressions  accumulating results into $\mathit{UC}$ and $UEQ$.  Choose an
+order where the subexpression whose bounds are used to compute the bounds
+of this expression is visited last.\footnote{We require this order so that bounds of the subexpression do
+not have to be passed to calls to $Check$.  The bounds of the subexpression already reflect the effect of
+assignments to variables in other subexpressions.  With other orders, if the bounds used variables assigned
+to by other subexpressions, the bounds would need to be updated by $Check$.}
+If the current subexpression being visited is $S_i$,
 \begin{enumerate}
 \item If $i = 1$ and $Form = PostIncDec$ or $Form = Compound$, $S_1$ has already
 been checked, so use the results from that.  Let $B_1 = FB, R_1 = \emptyset, W_1 = \emptyset$.  
@@ -1148,7 +1154,8 @@ If $S_1$ appears in some set $F$ in $UEQ$,  let $G_1 = F$. Otherwise, let $G_1 =
 \item Otherwise, let $(B_i, \mathit{UC}, UEQ, G_i, R_i, W_i) =$  $Check(S_i, \mathit{UC}, UEQ, No, None)$.
 \item For any subexpression $k$ whose bounds $B_k$ has already been computed,
 \begin{enumerate}
-\item Let $Q$ be the variables read by $B_k$.  If $Q \cup W_i$, let $B_i = $ \boundsunknown.  
+\item Let $Q$ be the variables read by $B_k$.  If $Q \cap W_i$ is non-empty, let $B_i = $ \boundsunknown
+(the $B_i$ does not reflect any changes to variables in $W_i$, so it is set conservatively to \boundsunknown).  
 \item  Also let $G_k = G_k - W_i$.
 \end{enumerate}
 \end{enumerate}
@@ -1174,7 +1181,7 @@ For each pair of subexpressions $(i, k)$, $CheckOverlap(R_i, W_i, R_k, W_k)$.
 
 The definition of $CheckLValue(e, C, EQ)$ is:
 \begin{enumerate}
-\item If $e$ is a variable $v$, let $\mathit{UC} = C$, $UEQ=EQ$,
+\item If $e$ is a variable $v$, let $\mathit{UC} = C$, $UEQ=EQ$, $R = \emptyset$, $W = \emptyset$,
 \begin{enumerate}
 \item If $v$ does not have array type,
 \begin{enumerate}
@@ -1314,7 +1321,7 @@ For any variable $v$ in $DC^\prime$, let $\mathit{UC}[v] = DC^\prime[v]$.
 to produce the set of sets.  Empty or singleton sets are removed.
 \item Let $G = G_1 \cap G_2$.  If $e$ has no side-effects,add $\{ e \}$ to $G$.  If a
 temporary was introduced for the value of $e$,  also add the temporary to $G$.
-\item Let $R = RC \cup R_1 \ cup R_2$.  Let $W = WC \cup W_1 \cup W_2$.
+\item Let $R = RC \cup R_1 \cup R_2$.  Let $W = WC \cup W_1 \cup W_2$.
 \item Make sure that all assignments to variables used in $DC^\prime$ have been seen before
 validating $DC^prime$ (otherwise the validation may be incorrect).
 For each bounds expression $B$ in $DC^\prime$, let $Q$ by the variables read by $B$.
@@ -1431,17 +1438,17 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 \>\>\>\>\>\>$Check($\code{getlen()}$,C  =\{x\mapsto$\code{bounds(x, x + len)}$\}, EQ = \emptyset,
                          Form = No, FB = None)$\\
 \>\>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(x, x + len)}$ , UEQ = \emptyset,
-               G = \emptyset, R = \emptyset, G = \emptyset)$\\
+               G = \emptyset, R = \emptyset, W = \emptyset)$\\
 \>\>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
-               G = \emptyset)$\\
+               G = \emptyset, R = \emptyset, W = \emptyset)$\\
 \>\>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto$\code{bounds(unknown)}$ , UEQ = \emptyset,
-          G = \emptyset)$\\  \\
+          G = \emptyset, R = \emptyset, W = \emptyset)$\\  \\
 % first arm
 \>\>\>{\tt Process the first arm:}\\
 \>\>\>$Check(e=$~\code{alloc(len)}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
          EQ=\emptyset, Form = No, FB = None)$\\
 \>\>\>\>$(B_1 = $ \code{bounds(tmp1, tmp1 + len)}$, \mathit{UC}_1 = \{x\mapsto$\code{bounds(unknown)}$,
-                {UEQ}_1 = \emptyset, G_1 = \{tmp1\})$\\
+                {UEQ}_1 = \emptyset, G_1 = \{tmp1\}, R_1 = \emptyset, W_1 = \emptyset)$\\
 
 % process the second arm
 \\
@@ -1449,9 +1456,9 @@ $CheckFullExpr(e=$~\code{x = (len = getlen()) ? alloc(len) : 0}$)$\\
 \>\>\>$Check(e=$~\code{0}$, C=\{x \mapsto$\code{bounds(unknown)}$\},
          EQ=\emptyset, Form = No, FB = None)$\\
 \>\>\>\>$(B_2 = $ \code{bounds(any)}$, \mathit{UC}_2 = \{x\mapsto$\code{bounds(unknown)}$,
-               {UEQ}_2 = \emptyset, G_2 = \{ 0 \}$\\ \\
+               {UEQ}_2 = \emptyset, G_2 = \{ 0 \}, R_2 = \emptyset, G_2 = \emptyset)$\\ \\
 
-\>\>\>{\tt Adjust the results for temporaries. Introduce a new temporary tmp2 for the result of}\\
+\>\>\>{\tt Adjust results for arms for temporaries. Introduce a new temporary tmp2 for the result of}\\
 \>\>\>{\tt the entire conditional expression.}\\
 \>\>\>\>$(B_1 = $\code{bounds(tmp2, tmp2 + len)}$, \mathit{UC}_1 = \{x\mapsto$\code{bounds(unknown)}$,
                 {UEQ}_1 = \emptyset)$\\
