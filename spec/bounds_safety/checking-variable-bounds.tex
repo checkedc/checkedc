@@ -1201,7 +1201,7 @@ Let $B = bounds(v, v + n)$ and $G =\{ v \}$.
 \item Let $RB = $ \boundsunknown (Checked C does not allow bounds for values stored in arrays).
 \end{enumerate}
 \end{enumerate}
-\item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, EQ, \_, R, W) = Check(e1, C, EQ, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown (Checked C does not allow bounds for values pointed to by pointers).
+\item If $e$ has the form $*e1$,  let $(B, \mathit{UC}, UEQ, \_, R, W) = Check(e1, C, EQ, No)$.  Let $G =\emptyset$ and $RB = $ \boundsunknown (Checked C does not allow bounds for values pointed to by pointers).
 \item If $e$ has the form $e1[e2]$,
 \label{list:check-unordered-subscript-operands}
 \begin{enumerate}
@@ -1323,7 +1323,7 @@ to produce the set of sets.  Empty or singleton sets are removed.
 temporary was introduced for the value of $e$,  also add the temporary to $G$.
 \item Let $R = RC \cup R_1 \cup R_2$.  Let $W = WC \cup W_1 \cup W_2$.
 \item Make sure that all assignments to variables used in $DC^\prime$ have been seen before
-validating $DC^prime$ (otherwise the validation may be incorrect).
+validating $DC^\prime$ (otherwise the validation may be incorrect).
 For each bounds expression $B$ in $DC^\prime$, let $Q$ by the variables read by $B$.
 Let $R = R \cup Q$ (if an unordered assignment to a variable used in $Q$ is 
 subsequently processed, this will cause a checking failure).
@@ -1384,7 +1384,9 @@ $CheckFullExpr(e=$~\code{x = alloc(5)}\code{, len = 5}$)$\\
    \>\>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
              EQ = \{\{tmp, x\},\{5, len\}\},  G = \{5\},$\\
    \>\>\>~$R = \emptyset, W = \{ len \})$\\
-  \>\>$CheckOverlap(\emptyset, \{x\}, \emptyset, \{ len \})$\\
+   \>\>$(B = $ \code{bounds(unknown)}$, \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
+             EQ = \{\{tmp, x\},\{5, len\}\},  G = \{5\},$\\
+   \>\>~$R = \emptyset, W = \{ x, len \})$\\
   \>$Validate(DC = \{x \mapsto$\code{bounds(x, x + len)}$\},
                    \mathit{UC} = \{x\mapsto $\code{bounds(tmp, tmp + 5)}$\},
                    EQ = \{\{tmp, x\},\{5, len\}\})$\\
