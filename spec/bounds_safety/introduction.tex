@@ -78,7 +78,9 @@ Checked C addresses the bounds checking problem for C by:
   local variables, parameters, constant expressions, casts, and
   operators such as addition, subtraction, and address-of (\code{&})
   operators. Static checking ensures that programs declare and maintain
-  bounds information properly. The bounds are used at runtime to enforce
+  bounds information properly. The bounds are used at runtime for
+  bounds checking.  A runtime bounds check may be optimized away by a
+  compiler if the compiler can prove the check always succeeds.
 \item
   Introducing different array types to distinguish between arrays whose
   accesses are bounds-checked and existing C arrays whose accesses are
