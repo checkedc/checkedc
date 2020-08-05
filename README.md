@@ -11,13 +11,6 @@ and test code.
 - The PDF of the specification is available [here](https://github.com/Microsoft/checkedc/releases).
 - Compilers are available [here](https://github.com/Microsoft/checkedc-clang/releases).
 
-# We are hiring.
-
-We have positions available for a
-[Principal Software Engineer](https://careers.microsoft.com/us/en/job/725522/Principal-Software-Engineer) and
-[Senior Software Engineer](https://careers.microsoft.com/us/en/job/731826/Senior-Software-Engineer).
-We are looking for engineers who have production compiler development experience and who value shipping software.
-
 # Papers
 We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
 Checked C at the [IEEE 2018 Cybersecurity Development Conference](https://secdev.ieee.org/2018/home):
@@ -30,8 +23,15 @@ We presented another [paper](https://www.microsoft.com/en-us/research/uploads/pr
 on Checked C at the [2019 Principles of Security and Trust Conference](http://www.etaps.org/2019/post): 
 "Achieving Safety Incrementally With Checked C".
 This paper describes a tool for converting existing C code to use Ptr types.  It also proves a blame
-property about checked regions that shows that checked regions are blameless for any memory corruption.  
-This proof is formalized for a core subset of the language extension.
+property about checked regions that shows that checked regions are blameless for any memory corruption.  This proof is formalized for a core subset of the language extension.
+
+We presented a
+[poster](https://github.com/microsoft/checkedc/blob/master/papers/posters/checkedc_for_memory_safety.pdf)
+at the [LLVM Dev Meeting
+2019](https://llvm.org/devmtg/2019-10/talk-abstracts.html#post6): "Overflows Be
+Gone: Checked C for Memory Safety". The poster provides an introduction to
+Checked C, outlines the compiler implementation and presents an experimental
+evaluation of Checked C.
 
 # Build Status
 

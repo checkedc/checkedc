@@ -3,7 +3,7 @@
 \chapter{Introduction}
 \label{chapter:introduction}
 
-The C programming language \cite{Ritchie1988, ISO2011} allows programmers to use 
+The C programming language \cite{Ritchie1988, ISO2011} allows programmers to use
 pointers directly. A pointer is an address of a location in memory. Programs may do
 arithmetic on pointers, dereference them to read memory, or assign
 through them to modify memory. The ability to use pointers directly
@@ -69,7 +69,7 @@ Checked C addresses the bounds checking problem for C by:
   extension to \arrayptr\ for null-terminated arrays (\ntarrayptr).
 \item
   For array pointer types (\arrayptr), in keeping with the low-level
-  nature of C,  bounds checking is placed under programmer control. 
+  nature of C,  bounds checking is placed under programmer control.
   This differs from languages like
   Java, where bounds checking is completely automatic. A programmer
   declares \emph{bounds}, where the bounds for an \arrayptr\
@@ -78,7 +78,9 @@ Checked C addresses the bounds checking problem for C by:
   local variables, parameters, constant expressions, casts, and
   operators such as addition, subtraction, and address-of (\code{&})
   operators. Static checking ensures that programs declare and maintain
-  bounds information properly. The bounds are used at runtime to enforce
+  bounds information properly. The bounds are used at runtime for
+  bounds checking.  A runtime bounds check may be optimized away by a
+  compiler if the compiler can prove the check always succeeds.
 \item
   Introducing different array types to distinguish between arrays whose
   accesses are bounds-checked and existing C arrays whose accesses are
@@ -174,11 +176,11 @@ This problem is addressed in two ways. First, the language rules that are
 used to check the validity of bounds are limited intentionally.  The rules can
 check the validity of bounds that are needed in practice.  However, there are
 bounds that are true that cannot be proved using the rules.  In the terminology
-of program logics, the rules are incomplete.  As an example, the 
+of program logics, the rules are incomplete.  As an example, the
 rules about distributivity limit the size of
-expressions that they produce.   In practice, this means that 
+expressions that they produce.   In practice, this means that
 simple disjunctive bounds can be checked, but complex disjunctive bounds cannot be checked.
- 
+
 Second, the inference that compilers do for checking program invariants is
 limited.  Compilers act as \emph{checkers} for invariants. They check that
 declared invariants follow from other declared invariants, the
@@ -202,25 +204,25 @@ scope of this technical report. For now, it is assumed that programs are
 correct in these other aspects.
 
 This design is being done in an iterative fashion.  To validate the
-design, we mocked up modifying a subset of the OpenSSL 
-code base \cite{OpenSSL2015} to be bounds-safe .  
-We created C++ templates for the new pointer types and modified OpenSSL to 
+design, we mocked up modifying a subset of the OpenSSL
+code base \cite{OpenSSL2015} to be bounds-safe .
+We created C++ templates for the new pointer types and modified OpenSSL to
 compile as valid C++ code.
 We hand-edited about 11,000 lines of the code to use checked pointer
-types with full bounds annotations.  We used macros to encapsulate 
+types with full bounds annotations.  We used macros to encapsulate
 the bounds annotations so that they could be elided from the code
 and OpenSSL compiled and tested using the new types.  We also modified the
 generic stack type in OpenSSL to use the \code{ptr} type, which required
-cross-cutting changes across the code base (in all, about 160 files were changed) 
-as well dealing with complicated macros.   
+cross-cutting changes across the code base (in all, about 160 files were changed)
+as well dealing with complicated macros.
 
 We learned the following from this
 experience.   First, it was important to have a compact, succinct syntax
-for declaring bounds. 
-Second, in most cases, declaring bounds at declarations was sufficient for 
-tracking the bounds of variables.  Large blocks of code 
+for declaring bounds.
+Second, in most cases, declaring bounds at declarations was sufficient for
+tracking the bounds of variables.  Large blocks of code
 remained unchanged, which matches the observations of the
-Cyclone project \cite{Jim2002}, an earlier research 
+Cyclone project \cite{Jim2002}, an earlier research
 effort to create a type-safe version of C.
 Third, the expressions allowed in declaring
 bounds needed to be rich.  Fourth, pointer casts were used
@@ -230,19 +232,19 @@ easily to be appropriate for the new referent type of the pointer.
 Fifth, it was clear that there needed
 to be a graceful way of interoperating with existing libraries that could
 not be changed.   Finally, signed integer overflow was a pervasive
-possibility, which raised questions about the meaning of bounds 
-declarations that used signed integers. 
+possibility, which raised questions about the meaning of bounds
+declarations that used signed integers.
 
 We revised the design to
 address these issues.  In particular, we paid close attention to
 tracking bounds through pointer casts.  We also made sure that the
-contraints on signed integer expressions used in bounds expressions
+constraints on signed integer expressions used in bounds expressions
 were understood and could be written down in the language of
 simple invariants.
 
 The design is a work-in-progress.  Some material will be missing
 or incomplete because the language design has not yet been done.
-Readers should be aware that all parts of the document are subject to change. 
+Readers should be aware that all parts of the document are subject to change.
 We are interested in feedback and suggestions about ways to improve
 the design.
 
@@ -304,7 +306,7 @@ Two specific design principles are adopted based on these principles:
   inventing new notations. Many systems are hybrid C/C++ systems, so
   this approach fits with the principle of clarity. It also enables
   incremental adoption. One of the design goals of C++ has been that C
-  is a subset of C++.  It is a design goal to allow Checked C to be a 
+  is a subset of C++.  It is a design goal to allow Checked C to be a
   subset of C++ too.
 \end{enumerate}
 
@@ -314,13 +316,13 @@ Operators and symbolic characters will be shown in black (like \lstinline|->|). 
 variables will be shown in light blue (like \lstinline|for (int i = 0; i<10; i++)|).   At times, we will
 define properties or make mathematical statements that range over sets of values or program
 elements, such as mathematical integers, variables, or expressions.   We will use meta-variables in {\it italics} that
-range over these values or program elements.  We might say something like 
+range over these values or program elements.  We might say something like
 ``for all expressions \var{e\textsubscript{1}} and \var{e\textsubscript{2}}.''   These meta-variables
  differ from program variables, which are elements of specific C programs.
 
 \section{Organization of this document}
 
-The target audience for this document includes programmers interested in 
+The target audience for this document includes programmers interested in
 learning about Checked C, compiler writers, and language designers.
 These groups have different and conflicting needs.  Programmers will find that
 some sections have too much detail, while language designers will likely
@@ -339,7 +341,7 @@ bounds safety even in the face of integer overflow, which is a
 widespread possibility in C programs. This requires a more nuanced
 requirement on the result of overflow than ``the result is undefined.''
 
-Chapters~\ref{chapter:core-extensions} through 
+Chapters~\ref{chapter:core-extensions} through
 \ref{chapter:pointers-to-data-with-arrayptrs}
 present the extensions to C for declaring bounds
 for \arrayptr\ values stored in variables and structures and
@@ -377,13 +379,13 @@ covers inferring effects of an expression on the bounds of variables.
 This inferred information is then used to validate that declarations and
 statements correctly declare bounds and maintain the bounds information.
 
-Chapter~\ref{chapter:interoperation} covers interoperation between 
+Chapter~\ref{chapter:interoperation} covers interoperation between
 checked and unchecked code. It covers conversions between checked and
 unchecked pointers, as well as conversions between the new kinds of checked pointers.
 It pins down the notion of checked code  and unchecked code. Finally, it covers
 bounds-safe interfaces in depth.
 
-Chapter~\ref{chapter:structure-bounds} extends these ideas from variables to data 
+Chapter~\ref{chapter:structure-bounds} extends these ideas from variables to data
 structures by
 introducing member bounds, which are type-level invariants about members
 of structure types. For now, it assumes that the programmer has done
@@ -395,13 +397,13 @@ uses to check programs with member bounds.
 Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} describes how
 to extend reasoning about bounds to pointers to data that has \arrayptr-typed
 values within it.  This includes pointers to structures with members that
-have \arrayptr\ types and pointers directly to \arrayptr s.  Pointers to 
+have \arrayptr\ types and pointers directly to \arrayptr s.  Pointers to
 structures can be used easily by ensuring that modifications to members
-preserve type-level bounds invariants. 
-This follows the lead of the Deputy system \cite{Condit2007}. 
-Complexity arises for pointers to \arrayptr s where 
-the \arrayptr s have bounds that depend on other variables or members.  The 
-other variables or members need to be abstracted by pointers as well to ensure 
+preserve type-level bounds invariants.
+This follows the lead of the Deputy system \cite{Condit2007}.
+Complexity arises for pointers to \arrayptr s where
+the \arrayptr s have bounds that depend on other variables or members.  The
+other variables or members need to be abstracted by pointers as well to ensure
 that invariants for bounds are not violated.  Assignments via pointer
 indirections need to be coordinated to maintain the invariant.  This
 gives rise to constraints on the pointers and the variables or
@@ -418,12 +420,12 @@ about whether one fact is true given a set of other facts (for example,
 given x == y and the statement \code{z = y;} z == x is true after that
 statement). These rules and facts can be used to deduce the correctness
 of bounds declarations that differ from those inferred directly by the
-checking described in Chapters~\ref{chapter:checking-bounds} 
-and~\ref{chapter:pointers-to-data-with-arrayptrs}. For example, 
+checking described in Chapters~\ref{chapter:checking-bounds}
+and~\ref{chapter:pointers-to-data-with-arrayptrs}. For example,
 a programmer may wish to narrow the memory that is accessible via an
 \arrayptr\ variable by declaring bounds that are a subrange of
 the bounds inferred by the checking. A programmer may wish to update the
-bounds for an \arrayptr\ variable after an assignment \code{x = y}, substituting 
+bounds for an \arrayptr\ variable after an assignment \code{x = y}, substituting
 \code{x} for \code{y}.
 
 The same static checking that is used for bounds can be used to reason
@@ -448,7 +450,7 @@ of the modifications or understand the practical benefits of checking.
 Still, this gives some idea about the usefulness and applicability of
 the design.
 
-Chapter~\ref{chapter:open-issues} summarizes the open problems uncovered by 
+Chapter~\ref{chapter:open-issues} summarizes the open problems uncovered by
 Chapter~\ref{chapter:eval} or
 unaddressed by the design. It also describes next steps for implementing
 this in a C compiler.
@@ -460,21 +462,21 @@ that were considered and not chosen.  It explains why those alternatives were
 not chosen.
 
 Here are the suggested roadmaps for the different groups of readers.
-For programmers interested in learning about Checked C, 
-we suggest reading Chapter~\ref{chapter:core-extensions} except 
+For programmers interested in learning about Checked C,
+we suggest reading Chapter~\ref{chapter:core-extensions} except
 Sections~\ref{section:pointer-arithmetic-errors} and \ref{section:changes-to-undefined-behavior},
 Chapter~\ref{chapter:tracking-bounds}
-except Section~\ref{section:extent-of-declarations}, 
+except Section~\ref{section:extent-of-declarations},
 Section~\ref{section:inferring-expression-bounds} of Chapter~\ref{chapter:checking-bounds},
 Chapter~\ref{chapter:interoperation} except for Section~\ref{section:checking-bounds-interfaces},
 Chapter~\ref{chapter:structure-bounds} except for Sections~\ref{section:member-bounds-state-extent}
 and \ref{section:checking-bounds-with-structures},
-and Chapter~\ref{chapter:simple-invariants} through the first section.  
+and Chapter~\ref{chapter:simple-invariants} through the first section.
 Sections~\ref{section:pointer-cast-results},  \ref{section:integer-overflow-informal},
 and \ref{section:pointer-integer-conversions} are advanced topics that can be read
 after the other recommended chapters and sections.
 
-We suggest language designers and compiler writers 
+We suggest language designers and compiler writers
 read most of the document. Language designers can skip Sections~\ref{section:computing-extent},
 \ref{section:canonicalization}, and \ref{section:canonicalization-example}.
 Compiler writers can skip the discussions in Section~\ref{section:programmer-dynamic-checks}
@@ -484,7 +486,7 @@ and Chapters~\ref{chapter:related-work} and \ref{chapter:design-alternatives}.
 
 \section{Acknowledgements}
 
-This design has benefited from many discussions with Weidong Cui, Gabriel Dos Reis, 
+This design has benefited from many discussions with Weidong Cui, Gabriel Dos Reis,
 Sam Elliott, Chris Hawblitzel, Galen Hunt, Shuvendu Lahiri, and Reuben Olinsky.  The design has
 benefited also from feedback from Michael Hicks, Wonsub Kim, Greg
 Morrisett, Jonghyun Park, and Andrew Ruef. We thank them for their contributions to

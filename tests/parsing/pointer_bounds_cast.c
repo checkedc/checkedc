@@ -14,7 +14,7 @@ extern void f1() {
 extern void f2() {
   char p[10];
   array_ptr<int> a : count(1) = 0;
-  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, count(5)); // expected-error {{declared bounds for 'd' are invalid after initialization}}
+  array_ptr<int> d : count(10) = _Dynamic_bounds_cast<array_ptr<int>>(a, count(5)); // expected-error {{declared bounds for 'd' are invalid after statement}}
   a = _Assume_bounds_cast<array_ptr<int>) (p, bounds(p, p+1)); // expected-error {{expected '>'}}
 }
 
@@ -55,8 +55,8 @@ extern void f6() {
   int *p;
   ptr<int> q = 0;
   array_ptr<int> s : bounds(p, p + 5) = 0;
-  p = _Assume_bounds_cast<int *>(q);
-  p = _Assume_bounds_cast<int *>(s);
+  p = _Assume_bounds_cast<int *>(q); // expected-error {{inferred bounds for 's' are unknown after statement}}
+  p = _Assume_bounds_cast<int *>(s); // expected-error {{inferred bounds for 's' are unknown after statement}}
 }
 
 extern array_ptr<int> h4(void) : count(3) {
@@ -97,7 +97,16 @@ extern void f10() {
 extern void f11() {
   array_ptr<int> r : count(3) = 0;
   ptr<int> q = 0;
-  r = _Assume_bounds_cast<array_ptr<int>>(h4(), bounds(r, r + 4)  rel_align(int));
+
+  // The declared bounds of h4() use the value of r, but r is overwritten
+  // in the assignment. The value of r (used in the declared bounds (r, r + 4))
+  // is lost, so the inferred bounds for the cast expression are unknown.
+  r = _Assume_bounds_cast<array_ptr<int>>(h4(), bounds(r, r + 4)  rel_align(int)); // expected-error {{inferred bounds for 'r' are unknown after statement}}
+  
+  // The declared bounds of h4() do not use the value of r, so the bounds of the
+  // cast expression are not invalidated.
+  r = _Assume_bounds_cast<array_ptr<int>>(h4(), count(4));
+
   q = _Assume_bounds_cast<ptr<int>>(h4());
 }
 
@@ -127,9 +136,9 @@ extern void f13(array_ptr<int> arr : count(5)) {
 
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, count(10));
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 10));
-  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3)); // expected-error {{declared bounds for x are invalid after assignment}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));  // expected-warning {{cannot prove declared bounds for x are valid after assignment}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3)); // expected-error {{declared bounds for 'x' are invalid after statement}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));  // expected-warning {{cannot prove declared bounds for 'x' are valid after statement}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr)); // expected-error {{expected ','}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(3 + 2));// expected-error {{declared bounds for x are invalid after assignment}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(len));  // expected-warning {{cannot prove declared bounds for x are valid after assignment}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(3 + 2));// expected-error {{declared bounds for 'x' are invalid after statement}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(len));  // expected-warning {{cannot prove declared bounds for 'x' are valid after statement}}
 }
