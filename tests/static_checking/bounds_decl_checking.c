@@ -199,6 +199,9 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   --(*t2);
   --(*t3);            // expected-error {{expression has unknown bounds}}
   --(*t4);
+
+  // Initialization with unknown src bounds.
+  array_ptr<int> t8 : count(1) = t3;  // expected-error {{inferred bounds for 't8' are unknown after initialization}}
 }
 
 nt_array_ptr<int> g11 : bounds(unknown) = 0;
