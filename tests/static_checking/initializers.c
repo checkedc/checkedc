@@ -78,7 +78,7 @@ void f4(void) checked {
   int t21 = g21[3];
   int t22 = g22[2][2];
   // TODO: bounds declaration checking needs to understand equality after assignment
-  nt_array_ptr<char> t23 = g23[0]; // expected-warning {{cannot prove declared bounds for 't23' are valid after statement}}
+  nt_array_ptr<char> t23 = g23[0]; // expected-warning {{cannot prove declared bounds for 't23' are valid after initialization}}
   int t30 = g30[1];
   int t31 = *g31;
   char t32 = g32[5];
