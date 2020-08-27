@@ -27,7 +27,13 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   arg4 = (int *)0xabcd;  // expected-error {{inferred bounds for 'arg4' are unknown after statement}}
   arg4 = orig_arg4;
 
-  // TODO: compound literals, assignments of variables with array types
+  // compound literals
+  array_ptr<int> arr1 : count(3) = (int checked[3]){0, 1, 2};
+  array_ptr<int> arr2 : count(4) = (int checked[3]){0, 1, 2}; // expected-error {{declared bounds for 'arr2' are invalid after statement}}
+  array_ptr<struct S1> arr_struct1 : count(1) = &(struct S1){0};
+  array_ptr<struct S1> arr_struct2 : count(2) = &(struct S1){0}; // expected-error {{declared bounds for 'arr_struct2' are invalid after statement}}
+
+  // TODO: assignments of variables with array types
   // to pointer variables, and reads/writes of struct members.
 
   // address-of
