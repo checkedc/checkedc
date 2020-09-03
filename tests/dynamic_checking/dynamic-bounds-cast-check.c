@@ -56,7 +56,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     puts("Error Setting Up Buffering");
     return EXIT_FAILURE;
   }
-  
+
   if (argc < 2) {
     // CHECK-NOT: Requires Argument
     puts("Requires Argument");
@@ -164,13 +164,13 @@ void passing_test_1(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(r);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(3));
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(3)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
   printf("Printable1\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r+3, count(3));
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r+3, count(3)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
   printf("Printable2\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
   printf("Printable3\n");
 
   nt_array_ptr<const char> p : count(2) =
@@ -228,9 +228,9 @@ void failing_test_1(void) {
   ptr<int> q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(15));
-  
+
   printf("Unprintable\n");
-  
+
   puts("Unexpected Success");
 }
 
@@ -241,7 +241,7 @@ void failing_test_2(void) {
   q = _Dynamic_bounds_cast<array_ptr<int>>(r+8, count(3));
 
   printf("Unprintable\n");
-  
+
   puts("Unexpected Success");
 }
 
@@ -254,7 +254,7 @@ void failing_test_3(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(r);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
   printf("Printable1\n");
 
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
@@ -262,9 +262,9 @@ void failing_test_3(void) {
 
   s = 0;
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
-  
+
   printf("Unprintable\n");
-  
+
   puts("Unexpected Success");
 }
 
@@ -277,7 +277,7 @@ void failing_test_4(int k) {
 
   printf("Printable1\n");
   printf("Unprintable2: %d\n", *(s+k));
-  
+
   puts("Unexpected Success");
 }
 
