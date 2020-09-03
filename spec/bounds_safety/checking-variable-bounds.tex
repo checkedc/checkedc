@@ -1312,7 +1312,7 @@ Let $DC^\prime$ be $DC$ restricted to variables in $W_1 \cup W_2$:
 for each variable $v \in dom(DC)$, keep the entry if $v \in W_1 \cup W_2$
 or $DC[v]$ uses the value of a variable in $W_1 \cup W_2$.
 \item For each arm $e_i$, call $Validate(DC^\prime, \mathit{UC}_i, {UEQ}_i)$.
-\item Let $\mathit{UC} = C$.  Update $\mathit{UC}$ so that any variables modified by the conditional expression
+\item Let $\mathit{UC} = \mathit{UC}_{e1}$.  Update $\mathit{UC}$ so that any variables modified by the conditional expression
 have the top-level declared bounds (which were just validated after each arm).
 For any variable $v$ in $DC^\prime$, let $\mathit{UC}[v] = DC^\prime[v]$.
 \end{enumerate}
