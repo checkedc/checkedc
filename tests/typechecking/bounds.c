@@ -565,7 +565,7 @@ void int_local_var_bounds_decl(void) {
   int a1 checked[5];
 
   // byte_count
-  short int t20 : byte_count(5 * sizeof(int)) = (short int)a1; // expected-error {{it is not possible to prove that the inferred bounds of 't20' imply the declared bounds of 't20' after initialization}}
+  short int t20 : byte_count(5 * sizeof(int)) = (short int)a1;
   int t21 : byte_count(5 * sizeof(int)) = (int)a1;
   long int t22 : byte_count(5 * sizeof(int)) = (long int)a1;
   unsigned long int t23 : byte_count(5 * sizeof(int)) = (unsigned long int) a1;
