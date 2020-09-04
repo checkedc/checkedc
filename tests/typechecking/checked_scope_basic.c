@@ -43,7 +43,7 @@ void checked_local_types(void) SCOPE_KIND {
 
   //
   // Check pointers to other types
-  //
+  // 
 
   // Unchecked pointers to other pointer types.
   int **t10 = 0;           // expected-error {{local variable in a checked scope must have a checked type}}
@@ -131,7 +131,7 @@ scope must have a pointer, array or function type that uses only checked types o
 // - check if function body (compound statement) is checked.
 // - check if function with no prototype is checked.
 // - check that if a declaration is declared in a check scope with an unchecked type,
-//    an error message is produced for the declaration.
+//    an error message is produced for the declaration.  
 // - check that if a declaration is declared in an unchecked scope with an unchecked type
 //   and it is used in a checked, scope, there is an error message at uses of the declared
 //   entity.
@@ -851,13 +851,13 @@ void test_addrof_checked_scope(void) SCOPE_KIND {
 
   // In checked scope, address-of operator produces _Array_ptr<T>
   // VisitBinaryOperator - check if LHS has bounds and RHS has bounds
-  ptr<int> x = &a[i]; // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}} \
+  ptr<int> x = &a[i]; // expected-warning {{cannot prove cast source bounds are wide enough for '_Ptr<int>'}} \
                          ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
   ptr<int> y = &b[0]; // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>) \
                       // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
   ptr<int> z = &i;    // ImplicitCastExpr _Ptr (UnaryOperator _Array_Ptr<int>)
 
-  x = &a[i];  // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}} \
+  x = &a[i];  // expected-warning {{cannot prove cast source bounds are wide enough for '_Ptr<int>'}} \
               // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>)
   y = &b[1];  // ImplicitCastExpr _Ptr (UnaryOperator _Array_ptr<int>) \
               // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
@@ -896,15 +896,13 @@ void test_addrof_unchecked_scope(void) unchecked {
   int i;
 
   // checkSingleAssignmentConstraints(int * -> _Ptr<int> implicit casting)
-  ptr<int> x = &a[i]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &) \
-                      // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  ptr<int> x = &a[i]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
   ptr<int> y = &b[0]; // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &) \
                       // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
   ptr<int> z = &i;    // ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)
 
   // implicit cast for _Ptr<T> requires source bounds
-  x = &a[i];  // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)) \
-              // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  x = &a[i];  // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &))
   y = &b[0];  // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &)) \
               // expected-error {{expression has unknown bounds, cast to ptr<T> expects source to have bounds}}
   z = &i;     // BinaryOperator(ImplicitCastExpr _Ptr<int>(UnaryOperator int * prefix &))
@@ -1732,9 +1730,9 @@ extern void test_cast_to_nt_array_ptr(void) checked {
 
   // Test casting ptr to nt_array_ptr.
   ptr<int> p0 = (ptr<int>)&i;
-  nt_array_ptr<int> p1 = (nt_array_ptr<int>)p0; // expected-error {{'_Ptr<int>' cannot be cast to '_Nt_array_ptr<int>' in a checked scope because '_Ptr<int>' might not point to a null-terminated array}}
+  nt_array_ptr<int> p1 = (nt_array_ptr<int>)p0; // expected-error {{'_Ptr<int>' cannot be cast to '_Nt_array_ptr<int>' in a checked scope because '_Ptr<int>' might not point to a null-terminated array}} 
   ptr<char> p2 = (ptr<char>)&c;
-  nt_array_ptr<char> p3 = (nt_array_ptr<char>)p2; // expected-error {{'_Ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Ptr<char>' might not point to a null-terminated array}}
+  nt_array_ptr<char> p3 = (nt_array_ptr<char>)p2; // expected-error {{'_Ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Ptr<char>' might not point to a null-terminated array}} 
   ptr<char> p4 = "hello";
   p2 = (nt_array_ptr<char>)p4;  // expected-error {{'_Ptr<char>' cannot be cast to '_Nt_array_ptr<char>' in a checked scope because '_Ptr<char>' might not point to a null-terminated array}}
 
@@ -1756,7 +1754,7 @@ extern void test_cast_to_nt_array_ptr(void) checked {
     p1 = (nt_array_ptr<int>)p0;   // allowed here; disallowed in a checked scope.
     p3 = (nt_array_ptr<char>)p2;  // allowed here; disallowed in a checked scope.
     p2 = (nt_array_ptr<char>)p4;  // allowed here; disallowed in a checked scope.
-
+  
     // Test casting array_ptr to nt_array_ptr.
     p6 = (nt_array_ptr<int>)arr_i; // allowed here; disallowed in a checked scope.
     p6 = (nt_array_ptr<int>)p5;    // allowed here; disallowed in a checked scope.
@@ -1764,7 +1762,7 @@ extern void test_cast_to_nt_array_ptr(void) checked {
 
     // Test casting nt_array_ptr to nt_array_ptr
     p10 = (nt_array_ptr<char>)p9;  // allowed in both checked and unchecked scopes.
-
+    
     // Test casting from unchecked pointers to nt_array_ptr.
     int arr_i_unchecked[5];
     p6 = (nt_array_ptr<int>)arr_i_unchecked;  // allowed

@@ -158,7 +158,8 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   else if (strcmp(argv[1], "fail3") == 0) {
     // FAIL-3-NOT: Unreachable
     // FAIL-3-NOT: Unexpected Success
-    failing_test_3(a); // expected-error {{error: it is not possible to prove argument meets declared bounds for 1st parameter}}
+    array_ptr<int> p : count(g_zero) = dynamic_bounds_cast<array_ptr<int>>(a, count(g_zero));
+    failing_test_3(p);
   }
   else if (strcmp(argv[1], "fail4") == 0) {
     // FAIL-4-NOT: Unreachable
@@ -210,7 +211,7 @@ void passing_test_3(array_ptr<int> a : count(len), int len) {
 // Bounds describe empty range (function is called with k=0), no deref
 void failing_test_1(int k) {
   int a checked[2] = { 0, 0 };
-  array_ptr<int> b : bounds(a, a + k) = a; // expected-error {{it is not possible to prove that the inferred bounds of 'b' imply the declared bounds of 'b' after initialization}}
+  array_ptr<int> b : bounds(a, a + k) = dynamic_bounds_cast<array_ptr<int>>(a, count(k));
 
   TEST_OP(*b, 1);
   printf("Unreachable: %d\n", *b);
@@ -221,8 +222,8 @@ void failing_test_1(int k) {
 // Bounds describe invalid range (function is called with k=2, a + 2 > a), no deref
 void failing_test_2(int k) {
   int a checked[3] = { 0, 0, 0 };
-  array_ptr<int> b : bounds(a + k, a) = a; // expected-error {{error: it is not possible to prove that the inferred bounds of 'b' imply the declared bounds of 'b' after initialization}}
-
+  array_ptr<int> c : bounds(a + k, a) = dynamic_bounds_cast<array_ptr<int>>(a, bounds(a + k, a));
+  array_ptr<int> b : bounds(a + k, a) = c;
   TEST_OP(*b, 2);
   printf("Unreachable: %d\n", *b);
 

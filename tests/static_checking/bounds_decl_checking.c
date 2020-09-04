@@ -452,7 +452,7 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_f5(arg4, 1);
 
   test_f1(arg5);     // expected-error {{incompatible type}}
-  test_f2(arg5);     // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  test_f2(arg5);
   test_f3(arg5);
   test_f4(arg5);    // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   test_f5(arg5, 1); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
@@ -463,7 +463,7 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_f5(arg5, count++);  // expected-error {{increment expression not allowed}}
 
   test_f1(arg6);               // expected-error {{incompatible type}}
-  test_f2(arg6);               // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  test_f2(arg6);
   test_f3(arg6);
   test_f4(arg6);               // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   test_f5(arg6, arglen_u);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}

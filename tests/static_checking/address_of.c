@@ -290,7 +290,7 @@ struct S11 {
 
 struct S12 {
   int len;
-  int arr[] : count(len);
+  int arr[] : count(len);    
 };
 
 extern void f40(struct S9 *s9) {
@@ -323,7 +323,7 @@ extern checked void f45(_Ptr<struct S12> s12) {
 
 //
 // Spot check taking address of members used other bounds expressions besides count.
-//
+// 
 
 struct S20 {
   _Array_ptr<int> p : bounds(p, p + 5);
@@ -349,7 +349,7 @@ void f46(struct S20 s) {
 
 // Checked variables with bounds declarations.
 int global_len1;
-_Array_ptr<int> global_var1 : count(global_len1);
+_Array_ptr<int> global_var1 : count(global_len1); 
 _Ptr<_Array_ptr<int>> pglobal1 = &global_var1; // expected-error {{cannot take address of variable 'global_var1' with bounds}}
 
 extern int global_arr1 _Checked[] : count(global_len1);
@@ -366,13 +366,13 @@ extern void f60(_Array_ptr<int> x : count(len), int len) {
 
   if (len >= 0 && len < 10) {
      int arr _Checked[10] : count(len);
-     _Ptr<int _Checked[10]> parr = &arr; // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int _Checked[10]>'}}
+     _Ptr<int _Checked[10]> parr = &arr;
   }
 }
 
 // Variables with bounds-safe interfaces
 int global_len2;
-int *global_var2 : count(global_len2);
+int *global_var2 : count(global_len2); 
 int **pglobal2 = &global_var2;
 
 extern int global_arr2[] : count(global_len1);
