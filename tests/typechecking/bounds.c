@@ -565,6 +565,8 @@ void int_local_var_bounds_decl(void) {
   int a1 checked[5];
 
   // byte_count
+  // TODO(checkedc-clang issue#911): The casts below cause spurious free variable errors.
+  // We need to ignore casts when comparing two variables in the bounds expressions.
   short int t20 : byte_count(5 * sizeof(int)) = (short int)a1;
   int t21 : byte_count(5 * sizeof(int)) = (int)a1;
   long int t22 : byte_count(5 * sizeof(int)) = (long int)a1;
