@@ -567,8 +567,8 @@ void int_local_var_bounds_decl(void) {
   // byte_count
   // TODO(checkedc-clang issue#911): The casts below cause spurious free variable errors.
   // We need to ignore casts when comparing two variables in the bounds expressions.
-  short int t20 : byte_count(5 * sizeof(int)) = (short int)a1; // expect-error {{it is not possible to prove that the inferred bounds of 't20' imply the declared bounds of 't20' after initialization}}
-  int t21 : byte_count(5 * sizeof(int)) = (int)a1; // expect-error {{it is not possible to prove that the inferred bounds of 't21' imply the declared bounds of 't21' after initialization}}
+  short int t20 : byte_count(5 * sizeof(int)) = (short int)a1; // expected-error {{it is not possible to prove that the inferred bounds of 't20' imply the declared bounds of 't20' after initialization}}
+  int t21 : byte_count(5 * sizeof(int)) = (int)a1; // expected-error {{it is not possible to prove that the inferred bounds of 't21' imply the declared bounds of 't21' after initialization}}
   long int t22 : byte_count(5 * sizeof(int)) = (long int)a1;
   unsigned long int t23 : byte_count(5 * sizeof(int)) = (unsigned long int) a1;
   enum E1 t24 : byte_count(8) = EnumVal1;
