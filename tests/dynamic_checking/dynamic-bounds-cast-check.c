@@ -164,13 +164,13 @@ void passing_test_1(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(r);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(3)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(3));
   printf("Printable1\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r+3, count(3)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r+3, count(3));
   printf("Printable2\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
   printf("Printable3\n");
 
   nt_array_ptr<const char> p : count(2) =
@@ -254,7 +254,7 @@ void failing_test_3(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(r);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5)); // expected-error {{it is not possible to prove cast source bounds are wide enough for '_Ptr<int>'}}
+  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
   printf("Printable1\n");
 
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
