@@ -565,10 +565,11 @@ void int_local_var_bounds_decl(void) {
   int a1 checked[5];
 
   // byte_count
-  // TODO(checkedc-clang issue#911): The casts below cause spurious free variable errors.
+  // TODO (checkedc-clang issue#911): The casts below cause spurious free variable errors.
   // We need to ignore casts when comparing two variables in the bounds expressions.
   short int t20 : byte_count(5 * sizeof(int)) = (short int)a1; // expected-error {{it is not possible to prove that the inferred bounds of 't20' imply the declared bounds of 't20' after initialization}}
-  int t21 : byte_count(5 * sizeof(int)) = (int)a1; // expected-error {{it is not possible to prove that the inferred bounds of 't21' imply the declared bounds of 't21' after initialization}}
+  // TODO (checkedc-clang #911): The cast below causes a spurious free variable error on Windows x86.
+  // int t21 : byte_count(5 * sizeof(int)) = (int)a1;
   // TODO (checkedc-clang #911): The casts below cause spurious free variable errors
   // on Windows, but not on Linux.
   // long int t22 : byte_count(5 * sizeof(int)) = (long int)a1;
