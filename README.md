@@ -11,27 +11,36 @@ and test code.
 - The PDF of the specification is available [here](https://github.com/Microsoft/checkedc/releases).
 - Compilers are available [here](https://github.com/Microsoft/checkedc-clang/releases).
 
-# Papers
-We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
+# Publications and Presentations
+- We presented a [research paper](https://www.microsoft.com/en-us/research/publication/checkedc-making-c-safe-by-extension/) on
 Checked C at the [IEEE 2018 Cybersecurity Development Conference](https://secdev.ieee.org/2018/home):
 "Checked C: Making C Safe by Extension".   The paper describes the key ideas of Checked C in 8 pages.
 
 Note that we have added features to Checked C for improving type safety (and reducing type confusion)
 since writing the paper.  The [Wiki](https://github.com/Microsoft/checkedc/wiki) and [specification](https://github.com/Microsoft/checkedc/releases) provide up-to-date descriptions of Checked C.
 
-We presented another [paper](https://www.microsoft.com/en-us/research/uploads/prod/2019/05/checkedc-post2019.pdf)
+- We presented another [paper](https://www.microsoft.com/en-us/research/uploads/prod/2019/05/checkedc-post2019.pdf)
 on Checked C at the [2019 Principles of Security and Trust Conference](http://www.etaps.org/2019/post): 
 "Achieving Safety Incrementally With Checked C".
 This paper describes a tool for converting existing C code to use Ptr types.  It also proves a blame
 property about checked regions that shows that checked regions are blameless for any memory corruption.  This proof is formalized for a core subset of the language extension.
 
-We presented a
+- We presented a
 [poster](https://github.com/microsoft/checkedc/blob/master/papers/posters/checkedc_for_memory_safety.pdf)
 at the [LLVM Dev Meeting
 2019](https://llvm.org/devmtg/2019-10/talk-abstracts.html#post6): "Overflows Be
 Gone: Checked C for Memory Safety". The poster provides an introduction to
 Checked C, outlines the compiler implementation and presents an experimental
 evaluation of Checked C.
+
+- We presented a
+  [talk](https://www.youtube.com/watch?v=AIlBWIiV68U&ab_channel=LLVM) at the
+[2020 LLVM Virtual Dev Meeting](https://llvm.org/devmtg/2020-09/program):
+"Checked C: Adding memory safety support to LLVM". The talk describes the
+design of bounds annotations for checked pointers and array pointers as well as
+the framework for the static checking of the soundness of bounds. We also
+briefly describe novel algorithms to automatically widen bounds for
+null-terminated arrays and for comparison of expressions for equivalence.
 
 # Build Status
 
