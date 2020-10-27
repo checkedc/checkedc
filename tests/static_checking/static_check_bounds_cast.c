@@ -140,19 +140,19 @@ extern void f18(int i) {
 
   q = _Dynamic_bounds_cast<ptr<int>>(r);
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(p, count(1)); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for 'r' are invalid after statement}}
-  r = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1)); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for 'r' are invalid after statement}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(p, count(1)); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for 'r' are invalid after assignment}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1)); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for 'r' are invalid after assignment}}
 
   r = _Dynamic_bounds_cast<array_ptr<int>>(i, count(5)); // expected-error {{expression has unknown bounds}}
   r = _Dynamic_bounds_cast<array_ptr<int>>(i, bounds(i, i + 1)); // expected-error 2 {{expected expression with pointer}}
 
   int len;
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(q, count(len));       // expected-warning {{cannot prove declared bounds for 'r' are valid after statement}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(q, count(len));       // expected-warning {{cannot prove declared bounds for 'r' are valid after assignment}}
   r = _Dynamic_bounds_cast<array_ptr<int>>(q, bounds(q, q + 1)); // expected-error {{arithmetic on _Ptr type}}
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(r, count(1));        // expected-error {{declared bounds for 'r' are invalid after statement}}
-  r = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(r, r + 1)); // expected-error {{declared bounds for 'r' are invalid after statement}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(r, count(1));        // expected-error {{declared bounds for 'r' are invalid after assignment}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(r, r + 1)); // expected-error {{declared bounds for 'r' are invalid after assignment}}
 
   p = _Dynamic_bounds_cast<char *>(p); // expected-warning{{incompatible pointer types assigning}} expected-error{{expression has unknown bounds}}
 
@@ -186,7 +186,7 @@ extern void f19(){
 
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, count(b)); // expected-error {{invalid argument type}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, 1)); // expected-error {{expected expression with}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1)); // expected-error {{declared bounds for 'x' are invalid after statement}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1)); // expected-error {{declared bounds for 'x' are invalid after assignment}}
 }
 
 extern array_ptr<int> h7(void) : count(3) {
@@ -232,7 +232,7 @@ extern void f24() {
   // The declared bounds of h7() use the value of buf, but buf is overwritten
   // in the assignment. The value of buf (used in the declared bounds (buf, buf + 3))
   // is lost, so the inferred bounds for the cast expression are unknown.
-  buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3)); // expected-error {{inferred bounds for 'buf' are unknown after statement}}
+  buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3)); // expected-error {{inferred bounds for 'buf' are unknown after assignment}}
   
   // The declared bounds of h7() do not use the value of buf, so the bounds of the
   // cast expression are not invalidated.

@@ -762,7 +762,7 @@ In the examples, type annotations for return types are placed
 after the parameter list, the same way that bounds expression for
 return values are placed:
 \begin{lstlisting}
-void modf(double value, double *iptr : itype(ptr<double>));
+double modf(double value, double *iptr : itype(ptr<double>));
 int fclose(FILE *stream : itype(ptr<FILE>));
 FILE *tmpfile(void) : itype(ptr<FILE>);
 struct tm *gmtime(const time_t *timer : itype(ptr<const time_t>)) :
