@@ -1287,7 +1287,7 @@ To keep checking from becoming too expensive, we disallow such expressions.
 \begin{enumerate}
 \item Let $(\_, \mathit{UC}_{e1}, {UEQ}_{e1}, \_, RC, WC)= Check(e1, C, EQ, No, None)$
 \item For each arm $e_i$ of the conditional branch,
-        let $(B_i, \mathit{UC}_i, {UEQ}_i, G_i, R_i, W_i) = Check(e_i, \mathit{UC}_{e1}, EQ, No, None)$.
+        let $(B_i, \mathit{UC}_i, {UEQ}_i, G_i, R_i, W_i) = Check(e_i, \mathit{UC}_{e1}$, ${UEQ}_{e1}, No, None)$.
 \item Handle uses of temporaries bound in only one branch.  These temporaries
 will be uninitialized when the other branch of the conditional arm is evaluated.
 If some $B_i$, $\mathit{UC}_i$ or ${UEQ}_i$ uses a temporary bound in $e_i$,
@@ -1312,7 +1312,7 @@ Let $DC^\prime$ be $DC$ restricted to variables in $W_1 \cup W_2$:
 for each variable $v \in dom(DC)$, keep the entry if $v \in W_1 \cup W_2$
 or $DC[v]$ uses the value of a variable in $W_1 \cup W_2$.
 \item For each arm $e_i$, call $Validate(DC^\prime, \mathit{UC}_i, {UEQ}_i)$.
-\item Let $\mathit{UC} = C$.  Update $\mathit{UC}$ so that any variables modified by the conditional expression
+\item Let $\mathit{UC} = \mathit{UC}_{e1}$.  Update $\mathit{UC}$ so that any variables modified by the conditional expression
 have the top-level declared bounds (which were just validated after each arm).
 For any variable $v$ in $DC^\prime$, let $\mathit{UC}[v] = DC^\prime[v]$.
 \end{enumerate}
