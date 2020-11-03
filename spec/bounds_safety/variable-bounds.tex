@@ -1347,7 +1347,7 @@ If the default relative alignment has been overridden and
 If it is, it inserts the same
 runtime check as before. Otherwise, it inserts a runtime check that
 \var{e2} \lstinline|<=| \var{e1} \lstinline|&&|
-\var{e1} \lstinline|+ sizeof(|\var{T}) \lstinline|- 1 <| \var{e3}.
+\var{e1} \lstinline|+| \sizeof{referent-type(\var{e1})} \lstinline|- 1 <| \var{e3}.
 
 \subsection{Examples of uses of bounds declarations that specify relative alignment}
 
