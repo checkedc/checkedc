@@ -514,7 +514,7 @@ extern void check_condexpr(int val) {
   array_ptr<int> t5 = val ? r : 0;
   array_ptr<int> t5a = val ? v : 0;
   array_ptr<int> t6 = val ? 0 : r;
-  nt_array_ptr<int> t6a = val ? 0 : v;
+  nt_array_ptr<int> t6a = val ? 0 : v; // expected-warning {{cannot prove declared bounds for 't6a' are valid after initialization}}
   array_ptr<float> t7 = val ? u : 0;
   array_ptr<float> t8 = val ? 0 : u;
 }
