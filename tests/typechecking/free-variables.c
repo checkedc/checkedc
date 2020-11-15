@@ -39,10 +39,11 @@ void f0(void) {
                                         // expected-note 2 {{(expanded) declared bounds are 'bounds(p1, p1 + len1)'}} \
                                         // expected-note {{(expanded) inferred bounds are 'bounds(p, p + (i1 + i2))'}} \
 
-  // 'a' p1 free.
-  p1 = &a[0]; // expected-error {{it is not possible to prove that the inferred bounds of 'p1' imply the declared bounds of 'p1' after assignment}} \
-              // expected-note {{the declared bounds use the value of the variable 'p1', and there is no relational information between 'p1' and any of the variables used by the inferred bounds}} \
-              // expected-note {{the inferred bounds use the value of the variable 'a', and there is no relational information between 'a' and any of the variables used by the declared bounds}} \
+  // There is an indirect relationship between p1 and a.
+  // 'len1' in the declared upper bound of p1 is free but not reported.
+  // The compiler checks free variables in the lower and upper bounds
+  // only if the bases are equal.
+  p1 = &a[0]; // expected-warning {{cannot prove declared bounds for 'p1' are valid after assignment}} \
               // expected-note {{(expanded) inferred bounds are 'bounds(a, a + 5)'}}
 
   // 'len1' and 'len1' from 'p2' are free.
@@ -89,11 +90,8 @@ void f13() {
   array_ptr<int> x : count(10) = 0; // expected-note {{(expanded) declared bounds are 'bounds(x, x + 10)'}}
   array_ptr<int> cache1 : count(5) = 0;
 
-  // TODO: When we see the "stronger" error, do not proceed to check free variables.
-  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3)); // expected-error {{it is not possible to prove that the inferred bounds of 'x' imply the declared bounds of 'x' after assignment}} \
+  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3)); // expected-error {{declared bounds for 'x' are invalid after assignment}} \
                                                                                // expected-note {{destination bounds are wider than the source bounds}} \
-                                                                               // expected-note {{the declared bounds use the value of the variable 'x', and there is no relational information between 'x' and any of the variables used by the inferred bounds}} \
-                                                                               // expected-note {{the inferred bounds use the value of the variable 'cache1', and there is no relational information between 'cache1' and any of the variables used by the declared bounds}} \
                                                                                // expected-note {{(expanded) inferred bounds are 'bounds(cache1 - 2, cache1 + 3)'}}
 }
 
@@ -146,9 +144,8 @@ void f4(void) {
   array_ptr<int> t3 : byte_count(5 * sizeof(int)) = (((array_ptr<int>)(((a)))));
 
   array_ptr<int> p : count(2) = 0;
-  array_ptr<int> q : count(1) = p + 1; // expected-error {{it is not possible to prove that the inferred bounds of 'q' imply the declared bounds of 'q' after initialization}} \
-                                       // expected-note {{the declared bounds use the value of the variable 'q', and there is no relational information between 'q' and any of the variables used by the inferred bounds}} \
-                                       // expected-note {{the inferred bounds use the value of the variable 'p', and there is no relational information between 'p' and any of the variables used by the declared bounds}} \
+  // There is an indirect relationship between q and p.
+  array_ptr<int> q : count(1) = p + 1; // expected-warning {{cannot prove declared bounds for 'q' are valid after initialization}} \
                                        // expected-note {{(expanded) declared bounds are 'bounds(q, q + 1)'}} \
                                        // expected-note {{(expanded) inferred bounds are 'bounds(p, p + 2)'}}
 }
