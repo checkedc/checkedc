@@ -2,8 +2,7 @@
 // in the inferred or declared bounds that cause the bounds proof to fail.
 // See checkedc-clang#903 for the definition of free variables.
 
-// R UN: %clang_cc1 -verify %s
-// RUN: /Users/KKjeer/Documents/Coding/checkedc/build/llvm/bin/clang -cc1 -internal-isystem /Users/KKjeer/Documents/Coding/checkedc/build/llvm/lib/clang/9.0.0/include -nostdsysteminc -verify %s
+// RUN: %clang_cc1 -verify %s
 
 #include <stdchecked.h>
 
