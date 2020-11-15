@@ -48,7 +48,7 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   // - Simplification of &e1[e2] to e1 + e2 during checking of bounds declaration.
   // - Re-expressing bounds for arg4 in terms of the rhs and checking those bounds.
   // - Possibly reassociation.
-  arg4 = &arr[4];         // expected-error {{it is not possible to prove that the inferred bounds of 'arg4' imply the declared bounds of 'arg4' after assignment}}
+  arg4 = &arr[4];         // expected-warning {{cannot prove declared bounds for 'arg4' are valid after assignment}}
 
   // variables
 

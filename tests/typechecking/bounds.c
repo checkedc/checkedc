@@ -191,7 +191,7 @@ extern void bounds_exprs(void) {
    int *unchecked_ptr_lb = i, *unchecked_ptr_ub = i + 1;
    // unsafe cast
    nt_array_ptr<int> nt_array_ptr_lb = (nt_array_ptr<int>) i,
-                     nt_array_ptr_ub = (nt_array_ptr<int>) i + 1; // expected-error {{it is not possible to prove that the inferred bounds of 'nt_array_ptr_ub' imply the declared bounds of 'nt_array_ptr_ub' after initialization}}
+                     nt_array_ptr_ub = (nt_array_ptr<int>) i + 1;
 
    array_ptr<int> t1 : bounds(array_ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t2 : bounds(ptr_lb, array_ptr_ub) = i;
@@ -280,7 +280,7 @@ extern void bounds_exprs(void) {
    int_ptr typedef_ptr_lb = i, typedef_ptr_ub = i + 1;
    int_unchecked_ptr typedef_unchecked_ptr_lb = i, typedef_unchecked_ptr_ub = i + 1;
    int_nt_array_ptr typedef_nt_array_ptr_lb = (int_nt_array_ptr)i,
-                    typedef_nt_array_ptr_ub = (int_nt_array_ptr)(i + 1); // expected-error {{it is not possible to prove that the inferred bounds of 'typedef_nt_array_ptr_ub' imply the declared bounds of 'typedef_nt_array_ptr_ub' after initialization}}
+                    typedef_nt_array_ptr_ub = (int_nt_array_ptr)(i + 1);
 
    array_ptr<int> t91 : bounds(typedef_array_ptr_lb, array_ptr_ub) = i;
    array_ptr<int> t92 : bounds(ptr_lb, typedef_array_ptr_ub) = i;
@@ -305,7 +305,7 @@ extern void bounds_exprs(void) {
    const array_ptr<int> const_array_ptr_ub = i + 1;
    const array_ptr<const int> const_array_ptr_const_ub = i + 1;
    const nt_array_ptr<int> const_nt_array_ptr_lb = (const nt_array_ptr<int>) i;
-   const nt_array_ptr<int> const_nt_array_ptr_ub = (const nt_array_ptr<int>) i + 1; // expected-error {{it is not possible to prove that the inferred bounds of 'const_nt_array_ptr_ub' imply the declared bounds of 'const_nt_array_ptr_ub' after initialization}}
+   const nt_array_ptr<int> const_nt_array_ptr_ub = (const nt_array_ptr<int>) i + 1;
 
    // permutations of ptr and const
    ptr<int const> ptr_const_lb = i;
