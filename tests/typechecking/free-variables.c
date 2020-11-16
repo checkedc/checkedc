@@ -18,13 +18,13 @@ void f0(void) {
 
   // i1 free
   array_ptr<int> p : count(i1) = a; // expected-error {{it is not possible to prove that the inferred bounds of 'p' imply the declared bounds of 'p' after initialization}} \
-                                                                    // expected-note {{the declared upper bounds use the variable 'i1', and there is no relational information involving 'i1' and any of the expressions used by the inferred upper bounds}} \
+                                                                    // expected-note {{the declared upper bounds use the variable 'i1' and there is no relational information involving 'i1' and any of the expressions used by the inferred upper bounds}} \
                                                                     // expected-note {{declared bounds are 'bounds(p, p + i1)'}} \
                                                                     // expected-note {{inferred bounds are 'bounds(a, a + 5)'}}
   // i1, i2 free
   array_ptr<int> q : count(i2) = p; // expected-error {{it is not possible to prove that the inferred bounds of 'q' imply the declared bounds of 'q' after initialization}} \
-                                    // expected-note {{the inferred upper bounds use the variable 'i1', and there is no relational information involving 'i1' and any of the expressions used by the declared upper bounds}} \
-                                    // expected-note {{the declared upper bounds use the variable 'i2', and there is no relational information involving 'i2' and any of the expressions used by the inferred upper bounds}} \
+                                    // expected-note {{the inferred upper bounds use the variable 'i1' and there is no relational information involving 'i1' and any of the expressions used by the declared upper bounds}} \
+                                    // expected-note {{the declared upper bounds use the variable 'i2' and there is no relational information involving 'i2' and any of the expressions used by the inferred upper bounds}} \
                                     // expected-note {{(expanded) declared bounds are 'bounds(q, q + i2)'}} \
                                     // expected-note {{(expanded) inferred bounds are 'bounds(p, p + i1)'}}
 
@@ -34,8 +34,8 @@ void f0(void) {
   // 'i1' and 'i2' are free but not reported!
   // The compiler checks free variables only if the bases are equal.
   array_ptr<int> p1 : count(len1) = p0; // expected-error {{it is not possible to prove that the inferred bounds of 'p1' imply the declared bounds of 'p1' after initialization}} \
-                                        // expected-note {{the declared bounds use the variable 'p1', and there is no relational information involving 'p1' and any of the expressions used by the inferred bounds}} \
-                                        // expected-note {{the inferred bounds use the variable 'p', and there is no relational information involving 'p' and any of the expressions used by the declared bounds}} \
+                                        // expected-note {{the declared bounds use the variable 'p1' and there is no relational information involving 'p1' and any of the expressions used by the inferred bounds}} \
+                                        // expected-note {{the inferred bounds use the variable 'p' and there is no relational information involving 'p' and any of the expressions used by the declared bounds}} \
                                         // expected-note 2 {{(expanded) declared bounds are 'bounds(p1, p1 + len1)'}} \
                                         // expected-note {{(expanded) inferred bounds are 'bounds(p, p + (i1 + i2))'}} \
 
@@ -49,23 +49,23 @@ void f0(void) {
   // 'len1' and 'len1' from 'p2' are free.
   array_ptr<int> p2 : bounds(a + len1, a + len2) = 0;
   array_ptr<int> p3 : bounds(a + len2, a + len1) = p2; // expected-error {{it is not possible to prove that the inferred bounds of 'p3' imply the declared bounds of 'p3' after initialization}} \
-                                                       // expected-note {{the inferred lower bounds use the variable 'len1', and there is no relational information involving 'len1' and any of the expressions used by the declared lower bounds}} \
-                                                       // expected-note {{the declared upper bounds use the variable 'len1', and there is no relational information involving 'len1' and any of the expressions used by the inferred upper bounds}} \
+                                                       // expected-note {{the inferred lower bounds use the variable 'len1' and there is no relational information involving 'len1' and any of the expressions used by the declared lower bounds}} \
+                                                       // expected-note {{the declared upper bounds use the variable 'len1' and there is no relational information involving 'len1' and any of the expressions used by the inferred upper bounds}} \
                                                        // expected-note {{(expanded) declared bounds are 'bounds(a + len2, a + len1)'}} \
                                                        // expected-note {{(expanded) inferred bounds are 'bounds(a + len1, a + len2)'}}
 
   // Compound bases. 'len1' is free.
   array_ptr<int> p4 : bounds((p4 + len1) + 0, (p4 + len1) + 1) = 0;
   array_ptr<int> p5 : bounds((p5 + len2) + 0, (p5 + len2) + 1) = p4; // expected-error {{it is not possible to prove that the inferred bounds of 'p5' imply the declared bounds of 'p5' after initialization}} \
-                                                                     // expected-note {{the inferred bounds use the variable 'len1', and there is no relational information involving 'len1' and any of the expressions used by the declared bounds}} \
+                                                                     // expected-note {{the inferred bounds use the variable 'len1' and there is no relational information involving 'len1' and any of the expressions used by the declared bounds}} \
                                                                      // expected-note {{(expanded) declared bounds are 'bounds((p5 + len2) + 0, (p5 + len2) + 1)'}} \
                                                                      // expected-note {{(expanded) inferred bounds are 'bounds((p4 + len1) + 0, (p4 + len1) + 1)'}}
 
   // Multiple equivalent variables. Emit note once for 'len1' and 'len2'.
   array_ptr<int> p6 : count(len1 + len1 + len1 + len2) = 0;
   array_ptr<int> p7 : count(i1) = p6; // expected-error {{it is not possible to prove that the inferred bounds of 'p7' imply the declared bounds of 'p7' after initialization}} \
-                                      // expected-note {{the declared upper bounds use the variable 'i1', and there is no relational information involving 'i1' and any of the expressions used by the inferred upper bounds}} \
-                                      // expected-note {{the inferred upper bounds use the variable 'len1', and there is no relational information involving 'len1' and any of the expressions used by the declared upper bounds}} \
+                                      // expected-note {{the declared upper bounds use the variable 'i1' and there is no relational information involving 'i1' and any of the expressions used by the inferred upper bounds}} \
+                                      // expected-note {{the inferred upper bounds use the variable 'len1' and there is no relational information involving 'len1' and any of the expressions used by the declared upper bounds}} \
                                       // expected-note {{(expanded) declared bounds are 'bounds(p7, p7 + i1)'}} \
                                       // expected-note {{(expanded) inferred bounds are 'bounds(p6, p6 + len1 + len1 + len1 + len2)'}}
 
@@ -75,13 +75,13 @@ void f0(void) {
   array_ptr<int> p9 : count(i2 + i1) = 0;
   array_ptr<int> p10 : count(v) = 0; // expected-note 2 {{(expanded) declared bounds are 'bounds(p10, p10 + v)'}}
   p10 = p8; // expected-error {{it is not possible to prove that the inferred bounds of 'p10' imply the declared bounds of 'p10' after assignment}} \
-            // expected-note {{the declared upper bounds use the variable 'v', and there is no relational information involving 'v' and any of the expressions used by the inferred upper bounds}} \
-            // expected-note {{the inferred upper bounds use the variable 'i1', and there is no relational information involving 'i1' and any of the expressions used by the declared upper bounds}} \
+            // expected-note {{the declared upper bounds use the variable 'v' and there is no relational information involving 'v' and any of the expressions used by the inferred upper bounds}} \
+            // expected-note {{the inferred upper bounds use the variable 'i1' and there is no relational information involving 'i1' and any of the expressions used by the declared upper bounds}} \
             // expected-note {{(expanded) inferred bounds are 'bounds(p8, p8 + i1)'}}
   p10 = p9; // expected-error {{it is not possible to prove that the inferred bounds of 'p10' imply the declared bounds of 'p10' after assignment}} \
-            // expected-note {{the declared upper bounds use the variable 'v', and there is no relational information involving 'v' and any of the expressions used by the inferred upper bounds}} \
-            // expected-note {{the inferred upper bounds use the variable 'i2', and there is no relational information involving 'i2' and any of the expressions used by the declared upper bounds}} \
-            // expected-note {{the inferred upper bounds use the variable 'i1', and there is no relational information involving 'i1' and any of the expressions used by the declared upper bounds}} \
+            // expected-note {{the declared upper bounds use the variable 'v' and there is no relational information involving 'v' and any of the expressions used by the inferred upper bounds}} \
+            // expected-note {{the inferred upper bounds use the variable 'i2' and there is no relational information involving 'i2' and any of the expressions used by the declared upper bounds}} \
+            // expected-note {{the inferred upper bounds use the variable 'i1' and there is no relational information involving 'i1' and any of the expressions used by the declared upper bounds}} \
             // expected-note {{(expanded) inferred bounds are 'bounds(p9, p9 + i2 + i1)'}}
 }
 
@@ -129,7 +129,7 @@ void f3(struct S1 a3) {
   struct S1 a4 = {};
   array_ptr<int> p : count(5) = 0;
   a3.p = p; // expected-error {{it is not possible to prove that the inferred bounds of a3.p imply the declared bounds of a3.p after assignment}} \
-            // expected-note {{the declared upper bounds use the variable 'a3', and there is no relational information involving 'a3' and any of the expressions used by the inferred upper bounds}} \
+            // expected-note {{the declared upper bounds use the variable 'a3' and there is no relational information involving 'a3' and any of the expressions used by the inferred upper bounds}} \
             // expected-note {{(expanded) declared bounds are 'bounds(a3.p, a3.p + a3.len2)'}} \
             // expected-note {{(expanded) inferred bounds are 'bounds(p, p + 5)'}}
 }
