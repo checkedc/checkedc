@@ -14,6 +14,15 @@ clarifying wording, adding examples, adding related work, improving the existing
 * Proposing significant new functionality.  We have focused on bounds checking so far, and welcome proposals
 for checking type casts and memory management.
 
+If you choose to contribute code to the [Checked C clang compiler implementation](https://github.com/Microsoft/checkedc-clang),
+please follow the guidelines below while submitting PRs:
+- Please break your changes into multiple small PRs rather than submitting one big PR as smaller changes are easier and faster to review.
+- Please place changes to the compiler core and to any other compiler tools in separate PRs.
+- Before submitting a PR, please ensure that it passes all build and test requirements both in Linux and Windows.
+
+From our side, we assure you that we will not squash-merge your PRs in a way that erases your commit history.
+For more guidelines from LLVM/Clang, please refer to [this](https://llvm.org/docs/Contributing.html) link.
+
 ## Workflow
 
 You can provide feedback on the specification by opening an issue or sending email to the discussion email list.  
