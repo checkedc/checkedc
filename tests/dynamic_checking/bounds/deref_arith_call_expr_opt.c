@@ -144,7 +144,7 @@
 // to n 3-d integer arrays, where the integers are initialized by the sequence 1, 3, 5 ...  (i - 1) * 3 * 2 + 5),
 // i.e. with a stride of 2.
 // The 3rd argument = the array length (n), the 4th and 5th argument specify the
-// element to perform an an operation on.  The 4th argument is the 1st dimension index,
+// element to perform an operation on.  The 4th argument is the 1st dimension index,
 // and the 5th argument is the 2nd dimension index.  
 //
 // RUN: %checkedc_rununder %t1 md_dependent_bounds read 2 2 0   | FileCheck %S/subscript_call_expr.c --check-prefixes=MD-DB-READ-START,MD-DB-READ-FAIL
