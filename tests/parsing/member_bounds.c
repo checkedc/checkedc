@@ -333,7 +333,7 @@ union U3 {
 #define untag_int(p) ((p) & ~1)
 
 union U4 {
-  array_ptr<int> ip : bounds(ip, is_tagged_int(ip) ? ip : ip + 5);
+  array_ptr<int> ip : bounds(ip, is_tagged_int(ip) ? ip : ip + 5); // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
   int i;
 };
 
