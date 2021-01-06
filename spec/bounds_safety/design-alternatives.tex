@@ -27,7 +27,7 @@ producing \code{int ptr pi;}.
   
 This seems to make code less readable.  This is apparent for type names that 
 consist of several words: \code{const unsigned int ptr g} is more
-difficult to parse quickly than \ptrinst{const unsigned int} \code{g}.
+difficult to parse quickly than \ptrinst{\lstinline|const unsigned int|} \code{g}.
 The use of symbols like \code{<} and \code{>} can be recognized 
 visually more quickly than the use  of an identifier.  
 
@@ -46,7 +46,7 @@ type, so ``mixed'' declarators must be broken across multiple
 lines instead. The resulting declarations would be 
 \code{int i;} \ptrint\ \code{pi;} On the other hand, non-mixed
 declarators are fine: \code{int *pj, *pi;} becomes
-\ptrint \code{pi, pj;}.
+\ptrint\ \code{pi, pj;}.
 
 \section{Span pointer types}
 \label{section:span-design}
@@ -285,16 +285,16 @@ h(void) {
 
 To allow existing code to continue to compile unchanged, we adopt the
 rule that an \arrayptrT\ can be
-implicitly cast to a \var{T} * in situations where a T * type is
+implicitly cast to a \var{T} * in situations where a \var{T} * type is
 expected. Those situations may include pointer assignment, arguments to
 function calls, return statements, and conditional expressions. For
 onditional, expressions of the form \var{exp1} \code{?} \var{exp2} \code{:}
-\var{exp3}, the implicit coercion occurs when \var{exp2} or \var{exp3} has type T * and
+\var{exp3}, the implicit coercion occurs when \var{exp2} or \var{exp3} has type \var{T} * and
 the other expression has type
 \arrayptrT. These situations do not
 include array references and adding or subtracting a pointer type and an
 integer. \arrayptrT\ is an acceptable
-type for those operations and a coercion to T * is not needed.
+type for those operations and a coercion to \var{T} * is not needed.
 
 We allow \arrayptr\ values to not be within bounds. Because of
 this, any implicit conversion of an \arrayptr\ value with a
@@ -327,7 +327,7 @@ it is not expected fail.
 
 The bounds for \lstinline|&*|\var{e} are defined to be the bounds of \var{e} in 
 Section~\ref{section:address-of-expression-bounds}.  We considered
-using narrower bounds for \lstinline|&*|\var{e} of \bounds{\var{e}}{\var{e}\code{ + 1}},
+using narrower bounds for \lstinline|&*|\var{e} of \bounds{\var{e}}{\var{e}\code{\ + 1}},
 where the bounds describe memory containing only a single value.
 We rejected this choice for two reasons.
 
@@ -694,7 +694,7 @@ for_any(T) int f(void);
 for_any(T) struct S { T *elem, S<T> *next } g(void);
 \end{verbatim}
 
-\section{Suspends and hold clauses for structure members}
+\section{Suspends and holds clauses for structure members}
 
 We initially proposed having a notion of \code{suspends} and \code{holds} clauses
 for structure members with bounds.  This allows the programmer to annotate when
