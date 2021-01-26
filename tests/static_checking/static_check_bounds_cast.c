@@ -49,7 +49,7 @@ extern void f3() {
   array_ptr<int> s2 : bounds(r, r + 5) = 0;
   array_ptr<int> t : count(5) = 0;
   p = _Assume_bounds_cast<int *>(r);
-  p = _Dynamic_bounds_cast<int *>(r); // expected-error {{expression has unknown bounds}}  
+  p = _Dynamic_bounds_cast<int *>(r); // expected-error {{expression has unknown bounds}}
   q = _Assume_bounds_cast<ptr<int>>(p);
   q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
   q = _Dynamic_bounds_cast<ptr<int>>(r); // expected-error {{expression has unknown bounds}}
@@ -148,7 +148,7 @@ extern void f18(int i) {
 
   int len;
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(q, count(len));       // expected-warning {{cannot prove declared bounds for 'r' are valid after assignment}}
+  r = _Dynamic_bounds_cast<array_ptr<int>>(q, count(len));       // expected-error {{it is not possible to prove that the inferred bounds of 'r' imply the declared bounds of 'r' after assignment}}
   r = _Dynamic_bounds_cast<array_ptr<int>>(q, bounds(q, q + 1)); // expected-error {{arithmetic on _Ptr type}}
 
   r = _Dynamic_bounds_cast<array_ptr<int>>(r, count(1));        // expected-error {{declared bounds for 'r' are invalid after assignment}}
@@ -159,7 +159,7 @@ extern void f18(int i) {
   p = _Assume_bounds_cast<int *>(q);
   p = _Assume_bounds_cast<int *>(cq);
   p = _Assume_bounds_cast<int *>(cr);
-  p = _Dynamic_bounds_cast<int *>(cr); // expected-error{{expression has unknown bounds}}  
+  p = _Dynamic_bounds_cast<int *>(cr); // expected-error{{expression has unknown bounds}}
   cp = _Dynamic_bounds_cast<char *>(p); // expected-error{{expression has unknown bounds}}
   q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
   p = _Assume_bounds_cast<int *>(r);
@@ -172,7 +172,7 @@ extern float h6(void) {
 
 extern void f19(){
   int p[10];
-  int a : bounds(p, p+1) = 0;    
+  int a : bounds(p, p+1) = 0;
   float b;
   array_ptr<int> x : count(10) = 0;
 
@@ -228,12 +228,12 @@ extern void f23() {
 
 extern void f24() {
   array_ptr<char> buf : count(3) = "abc";
-  
+
   // The declared bounds of h7() use the value of buf, but buf is overwritten
   // in the assignment. The value of buf (used in the declared bounds (buf, buf + 3))
   // is lost, so the inferred bounds for the cast expression are unknown.
   buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), bounds(buf, buf + 3)); // expected-error {{inferred bounds for 'buf' are unknown after assignment}}
-  
+
   // The declared bounds of h7() do not use the value of buf, so the bounds of the
   // cast expression are not invalidated.
   buf = _Dynamic_bounds_cast<array_ptr<char>>(h7(), count(3));

@@ -168,7 +168,7 @@ void f6(void) {
 
   struct VariableBuffer buf_missing_init;  // expected-error {{containing a checked pointer must have an initializer}}
   ptr<int> data_missing_init checked[10];  // expected-error {{elements containing checked pointers must have an initializer}}
-  
+
  // Check { 0 } initialization idiom where first member is a floating point number.
   struct FloatWithVariableBuffer {
     float weight;
@@ -289,7 +289,7 @@ typedef struct NA {
 void f7() {
   int a;
   float b;
-  // integer with a bounds expression must have an initializer 
+  // integer with a bounds expression must have an initializer
   int x : count(5); // expected-error {{with a bounds expression must have an initializer}} expected-error {{have a pointer or array type}}
   int y : count(6) = 0; // expected-error {{have a pointer or array type}}
 }
@@ -312,7 +312,7 @@ void f8 (void) {
   // for bounds expr kind like "int i : count(len)"
   typedef struct {
     int a;
-    int b : count(10);  // expected-error {{have a pointer or array type}} 
+    int b : count(10);  // expected-error {{have a pointer or array type}}
   } S;
   S s1; // expected-error {{containing an integer member with a bounds expression must have an initializer}}
 
@@ -358,7 +358,7 @@ void f11 (void) checked {
     char* cp : count(5);
   } S;
   S s1; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}}
-  
+
   typedef struct {
     int x;
     S s; // contains an unchecked pointer with bounds expr
@@ -369,7 +369,7 @@ void f11 (void) checked {
     int x;
     SS ss;
   } SSS;
-  SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}} 
+  SSS sss; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}}
 }
 
 // Test if _Nt_checked array initializers are null terminated

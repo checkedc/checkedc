@@ -137,7 +137,7 @@ extern void f13(array_ptr<int> arr : count(5)) {
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, count(10));
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 10));
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(cache1 - 2, cache1 + 3)); // expected-error {{declared bounds for 'x' are invalid after assignment}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));  // expected-warning {{cannot prove declared bounds for 'x' are valid after assignment}}
+  x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr, arr + len));  // expected-error {{it is not possible to prove that the inferred bounds of 'x' imply the declared bounds of 'x' after assignment}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, bounds(arr)); // expected-error {{expected ','}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(3 + 2));// expected-error {{declared bounds for 'x' are invalid after assignment}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(x, count(len));  // expected-warning {{cannot prove declared bounds for 'x' are valid after assignment}}

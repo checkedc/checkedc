@@ -103,10 +103,10 @@ void g2(array_ptr<int> ap : count(len), int len) {
    f4(ap, len);
 
    if (len >= 10) {
-     f1_complete_arr(ap);
-     f2_complete_arr(ap);
-     f3_complete_arr(ap);
-     f4_complete_arr(ap);
+     f1_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+     f2_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+     f3_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+     f4_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
    }
 
    f1_incomplete_arr(ap);
@@ -123,10 +123,10 @@ void g2_incomplete_array_param(int ap checked[] : count(len), int len) {
   f4_incomplete_arr(ap, len);
 
   if (len >= 10) {
-    f1_complete_arr(ap);
-    f2_complete_arr(ap);
-    f3_complete_arr(ap);
-    f4_complete_arr(ap);
+    f1_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f2_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f3_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f4_complete_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   }
 }
 
@@ -156,14 +156,14 @@ void g2_complete_array_arg(void) {
   f4_incomplete_arr(arr, 10);
 }
 
-// Test passing multi-diemensional arrays through bounds-safe 
+// Test passing multi-diemensional arrays through bounds-safe
 // interfaces.
 void g2_md(array_ptr<int checked[10]> ap : count(len), int len) {
   if (len >= 10) {
-    f1_complete_md_arr(ap);
-    f2_complete_md_arr(ap);
-    f3_complete_md_arr(ap);
-    f4_complete_md_arr(ap);
+    f1_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f2_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f3_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f4_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   }
 
   f1_incomplete_md_arr(ap);
@@ -179,10 +179,10 @@ void g2_incomplete_md_array_param(int ap checked[][10] : count(len), int len) {
   f4_incomplete_md_arr(ap, len);
 
   if (len >= 10) {
-    f1_complete_md_arr(ap);
-    f2_complete_md_arr(ap);
-    f3_complete_md_arr(ap);
-    f4_complete_md_arr(ap);
+    f1_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f2_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f3_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+    f4_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   }
 }
 
@@ -234,7 +234,7 @@ void g5(ptr<int> p) {
 
 void g6(array_ptr<int> ap : count(len), int len) {
   if (len >= 1)
-    f1_void(ap);
+    f1_void(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   f3_void(ap, len);
   f4_void(ap, len * sizeof(int));
 }
@@ -414,7 +414,7 @@ void g30(ptr<int> p) {
 void g31(array_ptr<int> ap : count(10)) {
   const_v2 = ap;
   const_v3 = ap;
-  const_v4 = ap;
+  const_v4 = ap; // expected-error {{it is not possible to prove that the inferred bounds of 'const_v4' imply the declared bounds of 'const_v4' after assignment}}
 }
 
 // Pointers to const-data should not be assigned to pointers to non-const qualified
@@ -621,7 +621,7 @@ void g90(int **interop_ptr : itype(array_ptr<ptr<int>>) count(3), ptr<int> check
   *(2 + interop_ptr) = checked_ptr;
 }
 
-// Assign a checked pointer to an element of an 
+// Assign a checked pointer to an element of an
 // unchecked array with a bounds-safe interface.
 void g91(int *arr[3] : itype(ptr<int> checked [3]), ptr<int> checked_ptr) {
   arr[0] = checked_ptr;
