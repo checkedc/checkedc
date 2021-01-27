@@ -190,7 +190,7 @@ extern void bounds_exprs(void) {
    ptr<int> ptr_lb = i, ptr_ub = i + 1;
    int *unchecked_ptr_lb = i, *unchecked_ptr_ub = i + 1;
    // unsafe cast
-   nt_array_ptr<int> nt_array_ptr_lb = (nt_array_ptr<int>) i, 
+   nt_array_ptr<int> nt_array_ptr_lb = (nt_array_ptr<int>) i,
                      nt_array_ptr_ub = (nt_array_ptr<int>) i + 1;
 
    array_ptr<int> t1 : bounds(array_ptr_lb, array_ptr_ub) = i;
@@ -427,22 +427,22 @@ extern void bounds_exprs(void) {
 }
 
 //
-// Test type requirements for bounds declarations.   There are various 
+// Test type requirements for bounds declarations.   There are various
 // requirements for the types of variables with bounds declaration.
 //
-// We need to test the cross-product of (variable or member 
+// We need to test the cross-product of (variable or member
 //  declaration, scope for variables (global or local), the kind of the bounds
 // expression, and the type for the variable).
 //
 // The tests follow a specific pattern: there is a set of tests for global
 // variables that covers most of the different requirements.   The tests
-// for the other cases (local variables, parameter variables, member 
+// for the other cases (local variables, parameter variables, member
 // declarations, and return bounds declarations) are specialized clones
 //  of the cases for global variables.  The syntax is altered where necessary,
 // prefixes for variables and members are renamed to avoid overlapping names
 // and a small number of tests are added/removed.  The numbering for variables
 //  and members should be kept the same across the different cases.
-// 
+//
 // The tests themselves are ordered by the kind of bounds expression and then
 // grouped by kind of type within that.
 
@@ -627,7 +627,7 @@ void invalid_local_var_bounds_decl(void)
 
 //
 // Test parameter variable bounds declarations.
-// 
+//
 
 void param_var_bounds_decl(
   // count
@@ -888,7 +888,7 @@ struct s8 {
 
 //
 // Test function return bounds declarations.
-// 
+//
 
 //
 // Test valid function return bounds declarations

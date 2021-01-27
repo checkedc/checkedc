@@ -56,7 +56,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     puts("Error Setting Up Buffering");
     return EXIT_FAILURE;
   }
-  
+
   if (argc < 2) {
     // CHECK-NOT: Requires Argument
     puts("Requires Argument");
@@ -228,9 +228,9 @@ void failing_test_1(void) {
   ptr<int> q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(15));
-  
+
   printf("Unprintable\n");
-  
+
   puts("Unexpected Success");
 }
 
@@ -241,7 +241,7 @@ void failing_test_2(void) {
   q = _Dynamic_bounds_cast<array_ptr<int>>(r+8, count(3));
 
   printf("Unprintable\n");
-  
+
   puts("Unexpected Success");
 }
 
@@ -262,9 +262,9 @@ void failing_test_3(void) {
 
   s = 0;
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
-  
+
   printf("Unprintable\n");
-  
+
   puts("Unexpected Success");
 }
 
@@ -277,7 +277,7 @@ void failing_test_4(int k) {
 
   printf("Printable1\n");
   printf("Unprintable2: %d\n", *(s+k));
-  
+
   puts("Unexpected Success");
 }
 
