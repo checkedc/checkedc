@@ -298,7 +298,7 @@ int aligned_memcpy(array<char> dst : count(len) where aligned(dst, 4),
 \end{lstlisting}
 
 This example is adapted from the OpenSSL library. The signature of a
-method has been modified to have bounds declaration. The size of input
+method has been modified to have a bounds declaration. The size of input
 and output buffers must be multiples of 16 because the function operates
 on 16-byte chunks of data.
 
