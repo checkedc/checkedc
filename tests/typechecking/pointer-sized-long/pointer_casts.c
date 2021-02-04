@@ -67,7 +67,8 @@ extern int f10(int a, _Array_ptr<int> b,
                 _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (long) b + a));
 extern int f10(int a, _Array_ptr<int> b,
                _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (short) b + a)); // expected-error {{function redeclaration has conflicting parameter bounds}} \
-                                                                                 // expected-warning 2 {{cast to '_Array_ptr<int>' from smaller integer type 'short'}}
+                                                                                 // expected-warning 2 {{cast to '_Array_ptr<int>' from smaller integer type 'short'}} \
+                                                                                 // expected-warning 2 {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
 
 extern int f11(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
 extern int f11(int a, _Array_ptr<int> b,
