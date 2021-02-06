@@ -566,14 +566,7 @@ void int_local_var_bounds_decl(void) {
 
   // byte_count
   short int t20 : byte_count(5 * sizeof(int)) = (short int)a1; // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
-  int t21 : byte_count(5 * sizeof(int)) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
   enum E1 t24 : byte_count(8) = EnumVal1;
-
-  // bounds
-  int t25 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
-  long int t26 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
-  unsigned long int t27 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
-  enum E1 t28 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
 }
 
 void invalid_local_var_bounds_decl(void)
