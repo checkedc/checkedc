@@ -704,7 +704,7 @@ pointers and arrays do not change in unchecked scopes even when bounds
 or type annotations are declared for the pointers and arrays}. The declared bounds
 or type annotations are used for expressions
 that mix checked and unchecked pointer types. Unchecked pointer dereferences do not
-have bounds checks added to them.  Similarly, uses unchecked arrays still convert to
+have bounds checks added to them.  Similarly, uses of unchecked arrays still convert to
 unchecked pointer types.   A function that has a bounds-safe
 interface and whose body does not use checked pointer or array
 types is compiled as though the bounds-safe interface has been
@@ -1138,7 +1138,7 @@ ptr<int> (ptr<const int> key,
               ptr<int (ptr<const int>, ptr<const int>)> compar);
 \end{lstlisting}
 Now, suppose \lstinline+bsearch+ is called without applying it to type variables.
-In that case, any itypes that use type variable are discarded:
+In that case, any itypes that use a type variable are discarded:
 \begin{lstlisting}-
 void *(const void *key,
          const void *base : byte_count(nmemb * size),

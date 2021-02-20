@@ -51,6 +51,11 @@ Throughout this document, we use the shorter and easier-to-read
 lowercase versions of the keywords.  It is assumed
 that \keyword{stdchecked.h} is included before examples.
 
+Checked C also has some new keywords such as \lstinline+count+ that are
+recognized only in Checked-C-specific syntactic positions and thus
+cannot conflict with existing C code. These keywords are accepted in
+lowercase only.
+
 \section{New kinds of pointer types}
 Three new checked pointer types are added to C. Each pointer type can be
 used in place of `\code{*}':
@@ -77,7 +82,7 @@ used in place of `\code{*}':
   in bounds.
 \item
  \ntarrayptrT: this is a variant of \arrayptrT\ for null-terminated
- arrays.  It is described in Section~\ref{section:nullterm-types}
+ arrays.  It is described in Section~\ref{section:nullterm-types}.
 \end{enumerate}
 
 Unchecked C pointer types that use `\code{*}' and are unchecked in their
@@ -132,7 +137,7 @@ must be placed after the \lstinline+*+.   The checked pointer declarations are a
 to \lstinline+const double y = 5.0;+ declaring a  variable \lstinline+y+ that is \keyword{const}.
 In the declaration of \keyword{y}, \keyword{double} specifies a type.
 The \keyword{const} keyword is placed before it to declare that
-the variable in the declaration is \keyword{const}.  In the examples, \ptrint
+the variable in the declaration is \keyword{const}.  In the examples, \ptrint\ %
 and \arrayptrint\ all specify types too.
 
 The checked pointer types follow the same rules that apply to modifiers for
@@ -195,8 +200,8 @@ int b checked[10][10];
 
 In C, multidimensional arrays are arrays of arrays,
 where the nested array types have known dimensions at compile-time. A
-2-dimensional array is an array of array of T, a 3-dimensional array is
-an array of array of array of T. The checked property is propagated from the
+2-dimensional array is an array of array of \var{T}, a 3-dimensional array is
+an array of array of array of \var{T}. The checked property is propagated from the
 outer array to the nested array types.
 
 \subsection{An example}
@@ -431,7 +436,7 @@ operators are described in Section~\ref{section:pointer-casting}.
 
 \subsection{Rules for the address-of operator}
 
-If an address-of operator (\code{&}) applied to an lvalue expression
+If an address-of operator (\code{&}) is applied to an lvalue expression
 of type \var{T}, the following rules apply:
 
 \begin{itemize}
@@ -457,7 +462,7 @@ the expression is an operand of an address-of operator, \code{++},
 \code{--}, \code{sizeof}, or the left operand of an assignment
 operator or the `\code{.}' operator. The prohibition against this
 conversion occurring for operands of the address-of operator gives the
-results of the operator a more precise type. For sizeof, it also results
+results of the operator a more precise type. For \code{sizeof}, it also results
 in a more precise answer. The prohibitions against it for \code{++}, and
 \code{--} operands and the left operand of an assignment operator keeps array
 variables from being modifiable.
@@ -1341,7 +1346,7 @@ void append(array_ptr<char> dst : count(dst_count),
 
 The italicized expressions are bounds checked:
 \begin{lstlisting}[escapechar=\|]
-void append(array_ptr<char> dst: count(dest_count),
+void append(array_ptr<char> dst : count(dest_count),
             array_ptr<char> src : count(src_count),
             size_t dst_count, size_t src_count)
 {
@@ -1361,7 +1366,7 @@ always in bounds, so the check there must remain. It can be eliminated
 by adding a \lstinline+dynamic_check+:
 
 \begin{lstlisting}[escapechar=\|]
-void append(array_ptr<char> dst: count(dest_count),
+void append(array_ptr<char> dst : count(dest_count),
             array_ptr<char> src : count(src_count),
             size_t dst_count, size_t src_count)
 {
@@ -1375,7 +1380,7 @@ void append(array_ptr<char> dst: count(dest_count),
 }
 \end{lstlisting}
 
-The compiler now knows that \lstinline+i < src_count<= dst_count+,
+The compiler now knows that \lstinline+i < src_count <= dst_count+,
 so it can eliminate the check.
 
 A compiler would not introduce this dynamic\_check because it would
@@ -1391,7 +1396,7 @@ sort of transformation or do it sparingly. Programmer control produces
 better results.   Here is the code a compiler might generate with cloning.
 
 \begin{lstlisting}[escapechar=\|]
-void append(array_ptr<char> dst: count(dest_count),
+void append(array_ptr<char> dst : count(dest_count),
             array_ptr<char> src : count(src_count),
             size_t dst_count, size_t src_count)
 {

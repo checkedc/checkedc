@@ -132,7 +132,7 @@ Checked C addresses the bounds checking problem for C by:
   programmer-declared bounds is integrated with the checking of
   invariants.
 \item
-  For the cases where static checking reaches it limits, a programmer
+  For the cases where static checking reaches its limits, a programmer
   can introduce dynamic checks that are runtime errors if they fail.
   Dynamic checks use the syntax \keyword{dynamic\_check} \var{e}, where \var{e} is an
   integer-valued expression. A check is similar to an assert, except
@@ -169,7 +169,7 @@ compilers are expected to do. For example, Presburger arithmetic is
 integer arithmetic restricted only to addition and less than or equal
 operations. It is NP-complete to determine whether a formula in the
 first-order logic for quantifier-free Presburger arithmetic is
-satisfiable (true or false). Even statically checking properties of
+always true. Even statically checking properties of
 simple fragments of real programs can be computationally intractable.
 
 This problem is addressed in two ways. First, the language rules that are
@@ -205,7 +205,7 @@ correct in these other aspects.
 
 This design is being done in an iterative fashion.  To validate the
 design, we mocked up modifying a subset of the OpenSSL
-code base \cite{OpenSSL2015} to be bounds-safe .
+code base \cite{OpenSSL2015} to be bounds-safe.
 We created C++ templates for the new pointer types and modified OpenSSL to
 compile as valid C++ code.
 We hand-edited about 11,000 lines of the code to use checked pointer
@@ -302,12 +302,13 @@ Two specific design principles are adopted based on these principles:
   meaning of existing C code is changed, it will violate the principles
   of clarity and enabling incremental adoption.
 \item
-  Adopt existing notations from C++ when it meets our needs, instead of
+  Adopt existing notations from C++ when they meet our needs, instead of
   inventing new notations. Many systems are hybrid C/C++ systems, so
   this approach fits with the principle of clarity. It also enables
   incremental adoption. One of the design goals of C++ has been that C
-  is a subset of C++.  It is a design goal to allow Checked C to be a
-  subset of C++ too.
+  is a subset of C++.  It is a design goal to allow Checked C extensions
+  to be amenable to being added to C++ too, so that Checked C is a subset
+  of a Checked C++.
 \end{enumerate}
 
 \section{Notation}
