@@ -565,17 +565,8 @@ void int_local_var_bounds_decl(void) {
   int a1 checked[5];
 
   // byte_count
-  short int t20 : byte_count(5 * sizeof(int)) = (short int)a1;
-  int t21 : byte_count(5 * sizeof(int)) = (int)a1;
-  long int t22 : byte_count(5 * sizeof(int)) = (long int)a1;
-  unsigned long int t23 : byte_count(5 * sizeof(int)) = (unsigned long int)a1;
+  short int t20 : byte_count(5 * sizeof(int)) = (short int)a1; // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
   enum E1 t24 : byte_count(8) = EnumVal1;
-
-  // bounds
-  int t25 : bounds(a1, a1 + 5) = (int)a1;
-  long int t26 : bounds(a1, a1 + 5) = (int)a1;
-  unsigned long int t27 : bounds(a1, a1 + 5) = (int)a1;
-  enum E1 t28 : bounds(a1, a1 + 5) = (int)a1;
 }
 
 void invalid_local_var_bounds_decl(void)
@@ -913,11 +904,11 @@ array_ptr<void> fn11(void) : bounds(s1, s1 + 5) { return 0; }
 int *fn12(void) : bounds(s1, s1 + 5) { return 0; }
 
 // Test valid return bounds declarations for integer-typed values
-short int fn20(void) : byte_count(5 * sizeof(int)) { return (short int) s1; }
-int fn21(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
-long int fn22(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
-unsigned long int fn23(void) : byte_count(5 * sizeof(int)) { return (short int)s1; }
-enum E1 fn24(void) : byte_count(8) { return (short int)s1; }
+short int fn20(void) : byte_count(5 * sizeof(int)) { return (short int) s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
+int fn21(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
+long int fn22(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
+unsigned long int fn23(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
+enum E1 fn24(void) : byte_count(8) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
 
 // bounds
 extern int fn25(void) : bounds(s1, s1 + 5);
@@ -1092,7 +1083,7 @@ void function_pointers(void) {
   nt_array_ptr<int>(*t13a)(void) : bounds(s1, s1 + 5) = fn10a;
   int *(*t14)(void) = fn12;
   int *(*t15)(void) : bounds(s1, s1 + 5) = fn12;
-  int *(*t16)(void) : bounds(s1, s1 + 6) = fn12;    // expected-warning {{incompatible pointer types}}
+  int *(*t16)(void) : bounds(s1, s1 + 6) = fn12;    // expected-warning {{incompatible function pointer types}}
   ptr<int *(void) : bounds(s1, s1 + 6)> t17 = fn12; // expected-error {{incompatible type}}
 
   // Unchecked pointer to function assigned to checked pointer to
@@ -1111,8 +1102,8 @@ void function_pointers(void) {
   fn204(fn104);
   // These are mismatched unchecked function pointers with bounds-safe interfaces
   // on parameters.
-  fn204(fn104a); // expected-warning {{incompatible pointer types}}
-  fn204(fn104b); // expected-warning {{incompatible pointer types}}
+  fn204(fn104a); // expected-warning {{incompatible function pointer types}}
+  fn204(fn104b); // expected-warning {{incompatible function pointer types}}
   fn205(fn105);
   fn206(fn106);
   fn207(fn107);
