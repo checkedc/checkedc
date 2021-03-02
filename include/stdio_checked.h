@@ -13,7 +13,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <stdio.h>
+#include_next <stdio.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

@@ -9,7 +9,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <sys/socket.h>
+#include_next <sys/socket.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

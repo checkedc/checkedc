@@ -10,7 +10,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <arpa/inet.h>
+#include_next <arpa/inet.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

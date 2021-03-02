@@ -11,7 +11,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <time.h>
+#include_next <time.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

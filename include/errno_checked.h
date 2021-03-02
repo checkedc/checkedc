@@ -8,7 +8,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <errno.h>
+#include_next <errno.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

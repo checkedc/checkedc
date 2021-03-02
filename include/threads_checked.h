@@ -27,7 +27,7 @@ struct timespec;
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
-#include <threads.h>
+#include_next <threads.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

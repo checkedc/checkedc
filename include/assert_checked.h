@@ -9,7 +9,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <assert.h>
+#include_next <assert.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

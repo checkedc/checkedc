@@ -11,7 +11,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <fenv.h>
+#include_next <fenv.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

@@ -10,7 +10,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <unistd.h>
+#include_next <unistd.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

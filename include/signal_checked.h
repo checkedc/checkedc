@@ -8,7 +8,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <signal.h>
+#include_next <signal.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop

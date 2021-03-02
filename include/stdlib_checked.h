@@ -11,7 +11,7 @@
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <stdlib.h>
+#include_next <stdlib.h>
 
 #ifndef __cplusplus
 #pragma CHECKED_SCOPE pop
