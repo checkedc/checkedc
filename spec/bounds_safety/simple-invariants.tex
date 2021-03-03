@@ -73,14 +73,22 @@ will need to state the relevant facts to use in inference.
 
 \section{Facts about program points}
 
-We start with facts about program points that a programmer may use to
-reason about bound.  A  fact is a bounds declaration or a relational
-statement about a variable and a non-modifying expression.
+We start with facts about program points that a programmer may use to reason
+about bound.  A fact is a bounds declaration or an equality expression.
+
 \begin{tabbing}
 \var{fact:}\=\\
-\>\var{bounds} \\
-\>\var{variable relop non-modifying-exp} \\
-\>\var{non-modifying-exp relop variable}
+\>\var{bounds-declaration} \\
+\>\var{equality-expression}
+\end{tabbing}
+
+Section 6.5.9 of the C11 specification defines equality expressions as follows:
+
+\begin{tabbing}
+\var{equality-expression:}\=\\
+\>\var{relational-expression} \\
+\>\var{equality-expression == relational-expression} \\
+\>\var{equality-expression != relational-expression}
 \end{tabbing}
 
 Facts may be declared as part of \keyword{where} clauses.  
@@ -90,16 +98,22 @@ anything about them.  For expression statements, the compiler
 will check that relational facts in the \keyword{where} clause are true 
 using the facts true before the expression statement and the effect of
 the expression. For a parameter, the \keyword{where} clause becomes a 
-precondition that must be true at the call site. The compiler will check this precondition at the call sites. 
+precondition that must be true at the call site. The compiler will check this
+precondition at the call sites.
 
 A \keyword{where} clause may be used as a stand-alone statement, 
 in which case it stands on its own as a set of invariants and bounds
 declaration:
 \begin{lstlisting}
-where x >= 0 && x <= 10;
+where x >= 0;
 \end{lstlisting}
 This is just a special case of an expression statement
 that omits the expression but still has \keyword{where} clause.
+
+Multiple facts may be separated by the \keyword{and} keyword.
+\begin{lstlisting}
+where x >= 0 and p : bounds(p, p + 1);
+\end{lstlisting}
 
 Facts are automatically inferred for the clauses of if-statements, 
 the cases of switch statements, and from assignment statements. 
@@ -130,7 +144,7 @@ switch (x) {
         break;
      }   
     default: {
-        where x != 0 && x != 1;
+        where x != 0 and x != 1;
         break;
     }
 }
@@ -161,7 +175,7 @@ int sum10(array_ptr<int> buf : count(10)) {
     int i = 0
     where i >= 0;
     while (i<10) {
-        where (i>= 0 && i<10);
+        where i>= 0 and i<10;
         sum += buf[i];
         i = i + 1
         where i >= 0;
