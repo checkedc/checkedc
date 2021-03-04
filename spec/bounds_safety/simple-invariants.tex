@@ -91,6 +91,9 @@ Section 6.5.9 of the C11 specification defines equality expressions as follows:
 \>\var{equality-expression != relational-expression}
 \end{tabbing}
 
+An equality expression occurring as part of a fact must be a non-modifying
+expression.
+
 Facts may be declared as part of \keyword{where} clauses.  
 Chapter~\ref{chapter:tracking-bounds} included relational facts in
 the grammar for \keyword{where} clauses but did not say
@@ -115,13 +118,11 @@ Multiple facts may be separated by the \keyword{and} keyword.
 where x >= 0 and p : bounds(p, p + 1);
 \end{lstlisting}
 
-Facts are automatically inferred for the clauses of if-statements, 
-the cases of switch statements, and from assignment statements. 
-For if-statements, the test has to have
-the form of a fact. For a switch statement, a fact is deduced from the
-switch expression and the case statement.  For assignments, the
-left-hand side must be a variable and the right-hand side must be
-a non-modifying expression.
+Facts are automatically inferred for the clauses of if-statements, the cases of
+switch statements, and from assignment statements.  For if-statements, the test
+has to have the form of a fact. For a switch statement, a fact is deduced from
+the switch expression and the case statement. For assignments, the left-hand
+side and the right-hand size expressions must be non-modifying expressions.
 
 Here are some simple examples where the fact created by a control-flow
 statement is explicitly declared using redundant \keyword{where} clauses:
