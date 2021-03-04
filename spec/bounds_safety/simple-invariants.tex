@@ -95,10 +95,10 @@ An equality expression occurring as part of a fact must be a non-modifying
 expression.
 
 Facts may be declared as part of \keyword{where} clauses.  
-Chapter~\ref{chapter:tracking-bounds} included relational facts in
+Chapter~\ref{chapter:tracking-bounds} included equality facts in
 the grammar for \keyword{where} clauses but did not say
 anything about them.  For expression statements, the compiler
-will check that relational facts in the \keyword{where} clause are true 
+will check that equality facts in the \keyword{where} clause are true
 using the facts true before the expression statement and the effect of
 the expression. For a parameter, the \keyword{where} clause becomes a 
 precondition that must be true at the call site. The compiler will check this
