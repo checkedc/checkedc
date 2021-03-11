@@ -1,58 +1,11 @@
 //---------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in inttypes.h that             //
-// take pointer arguments.                                             //
+// Wrapper header file that includes Checked-C-specific declarations   //
+// explicitly.That is, it overrides the disabling of implicit          //
+// inclusion of checked header files.                                  //
 //                                                                     //
-// These are listed in the same order that they occur in the C11       //
-// specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
-#pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE off
-#endif
 
-#include <stddef.h> // define wchar_t for wcstoimax and wcstoumax
-#include_next <inttypes.h>
-
-#ifndef __cplusplus
-#pragma CHECKED_SCOPE pop
-#endif
-
-#ifndef __cplusplus
-#ifndef __INTTYPES_CHECKED_H
-#define __INTTYPES_CHECKED_H
-
-#pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
-
-_Unchecked
-intmax_t strtoimax(const char * restrict nptr :
-                     itype(restrict _Nt_array_ptr<const char>),
-                   char ** restrict endptr :
-                      itype(restrict _Ptr<_Nt_array_ptr<char>>),
-                   int base);
-_Unchecked
-uintmax_t strtoumax(const char * restrict nptr :
-                      itype(restrict _Nt_array_ptr<const char>),
-                    char ** restrict endptr :
-                      itype(restrict _Ptr<_Nt_array_ptr<char >>),
-                    int base);
-
-_Unchecked
-intmax_t wcstoimax(const wchar_t * restrict nptr :
-                     itype(restrict _Nt_array_ptr<const wchar_t>),
-                   wchar_t ** restrict endptr :
-                     itype(restrict _Ptr<_Nt_array_ptr<wchar_t>>),
-                   int base);
-
-_Unchecked
-uintmax_t wcstoumax(const wchar_t * restrict nptr :
-                      itype(restrict _Nt_array_ptr<const wchar_t>),
-                    wchar_t ** restrict endptr :
-                      itype(restrict _Ptr<_Nt_array_ptr<wchar_t>>),
-                    int base);
-
-#pragma CHECKED_SCOPE pop
-
-#endif // guard
-#endif // no c++
+//Force the inclusion of Checked-C-specific declarations
+#undef NO_IMPLICIT_INCLUDE_CHECKED_HDRS
+#include <inttypes.h>
