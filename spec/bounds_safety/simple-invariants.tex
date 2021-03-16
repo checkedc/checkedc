@@ -74,25 +74,37 @@ will need to state the relevant facts to use in inference.
 \section{Facts about program points}
 
 We start with facts about program points that a programmer may use to reason
-about bounds.  A fact is a bounds declaration or an equality expression.
+about bounds.  A fact is a bounds declaration or an equality-or-relational
+expression.
 
 \begin{tabbing}
 \var{fact:}\=\\
 \>\var{bounds-declaration} \\
-\>\var{equality-expression}
+\>\var{equality-or-relational-expression}
 \end{tabbing}
 
-Section 6.5.9 of the C11 specification defines equality expressions as follows:
+The grammar for an equality-or-relational-expression is defined below. For an
+equality-expression We use the same grammar as defined in section 6.5.9 of the
+C11 specification. However, for a relational-expression we use a slightly
+different grammar from that defined in section 6.5.8 of the C11 specification.
 
 \begin{tabbing}
-\var{equality-expression:}\=\\
+\var{equality-or-relational-expression:}\=\\
 \>\var{relational-expression} \\
 \>\var{equality-expression == relational-expression} \\
 \>\var{equality-expression != relational-expression}
 \end{tabbing}
 
-An equality expression occurring as part of a fact must be a non-modifying
-expression.
+\begin{tabbing}
+\var{relational-expression:}\=\\
+\>\var{relational-expression < shift-expression} \\
+\>\var{relational-expression > shift-expression} \\
+\>\var{relational-expression <= shift-expression} \\
+\>\var{relational-expression >= shift-expression} \\
+\end{tabbing}
+
+An equality-or-relational expression occurring as part of a fact must be a
+non-modifying expression.
 
 Facts may be declared as part of \keyword{where} clauses.  
 Chapter~\ref{chapter:tracking-bounds} included equality facts in
