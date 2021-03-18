@@ -23,23 +23,23 @@ typedef void (tss_dtor_t)(void *);
 struct timespec;
 #else
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 #include_next <threads.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __THREADS_CHECKED_H
 #define __THREADS_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 void call_once(once_flag *flag : itype(_Ptr<once_flag>),
                void ((*fn)(void)) : itype(_Ptr<void (void)>));
@@ -82,4 +82,4 @@ int tss_set(tss_t key, void *value : itype(_Ptr<void>));
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
-#endif // no C++
+#endif // Checked C 

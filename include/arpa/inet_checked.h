@@ -5,28 +5,28 @@
 // These are POSIX-only                                                //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include_next <arpa/inet.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __INET_CHECKED_H
 #define __INET_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 extern in_addr_t inet_addr (const char *__cp : itype(_Nt_array_ptr<const char>)) __THROW;
 
 
 #pragma CHECKED_SCOPE pop
 
-#endif
-#endif
+#endif // guard
+#endif // Checked C

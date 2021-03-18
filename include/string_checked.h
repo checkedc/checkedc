@@ -11,24 +11,24 @@
 // TODO: Better Support for _FORTIFY_SOURCE > 0                        //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include_next <string.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 
 #ifndef __STRING_CHECKED_H
 #define __STRING_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 // GCC has macros that it uses as part of its string implementation to optimize cases
 // where one or both strings are compile-time constants.  I'm not sure
@@ -173,4 +173,4 @@ char *strdup(const char *s : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
-#endif // no C++
+#endif // Checked C 

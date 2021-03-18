@@ -3,23 +3,23 @@
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include_next <errno.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __ERRNO_CHECKED_H
 #define __ERRNO_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 #if defined(_WIN32) || defined(_WIN64)
 __declspec(dllimport) int* __cdecl _errno(void) : itype(_Ptr<int>);
@@ -32,4 +32,4 @@ extern int* __errno_location(void) : itype(_Ptr<int>) __THROW __attribute_const_
 #pragma CHECKED_SCOPE pop
 
 #endif // guards
-#endif // c++
+#endif // Checked C

@@ -6,23 +6,23 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include_next <math.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __MATH_CHECKED_H
 #define __MATH_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 double frexp(double value, int *exp : itype(_Ptr<int>));
 float frexpf(float value, int *exp : itype(_Ptr<int>));
@@ -43,5 +43,5 @@ long double nanl(const char *t : itype(_Nt_array_ptr<const char>));
 
 #pragma CHECKED_SCOPE pop
 
-#endif //guard
-#endif // no c++
+#endif // guard
+#endif // Checked C

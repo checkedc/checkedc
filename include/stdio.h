@@ -1,23 +1,23 @@
 //---------------------------------------------------------------------//
 // Wrapper header file that excludes Checked-C-specific declarations   //
-// if implicit inclusion of checked header files is disabled.          //
-//                                                                     //
+// if the compilation is not for Checked C, or if is for Checked C     //
+// but the implicit inclusion of checked header files is disabled.     //
 /////////////////////////////////////////////////////////////////////////
 
 
-#ifdef NO_IMPLICIT_INCLUDE_CHECKED_HDRS
+#if !defined __checkedc || defined NO_IMPLICIT_INCLUDE_CHECKED_HDRS
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include_next <stdio.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#else // implicit include
+#else // checkedc && implicit include enabled
 #include <stdio_checked.h>
 #endif

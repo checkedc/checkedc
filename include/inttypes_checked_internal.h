@@ -6,23 +6,23 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include <stddef.h> // define wchar_t for wcstoimax and wcstoumax
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __INTTYPES_CHECKED_H
 #define __INTTYPES_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 _Unchecked
 intmax_t strtoimax(const char * restrict nptr :
@@ -54,4 +54,4 @@ uintmax_t wcstoumax(const wchar_t * restrict nptr :
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
-#endif // no c++
+#endif // Checked C

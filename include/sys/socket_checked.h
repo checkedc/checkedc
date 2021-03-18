@@ -4,23 +4,23 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include_next <sys/socket.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __SOCKET_CHECKED_H
 #define __SOCKET_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 #ifdef __APPLE__
 // Seems not to be a thing for Mac
@@ -134,4 +134,4 @@ extern int accept4 (
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
-#endif // C++
+#endif // Checked C

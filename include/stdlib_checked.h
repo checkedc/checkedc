@@ -6,18 +6,18 @@
 // specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
 #include_next <stdlib.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __STDLIB_CHECKED_H
 #define __STDLIB_CHECKED_H
 
@@ -125,4 +125,4 @@ size_t wcstombs(char * restrict output : count(n),
 #pragma CHECKED_SCOPE pop
 
 #endif  // guard
-#endif  // no c++
+#endif  // Checked C
