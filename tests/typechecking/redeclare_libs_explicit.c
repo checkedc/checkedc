@@ -39,107 +39,82 @@
 
 // C Standard
 #include <assert_checked.h>
-// CHECK_ENABLED: include/assert_checked.h
+// CHECK_ENABLED: assert_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/assert_checked.h
+// CHECK_DISABLED: assert_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <errno_checked.h>
-// CHECK_ENABLED: include/errno_checked.h
+// CHECK_ENABLED: errno_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/errno_checked.h
+// CHECK_DISABLED: errno_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <fenv_checked.h>
-// CHECK_ENABLED: include/fenv_checked.h
+// CHECK_ENABLED: fenv_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/fenv_checked.h
+// CHECK_DISABLED: fenv_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <inttypes_checked.h>
-// CHECK_ENABLED: include/inttypes_checked_internal.h
+// CHECK_ENABLED: inttypes_checked_internal.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/inttypes_checked_internal.h
+// CHECK_DISABLED: inttypes_checked_internal.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <math_checked.h>
-// CHECK_ENABLED: include/math_checked.h
+// CHECK_ENABLED: math_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/math_checked.h
+// CHECK_DISABLED: math_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <signal_checked.h>
-// CHECK_ENABLED: include/signal_checked.h
+// CHECK_ENABLED: signal_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/signal_checked.h
+// CHECK_DISABLED: signal_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <stdio_checked.h>
-// CHECK_ENABLED: include/stdio_checked.h
+// CHECK_ENABLED: stdio_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/stdio_checked.h
+// CHECK_DISABLED: stdio_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <stdlib_checked.h>
-// CHECK_ENABLED: include/stdlib_checked.h
+// CHECK_ENABLED: stdlib_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/stdlib_checked.h
+// CHECK_DISABLED: stdlib_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <string_checked.h>
-// CHECK_ENABLED: include/string_checked.h
+// CHECK_ENABLED: string_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/string_checked.h
+// CHECK_DISABLED: string_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #define _CHECKEDC_MOCKUP_THREADS 1
 #include <threads_checked.h>
-// CHECK_ENABLED: include/threads_checked.h
+// CHECK_ENABLED: threads_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/threads_checked.h
+// CHECK_DISABLED: threads_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <time_checked.h>
-// CHECK_ENABLED: include/time_checked.h
+// CHECK_ENABLED: time_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/time_checked.h
+// CHECK_DISABLED: time_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <checkedc_extensions.h>
-// CHECK_ENABLED: include/checkedc_extensions.h
+// CHECK_ENABLED: checkedc_extensions.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/checkedc_extensions.h
+// CHECK_DISABLED: checkedc_extensions.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 
 
 // Posix Headers
-//
-// Uses clang-specific __has_include macro to detect unistd.h
-// which is required by Posix Standard.
-#if defined(__has_include)
-#if __has_include(<unistd.h>)
+// These header files may or may not be present in all environments.
 #include <unistd_checked.h>
-// CHECK_ENABLED: include/unistd_checked.h
-// CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/unistd_checked.h
-// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-#endif
-
-#if __has_include(<sys/socket.h>)
 #include <sys/socket_checked.h>
-// CHECK_ENABLED: include/sys/socket_checked.h
-// CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/sys/socket_checked.h
-// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-#endif
-
-#if __has_include(<arpa/inet.h>)
 #include <arpa/inet_checked.h>
-// CHECK_ENABLED: include/arpa/inet_checked.h
-// CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: include/arpa/inet_checked.h
-// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-#endif
-
-#endif

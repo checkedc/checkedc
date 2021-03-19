@@ -1,8 +1,12 @@
 //---------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in POSIX socket.h.              //
+// Bounds-safe interfaces for functions in POSIX socket.h.             //
 //                                                                     //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
+
+// The Windows environment may not have sys/socket.h
+#if defined __has_include_next
+#if __has_include_next(<sys/socket.h>)
 
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
@@ -135,3 +139,6 @@ extern int accept4 (
 
 #endif // guard
 #endif // Checked C
+
+#endif // has socket.h
+#endif // defined __has_include_next

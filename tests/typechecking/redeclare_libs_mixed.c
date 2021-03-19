@@ -21,76 +21,57 @@
 
 // C Standard
 #include <assert_checked.h>
-// CHECK_MIXED: include/assert_checked.h
+// CHECK_MIXED: assert_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #include <errno.h>
-// CHECK_MIXED-NOT: include/errno_checked.h
+// CHECK_MIXED-NOT: errno_checked.h
 // CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
 
 #include <fenv_checked.h>
-// CHECK_MIXED: include/fenv_checked.h
+// CHECK_MIXED: fenv_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #include <inttypes.h>
-// CHECK_MIXED-NOT: include/inttypes_checked_internal.h
+// CHECK_MIXED-NOT: inttypes_checked_internal.h
 // CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
 
 #include <math_checked.h>
-// CHECK_MIXED: include/math_checked.h
+// CHECK_MIXED: math_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #include <signal.h>
-// CHECK_MIXED-NOT: include/signal_checked.h
+// CHECK_MIXED-NOT: signal_checked.h
 // CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
 
 #include <stdio_checked.h>
-// CHECK_MIXED: include/stdio_checked.h
+// CHECK_MIXED: stdio_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #include <stdlib.h>
-// CHECK_MIXED-NOT: include/stdlib_checked.h
+// CHECK_MIXED-NOT: stdlib_checked.h
 // CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
 
 #include <string_checked.h>
-// CHECK_MIXED: include/string_checked.h
+// CHECK_MIXED: string_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #define _CHECKEDC_MOCKUP_THREADS 1
 #include <threads.h>
-// CHECK_MIXED-NOT: include/threads_checked.h
+// CHECK_MIXED-NOT: threads_checked.h
 // CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
 
 #include <time_checked.h>
-// CHECK_MIXED: include/time_checked.h
+// CHECK_MIXED: time_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #include <checkedc_extensions.h>
-// CHECK_MIXED: include/checkedc_extensions.h
+// CHECK_MIXED: checkedc_extensions.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 
 // Posix Headers
-//
-// Uses clang-specific __has_include macro to detect unistd.h
-// which is required by Posix Standard.
-#if defined(__has_include)
-#if __has_include(<unistd_checked.h>)
+// These header files may or may not be present in all environments.
 #include <unistd_checked.h>
-// CHECK_MIXED: include/unistd_checked.h
-// CHECK_MIXED: #pragma CHECKED_SCOPE on
-#endif
-
-#if __has_include(<sys/socket.h>)
 #include <sys/socket.h>
-// CHECK_MIXED-NOT: include/sys/socket_checked.h
-// CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
-#endif
-
-#if __has_include(<arpa/inet_checked.h>)
 #include <arpa/inet_checked.h>
-// CHECK_MIXED: include/arpa/inet_checked.h
-// CHECK_MIXED: #pragma CHECKED_SCOPE on
-#endif
-
-#endif
