@@ -10,6 +10,7 @@
 #endif
 
 #include_next <assert.h>
+#include <stddef.h> // define wchar_t for wcstoimax and wcstoumax
 
 #ifdef __checkedc
 #pragma CHECKED_SCOPE pop
