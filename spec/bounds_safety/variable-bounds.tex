@@ -527,26 +527,13 @@ where-clause\textsubscript{opt}} \\
 \>\var{fact} \\
 \>\var{fact} \keyword{and} \var{facts} \\
 \\
-\var{fact:}\\
-\>\var{variable inline-bounds-specifier} \\
-\>\var{equality-expression} \\
-\\
-where \var{equality-expression} is defined in section 6.5.9 of the C11
-specification as: \\
+\var{fact:}\=\\
+\>\var{bounds-declaration} \\
+\>\var{equality-or-relational-expression}
+\end{tabbing}
 
-\begin{tabbing}
-\var{equality-expression:}\=\\
-\>\var{relational-expression} \\
-\>\var{equality-expression == relational-expression} \\
-\>\var{equality-expression != relational-expression}
-\end{tabbing}
-\\
-In addition, the grammar is updated to allow where clauses at expression
-statements:\\
-\\
-\var{expression-statement:}\\
-\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\code{;}
-\end{tabbing}
+The grammar for \keyword{where} clause \var{facts} is defined in more detail in
+Chapter~\ref{chapter:simple-invariants}.
 
 The names used in bounds expressions (\code{any},
 \code{bounds}, \code{count}, and \code{unknown}) are identifiers.
