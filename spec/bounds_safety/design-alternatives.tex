@@ -932,9 +932,9 @@ void f(int len) {
     S y;
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len);
     y.data = newarr
-    where newarr : count(len) && y.data : count(len);
+    where newarr : count(len) and y.data : count(len);
     y.num = len
-    where holds(y.data) && y.data : count(len) && 
+    where holds(y.data) and y.data : count(len) and 
           y.data : count(y.num);
     ...
 }
@@ -1004,7 +1004,7 @@ bounds for arg:
 
 \begin{lstlisting}
     array_ptr<int> newarr : count(len) = malloc(sizeof(int) * len)
-       where suspends(arg) && arg.data : count(arg.num);
+       where suspends(arg) and arg.data : count(arg.num);
 \end{lstlisting}
 
 If the suspends were done after the assignment to \code{arg.data}:
