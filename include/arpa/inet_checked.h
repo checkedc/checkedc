@@ -5,28 +5,35 @@
 // These are POSIX-only                                                //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+// The Windows environment may not have arpa/inet.h
+#if defined __has_include_next
+#if __has_include_next(<arpa/inet.h>)
+
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <arpa/inet.h>
+#include_next <arpa/inet.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __INET_CHECKED_H
 #define __INET_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 extern in_addr_t inet_addr (const char *__cp : itype(_Nt_array_ptr<const char>)) __THROW;
 
 
 #pragma CHECKED_SCOPE pop
 
-#endif
-#endif
+#endif // guard
+#endif // Checked C
+
+#endif // has inet.h
+#endif // defined __has_include_next

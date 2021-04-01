@@ -5,18 +5,25 @@
 // These are POSIX-only                                                //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+
+// Uses clang-specific __has_include macro to detect unistd.h
+// which is required by Posix Standard.
+// The Windows environment also may not have unistd.h
+#if defined __has_include_next
+#if __has_include_next(<unistd.h>)
+
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <unistd.h>
+#include_next <unistd.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __UNISTD_CHECKED_H
 #define __UNISTD_CHECKED_H
 
@@ -44,5 +51,8 @@ extern ssize_t write (int __fd, const void *__buf : byte_count(__n), size_t __n)
 
 #pragma CHECKED_SCOPE pop
 
-#endif
-#endif
+#endif // guard
+#endif // Checked C
+
+#endif // has unistd.h
+#endif // defined __has_include_next

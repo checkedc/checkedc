@@ -4,11 +4,16 @@
 // choose to use these over the default bounds-safe interfaces.             //
 //////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib_checked.h>
+#include <string_checked.h>
+
+#ifdef __checkedc
+
 #ifndef __CHECKED_C_EXTENSIONS_H
 #define __CHECKED_C_EXTENSIONS_H
 
-#include <stdlib_checked.h>
-#include <string_checked.h>
+#pragma CHECKED_SCOPE push
+#pragma CHECKED_SCOPE on
 
 // default strncmp has a bounds-safe interface nt_array_ptr;
 // this option is for array_ptr
@@ -24,4 +29,7 @@ int snprintf_array_ptr(char * restrict s : itype(restrict _Array_ptr<char>) coun
                        const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
                        ...);
 
-#endif /* __CHECKED_C_EXTENSIONS_H */
+#pragma CHECKED_SCOPE pop
+
+#endif // guard 
+#endif // Checked C 

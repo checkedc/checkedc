@@ -4,23 +4,24 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <assert.h>
+#include_next <assert.h>
+#include <stddef.h> // define wchar_t for wcstoimax and wcstoumax
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __ASSERT_CHECKED_H
 #define __ASSERT_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 #if defined(_WIN32) || defined(_WIN64)
 _ACRTIMP void __cdecl _wassert(_In_z_ wchar_t const *_Message : itype(_Nt_array_ptr<const wchar_t>),
@@ -50,4 +51,4 @@ __THROW __attribute__ ((__noreturn__));
 #pragma CHECKED_SCOPE pop
 
 #endif  // guard
-#endif  // no c++
+#endif  // Checked C

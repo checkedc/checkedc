@@ -6,23 +6,23 @@
 // specification.                                                     //
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <fenv.h>
+#include_next <fenv.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __FENV_CHECKED_H
 #define __FENV_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 int fesetexceptflag(const fexcept_t *flagp : itype(_Ptr<const fexcept_t>),
                     int excepts);
@@ -33,5 +33,5 @@ int feupdateenv(const fenv_t *envp : itype(_Ptr<const fenv_t>));
 
 #pragma CHECKED_SCOPE pop
 
-#endif
-#endif
+#endif // guard
+#endif // Checked C
