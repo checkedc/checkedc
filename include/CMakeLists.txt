@@ -18,6 +18,8 @@ set(files
   inttypes_checked_internal.h
   math_checked.h
   math.h
+  netdb_checked.h
+  netdb.h
   signal_checked.h
   signal.h
   stdchecked.h
