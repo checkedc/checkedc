@@ -31,6 +31,8 @@ set(files
   syslog.h
   threads_checked.h
   threads.h
+  utime_checked.h
+  utime.h
   time_checked.h
   time.h
   unistd_checked.h
