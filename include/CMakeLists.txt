@@ -27,6 +27,8 @@ set(files
   stdlib.h
   string_checked.h
   string.h
+  syslog_checked.h
+  syslog.h
   threads_checked.h
   threads.h
   time_checked.h
