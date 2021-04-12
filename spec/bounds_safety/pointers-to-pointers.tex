@@ -249,10 +249,10 @@ We omit notation for describing that \code{malloc} and \code{calloc} produce
 pointers to new memory:
 \begin{lstlisting}
 void *malloc(size_t len) 
-where return_value : byte_count(len) && return_value: _uninit_data;
+where return_value : byte_count(len) and return_value: _uninit_data;
 
 void *calloc(size_t num, size_t size)
-where return_value : byte_count(num * size)  && return_value : _zero_data;
+where return_value : byte_count(num * size) and return_value : _zero_data;
 \end{lstlisting}
 A cast from the result of a \code{malloc} call to a checked pointer type with pointer types
 would propagate the  \code{_uninit} predicate:
@@ -277,7 +277,7 @@ array_ptr<char> zero_mem(array_ptr<char> x : count(len) where x : _uninit, size_
    where x : _zero_init
 {
    array_ptr<char> p : bounds(x, x + len) = x
-       where p : _init_data(x, p) && p : _uninit_data(p, x + len);
+       where p : _init_data(x, p) and p : _uninit_data(p, x + len);
        
    while (p < x + len) { 
        *p++ = 0;

@@ -3,18 +3,18 @@
 // take pointer arguments.                                             //
 /////////////////////////////////////////////////////////////////////////
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
 
-#include <signal.h>
+#include_next <signal.h>
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
 
-#ifndef __cplusplus
+#ifdef __checkedc
 #ifndef __SIGNAL_CHECKED_H
 #define __SIGNAL_CHECKED_H
 
@@ -30,5 +30,5 @@ void (*signal(int sig,
 
 #pragma CHECKED_SCOPE pop
 
-#endif
-#endif
+#endif // guard
+#endif // Checked C

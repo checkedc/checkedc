@@ -646,8 +646,8 @@ extern void check_condexpr(int val, int *p, ptr<int> q, array_ptr<int> r,
    ptr<int> t31 = val ? 0 : q;
    array_ptr<int> t32 = val ? r : 0;
    array_ptr<int> t33 = val ? 0 : r;
-   nt_array_ptr<int> t34 = val ? v : 0;
-   nt_array_ptr<int> t35 = val ? 0 : v;
+   nt_array_ptr<int> t34 = val ? v : 0; // expected-warning {{cannot prove declared bounds for 't34' are valid after initialization}}
+   nt_array_ptr<int> t35 = val ? 0 : v; // expected-warning {{cannot prove declared bounds for 't35' are valid after initialization}}
    ptr<float> t36 = val ? t : 0;
    ptr<float> t37 = val ? 0 : t;
    array_ptr<float> t38 = val ? u : 0;
@@ -1002,8 +1002,10 @@ extern void check_condexpr_cv(void)
   array_ptr<const int> t31 = val ? r : r_const;       // array_ptr<int> and array_ptr<const int> OK
   array_ptr<const int> t32 = val ? r_const : r;       // array_ptr<const int> and array_ptr<int> OK
   array_ptr<const int> t33 = val ? r_const : r_const; // array_ptr<const int> and array_ptr<const int> OK
-  nt_array_ptr<const int> t31a = val ? s : s_const;       // nt_array_ptr<int> and nt_array_ptr<const int> OK
-  nt_array_ptr<const int> t32a = val ? s_const : s;       // nt_array_ptr<const int> and nt_array_ptr<int> OK
+                                                          // nt_array_ptr<int> and nt_array_ptr<const int> OK
+  nt_array_ptr<const int> t31a = val ? s : s_const;       // expected-error {{inferred bounds for 't31a' are unknown after initialization}}
+                                                          // nt_array_ptr<const int> and nt_array_ptr<int> OK
+  nt_array_ptr<const int> t32a = val ? s_const : s;       // expected-error {{inferred bounds for 't32a' are unknown after initialization}}
   nt_array_ptr<const int> t33a = val ? s_const : s_const; // nt_array_ptr<const int> and nt_array_ptr<const int> OK
 
   array_ptr<int> t34 = val ? p : r_const;   // expected-warning {{discards qualifiers}}
@@ -1081,8 +1083,10 @@ extern void check_condexpr_cv(void)
   array_ptr<volatile int> t80 = val ? r : r_volatile;          // array_ptr<int> and array_ptr<volatile int> OK
   array_ptr<volatile int> t81 = val ? r_volatile : r;          // array_ptr<volatile int> and array_ptr<int> OK
   array_ptr<volatile int> t82 = val ? r_volatile : r_volatile; // array_ptr<volatile int> and array_ptr<volatile int> OK
-  nt_array_ptr<volatile int> t80a = val ? s : s_volatile;          // nt_array_ptr<int> and nt_array_ptr<volatile int> OK
-  nt_array_ptr<volatile int> t81a = val ? s_volatile : s;          // nt_array_ptr<volatile int> and nt_array_ptr<int> OK
+                                                                   // nt_array_ptr<int> and nt_array_ptr<volatile int> OK
+  nt_array_ptr<volatile int> t80a = val ? s : s_volatile;          // expected-error {{inferred bounds for 't80a' are unknown after initialization}}
+                                                                   // nt_array_ptr<volatile int> and nt_array_ptr<int> OK
+  nt_array_ptr<volatile int> t81a = val ? s_volatile : s;          // expected-error {{inferred bounds for 't81a' are unknown after initialization}}
   nt_array_ptr<volatile int> t82b = val ? s_volatile : s_volatile; // nt_array_ptr<volatile int> and nt_array_ptr<volatile int> OK
 
   array_ptr<int> t83 = val ? p : r_volatile;          // expected-warning {{discards qualifiers}}
@@ -1103,9 +1107,11 @@ extern void check_condexpr_cv(void)
                                                       // array_ptr<volatile int> and array_ptr<int> produce array_ptr<volatile int>
   array_ptr<int> t92 = val ? r_volatile : r_volatile;  // expected-warning {{discards qualifiers}}
                                                        // array_ptr<volatile int> and array_ptr<volatile int> produce array_ptr<volatile int>
-  nt_array_ptr<int> t89a = val ? s : s_volatile;      // expected-warning {{discards qualifiers}}
+  nt_array_ptr<int> t89a = val ? s : s_volatile;      // expected-error {{inferred bounds for 't89a' are unknown after initialization}} \
+                                                      // expected-warning {{discards qualifiers}}
                                                       // nt_array_ptr<int> and nt_array_ptr<volatile int> produce nt_array_ptr<volatile int>
-  nt_array_ptr<int> t90a = val ? s_volatile : s;      // expected-warning {{discards qualifiers}}
+  nt_array_ptr<int> t90a = val ? s_volatile : s;      // expected-error {{inferred bounds for 't90a' are unknown after initialization}} \
+                                                      // expected-warning {{discards qualifiers}}
                                                       // nt_array_ptr<volatile int> and nt_array_ptr<int> produce nt_array_ptr<volatile int>
   nt_array_ptr<int> t92a = val ? s_volatile : s_volatile;  // expected-warning {{discards qualifiers}}
                                                        // nt_array_ptr<volatile int> and nt_array_ptr<volatile int> produce nt_array_ptr<volatile int>

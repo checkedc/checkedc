@@ -32,7 +32,7 @@ even though in practice only one type of data may be stored in a list instance.
 \item For registering callback functions that are to be provided with 
 user-supplied data at the callback.  Callback functions can take \uncheckedptrvoid{} arguments and 
 the user-suppled data can be cast to \uncheckedptrvoid{}.
-\item To provide a union of pointer types, without changing data representation
+\item To provide a union of pointer types, without changing data representation.
 \end{itemize}
 
 These extensions are restricted so that code remains data-layout compatible and binary-code
@@ -137,14 +137,14 @@ representation (we provide a way to describe representations in a later
 section).   A generic function is constructed by parameterizing a
 regular function over type variables.  The generic function is applied
 to types to create a concrete (non-generic) function that can be called.
-A programmer may need to supply information at runtime about the size of T,
+A programmer may need to supply information at runtime about the size of \var{T},
 so that pointer arithmetic may be done.
 
 We illustrate these ideas by example, starting with \lstinline+bsearch+, 
 a C standard library function for binary
 searching an array of elements of some type \var{T}.  It
-takes a key that is a pointer to T, the array of elements, the number of elements of
-the array, the size of T, and a comparison function.  We provide the original declaration
+takes a key that is a pointer to \var{T}, the array of elements, the number of elements of
+the array, the size of \var{T}, and a comparison function.  We provide the original declaration
 of bsearch and the version modified to use a generic type.  In the modified version,
 \lstinline+for_any(T)+ make \lstinline+bsearch+ a generic function.  This means that
 \lstinline+bsearch+ works for any type \lstinline+T+.
@@ -205,7 +205,7 @@ for_any(T) T *memcpy(T * restrict dest, const T *src, size_t n);
 \end{lstlisting}
 These functions need bounds checking also.  A programmer
 could pass the wrong value for \lstinline+size+ to \lstinline+malloc+
-ore \lstinline+calloc+, for example.  Here are
+or \lstinline+calloc+, for example.  Here are
 versions with bounds checking (ignoring for now the need for bounds-safe interfaces):
 \begin{lstlisting}
 // Generic versions (correct)
@@ -225,7 +225,7 @@ In the case of \lstinline+malloc+, if the size is not a multiple of the size of 
 only enough space for part of an object of type \lstinline+T+ will be allocated.  With the 
 bounds-safe interface, though, the program will only be able to read or write the 
 partially allocated space.   Providing a type-safe interface to \lstinline+memcpy+
-is more challenging.   It is incorrect to copy only part of an element of T.
+is more challenging.   It is incorrect to copy only part of an element of \lstinline+T+.
 \lstinline+T+ could be struct that contains a pointer.  Copying only a few bytes
 of the pointer could result in an invalid pointer.
 This is handled in the bounds-safe interface by requiring that the
@@ -251,7 +251,7 @@ there must be a lossless conversion from types supplied as type arguments for
 a type variable to the representation type and back.
 This is the same restriction placed on 
 representation and implementation types for opaque types.   In this example, on a
-32-bit architecture where \lstinline+int+ is the same size as +\uncheckedptrvoid{}, 
+32-bit architecture where \lstinline+int+ is the same size as \uncheckedptrvoid{}, 
 \lstinline+hash_add+ could be applied to \lstinline+int+.  It could not be applied to
 to 64-bit integers:
 \begin{lstlisting}
@@ -290,9 +290,9 @@ are placed differently.
 struct List for_any(T) { 
    T *elem;
    List<T> *next;
-}
+};
 \end{lstlisting}
-A function could take a pointer to a list of T and compute its length:
+A function could take a pointer to a list of \lstinline+T+ and compute its length:
 \begin{lstlisting}
 for_any(T) len(List<T> *head) {
   int count = 0;

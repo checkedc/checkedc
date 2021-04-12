@@ -23,23 +23,34 @@ typedef void (tss_dtor_t)(void *);
 struct timespec;
 #else
 
-#ifndef __cplusplus
+#if defined __has_include_next
+#if __has_include_next(<threads.h>)
+
+#ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
 #endif
-#include <threads.h>
 
-#ifndef __cplusplus
+#include_next <threads.h>
+
+#ifdef __checkedc
 #pragma CHECKED_SCOPE pop
 #endif
-#endif
 
-#ifndef __cplusplus
+#endif // has threads.h
+#endif // defined __has_include_next
+#endif // _CHECKEDC_MOCKUP_THREADS
+
+
+#if defined _CHECKEDC_MOCKUP_THREADS || \
+    (defined __has_include_next && __has_include_next(<threads.h>))
+
+#ifdef __checkedc
 #ifndef __THREADS_CHECKED_H
 #define __THREADS_CHECKED_H
 
 #pragma CHECKED_SCOPE push
-#pragma CHECKED_SCOPE ON
+#pragma CHECKED_SCOPE on
 
 void call_once(once_flag *flag : itype(_Ptr<once_flag>),
                void ((*fn)(void)) : itype(_Ptr<void (void)>));
@@ -82,4 +93,6 @@ int tss_set(tss_t key, void *value : itype(_Ptr<void>));
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
-#endif // no C++
+#endif // Checked C 
+
+#endif

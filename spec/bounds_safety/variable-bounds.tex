@@ -167,9 +167,9 @@ Bounds declarations may be added to declarations and statements using
 \keyword{where} clauses. They also may be placed inline at a declaration
 by following the declarator with \code{:} \var{bounds-exp}. In that
 case, the bounds expression applies to the variable that is the subject
-of the declarator. By making the bounds be part of the program, this
-preserves the control and efficiency of C. The bounds declarations will
-be checked statically for correctness using rules described in
+of the declarator. Making the bounds be part of the program preserves the
+control and efficiency of C. The bounds declarations will be checked statically
+for correctness using rules described in
 Chapter~\ref{chapter:checking-bounds}.
 
 \subsection{Bounds declarations at variable declarations}
@@ -282,9 +282,9 @@ int sum(void)
 This is a declaration of a function that copies bytes provided that the
 pointers and lengths are aligned:
 \begin{lstlisting}
-int aligned_memcpy(array<char> dst where dst : count(len) &&
+int aligned_memcpy(array<char> dst where dst : count(len) and
                                          aligned(dst, 4),
-                   array<char> src where src : count(len) &&
+                   array<char> src where src : count(len) and
                                          aligned(src, 4),
                    int len where len % 4 == 0);
 \end{lstlisting}
@@ -298,7 +298,7 @@ int aligned_memcpy(array<char> dst : count(len) where aligned(dst, 4),
 \end{lstlisting}
 
 This example is adapted from the OpenSSL library. The signature of a
-method has been modified to have bounds declaration. The size of input
+method has been modified to have a bounds declaration. The size of input
 and output buffers must be multiples of 16 because the function operates
 on 16-byte chunks of data.
 
@@ -525,22 +525,15 @@ where-clause\textsubscript{opt}} \\
 \\
 \var{facts:} \\
 \>\var{fact} \\
-\>\var{fact} \lstinline@&&@ \var{facts} \\
+\>\var{fact} \keyword{and} \var{facts} \\
 \\
-\var{fact:}\\
-\>\var{variable inline-bounds-specifier} \\
-\>\var{variable relop non-modifying-exp} \\
-\>\var{non-modifying-exp relop variable} \\
-\\
-where \var{relop} is one of \lstinline|<|, \lstinline|<=|, \lstinline|==|,
-\lstinline|!=|, \lstinline|>=|, \lstinline|>|.\\
-\\
-In addition, the grammar is updated to allow where clauses at expression
-statements:\\
-\\
-\var{expression-statement:}\\
-\>\var{expression\textsubscript{opt} where-clause\textsubscript{opt}}\code{;}
+\var{fact:}\=\\
+\>\var{bounds-declaration} \\
+\>\var{equality-or-relational-expression}
 \end{tabbing}
+
+The grammar for \keyword{where} clause \var{facts} is defined in more detail in
+Chapter~\ref{chapter:simple-invariants}.
 
 The names used in bounds expressions (\code{any},
 \code{bounds}, \code{count}, and \code{unknown}) are identifiers.
@@ -1347,7 +1340,7 @@ If the default relative alignment has been overridden and
 If it is, it inserts the same
 runtime check as before. Otherwise, it inserts a runtime check that
 \var{e2} \lstinline|<=| \var{e1} \lstinline|&&|
-\var{e1} \lstinline|+ sizeof(|\var{T}) \lstinline|- 1 <| \var{e3}.
+\var{e1} \lstinline|+| \sizeof{referent-type(\var{e1})} \lstinline|- 1 <| \var{e3}.
 
 \subsection{Examples of uses of bounds declarations that specify relative alignment}
 

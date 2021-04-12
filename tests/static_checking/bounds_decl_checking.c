@@ -44,7 +44,7 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   arg4 = &s.f;
   ptr<struct S1> ps = &s;
   arg4 = &(ps->f);
-  // TODO: 
+  // TODO:
   // - Simplification of &e1[e2] to e1 + e2 during checking of bounds declaration.
   // - Re-expressing bounds for arg4 in terms of the rhs and checking those bounds.
   // - Possibly reassociation.
@@ -312,11 +312,11 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   nt_array_ptr<int> c2 : count(u1) = 0;
   nt_array_ptr<int> c3 : count(u1 * u2 + 2 * i1) = 0;
   nt_array_ptr<int> c4 : count(i1) = 0;
-  
+
   c1 = c2;
-  c2 = c1;            // expected-warning {{cannot prove declared bounds for 'c2' are valid after assignment}}
+  c2 = c1;            // expected-error {{it is not possible to prove that the inferred bounds of 'c2' imply the declared bounds of 'c2' after assignment}}
   c1 = c3;
-  c1 = c4;            // expected-warning {{cannot prove declared bounds for 'c1' are valid after assignment}}
+  c1 = c4;            // expected-error {{it is not possible to prove that the inferred bounds of 'c1' imply the declared bounds of 'c1' after assignment}}
 
   // spot-check locals assigned from globals
   t1 = g13;
@@ -424,7 +424,7 @@ extern void test_f5(array_ptr<int> p : count(len), int len);
 extern void test_f6(array_ptr<int> p : count(0));
 
 extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
-                            array_ptr<int> arg4 : count(1), 
+                            array_ptr<int> arg4 : count(1),
                             array_ptr<int> arg5 : count(arglen), int arglen,
                             array_ptr<int> arg6 : count(arglen_u), unsigned int arglen_u) {
   test_f1(arg1);
@@ -444,7 +444,7 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_f3(arg3);
   test_f4(arg3);     // expected-error {{argument has unknown bounds}}
   test_f5(arg3, 1);  // expected-error {{argument has unknown bounds}}
-  
+
   test_f1(arg4);     // expected-error {{incompatible type}}
   test_f2(arg4);
   test_f3(arg4);
@@ -454,8 +454,8 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_f1(arg5);     // expected-error {{incompatible type}}
   test_f2(arg5);
   test_f3(arg5);
-  test_f4(arg5);    // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
-  test_f5(arg5, 1); // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_f4(arg5);    // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+  test_f5(arg5, 1); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   test_f5(arg5, arglen);
 
   int count = arglen - 1;
@@ -465,7 +465,7 @@ extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_f1(arg6);               // expected-error {{incompatible type}}
   test_f2(arg6);
   test_f3(arg6);
-  test_f4(arg6);               // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_f4(arg6);               // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   test_f5(arg6, arglen_u);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
   test_f6(arg6);
 }
@@ -497,9 +497,9 @@ extern void check_nullterm_call_args(
   test_nullterm_f4(arg3, 1);
 
   test_nullterm_f1(arg4);
-  test_nullterm_f2(arg4);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
-  test_nullterm_f3(arg4);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
-  test_nullterm_f4(arg4, 1);  // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_nullterm_f2(arg4);     // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+  test_nullterm_f3(arg4);     // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+  test_nullterm_f4(arg4, 1);  // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   test_nullterm_f4(arg4,  arglen);
 
   int count = arglen - 1;
@@ -508,7 +508,7 @@ extern void check_nullterm_call_args(
 
   test_nullterm_f1(arg5);
   test_nullterm_f2(arg5);
-  test_nullterm_f3(arg5);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_nullterm_f3(arg5);     // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
 }
 
 //
@@ -541,8 +541,8 @@ extern void check_call_bsi(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_bsi_f5(arg2, 1);
 
   test_bsi_f1(arg3);     // expected-error {{incompatible type}}
-  test_bsi_f2(arg3);     // expected-error {{argument has unknown bounds}}                    
-  test_bsi_f3(arg3);     
+  test_bsi_f2(arg3);     // expected-error {{argument has unknown bounds}}
+  test_bsi_f3(arg3);
   test_bsi_f4(arg3);     // expected-error {{argument has unknown bounds}}
   test_bsi_f5(arg3, 1);  // expected-error {{argument has unknown bounds}}
 
@@ -553,10 +553,10 @@ extern void check_call_bsi(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   test_bsi_f5(arg4, 1);
 
   test_bsi_f1(arg5);     // expected-error {{incompatible type}}
-  test_bsi_f2(arg5);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_bsi_f2(arg5);     // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   test_bsi_f3(arg5);
-  test_bsi_f4(arg5);     // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
-  test_bsi_f5(arg5, 1);  // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_bsi_f4(arg5);     // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
+  test_bsi_f5(arg5, 1);  // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
   _Checked {
     test_bsi_f6(test_cmp);
   }
@@ -602,7 +602,7 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
   test_nullterm_bsi_f2(arg4);
 
   test_nullterm_bsi_f1(arg5);    // expected-error {{incompatible type}}
-  test_nullterm_bsi_f2(arg5);    // expected-warning {{cannot prove argument meets declared bounds for 1st parameter}}
+  test_nullterm_bsi_f2(arg5);    // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
 
   test_nullterm_bsi_f3(arg6);    // no checking expected when passing unchecked pointers
   test_nullterm_bsi_f3(arg7);    // no checking expected when passing unchecked pointers
