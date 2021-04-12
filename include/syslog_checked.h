@@ -29,8 +29,17 @@
 
 void closelog(void);
 void openlog (const char *__ident : itype(_Nt_array_ptr<const char>), int __option, int __facility);
+
+// TODO: Is this condition right? I don't see any precedent in the Checked C
+// system headers for __foo_chk without __builtin___foo_chk.
+#if _FORTIFY_SOURCE == 0 || !defined(syslog)
+#undef syslog
 _Unchecked
 void syslog(int priority, const char * format : itype(_Nt_array_ptr<const char>), ...);
+#else
+_Unchecked
+void __syslog_chk(int priority, int flag, const char * format : itype(_Nt_array_ptr<const char>), ...);
+#endif
 
 /* TODO: Not sure how to get va_list included; stdio_checked.h might be the example to look at */
 /* _Unchecked */
