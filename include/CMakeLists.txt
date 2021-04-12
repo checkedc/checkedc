@@ -49,6 +49,8 @@ set(posix_arpa_files
 set(posix_sys_files
   sys/socket_checked.h
   sys/socket.h
+  sys/stat_checked.h
+  sys/stat.h
 )
 
 # Hack - compute the CLANG version from the LLVM version.  The
