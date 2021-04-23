@@ -20,6 +20,8 @@ set(files
   math.h
   netdb_checked.h
   netdb.h
+  poll_checked.h
+  poll.h
   pwd_checked.h
   pwd.h
   signal_checked.h
