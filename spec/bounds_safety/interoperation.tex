@@ -862,6 +862,28 @@ void f(int **p : itype(array_ptr<int> checked[10]));
 void f(int **p : itype(int *checked[20]));
 \end{lstlisting}
 
+\subsection{Function pointer type as parameter}
+Function pointers that are parameters in a bounds-safe interface specification
+can themselves have a bounds-safe interface type.  This allows both checked and
+unchecked function pointers to be passed as actual arguments.
+Here is an example:
+\begin{lstlisting}
+int apply_fun (
+  char *buffer : itype(array_ptr<char>) count(length),
+  size_t length,
+  int ((*fun)(char *buf, size_t len)) :
+      itype(ptr<int(array_ptr<char> buf : count(len), size_t len)>)
+);
+\end{lstlisting}
+
+In the above example \lstinline+fun+ is a function pointer.  Note that an extra
+pair of parentheses is required around the function pointer declaration before
+the type annotation.  This is necessary to disambiguate parsing.  Without the
+extra pair of parentheses, the compiler attempts to bind the itype (
+\lstinline+ptr<int(array_ptr<char> buf : count(len), size_t len)>+) to the
+return value of the function pointed to by \lstinline+fun+, which will result
+in a compilation error.
+
 \subsection{Bounds expression and type annotations}
 A bounds-safe interface declaration can have both a bounds expression and a type
 annotation.  This allows programmers to declare bounds-safe interfaces for declarations involving
@@ -884,18 +906,6 @@ it implies that the type annotation is \arrayptrinst{T}.   If it is placed on a 
 array type \lstinline{T[D]}, it implies that the type annotation is \lstinline{T checked[D]}.   If
 an interface type and a bounds expression are both specified, the interface type must
 be an \arrayptr\ type or checked array type.
-
-\subsection{Function pointer types and type annotations}
-Function pointers types are compatible with bounds-safe interfaces.  It requires
-an extra pair of parenthesis around the function pointer declaration before the type annotation.
-This allows a function pointer to be called using both checked and unchecked
-pointers as actual arguments.  For example, in the function pointer declaration
-below, there is an extra pair of parenthesis around the declaration of
-\lstinline+clear+.
-\begin{lstlisting}
-int ((*clear)(char* buf, size_t len)) :
-    itype(ptr<int(array_ptr<char> buf : count(len), size_t len)>)
-\end{lstlisting}
 
 \subsection{Redeclaring existing functions and variables with bounds-safe interfaces}
 \label{section:bounds-safe-interface-redeclaration}
