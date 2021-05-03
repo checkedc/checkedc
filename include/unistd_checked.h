@@ -32,6 +32,8 @@
 
 #if _POSIX_VERSION >= 200112L
 
+char *crypt(const char *phrase : itype(_Nt_array_ptr<const char>), const char *setting : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
+
 extern char ** environ : itype(_Nt_array_ptr<_Nt_array_ptr<char>>);
 
 extern char *getcwd(char *buf : itype(_Nt_array_ptr<char>), size_t size) : itype(_Nt_array_ptr<char>);
