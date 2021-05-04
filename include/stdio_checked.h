@@ -202,6 +202,8 @@ int feof(FILE *stream : itype(_Ptr<FILE>));
 int ferror(FILE *stream : itype(_Ptr<FILE>));
 void perror(const char *s : itype(_Nt_array_ptr<const char>));
 
+int fileno (FILE *stream : itype(_Ptr<FILE>));
+
 #include "_builtin_stdio_checked.h"
 
 #pragma CHECKED_SCOPE pop
