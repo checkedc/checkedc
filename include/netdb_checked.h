@@ -28,6 +28,12 @@ extern struct hostent *gethostbyname(const char *name : itype(_Nt_array_ptr<cons
 _Unchecked
 extern struct hostent *gethostbyaddr(const void *addr : byte_count(len), socklen_t len, int type);
 
+int getaddrinfo(const char *node : itype(_Nt_array_ptr<const char>) , const char *service : itype(_Nt_array_ptr<const char>),
+                const struct addrinfo *hints : itype(_Ptr<const struct addrinfo>),
+                struct addrinfo **res : itype(_Nt_array_ptr<_Ptr<struct addrinfo>>));
+void freeaddrinfo(struct addrinfo *res : itype(_Ptr<struct addrinfo>));
+const char *gai_strerror(int errcode) : itype(_Nt_array_ptr<const char>);
+
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
