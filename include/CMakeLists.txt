@@ -14,6 +14,8 @@ set(files
   errno.h
   fenv_checked.h
   fenv.h
+  grp_checked.h
+  grp.h
   inttypes_checked.h
   inttypes_checked_internal.h
   math_checked.h
