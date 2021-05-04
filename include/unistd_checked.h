@@ -58,6 +58,11 @@ extern ssize_t read (int __fd, void *__buf : byte_count(__nbytes), size_t __nbyt
 extern ssize_t write (int __fd, const void *__buf : byte_count(__n), size_t __n) __wur;
 
 #endif
+
+extern int execve(const char *pathname : itype(_Nt_array_ptr<const char>),
+                  char * const *argv : itype(_Nt_array_ptr<const _Nt_array_ptr<char>>),
+                  char * const *envp : itype(_Nt_array_ptr<const _Nt_array_ptr<char>>));
+
 #endif
 
 #pragma CHECKED_SCOPE pop
