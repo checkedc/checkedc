@@ -32,6 +32,7 @@
 
 #if _POSIX_VERSION >= 200112L
 
+char *getpass(const char *prompt : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
 char *crypt(const char *phrase : itype(_Nt_array_ptr<const char>), const char *setting : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
 
 extern char ** environ : itype(_Nt_array_ptr<_Nt_array_ptr<char>>);
@@ -44,6 +45,8 @@ extern int chdir(const char *p_dirname : itype(_Nt_array_ptr<const char>));
 extern ssize_t readlink (const char *restrict path : itype(restrict _Nt_array_ptr<const char>),
 			 char *restrict buf : itype(restrict _Nt_array_ptr<char>), size_t len);
 extern int chroot(const char *dirname : itype(_Nt_array_ptr<const char>));
+int unlink(const char *pathname : itype(_Nt_array_ptr<const char>));
+int mkstemp(char *template : itype(_Nt_array_ptr<char>));
 
 #ifdef __APPLE__
 
@@ -62,6 +65,8 @@ extern ssize_t write (int __fd, const void *__buf : byte_count(__n), size_t __n)
 extern int execve(const char *pathname : itype(_Nt_array_ptr<const char>),
                   char * const *argv : itype(_Nt_array_ptr<const _Nt_array_ptr<char>>),
                   char * const *envp : itype(_Nt_array_ptr<const _Nt_array_ptr<char>>));
+
+int gethostname(char *name : count(len), size_t len);
 
 #endif
 
