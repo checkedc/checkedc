@@ -12,6 +12,8 @@ set(files
   assert.h
   errno_checked.h
   errno.h
+  fcntl.h
+  fcntl_checked.h
   fenv_checked.h
   fenv.h
   grp_checked.h
