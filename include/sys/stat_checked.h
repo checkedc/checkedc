@@ -4,10 +4,6 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
-// The Windows environment may not have sys/stat.h
-#if defined __has_include_next
-#if __has_include_next(<sys/stat.h>)
-
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
@@ -40,6 +36,3 @@ extern int stat(const char *restrict file : itype(restrict _Nt_array_ptr<const c
 
 #endif // guard
 #endif // Checked C
-
-#endif // has stat.h
-#endif // defined __has_include_next
