@@ -5,6 +5,9 @@
 /////////////////////////////////////////////////////////////////////////
 
 
+// The Windows environment may not have grp.h
+#if defined __has_include_next && __has_include_next(<grp.h>)
+
 #if !defined __checkedc || defined NO_IMPLICIT_INCLUDE_CHECKED_HDRS
 
 #ifdef __checkedc
@@ -20,4 +23,8 @@
 
 #else // checkedc && implicit include enabled
 #include <grp_checked.h>
+#endif
+
+#else // doesn't have grp.h
+#error "cannot include 'grp.h' because this system does not have the original header, even though Checked C provides a wrapper for it"
 #endif

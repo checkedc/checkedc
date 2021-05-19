@@ -4,6 +4,9 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
+// The Windows environment may not have utime.h
+#if defined __has_include_next && __has_include_next(<utime.h>)
+
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
@@ -29,3 +32,7 @@ extern int utime (const char *file : itype(_Nt_array_ptr<const char>),
 
 #endif // guard
 #endif // Checked C
+
+#else // doesn't have utime.h
+#error "cannot include 'utime_checked.h' because this system does not have the original 'utime.h'"
+#endif

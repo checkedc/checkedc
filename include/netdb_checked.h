@@ -4,6 +4,9 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
+// The Windows environment may not have netdb.h
+#if defined __has_include_next && __has_include_next(<netdb.h>)
+
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
@@ -36,3 +39,7 @@ const char *gai_strerror(int errcode) : itype(_Nt_array_ptr<const char>);
 
 #endif // guard
 #endif // Checked C
+
+#else // doesn't have netdb.h
+#error "cannot include 'netdb_checked.h' because this system does not have the original 'netdb.h'"
+#endif

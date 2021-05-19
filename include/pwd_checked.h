@@ -4,6 +4,9 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
+// The Windows environment may not have pwd.h
+#if defined __has_include_next && __has_include_next(<pwd.h>)
+
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
@@ -40,3 +43,7 @@ int            getpwuid_r(uid_t uid,
 
 #endif // guard
 #endif // Checked C
+
+#else // doesn't have pwd.h
+#error "cannot include 'pwd_checked.h' because this system does not have the original 'pwd.h'"
+#endif

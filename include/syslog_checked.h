@@ -4,6 +4,9 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
+// The Windows environment may not have syslog.h
+#if defined __has_include_next && __has_include_next(<syslog.h>)
+
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE off
@@ -50,3 +53,7 @@ void __syslog_chk(int priority, int flag, const char * format : itype(_Nt_array_
 
 #endif // guard
 #endif // Checked C
+
+#else // doesn't have syslog.h
+#error "cannot include 'syslog_checked.h' because this system does not have the original 'syslog.h'"
+#endif
