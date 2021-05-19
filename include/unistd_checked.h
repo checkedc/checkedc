@@ -9,8 +9,7 @@
 // Uses clang-specific __has_include macro to detect unistd.h
 // which is required by Posix Standard.
 // The Windows environment also may not have unistd.h
-#if defined __has_include_next
-#if __has_include_next(<unistd.h>)
+#if defined __has_include_next && __has_include_next(<unistd.h>)
 
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
@@ -75,5 +74,6 @@ int gethostname(char *name : count(len), size_t len);
 #endif // guard
 #endif // Checked C
 
-#endif // has unistd.h
-#endif // defined __has_include_next
+#else // doesn't have unistd.h
+#error "cannot include 'unistd_checked.h' because this system does not have the original 'unistd.h'"
+#endif

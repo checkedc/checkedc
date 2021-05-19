@@ -103,11 +103,3 @@
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
 // CHECK_DISABLED-NOT: time_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-
-
-
-// Posix Headers
-// These header files may or may not be present in all environments.
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>

@@ -6,8 +6,7 @@
 /////////////////////////////////////////////////////////////////////////
 
 // The Windows environment may not have arpa/inet.h
-#if defined __has_include_next
-#if __has_include_next(<arpa/inet.h>)
+#if defined __has_include_next && __has_include_next(<arpa/inet.h>)
 
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
@@ -46,5 +45,6 @@ extern int inet_pton(int af,
 #endif // guard
 #endif // Checked C
 
-#endif // has inet.h
-#endif // defined __has_include_next
+#else // doesn't have arpa/inet.h
+#error "cannot include 'arpa/inet_checked.h' because this system does not have the original 'arpa/inet.h'"
+#endif
