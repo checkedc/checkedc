@@ -1,7 +1,8 @@
-//--------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in poll.h                     //
-//                                                                    //
-////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------//
+// Bounds-safe interfaces for functions in poll.h that                 //
+// take pointer arguments.                                             //
+//                                                                     //
+/////////////////////////////////////////////////////////////////////////
 
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
@@ -25,5 +26,5 @@ extern int poll(struct pollfd fds[] : count(nfds), nfds_t nfds, int timeout);
 
 #pragma CHECKED_SCOPE pop
 
-#endif // guards
+#endif // guard
 #endif // Checked C

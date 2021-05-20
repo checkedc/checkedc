@@ -27,5 +27,5 @@ int open(const char *pathname : itype(_Nt_array_ptr<const char>), int flags, ...
 
 #pragma CHECKED_SCOPE pop
 
-#endif  // guard
-#endif  // Checked C
+#endif // guard
+#endif // Checked C

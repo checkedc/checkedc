@@ -1,6 +1,7 @@
 //---------------------------------------------------------------------//
 // Bounds-safe interfaces for functions in syslog.h that               //
 // take pointer arguments.                                             //
+//                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
 #ifdef __checkedc

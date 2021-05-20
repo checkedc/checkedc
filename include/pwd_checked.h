@@ -1,9 +1,7 @@
 //---------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in pwd.h that                 //
+// Bounds-safe interfaces for functions in pwd.h that                  //
 // take pointer arguments.                                             //
 //                                                                     //
-// These are listed in the same order that they occur in the C11       //
-// specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
 #ifdef __checkedc

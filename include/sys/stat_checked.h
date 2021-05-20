@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in POSIX stat.h.               //
-//                                                                     //
+// Bounds-safe interfaces for functions in sys/stat.h that             //
+// take pointer arguments.                                             //
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 

@@ -1,9 +1,7 @@
 //---------------------------------------------------------------------//
-// Bounds-safe interfaces for functions in utime.h that                 //
+// Bounds-safe interfaces for functions in utime.h that                //
 // take pointer arguments.                                             //
 //                                                                     //
-// These are listed in the same order that they occur in the C11       //
-// specification.                                                      //
 /////////////////////////////////////////////////////////////////////////
 
 #ifdef __checkedc
