@@ -27,7 +27,18 @@
 #pragma CHECKED_SCOPE on
 
 extern in_addr_t inet_addr (const char *__cp : itype(_Nt_array_ptr<const char>)) __THROW;
+extern int inet_aton(const char *cp : itype(_Nt_array_ptr<const char>),
+                     struct in_addr *inp : itype(_Ptr<struct in_addr>));
 
+extern char *inet_ntoa(struct in_addr) : itype(_Nt_array_ptr<char>);
+_Unchecked
+extern const char *inet_ntop(int af, const void *restrict src,
+                             char *restrict : itype(restrict _Array_ptr<char>) byte_count(size),
+                             socklen_t size) : itype(_Nt_array_ptr<const char>);
+_Unchecked
+extern int inet_pton(int af,
+                     const char *restrict src : itype(restrict _Nt_array_ptr<const char>),
+                     void *restrict dst);
 
 #pragma CHECKED_SCOPE pop
 

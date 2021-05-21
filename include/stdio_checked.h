@@ -46,6 +46,7 @@ int fclose(FILE *stream : itype(_Ptr<FILE>));
 int fflush(FILE *stream : itype(_Ptr<FILE>));
 FILE *fopen(const char * restrict filename : itype(restrict _Nt_array_ptr<const char>),
             const char * restrict mode : itype(restrict _Nt_array_ptr<const char>)) : itype(_Ptr<FILE>);
+FILE *fdopen(int fd, const char *mode : itype(_Nt_array_ptr<const char>)) : itype(_Ptr<FILE>);
 FILE *freopen(const char * restrict filename : itype(restrict _Nt_array_ptr<const char>),
               const char * restrict mode : itype(restrict _Nt_array_ptr<const char>),
               FILE * restrict stream : itype(restrict _Ptr<FILE>)) :
@@ -200,6 +201,8 @@ void clearerr(FILE *stream : itype(_Ptr<FILE>));
 int feof(FILE *stream : itype(_Ptr<FILE>));
 int ferror(FILE *stream : itype(_Ptr<FILE>));
 void perror(const char *s : itype(_Nt_array_ptr<const char>));
+
+int fileno (FILE *stream : itype(_Ptr<FILE>));
 
 #include "_builtin_stdio_checked.h"
 

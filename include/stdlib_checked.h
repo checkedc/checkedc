@@ -77,6 +77,7 @@ _Itype_for_any(T) void *malloc(size_t size) : itype(_Array_ptr<T>) byte_count(si
 _Itype_for_any(T) void *realloc(void *pointer : itype(_Array_ptr<T>) byte_count(0), size_t size) : itype(_Array_ptr<T>) byte_count(size);
 
 char *getenv(const char *n : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
+int putenv(char *string : itype(_Nt_array_ptr<char>));
 
 int atexit(void ((*func)(void)) : itype(_Ptr<void (void)>));
 int atquick_exit(void ((*func)(void)) : itype(_Ptr<void (void)>));
