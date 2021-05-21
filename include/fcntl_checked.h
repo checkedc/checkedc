@@ -19,10 +19,11 @@
 #ifndef __FCNTL_CHECKED_H
 #define __FCNTL_CHECKED_H
 
-int open(const char *pathname : itype(_Nt_array_ptr<const char>), int flags, ...);
-
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE on
+
+_Unchecked
+int open(const char *pathname : itype(_Nt_array_ptr<const char>), int flags, ...);
 
 #pragma CHECKED_SCOPE pop
 
