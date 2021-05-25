@@ -30,8 +30,6 @@ extern int lstat(const char *restrict file : itype(restrict _Nt_array_ptr<const 
 extern int stat(const char *restrict file : itype(restrict _Nt_array_ptr<const char>),
                 struct stat *restrict buf : itype(restrict _Ptr<struct stat>));
 
-// int fchmod(int, mode_t) and mode_t umask(mode_t) inherited from system header
-
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
