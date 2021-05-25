@@ -42,7 +42,7 @@ extern char *get_current_dir_name(void) : itype(_Nt_array_ptr<char>);
 extern int rmdir(const char *pathname : itype(_Nt_array_ptr<const char>));
 extern int chdir(const char *p_dirname : itype(_Nt_array_ptr<const char>));
 extern ssize_t readlink (const char *restrict path : itype(restrict _Nt_array_ptr<const char>),
-			 char *restrict buf : itype(restrict _Nt_array_ptr<char>), size_t len);
+                         char *restrict buf : itype(restrict _Nt_array_ptr<char>), size_t len);
 extern int chroot(const char *dirname : itype(_Nt_array_ptr<const char>));
 int unlink(const char *pathname : itype(_Nt_array_ptr<const char>));
 int mkstemp(char *template : itype(_Nt_array_ptr<char>));

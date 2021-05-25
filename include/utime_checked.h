@@ -26,7 +26,7 @@
 #pragma CHECKED_SCOPE on
 
 extern int utime (const char *file : itype(_Nt_array_ptr<const char>),
-		  const struct utimbuf *file_times : itype(_Ptr<const struct utimbuf>));
+                  const struct utimbuf *file_times : itype(_Ptr<const struct utimbuf>));
 
 #pragma CHECKED_SCOPE pop
 
