@@ -32,13 +32,13 @@ _ACRTIMP void __cdecl _wassert(_In_z_ wchar_t const *_Message : itype(_Nt_array_
 #ifdef __APPLE__
 #define __THROW
 extern void __assert_rtn(const char *msg : itype(_Nt_array_ptr<const char>),
-                         const char *file : itype(_Nt_array_ptr<const char>),
-                         int line,
-                         const char *fn : itype(const char _Nt_checked[]));
+			 const char *file : itype(_Nt_array_ptr<const char>),
+			 int line,
+			 const char *fn : itype(const char _Nt_checked[]));
 #else
 extern void __assert(const char *msg : itype(_Nt_array_ptr<const char>), 
-                                         const char *file : itype(_Nt_array_ptr<const char>), 
-                                         int line);
+					 const char *file : itype(_Nt_array_ptr<const char>), 
+					 int line);
 #endif
 
 #undef __assert_fail
