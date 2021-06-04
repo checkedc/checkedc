@@ -6,6 +6,7 @@
 
 #include <stdlib_checked.h>
 #include <string_checked.h>
+#include <stdarg.h>
 
 #ifdef __checkedc
 
@@ -17,17 +18,25 @@
 
 // default strncmp has a bounds-safe interface nt_array_ptr;
 // this option is for array_ptr
-extern inline int strncmp_array_ptr(const char *src : count(n), const char *s2 : count(n), size_t n) {
+inline int __attribute__((__always_inline__))
+strncmp_array_ptr(const char *src : count(n), const char *s2 : count(n), size_t n) {
   _Unchecked { return strncmp(src, s2, n); }
 }
 
 // default snprintf assumes nt_array_ptr for bounds-safe interface
 // this option is for array_ptr
-_Unchecked
-int snprintf_array_ptr(char * restrict s : itype(restrict _Array_ptr<char>) count(n),
-                       size_t n, 
+// clang does not inline functions that use va_list/va_start/va_end to access variable
+// number of arguments.
+_Unchecked static int
+snprintf_array_ptr(char * restrict s : itype(restrict _Array_ptr<char>) count(n),
+                       size_t n,
                        const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
-                       ...);
+                       ...) {
+  va_list argptr;
+  va_start(argptr, format);
+  snprintf(s, n, format, argptr);
+  va_end(argptr);
+}
 
 #pragma CHECKED_SCOPE pop
 
