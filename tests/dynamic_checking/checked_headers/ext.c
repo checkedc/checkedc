@@ -14,10 +14,10 @@
 #include <stdio.h>
 
 // A function with an interface similar to snprintf but without the variable
-// number of arguments so that such a call interface can be tested in checked
+// number of arguments. The purpose is to test such a call interface in checked
 // scope.
 void iface(char * restrict s : itype(restrict _Nt_array_ptr<char>) count(n-1),
-           size_t n,
+           size_t n _Where n > 0,
            const char * restrict src : itype(restrict _Nt_array_ptr<const char>)) {
     return;
 }
