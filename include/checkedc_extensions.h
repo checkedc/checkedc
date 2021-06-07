@@ -25,8 +25,8 @@ strncmp_array_ptr(const char *src : count(n), const char *s2 : count(n), size_t 
 
 // default snprintf assumes nt_array_ptr for bounds-safe interface
 // this option is for array_ptr
-// clang does not inline functions that use va_list/va_start/va_end to access variable
-// number of arguments.
+// clang does not inline functions that use va_list/va_start/va_end to
+// access variable number of arguments.
 _Unchecked static int
 snprintf_array_ptr(char * restrict s : itype(restrict _Array_ptr<char>) count(n),
                        size_t n,
@@ -34,6 +34,10 @@ snprintf_array_ptr(char * restrict s : itype(restrict _Array_ptr<char>) count(n)
                        ...) {
   va_list argptr;
   va_start(argptr, format);
+  // The call to snprintf needs to be in an unchecked block as the compiler,
+  // in checked scope, will not allow passing an argument of type
+  // _Array_ptr<char> count(n) whose corresponding parameter has the type
+  // _Nt_array_ptr<char> count(n-1).
   snprintf(s, n, format, argptr);
   va_end(argptr);
 }
