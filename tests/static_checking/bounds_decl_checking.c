@@ -382,12 +382,12 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   s.f1 = t2;
   s.f1 = t3;
 
-  s.f2 = t1;          // expected-error {{expression has unknown bounds}}
+  s.f2 = t1;          // expected-error {{inferred bounds for 's.f2' are unknown after assignment}}
   s.f2 = t2;
   s.f2 = t3;
 
-  s.f3 = t1;          // expected-error {{expression has unknown bounds}}
-  s.f3 = t2;          // expected-error {{declared bounds for s.f3 are invalid after assignment}}
+  s.f3 = t1;          // expected-error {{inferred bounds for 's.f3' are unknown after assignment}}
+  s.f3 = t2;          // expected-error {{declared bounds for 's.f3' are invalid after assignment}}
   s.f3 = t3;
 
   t1 = s.f1;
