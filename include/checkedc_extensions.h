@@ -4,9 +4,9 @@
 // choose to use these over the default bounds-safe interfaces.             //
 //////////////////////////////////////////////////////////////////////////////
 
+#include <stdarg.h>
 #include <stdlib_checked.h>
 #include <string_checked.h>
-#include <stdarg.h>
 
 #ifdef __checkedc
 

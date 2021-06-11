@@ -9,8 +9,8 @@
 
 #pragma CHECKED_SCOPE on
 
-#include <stddef.h>
 #include <checkedc_extensions.h>
+#include <stddef.h>
 #include <stdio.h>
 
 // A function with an interface similar to snprintf but without the variable
