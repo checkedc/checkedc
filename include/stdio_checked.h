@@ -75,6 +75,7 @@ int setvbuf(FILE * restrict stream : itype(restrict _Ptr<FILE>),
 // - Fortifying,     No Macro:     we need the definition
 // - Not Fortifying, No Macro:     we need the definition
 
+
 #if _FORTIFY_SOURCE == 0 || !defined(fprintf)
 #undef fprintf
 _Unchecked
@@ -114,9 +115,10 @@ int sscanf(const char * restrict s : itype(restrict _Nt_array_ptr<const char>),
 // and counts that number in n, s only needs count(n-1) per the 
 // definition of _Nt types. Additional declaration for arrays 
 // available in checkedc_extensions.h
+
 _Unchecked
-int snprintf(char * restrict s : itype(restrict _Nt_array_ptr<char>) count(n == 0 ? 0 : n-1),
-             size_t n,
+int snprintf(char * restrict s : itype(restrict _Nt_array_ptr<char>) count(n-1),
+             size_t n _Where n > 0,
              const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
 #endif
 
