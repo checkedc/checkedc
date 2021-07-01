@@ -38,11 +38,6 @@ extern char ** environ : itype(_Nt_array_ptr<_Nt_array_ptr<char>>);
 
 extern char *getcwd(char *buf : itype(_Nt_array_ptr<char>) count(size-1),
                     size_t size _Where size > 0) : itype(_Nt_array_ptr<char>);
-// TODO: `getwd` cannot be used safely because there is no good way to determine
-// the required size of `buf`. Should we provide a checked declaration for it at
-// all?
-_Unchecked
-extern char *getwd(char *buf) : itype(_Nt_array_ptr<char>);
 extern int rmdir(const char *pathname : itype(_Nt_array_ptr<const char>));
 extern int chdir(const char *p_dirname : itype(_Nt_array_ptr<const char>));
 // Caution: Does not null-terminate `buf`.
