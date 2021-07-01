@@ -31,14 +31,14 @@ extern int inet_aton(const char *cp : itype(_Nt_array_ptr<const char>),
                      struct in_addr *inp : itype(_Ptr<struct in_addr>));
 
 extern char *inet_ntoa(struct in_addr) : itype(_Nt_array_ptr<char>);
-_Unchecked
-extern const char *inet_ntop(int af, const void *restrict src,
-                             char *restrict : itype(restrict _Array_ptr<char>) byte_count(size),
-                             socklen_t size) : itype(_Nt_array_ptr<const char>);
-_Unchecked
+extern const char *inet_ntop(int af,
+                             const void *restrict src : byte_count(af == AF_INET ? 4 : 16),
+                             char *restrict dst : itype(restrict _Nt_array_ptr<char>) count(size-1),
+                             socklen_t size _Where size > 0)
+                             : itype(_Nt_array_ptr<const char>);
 extern int inet_pton(int af,
                      const char *restrict src : itype(restrict _Nt_array_ptr<const char>),
-                     void *restrict dst);
+                     void *restrict dst : byte_count(af == AF_INET ? 4 : 16));
 
 #pragma CHECKED_SCOPE pop
 
