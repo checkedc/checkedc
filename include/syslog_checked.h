@@ -25,17 +25,17 @@
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE on
 
-// TODO: printing and scanning functions are still mostly
-// unchecked because of the use of varargs.
-// * There may not be enough arguments for the format string.
-// * Any pointer arguments may not meet the requirements of the
-//  format string.
-
 void closelog(void);
-void openlog (const char *__ident : itype(_Nt_array_ptr<const char>), int __option, int __facility);
+void openlog (const char *ident : itype(_Nt_array_ptr<const char>), int option, int facility);
 
-// TODO: Is this condition right? I don't see any precedent in the Checked C
-// system headers for __foo_chk without __builtin___foo_chk.
+// TODO: Is this conditional right? There are two considerations:
+//
+// 1. Precedent in the Checked C system headers. I don't see any cases of
+//    __foo_chk without __builtin___foo_chk, but this is my best guess of what
+//    would be considered consistent.
+// 2. What's actually needed on the OSes we try to support (Linux, Windows, Mac
+//    OS), though we might go with a solution that is more complex than
+//    necessary if it's consistent with precedent.
 #if _FORTIFY_SOURCE == 0 || !defined(syslog)
 #undef syslog
 _Unchecked
@@ -45,9 +45,18 @@ _Unchecked
 void __syslog_chk(int priority, int flag, const char * format : itype(_Nt_array_ptr<const char>), ...);
 #endif
 
-/* TODO: Not sure how to get va_list included; stdio_checked.h might be the example to look at */
-/* _Unchecked */
-/* void vsyslog (int __pri, const char *__fmt  : itype(_Nt_array_ptr<const char>), va_list arg); */
+// TODO: Can we assume that va_list has been included via the `#include_next
+// <syslog.h>`, analogous to the situation in stdio_checked.h?
+//
+// TODO: The same questions about the conditional as for `syslog`.
+#if _FORTIFY_SOURCE == 0 || !defined(vsyslog)
+#undef vsyslog
+_Unchecked
+void vsyslog(int priority, const char * format : itype(_Nt_array_ptr<const char>), va_list ap);
+#else
+_Unchecked
+void __vsyslog_chk(int priority, int flag, const char * format : itype(_Nt_array_ptr<const char>), va_list ap);
+#endif
 
 #pragma CHECKED_SCOPE pop
 
