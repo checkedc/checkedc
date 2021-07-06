@@ -57,7 +57,7 @@ void call_once(once_flag *flag : itype(_Ptr<once_flag>),
 
 int cnd_broadcast(cnd_t *condition : itype(_Ptr<cnd_t>));
 void cnd_destroy(cnd_t *condition : itype(_Ptr<cnd_t>));
-void cnd_init(cnd_t *condition : itype(_Ptr<cnd_t>));
+int cnd_init(cnd_t *condition : itype(_Ptr<cnd_t>));
 int cnd_signal(cnd_t *condition : itype(_Ptr<cnd_t>));
 int cnd_timedwait(cnd_t *restrict cond : itype(restrict _Ptr<cnd_t>),
                   mtx_t *restrict mutex: itype(restrict _Ptr<mtx_t>),
