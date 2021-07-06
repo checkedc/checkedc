@@ -149,8 +149,8 @@ int vscanf(const char * restrict format : itype(restrict _Nt_array_ptr<const cha
 #if _FORTIFY_SOURCE == 0 || !defined(vsnprintf)
 #undef vsnprintf
 _Unchecked
-int vsnprintf(char * restrict s : itype(restrict _Nt_array_ptr<char>) count(n == 0 ? 0 : n-1),
-              size_t n,
+int vsnprintf(char * restrict s : itype(restrict _Nt_array_ptr<char>) count(n-1),
+              size_t n _Where n > 0,
               const char * restrict format : itype(restrict _Nt_array_ptr<const char>),
               va_list arg);
 #endif
