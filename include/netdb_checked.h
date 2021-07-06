@@ -26,12 +26,12 @@
 #pragma CHECKED_SCOPE on
 
 extern struct hostent *gethostbyname(const char *name : itype(_Nt_array_ptr<const char>)) : itype(_Ptr<struct hostent>);
-_Unchecked
 extern struct hostent *gethostbyaddr(const void *addr : byte_count(len), socklen_t len, int type);
 
-int getaddrinfo(const char *node : itype(_Nt_array_ptr<const char>) , const char *service : itype(_Nt_array_ptr<const char>),
-                const struct addrinfo *hints : itype(_Ptr<const struct addrinfo>),
-                struct addrinfo **res : itype(_Nt_array_ptr<_Ptr<struct addrinfo>>));
+int getaddrinfo(const char *restrict node : itype(_Nt_array_ptr<const char> restrict),
+                const char *restrict service : itype(_Nt_array_ptr<const char> restrict),
+                const struct addrinfo *restrict hints : itype(_Ptr<const struct addrinfo> restrict),
+                struct addrinfo **restrict res : itype(_Ptr<_Ptr<struct addrinfo>> restrict));
 void freeaddrinfo(struct addrinfo *res : itype(_Ptr<struct addrinfo>));
 const char *gai_strerror(int errcode) : itype(_Nt_array_ptr<const char>);
 
