@@ -26,7 +26,7 @@
 #pragma CHECKED_SCOPE on
 
 extern struct hostent *gethostbyname(const char *name : itype(_Nt_array_ptr<const char>)) : itype(_Ptr<struct hostent>);
-extern struct hostent *gethostbyaddr(const void *addr : byte_count(len), socklen_t len, int type);
+extern struct hostent *gethostbyaddr(const void *addr : byte_count(len), socklen_t len, int type) : itype(_Ptr<struct hostent>);
 
 int getaddrinfo(const char *restrict node : itype(_Nt_array_ptr<const char> restrict),
                 const char *restrict service : itype(_Nt_array_ptr<const char> restrict),
