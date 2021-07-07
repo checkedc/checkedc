@@ -394,7 +394,7 @@ void f12 (void) {
 
   char string_literal_initializer nt_checked[] = "abcde";
   char string_literal_initializer_with_braces nt_checked[] = {"abcde"};
-  char string_literal_initializer_with_braces_empty nt_checked[] = {};
+  char string_literal_initializer_with_braces_empty nt_checked[] = {}; // expected-error {{null terminator expected in _Nt_checked array initializer}}
   char string_literal_initializer_too_long nt_checked[3] = "abcde"; // expected-warning {{initializer-string for char array is too long}} expected-error {{initializer-string for _Nt_checked char array is too long}}
   char string_literal_initializer_too_long2 nt_checked[1] = "a"; // expected-error {{initializer-string for _Nt_checked char array is too long}}
   char string_literal_initializer_by_chars nt_checked[6] = {'a', 'b', 'c', 'd', 'e', '\0'};
