@@ -10,6 +10,8 @@
 set(files
   assert_checked.h
   assert.h
+  crypt_checked.h
+  crypt.h
   errno_checked.h
   errno.h
   fcntl.h
@@ -28,6 +30,8 @@ set(files
   poll.h
   pwd_checked.h
   pwd.h
+  shadow_checked.h
+  shadow.h
   signal_checked.h
   signal.h
   stdchecked.h
@@ -59,6 +63,8 @@ set(posix_arpa_files
   )
 
 set(posix_sys_files
+  sys/mman_checked.h
+  sys/mman.h
   sys/socket_checked.h
   sys/socket.h
   sys/stat_checked.h

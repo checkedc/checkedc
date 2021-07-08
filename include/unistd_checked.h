@@ -68,6 +68,8 @@ extern int execve(const char *pathname : itype(_Nt_array_ptr<const char>),
 // Caution: Does not null-terminate `name` on overflow.
 int gethostname(char *name : count(len), size_t len);
 
+extern char *getusershell(void) : itype(_Nt_array_ptr<char>);
+
 #endif
 
 #pragma CHECKED_SCOPE pop
