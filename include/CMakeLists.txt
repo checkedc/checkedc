@@ -12,6 +12,8 @@ set(files
   assert.h
   crypt_checked.h
   crypt.h
+  dirent_checked.h
+  dirent.h
   errno_checked.h
   errno.h
   fcntl.h
@@ -65,10 +67,18 @@ set(posix_arpa_files
 set(posix_sys_files
   sys/mman_checked.h
   sys/mman.h
+  sys/resource_checked.h
+  sys/resource.h
+  sys/select_checked.h
+  sys/select.h
   sys/socket_checked.h
   sys/socket.h
   sys/stat_checked.h
   sys/stat.h
+  sys/time_checked.h
+  sys/time.h
+  sys/wait_checked.h
+  sys/wait.h
 )
 
 # Hack - compute the CLANG version from the LLVM version.  The

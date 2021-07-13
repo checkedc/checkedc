@@ -128,6 +128,9 @@ size_t wcstombs(char * restrict output : count(n),
                   itype(restrict _Nt_array_ptr<const wchar_t>),
                 size_t n);
 
+#include <linux/limits.h>
+char *realpath(const char *path : itype(_Nt_array_ptr<const char>), char *resolved_path : itype(_Array_ptr<char>) count(PATH_MAX)) : itype(_Nt_array_ptr<char>);
+
 #pragma CHECKED_SCOPE pop
 
 #endif  // guard

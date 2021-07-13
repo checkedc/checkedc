@@ -47,6 +47,8 @@ size_t strftime(char * restrict output : itype(restrict _Nt_array_ptr<char>) cou
                 const struct tm * restrict timeptr :
                    itype(restrict _Ptr<const struct tm>));
 
+int nanosleep(const struct timespec *req : itype(_Ptr<const struct timespec>), struct timespec *rem : itype(_Ptr<struct timespec>));
+
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
