@@ -28,21 +28,22 @@ This paper describes a tool for converting existing C code to use Ptr types.  It
 property about checked regions that shows that checked regions are blameless for any memory corruption.  This proof is formalized for a core subset of the language extension.
 
 - We presented a
-[poster](https://github.com/microsoft/checkedc/blob/master/papers/posters/checkedc_for_memory_safety.pdf)
+[poster](https://github.com/microsoft/checkedc/blob/master/papers/presentations/llvmdevmeet2019-checkedc_for_memory_safety.pdf)
 at the [LLVM Dev Meeting
 2019](https://llvm.org/devmtg/2019-10/talk-abstracts.html#post6): "Overflows Be
 Gone: Checked C for Memory Safety". The poster provides an introduction to
 Checked C, outlines the compiler implementation and presents an experimental
 evaluation of Checked C.
 
-- We presented a
-  [talk](https://www.youtube.com/watch?v=AIlBWIiV68U&ab_channel=LLVM) at the
-[2020 LLVM Virtual Dev Meeting](https://llvm.org/devmtg/2020-09/program):
-"Checked C: Adding memory safety support to LLVM". The talk describes the
-design of bounds annotations for checked pointers and array pointers as well as
-the framework for the static checking of the soundness of bounds. We also
-briefly describe novel algorithms to automatically widen bounds for
-null-terminated arrays and for comparison of expressions for equivalence.
+- We presented a [talk](https://youtu.be/EuxAzvtX9CI)
+  ([slides](https://github.com/microsoft/checkedc/blob/master/papers/presentations/llvmdevmeet2020-checkedc_adding_memory_safety_to_llvm.pdf))
+at the [2020 LLVM Virtual Dev
+Meeting](https://llvm.org/devmtg/2020-09/program): "Checked C: Adding memory
+safety support to LLVM". The talk describes the design of bounds annotations
+for checked pointers and array pointers as well as the framework for the static
+checking of the soundness of bounds. We also briefly describe novel algorithms
+to automatically widen bounds for null-terminated arrays and for comparison of
+expressions for equivalence.
 
 # Build Status
 
