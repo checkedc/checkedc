@@ -21,7 +21,7 @@ static checking.  Uses include:
 \begin{itemize}
 \item As handles that hide details of API implementations.  An
 API may provide a handle that is typed as \uncheckedptrvoid\ for 
-users the API, with the API implementation using a pointer to an actual
+using the API, with the API implementation using a pointer to an actual
 type.
 \item As pointers to arrays of bytes.  This is done by APIs such as \lstinline+memcpy+.
 \item In generic data structures or functions. For example, 
@@ -31,7 +31,7 @@ to be used for many different types of list elements,
 even though in practice only one type of data may be stored in a list instance. 
 \item For registering callback functions that are to be provided with 
 user-supplied data at the callback.  Callback functions can take \uncheckedptrvoid{} arguments and 
-the user-suppled data can be cast to \uncheckedptrvoid{}.
+the user-supplied data can be cast to \uncheckedptrvoid{}.
 \item To provide a union of pointer types, without changing data representation.
 \end{itemize}
 
@@ -53,7 +53,7 @@ elements.  Generic functions can implement generic list operations such as \lsti
 user-supplied data.  Hidden types allow programmers to package up a callback function and data and
 say that they use  some type \lstinline+T+ whose details are hidden from the code that does
 the callback.   Enough details about \lstinline+T+ are available that the callback can be 
-implemented in a type-safe fashion efficently.  Hidden types hide details of the type 
+implemented in a type-safe fashion efficiently.  Hidden types hide details of the type
 of user-supplied data, instead of erasing it like \uncheckedptrvoid{} does.
 \end{itemize}
 

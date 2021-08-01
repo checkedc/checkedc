@@ -675,7 +675,7 @@ about whether the array type should be an unchecked or checked array.
 The type of a string literal with an element type \var{T} depends on whether the literal occurs
 in a checked scope or an unchecked scope:
 \begin{itemize}
-\item In a checked scope, the type is ``null-terminated checked array of \var{T}``.
+\item In a checked scope, the type is ``null-terminated checked array of \var{T}''
 \item In an unchecked scope, the type is ``unchecked array of \var{T}''.
 \end{itemize}
 
@@ -971,7 +971,7 @@ the ranges of signed integers and unsigned integers are different.
   signed integer. If \var{i} is an unsigned integer, the scaled result
   shall be treated as an unsigned integer. For a signed integer, the
   minimum and maximum range for \var{j} shall be \code{INTPTR_MIN} and
-  \code{INTPTR_MAX} For an unsigned integer, the minimum and maximum
+  \code{INTPTR_MAX}. For an unsigned integer, the minimum and maximum
   range for \var{j} shall be 0 and \code{UINTPTR_MAX}. If \var{j} is
   outside its valid range, the operation doing the scaling operation
   shall produce a runtime error.
