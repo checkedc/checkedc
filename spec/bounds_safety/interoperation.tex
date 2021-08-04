@@ -211,7 +211,7 @@ is needed.
    form \boundsrelval{\var{target-lb}}{\var{target-ub}}{\var{v}}.
    Check that \var{lb}  \code{<=} \var{target-lb} \code{&&} \var{target-ub} \code{<=} \var{ub}.
    Also check that \var{e1}, \var{target-lb}, and \var{target-lb} are relatively aligned 
-   with respect to\var{v}.
+   with respect to \var{v}.
 \end{itemize}
 \end{itemize}
 The \dynamicboundscast\ operator is not strictly needed.
@@ -1113,13 +1113,13 @@ bounds-safe interface declarations for parameters and return values.  The parame
 Here are bounds safe-interfaces for other C standard library
 functions:
 \begin{lstlisting}
-itype_for_any(T) void *malloc(size_t) :
-                    itype(array_ptr<T>) byte_count(size)
+itype_for_any(T) void *malloc(size_t size) :
+                    itype(array_ptr<T>) byte_count(size);
 
 itype_for_any(T) void *calloc(size_t nmemb, size_t size : sizeof(T)) :
                     itype(array_ptr<T>) byte_count(nmemb * size);
 
-itype_for_any(T) void free(void *pointer itype(array_ptr<T>) count(1));
+itype_for_any(T) void free(void *pointer : itype(array_ptr<T>) count(1));
 
 itype_for_any(T) void *memcpy(void * restrict dest :
                                  itype(array_ptr<T>) byte_count(n),
