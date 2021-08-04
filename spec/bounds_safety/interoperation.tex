@@ -1114,7 +1114,7 @@ Here are bounds safe-interfaces for other C standard library
 functions:
 \begin{lstlisting}
 itype_for_any(T) void *malloc(size_t size) :
-                    itype(array_ptr<T>) byte_count(size)
+                    itype(array_ptr<T>) byte_count(size);
 
 itype_for_any(T) void *calloc(size_t nmemb, size_t size : sizeof(T)) :
                     itype(array_ptr<T>) byte_count(nmemb * size);
