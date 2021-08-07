@@ -331,7 +331,7 @@ int *f30(void) : itype(ptr<int>) {
 int *f31(int len) : count(len) {
   checked{
     array_ptr<int> p = 0;
-  return p;
+    return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'f31' has bounds}}
   }
   return 0;
 }
