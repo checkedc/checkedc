@@ -521,7 +521,7 @@ int ((*(r31e(int arg[10][10]) : itype(int[10][10])))[10]) { // expected-error {{
 }
 
 int(*(r31f(int arg[10][10]) : itype(int checked[10][10])))[10] { // expected-error {{array type not allowed}}
-  return arg; // expected-error {{return value has unknown bounds, bounds expected because the function 'r31f' has bounds}}
+  return arg;
 }
 
 // Return types that cannot have interface types
