@@ -1568,3 +1568,17 @@ out-of-bounds pointers.'' These assumptions can be turned into formal
 statements about program behavior at runtime. Given those assumptions,
 we might then prove that at runtime checked code never reads or writes
 through out-of-bounds pointers.
+
+\section{Notes on temporal memory safety}
+\label{section:notes-on-temporal-memory-safety}
+
+Checked C does not protect against temporal memory safety violations like
+use-after-free.
+
+The usage of the C standard library function $realloc$ illustrates a subtle
+way which creates a temporal memory safety violation that Checked C will not
+detect. Consider a reallocation of memory like $q = realloc(p, ...)$.
+According to the POSIX manpages, $realloc$ should always be considered to
+free the memory associated with its argument. By that interpretation,
+any dereference of $p$ after the call $realloc(p,...)$ is a temporal safety
+violation.
