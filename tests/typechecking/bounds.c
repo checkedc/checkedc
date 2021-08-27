@@ -904,11 +904,16 @@ array_ptr<void> fn11(void) : bounds(s1, s1 + 5) { return 0; }
 int *fn12(void) : bounds(s1, s1 + 5) { return 0; }
 
 // Test valid return bounds declarations for integer-typed values
-short int fn20(void) : byte_count(5 * sizeof(int)) { return (short int) s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
-int fn21(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
-long int fn22(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
-unsigned long int fn23(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
-enum E1 fn24(void) : byte_count(8) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
+short int fn20(void) : byte_count(5 * sizeof(int)) { return (short int) s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}} \
+                                                                              // expected-error {{it is not possible to prove that return value bounds imply declared return bounds for 'fn20'}}
+int fn21(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}} \
+                                                                       // expected-error {{it is not possible to prove that return value bounds imply declared return bounds for 'fn21'}}
+long int fn22(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}} \
+                                                                            // expected-error {{it is not possible to prove that return value bounds imply declared return bounds for 'fn22'}}
+unsigned long int fn23(void) : byte_count(5 * sizeof(int)) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}} \
+                                                                                     // expected-error {{it is not possible to prove that return value bounds imply declared return bounds for 'fn23'}}
+enum E1 fn24(void) : byte_count(8) { return (short int)s1; } // expected-warning {{cast to smaller integer type 'short' from '_Array_ptr<int>'}} \
+                                                             // expected-error {{it is not possible to prove that return value bounds imply declared return bounds for 'fn24'}}
 
 // bounds
 extern int fn25(void) : bounds(s1, s1 + 5);

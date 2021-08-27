@@ -1698,8 +1698,7 @@ array_ptr<int> check_return21(int *p) {
 }
 
 array_ptr<int> check_return21a(int *p) : count(1) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_return21a' has bounds}}
 }
 
 array_ptr<int> check_return22(float *p) {
@@ -1834,8 +1833,7 @@ array_ptr<void> check_voidptr_return21(int *p) {
 }
 
 array_ptr<void> check_voidptr_return21a(int *p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return21a' has bounds}}
 }
 
 array_ptr<void> check_voidptr_return21b(void *p) {
@@ -1843,8 +1841,7 @@ array_ptr<void> check_voidptr_return21b(void *p) {
 }
 
 array_ptr<void> check_voidptr_return21c(void *p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return21c' has bounds}}
 }
 
 
@@ -1895,8 +1892,7 @@ checked array_ptr<void> check_voidptr_return31(ptr<int> p) {
 }
 
 checked array_ptr<void> check_voidptr_return31a(array_ptr<int> p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return31a' has bounds}}
 }
 
 checked array_ptr<void> check_voidptr_return31b(array_ptr<void> p) {
@@ -1938,8 +1934,7 @@ array_ptr<void> check_voidptr_return42(ptr<int> p) {
 
 checked bounds_only
 array_ptr<void> check_voidptr_return42a(array_ptr<int> p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return42a' has bounds}}
 }
 
 checked bounds_only

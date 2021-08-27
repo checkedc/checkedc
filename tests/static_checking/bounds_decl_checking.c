@@ -639,8 +639,7 @@ void check_nullterm_return_use(void) {
   p = nullterm_return2(); // expected-error {{inferred bounds for 'p' are unknown after assignment}}
 }
 
-// TODO: Github issue #401.  We need to check that return expressions have bounds when expected.
 nt_array_ptr<char> check_nullterm_return1(void) {
   nt_array_ptr<char> p : bounds(unknown) = 0;
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_nullterm_return1' has bounds}}
 }
