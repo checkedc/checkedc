@@ -1698,8 +1698,7 @@ array_ptr<int> check_return21(int *p) {
 }
 
 array_ptr<int> check_return21a(int *p) : count(1) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_return21a' has bounds}}
 }
 
 array_ptr<int> check_return22(float *p) {
@@ -1834,8 +1833,7 @@ array_ptr<void> check_voidptr_return21(int *p) {
 }
 
 array_ptr<void> check_voidptr_return21a(int *p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return21a' has bounds}}
 }
 
 array_ptr<void> check_voidptr_return21b(void *p) {
@@ -1843,8 +1841,7 @@ array_ptr<void> check_voidptr_return21b(void *p) {
 }
 
 array_ptr<void> check_voidptr_return21c(void *p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return21c' has bounds}}
 }
 
 
@@ -1895,8 +1892,7 @@ checked array_ptr<void> check_voidptr_return31(ptr<int> p) {
 }
 
 checked array_ptr<void> check_voidptr_return31a(array_ptr<int> p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return31a' has bounds}}
 }
 
 checked array_ptr<void> check_voidptr_return31b(array_ptr<void> p) {
@@ -1938,8 +1934,7 @@ array_ptr<void> check_voidptr_return42(ptr<int> p) {
 
 checked bounds_only
 array_ptr<void> check_voidptr_return42a(array_ptr<int> p) : byte_count(sizeof(int)) {
-  // TODO: github issue #403.  This should result in an error.
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return42a' has bounds}}
 }
 
 checked bounds_only
@@ -3044,4 +3039,82 @@ void check_illegal_operators(void)
     +q;  // expected-error {{invalid argument type}}
     +r;  // expected-error {{invalid argument type}}
     +s;  // expected-error {{invalid argument type}}
+}
+
+//
+// Test that address-of dereference and array subscript expressions
+// have the correct types.
+//
+
+extern void test_sprintf(char *s);
+
+void check_address_of_types(char s[10],
+                            char *c : itype(char _Checked[10]),
+                            char buf _Nt_checked[],
+                            _Nt_array_ptr<char> str,
+                            _Array_ptr<char> arr : count(10),
+                            _Ptr<char> p) {
+  _Unchecked {
+    test_sprintf(s);
+    test_sprintf(&*s);
+    test_sprintf(&*(s + 2));
+    test_sprintf(&s[2]);
+    test_sprintf(&2[s]);
+
+    test_sprintf(c);
+    test_sprintf(&*c);
+    test_sprintf(&*(c + 3));
+    test_sprintf(&c[3]);
+    test_sprintf(&3[c]);
+
+    test_sprintf(buf); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*buf); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*(buf + 0)); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&buf[0]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&0[buf]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+
+    test_sprintf(str); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*str); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*(str + 0)); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&str[0]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&0[str]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+
+    test_sprintf(arr); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*arr); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*(arr + 1)); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&arr[1]); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&1[arr]); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+
+    test_sprintf(p); // expected-error {{passing '_Ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*p); // expected-error {{passing '_Ptr<char>' to parameter of incompatible type 'char *'}}
+  }
+
+  _Checked {
+    test_sprintf(c); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*c); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*(c + 3)); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&c[3]); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&3[c]); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+
+    test_sprintf(buf); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*buf); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*(buf + 0)); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&buf[0]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&0[buf]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+
+    test_sprintf(str); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*str); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*(str + 0)); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&str[0]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&0[str]); // expected-error {{passing '_Nt_array_ptr<char>' to parameter of incompatible type 'char *'}}
+
+    test_sprintf(arr); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*arr); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*(arr + 1)); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&arr[1]); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&1[arr]); // expected-error {{passing '_Array_ptr<char>' to parameter of incompatible type 'char *'}}
+
+    test_sprintf(p); // expected-error {{passing '_Ptr<char>' to parameter of incompatible type 'char *'}}
+    test_sprintf(&*p); // expected-error {{passing '_Ptr<char>' to parameter of incompatible type 'char *'}}
+  }
 }

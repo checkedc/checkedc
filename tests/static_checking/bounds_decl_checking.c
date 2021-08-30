@@ -237,8 +237,8 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   arg1 = &*arg1;
   arg1 = &*arg2;
   arg1 = &*arg3;
-  arg1 = &*arr;           // TODO: investigate why this isn't a typechecking error.
-  arg1 = &arr[1];         // expected-error {{incompatible type}}
+  arg1 = &*arr;           // arg1 and &*arr both have type _Nt_array_ptr<int>.
+  arg1 = &arr[1];         // arg1 and &arr[1] both have type _Nt_array_ptr<int>.
   arg2 = &*arg1;          // expected-error {{inferred bounds for 'arg2' are unknown after assignment}}
   arg2 = &*arg2;
   arg2 = &*arg3;
@@ -639,8 +639,7 @@ void check_nullterm_return_use(void) {
   p = nullterm_return2(); // expected-error {{inferred bounds for 'p' are unknown after assignment}}
 }
 
-// TODO: Github issue #401.  We need to check that return expressions have bounds when expected.
 nt_array_ptr<char> check_nullterm_return1(void) {
   nt_array_ptr<char> p : bounds(unknown) = 0;
-  return p;
+  return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_nullterm_return1' has bounds}}
 }
