@@ -57,8 +57,8 @@ expressions for equivalence.
 # Participating
 We're happy to have the help! You can contribute by trying out Checked C, 
 reporting bugs, and giving us feedback. There are other ways to [contribute](CONTRIBUTING.md) too.
-You can join the [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) for
-announcements about the project.
+You can watch the [announcement page](https://github.com/microsoft/checkedc/discussions/categories/announcements)
+for announcements about the project.
 
 # Licensing
 The software in this repository is covered by the MIT license.  See the file LICENSE.TXT for the license.   The
