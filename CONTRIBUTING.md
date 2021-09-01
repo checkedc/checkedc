@@ -3,8 +3,8 @@
 We welcome contributions to the Checked C Project.  Contributions can take many forms depending
 on your level of interest:
 
-* Participating in [mailing lists](https://github.com/Microsoft/CheckedC/blob/master/MAILING-LISTS.md) and discussions
-  of proposed changes to the specification.
+* Participating in [discussions](https://github.com/microsoft/checkedc/discussions)
+  on the specification and reviewing proposed changes to it.
 * Helping out with the [Checked C clang compiler implementation](https://github.com/Microsoft/checkedc-clang). We could
  particularly use code reviewers for compiler changes.  There are also a number of self-contained small features that 
  you could implement.
