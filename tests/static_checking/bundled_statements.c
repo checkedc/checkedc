@@ -58,7 +58,7 @@ _Checked{
   _Bundled {}
 }
 
-void f4(int flag)
+void f4()
 _Checked{
   _Array_ptr<int> p : count(2) = 0;
   int val = 5;
