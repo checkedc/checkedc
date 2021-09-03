@@ -21,6 +21,8 @@
 
 #include <stdchecked.h>
 
+int printf(const char * restrict format : itype(restrict _Nt_array_ptr<const char>), ...);
+
 // Test for pragma set/clear/set.
 #if BOUNDS_ONLY
 #pragma CHECKED_SCOPE _Bounds_only
@@ -701,8 +703,7 @@ extern void variadic_func5(int cnt, ptr<int> p, ...) {  // expected-error {{vari
 void checked_func_call_variadic(void) {
   ptr<int> a = 0;
   array_ptr<int> b;
-  printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}} \
-                                                    // expected-warning {{implicitly declaring library function}}
+  printf("check function call variadic %d\n", *a);
 #pragma CHECKED_SCOPE OFF
   printf("check function call variadic %d\n", *a);
 #if BOUNDS_ONLY
@@ -710,15 +711,15 @@ void checked_func_call_variadic(void) {
 #else
 #pragma CHECKED_SCOPE ON
 #endif
-  printf("check function call variadic %d\n", *a);  // expected-error {{cannot use a variable arguments function}}
+  printf("check function call variadic %d\n", *a);
 #if BOUNDS_ONLY
 #pragma CHECKED_SCOPE _Bounds_only
 #else
 #pragma CHECKED_SCOPE ON
 #endif
-  variadic_func0(10);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func1(10, a, b);  // expected-error {{cannot use a variable arguments function}}
-  variadic_func2(10, a, a, a);  // expected-error {{cannot use a variable arguments function}}
+  variadic_func0(10); // expected-error {{cannot use this variable arguments function in a checked scope or function}}
+  variadic_func1(10, a, b); // expected-error {{cannot use this variable arguments function in a checked scope or function}}
+  variadic_func2(10, a, a, a); // expected-error {{cannot use this variable arguments function in a checked scope or function}}
 }
 
 #if BOUNDS_ONLY
@@ -761,9 +762,9 @@ typedef struct _S3 {
 void checked_check_variadic(void) {
   ptr<int> a = 0;
   array_ptr<int> b;
-  fptr0 = &variadic_func0;  // expected-error {{cannot use a variable arguments function}}
-  fptr1 = &variadic_func1;  // expected-error {{cannot use a variable arguments function}}
-  fptr2 = &variadic_func2;  // expected-error {{cannot use a variable arguments function}}
+  fptr0 = &variadic_func0; // expected-error {{cannot use this variable arguments function in a checked scope or function}}
+  fptr1 = &variadic_func1; // expected-error {{cannot use this variable arguments function in a checked scope or function}}
+  fptr2 = &variadic_func2; // expected-error {{cannot use this variable arguments function in a checked scope or function}}
 
   (*fptr0)(5, a, a, b, b, b);
   (*fptr1)(5, a, b, a, a, b);
