@@ -21,21 +21,21 @@ _Checked{
   p = val1;
 }
 
-void f2(int flag)
+void f2()
 _Checked{
   _Array_ptr<int> p : count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
   _Array_ptr<int> q : count(1) = &val;
   _Bundled {
-    p = val1;
+    p = val1;      // expected-warning {{cannot prove declared bounds for 'p' are valid after assignment}}
     p++;
-    p++;      // expected-warning {{cannot prove declared bounds for 'p' are valid after increment}}
+    p++;
     *(p+4) = 4; 
   }
-  p = val1,
+  p = val1,        // expected-warning {{cannot prove declared bounds for 'p' are valid after assignment}}
   p++,
-  p++,        // expected-warning {{cannot prove declared bounds for 'p' are valid after increment}}
+  p++,
   *(p+4) = 4; 
 }
 
@@ -65,14 +65,14 @@ _Checked{
   int val1 _Checked[8];
   _Array_ptr<int> q : count(1) = &val;
   _Bundled {
-    p = val1;
+    p = val1;       // expected-warning {{cannot prove declared bounds for 'p' are valid after assignment}}
     p++;
-    p++;       // expected-warning {{cannot prove declared bounds for 'p' are valid after increment}}
+    p++;
     *(p+4) = 4; 
   }
-  p = val1,
+  p = val1,         // expected-warning {{cannot prove declared bounds for 'p' are valid after assignment}}
   p++,
-  p++,         // expected-warning {{cannot prove declared bounds for 'p' are valid after increment}}
+  p++,
   *(p+4) = 4; 
 }
 
@@ -161,7 +161,7 @@ _Checked{
   p = flag ? q : val1;   // expected-error {{inferred bounds for 'p' are unknown after assignment}}
 }
 
-void f10(int flag)
+void f10()
 _Checked{
   int val = 5;
   _Array_ptr<int> q : count(2) = &val;   // expected-error {{declared bounds for 'q' are invalid after initialization}}
@@ -170,7 +170,7 @@ _Checked{
   }
 }
 
-void f11(int flag)
+void f11()
 _Checked{
   int val = 5;
   int valarr _Checked[4];
