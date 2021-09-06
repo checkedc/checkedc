@@ -21,7 +21,7 @@ For existing code that uses unchecked pointers, the interface is descriptive,
 but correctness is not enforced by the language.  For code that uses checked
 pointers, proper usage of the interface is checked and enforced.
 Code that uses a mix of checked and unchecked pointers within assignment
-expressions or function calls is discouraged. But if such expressions do exist,
+expressions or function calls is discouraged. If such expressions do exist,
 the compiler will check and enforce the proper usage of the interface in
 those expressions.
 
@@ -711,9 +711,9 @@ Similarly, uses of unchecked arrays still convert to
 unchecked pointer types. A function that has a bounds-safe
 interface and whose body does not use checked pointer or array
 types is compiled as though the bounds-safe interface has been
-stripped from its source code. But if the function body contains an expression
+stripped from its source code. If the function body contains an expression
 that mixes checked and unchecked pointer types, then the compiler uses
-the declared bounds or interface type annotations on the unchecked pointer
+any declared bounds or interface type annotations on the unchecked pointer
 types to infer and validate bounds. The example at the end of
 Section~\ref{section:checking-bounds-interfaces} illustrates this point.
 
@@ -1087,33 +1087,36 @@ pointer-typed expressions will need to have valid bounds.
 
 Here is some example code that illustrates the behavior of the compiler:
 \begin{lstlisting}
-extern int *get_unchk(_Array_ptr<int> chk);
-extern int *get_unchk_bsi(_Array_ptr<int> chk) : itype(_Array_ptr<int>);
-extern int *get_chk(_Array_ptr<int> chk);
+extern int *lib_func_1(_Array_ptr<int> p);
+extern int *lib_func_2(_Array_ptr<int> p) : itype(_Array_ptr<int>);
+extern _Array_ptr<int> lib_func_3(_Array_ptr<int> p);
 
-int *foo(int *p : count(1), int *r : count(n), unsigned n) : count(2)
+int *foo(int *p : count(2), int *r : count(n), unsigned n) : count(4)
 _Unchecked {
-  _Array_ptr<int> chk : count(3) = 0;
+  _Array_ptr<int> chk : count(1) = 0;
 
-  n++;                    // The declared bounds of r are not validated.
-  r = p;                  // The declared bounds of r are not validated.
-  r = chk;                // The declared bounds of r are validated.
-  chk = 0, n = 0;         // The declared bounds of r are not validated.
-  p = chk, p++;           // The declared bounds of p are validated.
-  p = chk, n++;           // The declared bounds of p are validated
-                          // but not of r.
-  r = get_unchk(chk);     // The declared bounds of r are not validated.
-  r = get_unchk_bsi(chk); // The declared bounds of r are not validated.
-  r = get_chk(chk);       // The declared bounds of r are validated.
+  n++;                   // The declared bounds of r are not validated.
+  r = p;                 // The declared bounds of r are not validated.
+  r = chk;               // The declared bounds of r are validated.
+  chk = 0, n = 0;        // The declared bounds of r are not validated.
+  p = chk, p++;          // The declared bounds of p are validated.
+  p = chk, n++;          // The declared bounds of p are validated
+                         // but not of r.
+  r = chk, n++;          // The declared bounds of r are validated.
+  r = lib_func_1(chk);   // The declared bounds of r are not validated.
+  r = lib_func_2(chk);   // The declared bounds of r are not validated.
+  r = lib_func_3(chk);   // The declared bounds of r are validated.
 
-  return p;      // The return bounds are not checked.
+  if (n < 5)
+    return p;      // The return bounds are not checked.
 
-  return chk, p; // The return bounds are not checked as the type of the
-                 // return value expression chk, p is int *.
-
-  return p, chk; // The return value bounds are checked as the type of
-                 // the return value expression p, chk is
-		 // _Array_ptr<int> (which is implicitly cast to int *).
+  else if (n < 10)
+    return chk, p; // The return bounds are not checked as the type of
+                   // the return value expression chk, p is int *.
+  else
+    return p, chk; // The return value bounds are checked as the type
+                   // of the return value expression p, chk is
+		   // _Array_ptr<int> (which is implicitly cast to int *).
 }
 \end{lstlisting}
 
