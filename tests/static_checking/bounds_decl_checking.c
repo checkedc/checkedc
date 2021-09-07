@@ -612,8 +612,8 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
     test_nullterm_bsi_f3(arg6);  // expected-error {{parameter used in a checked scope must have a checked type or a bounds-safe interface}}
     test_nullterm_bsi_f4(test_nullterm_cmp);
     arg1 = arg2;                 // expected-error {{inferred bounds for 'arg1' are unknown after assignment}}
-    *arg7 = arg2;                // expected-error {{expression has unknown bounds, right-hand side of assignment expected to have bounds}}
-    *arg8 = arg2;                // expected-error {{expression has unknown bounds, right-hand side of assignment expected to have bounds}}
+    *arg7 = arg2;                // expected-error {{inferred bounds for '*arg7' are unknown after assignment}}
+    *arg8 = arg2;                // expected-error {{inferred bounds for '*arg8' are unknown after assignment}}
 
     arg2 = arg1;
     arg2 = *arg7;
