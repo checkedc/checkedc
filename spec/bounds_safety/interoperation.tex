@@ -20,6 +20,10 @@ the interface must be both checked and unchecked, depending on context.
 For existing code that uses unchecked pointers, the interface is descriptive,
 but correctness is not enforced by the language.  For code that uses checked
 pointers, proper usage of the interface is checked and enforced.
+Code that uses a mix of checked and unchecked pointers within assignment
+expressions or function calls is discouraged. If such expressions do exist,
+the compiler will check and enforce the proper usage of the interface in
+those expressions.
 
 \section{Conversions between pointers to objects of different types}
 \label{section:pointer-casting}
@@ -701,14 +705,17 @@ struct S {
 
 It is important to understand that the \emph{semantics of unchecked
 pointers and arrays do not change in unchecked scopes even when bounds
-or type annotations are declared for the pointers and arrays}. The declared bounds
-or type annotations are used for expressions
-that mix checked and unchecked pointer types. Unchecked pointer dereferences do not
-have bounds checks added to them.  Similarly, uses of unchecked arrays still convert to
-unchecked pointer types.   A function that has a bounds-safe
+or type annotations are declared for the pointers and arrays}.
+Unchecked pointer dereferences do not have bounds checks added to them.
+Similarly, uses of unchecked arrays still convert to
+unchecked pointer types. A function that has a bounds-safe
 interface and whose body does not use checked pointer or array
 types is compiled as though the bounds-safe interface has been
-stripped from its source code.
+stripped from its source code. If the function body contains an expression
+that mixes checked and unchecked pointer types, then the compiler uses
+any declared bounds or interface type annotations on the unchecked pointer
+types to infer and validate bounds. The example at the end of
+Section~\ref{section:checking-bounds-interfaces} illustrates this point.
 
 A type annotation describes an alternate checked type to use in checked code
 in place of an unchecked type. It is used, for example, when a variable with
@@ -1070,11 +1077,49 @@ Some right-hand sides could have checked pointer types and others
 could have unchecked pointer types.  This is a programming practice that is discouraged.
 Nevertheless, the bounds declarations will be checked no matter which
 kind of assignment is the last one.  This implies that if the last 
-assignment has an unasfe pointer-typed right-hand side, it will still need
-to have valid bounds.   It is also possible to mix argument expressions with 
+assignment has an unsafe pointer-typed right-hand side, it will still need
+to have valid bounds. If a subexpression of a comma expression mixes checked and
+unchecked pointer types, then that subexpression will be checked.
+It is also possible to mix argument expressions with
 checked and unchecked  pointer types in one function call.  The checking of bounds
 for function arguments is done for all arguments, so this also implies that the unchecked
 pointer-typed expressions will need to have valid bounds.
+
+Here is some example code that illustrates the behavior of the compiler:
+\begin{lstlisting}
+extern int *lib_func_1(_Array_ptr<int> p);
+extern int *lib_func_2(_Array_ptr<int> p) : itype(_Array_ptr<int>);
+extern _Array_ptr<int> lib_func_3(_Array_ptr<int> p);
+
+int *foo(int *p : count(2), int *r : count(n), unsigned n) : count(4)
+_Unchecked {
+  _Array_ptr<int> chk : count(1) = 0;
+
+  n++;                   // The declared bounds of r are not validated.
+  r = p;                 // The declared bounds of r are not validated.
+  r = chk;               // The declared bounds of r are validated.
+  chk = 0, n = 0;        // The declared bounds of r are not validated.
+  p = chk, p++;          // The declared bounds of p are validated.
+  p = chk, n++;          // The declared bounds of p are validated
+                         // but not of r.
+  r = chk, n++;          // The declared bounds of r are validated.
+  r = lib_func_1(chk);   // The declared bounds of r are not validated.
+  r = lib_func_2(chk);   // The declared bounds of r are not validated.
+  r = lib_func_3(chk);   // The declared bounds of r are validated.
+
+  if (n < 5)
+    return p;      // The return bounds are not checked.
+
+  else if (n < 10)
+    return chk, p; // The return bounds are not checked as the type of
+                   // the return value expression chk, p is int *.
+  else
+    return p, chk; // The return value bounds are checked as the type
+                   // of the return value expression p, chk is
+		   // _Array_ptr<int> (which is implicitly cast to int *).
+}
+\end{lstlisting}
+
 
 \section{Bounds-safe interfaces for generic functions and struct types}
 \label{sec:generic-bounds-safe-interfaces}
