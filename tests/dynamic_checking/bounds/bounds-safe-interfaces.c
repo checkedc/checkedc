@@ -161,6 +161,7 @@ void write_driver(int failure_point, int *a1 : count(10),
                   char *b2 : itype(nt_array_ptr<char>),
                   struct S *s1 : itype(ptr<struct S>)) {
   dynamic_check(s1->len >= 5);
+  int temp = s1->len;
   switch (failure_point) {
     // Vary global variable.
     case 0: 
@@ -210,22 +211,19 @@ void write_driver(int failure_point, int *a1 : count(10),
       break;
     // Vary structure lengths.
     case 13:
-      int temp0 = s1->len;
-      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp0)),
+      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp)),
         s1->len = 0,
         s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + s1->len));
       write_test(failure_point, a1, 10, a2, 10,  a3, 2, b1, 10, b2, 0, s1);
       break;
     case 14:
-      int temp1 = s1->len;
-      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp1)),
+      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp)),
         s1->len = 1,
         s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + s1->len));
       write_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
       break;
     case 15:
-      int temp2 = s1->len;
-      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp2)),
+      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp)),
         s1->len = 2,
         s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + s1->len));
       write_test(failure_point, a1, 10, a2, 10,  a3, 2, b1, 10, b2, 0, s1);
@@ -365,6 +363,7 @@ void read_driver(int failure_point, int *a1 : count(10),
                  char *b2 : itype(nt_array_ptr<char>),
                  struct S *s1 : itype(ptr<struct S>)) {
   dynamic_check(s1->len >= 5);
+  int temp = s1->len;
   switch (failure_point) {
     // Vary global variable.
     case 0:
@@ -414,22 +413,19 @@ void read_driver(int failure_point, int *a1 : count(10),
       break;
     // Vary structure lengths.
     case 13:
-      int temp0 = s1->len;
-      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp0)),
+      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp)),
         s1->len = 0,
         s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + s1->len));
       read_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
       break;
     case 14:
-      int temp1 = s1->len;
-      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp1)),
+      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp)),
         s1->len = 1,
         s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + s1->len));
       read_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
       break;
     case 15:
-      int temp2 = s1->len;
-      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp2)),
+      s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + temp)),
         s1->len = 2,
         s1->f = _Dynamic_bounds_cast<_Array_ptr<int>>(s1->f, bounds(s1->f, s1->f + s1->len));
       read_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
