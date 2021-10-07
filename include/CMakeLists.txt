@@ -10,6 +10,8 @@
 set(files
   assert_checked.h
   assert.h
+  dirent_checked.h
+  dirent.h
   errno_checked.h
   errno.h
   fcntl.h
