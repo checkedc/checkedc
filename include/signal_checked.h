@@ -28,6 +28,13 @@ void (*signal(int sig,
               ) : itype(_Ptr<void (int)>) // bounds-safe interface for signal return
      )(int);
 
+_Unchecked
+void (*sigset(int sig,
+              void ((*func)(int)) :
+                itype(_Ptr<void (int)>) // bound-safe interface for func
+              ) : itype(_Ptr<void (int)>) // bounds-safe interface for signal return
+     )(int);
+
 #pragma CHECKED_SCOPE pop
 
 #endif // guard

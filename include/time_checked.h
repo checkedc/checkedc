@@ -47,6 +47,12 @@ size_t strftime(char * restrict output : itype(restrict _Nt_array_ptr<char>) cou
                 const struct tm * restrict timeptr :
                    itype(restrict _Ptr<const struct tm>));
 
+_Unchecked int gettimeofday(struct timeval *tv : itype(_Ptr<struct timeval>), void *tz );
+
+// Doesn't work
+/* int settimeofday (const struct timeval *__tv : itype(_Ptr<const struct timeval>, const struct timezone *__tz : itype(_Ptr<const struct timezone>)) */
+
+
 #pragma CHECKED_SCOPE pop
 
 #endif // guard
