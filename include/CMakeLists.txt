@@ -61,6 +61,8 @@ set(posix_arpa_files
   )
 
 set(posix_sys_files
+  sys/resource_checked.h
+  sys/resource.h
   sys/socket_checked.h
   sys/socket.h
   sys/stat_checked.h
