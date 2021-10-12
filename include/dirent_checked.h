@@ -27,6 +27,8 @@
 
 DIR *opendir(const char *name : itype(_Nt_array_ptr<const char>)) : itype(_Ptr<DIR>);
 DIR *fdopendir(int fd) : itype(_Ptr<DIR>);
+int closedir(DIR *dirp : itype(_Ptr<DIR>));
+struct dirent *readdir(DIR *dirp : itype(_Ptr<DIR>)) : itype(_Ptr<struct dirent>);
 
 #pragma CHECKED_SCOPE pop
 
