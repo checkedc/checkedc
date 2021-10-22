@@ -997,7 +997,7 @@ extern int size;
 
 void update_size(int i)
 {
-    num = i;
+    size = i;
 }
 
 extern array_ptr<int> ap : count(size);
@@ -1011,7 +1011,7 @@ void go(void)
 // define size and ap
 int size = 10;
 int arr[10];
-array_ptr<int> ap = arr : count(size);
+array_ptr<int> ap : count(size) = arr;
 \end{lstlisting}
 
 The checking of bounds declarations does not know at
