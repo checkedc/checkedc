@@ -1,4 +1,7 @@
 # Checked C
+
+This is the new home of the Checked C project. The Checked C extension was originally developed at Microsoft from 2016-2021. Microsoft chose to stop funding further development of Checked C. We greatly appreciate the support of Microsoft for the project for many years! David Tarditi, the founder of the Checked C project, has asked that development continue here.
+
 Checked C adds static and dynamic checking to C to detect or prevent common programming
 errors such as buffer overruns and out-of-bounds memory accesses. 
 The goal of the project is to improve systems programming by making fundamental improvements to C.
