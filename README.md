@@ -11,10 +11,9 @@ and test code.
 
 - For a quick overview of Checked C, more information, and pointers to example code,
   see our [Wiki](https://github.com/Microsoft/checkedc/wiki).
-- The PDF of the specification is available [here](https://github.com/Secure-Software-Development-Project/checkedc/releases).
-- Compilers are available [here](https://github.com/Secure-Software-Development-Project/checkedc-clang/releases).
+- The PDF of the specification is available [here](https://github.com/Secure-Software-Development-Project/checkedc/releases)..
 - The Checked C clang repo is
-  [here](https://github.com/Microsoft/checkedc-clang).
+  [here](https://github.com/Secure-Software-Development-Project/checkedc-clang).
 - The instructions to build and test the Checked C compiler are documented on
   the [Checked C clang wiki](https://github.com/Secure-Software-Development-Project/checkedc-clang/wiki).
 
