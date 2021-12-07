@@ -1,3 +1,10 @@
+//---------------------------------------------------------------------//
+// Wrapper header file that excludes Checked-C-specific declarations   //
+// if the compilation is not for Checked C, or if is for Checked C     //
+// but the implicit inclusion of checked header files is disabled.     //
+/////////////////////////////////////////////////////////////////////////
+
+
 #if !defined __checkedc || defined NO_IMPLICIT_INCLUDE_CHECKED_HDRS
 
 #ifdef __checkedc

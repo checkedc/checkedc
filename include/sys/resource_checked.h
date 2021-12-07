@@ -22,6 +22,7 @@
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE on
 
+int getrlimit(int resource, struct rlimit *rlim : itype(_Ptr<struct rlimit>));
 int setrlimit(int resource, const struct rlimit *rlim : itype(_Ptr<const struct rlimit>));
 
 #pragma CHECKED_SCOPE pop
