@@ -28,6 +28,19 @@ void (*signal(int sig,
               ) : itype(_Ptr<void (int)>) // bounds-safe interface for signal return
      )(int);
 
+
+int sigemptyset(sigset_t *set : itype(_Ptr<sigset_t>));
+int sigfillset(sigset_t *set : itype(_Ptr<sigset_t>));
+int sigaddset(sigset_t *set : itype(_Ptr<sigset_t>), int signum);
+int sigdelset(sigset_t *set : itype(_Ptr<sigset_t>), int signum);
+int sigismember(const sigset_t *set : itype(_Ptr<const sigset_t>), int signum);
+
+int sigaction(int signum, const struct sigaction *act : itype(_Ptr<const struct sigaction>),
+              struct sigaction *oldact : itype(_Ptr<struct sigaction>));
+
+
+int sigprocmask(int how, const sigset_t *set : itype(_Ptr<const sigset_t>), sigset_t *oldset : itype(_Ptr<sigset_t>));
+
 #pragma CHECKED_SCOPE pop
 
 #endif // guard

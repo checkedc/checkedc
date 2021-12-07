@@ -172,6 +172,7 @@ char *strerror(int errnum) : itype(_Nt_array_ptr<char>);
 size_t strlen(const char *s : itype(_Nt_array_ptr<const char>));
 
 char *strdup(const char *s : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
+char *strndup(const char *s : itype(_Nt_array_ptr<const char>), size_t n) : itype(_Nt_array_ptr<char>);
 
 #include "_builtin_string_checked.h"
 
