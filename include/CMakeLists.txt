@@ -112,14 +112,14 @@ install(
 
 install(
   FILES ${posix_arpa_files}
-  COMPONENT clang-headers
+  COMPONENT checkedc-headers
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include/arpa
   )
 
 install(
   FILES ${posix_sys_files}
-  COMPONENT clang-headers
+  COMPONENT checkedc-headers
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include/sys
   )
