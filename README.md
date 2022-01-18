@@ -1,13 +1,13 @@
 # Checked C
-This is the Secure Software Development Project (SSDP) fork of Checked C.
-The Checked C extension was 
+This is the Secure Software Development Project fork of Checked C.
+The Checked C extension was
 originally developed at Microsoft from 2016-2021.  Microsoft has stopped
 funding further development of Checked C. We greatly appreciate the support
 of Microsoft for the project through 2021.  We created this fork to continue
 development of Checked C.
 
 Checked C adds static and dynamic checking to C to detect or prevent common programming
-errors such as buffer overruns and out-of-bounds memory accesses. 
+errors such as buffer overruns and out-of-bounds memory accesses.
 The goal of Checked C is to improve systems programming by making fundamental improvements to C.
 This repo contains
 sample code, the SSDP [extension specification](https://github.com/secure-sw-dev/checkedc/releases),
@@ -28,12 +28,12 @@ Checked C presented at the [IEEE 2018 Cybersecurity Development Conference](http
 since writing the paper.  The [Wiki](https://github.com/secure-sw-dev/checkedc/wiki) and [specification](https://github.com/secure-sw-dev/checkedc/releases) provide up-to-date descriptions of Checked C.
 
 - There was another [paper](https://www.microsoft.com/en-us/research/uploads/prod/2019/05/checkedc-post2019.pdf)
-on Checked C at the [2019 Principles of Security and Trust Conference](http://www.etaps.org/2019/post): 
+on Checked C at the [2019 Principles of Security and Trust Conference](http://www.etaps.org/2019/post):
 "Achieving Safety Incrementally With Checked C".
 This paper describes a tool for converting existing C code to use Ptr types.  It also proves a blame
 property about checked regions that shows that checked regions are blameless for any memory corruption.  This proof is formalized for a core subset of the language extension.
 
-- There was a 
+- There was a
 [poster](https://github.com/secure-sw-dev/checkedc/blob/main/papers/presentations/llvmdevmeet2019-checkedc_for_memory_safety.pdf)
 presented at the [LLVM Dev Meeting
 2019](https://llvm.org/devmtg/2019-10/talk-abstracts.html#post6): "Overflows Be
@@ -56,11 +56,11 @@ expressions for equivalence.
 Automated testing is not currently available.
 
 # Participating
-We're happy to have the help! You can contribute by trying out Checked C, 
+We are happy to have the help. You can contribute by trying out Checked C,
 reporting bugs, and giving us feedback. There are other ways to [contribute](CONTRIBUTING.md) too.
 
 # Licensing
-The software in this repository is covered by the MIT license.  See the file LICENSE.TXT for the license.   The
+The software in this repository is covered by the MIT license.  See the file LICENSE.TXT for the license.  The
 Checked C specification is made available by Microsoft under the [OpenWeb Foundation Final
 Specification Agreement, version 1.0](http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0).
 Contributions of code to the SSDP Checked LLVM/clang repos are
