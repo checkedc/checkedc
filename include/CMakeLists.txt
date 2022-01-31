@@ -10,14 +10,30 @@
 set(files
   assert_checked.h
   assert.h
+  crypt_checked.h
+  crypt.h
+  dirent_checked.h
+  dirent.h
   errno_checked.h
   errno.h
+  fcntl.h
+  fcntl_checked.h
   fenv_checked.h
   fenv.h
+  grp_checked.h
+  grp.h
   inttypes_checked.h
   inttypes_checked_internal.h
   math_checked.h
   math.h
+  netdb_checked.h
+  netdb.h
+  poll_checked.h
+  poll.h
+  pwd_checked.h
+  pwd.h
+  shadow_checked.h
+  shadow.h
   signal_checked.h
   signal.h
   stdchecked.h
@@ -27,8 +43,12 @@ set(files
   stdlib.h
   string_checked.h
   string.h
+  syslog_checked.h
+  syslog.h
   threads_checked.h
   threads.h
+  utime_checked.h
+  utime.h
   time_checked.h
   time.h
   unistd_checked.h
@@ -45,8 +65,20 @@ set(posix_arpa_files
   )
 
 set(posix_sys_files
+  sys/mman_checked.h
+  sys/mman.h
+  sys/resource_checked.h
+  sys/resource.h
+  sys/select_checked.h
+  sys/select.h
   sys/socket_checked.h
   sys/socket.h
+  sys/stat_checked.h
+  sys/stat.h
+  sys/time_checked.h
+  sys/time.h
+  sys/wait_checked.h
+  sys/wait.h
 )
 
 # Hack - compute the CLANG version from the LLVM version.  The
@@ -80,14 +112,14 @@ install(
 
 install(
   FILES ${posix_arpa_files}
-  COMPONENT clang-headers
+  COMPONENT checkedc-headers
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include/arpa
   )
 
 install(
   FILES ${posix_sys_files}
-  COMPONENT clang-headers
+  COMPONENT checkedc-headers
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   DESTINATION lib${LLVM_LIBDIR_SUFFIX}/clang/${CHECKEDC_CLANG_VERSION}/include/sys
   )
