@@ -92,17 +92,18 @@
 // CHECK_DISABLED: string_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
-#define _CHECKEDC_MOCKUP_THREADS 1
-#include <threads_checked.h>
-// CHECK_ENABLED: threads_checked.h
-// CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED: threads_checked.h
-// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-
 #include <time_checked.h>
 // CHECK_ENABLED: time_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
 // CHECK_DISABLED: time_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
+// Headers that are not in the C standard but are still present on Windows
+
+#include <fcntl_checked.h>
+// CHECK_ENABLED: fcntl_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED: fcntl_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 #include <checkedc_extensions.h>
@@ -110,11 +111,3 @@
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
 // CHECK_DISABLED: checkedc_extensions.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-
-
-
-// Posix Headers
-// These header files may or may not be present in all environments.
-#include <unistd_checked.h>
-#include <sys/socket_checked.h>
-#include <arpa/inet_checked.h>
