@@ -91,13 +91,6 @@
 // CHECK_DISABLED-NOT: string_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
-#define _CHECKEDC_MOCKUP_THREADS 1
-#include <threads.h>
-// CHECK_ENABLED: threads_checked.h
-// CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED-NOT: threads_checked.h
-// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-
 #include <time.h>
 // CHECK_ENABLED: time_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on

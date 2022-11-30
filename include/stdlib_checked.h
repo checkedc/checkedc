@@ -128,8 +128,11 @@ size_t wcstombs(char * restrict output : count(n),
                   itype(restrict _Nt_array_ptr<const wchar_t>),
                 size_t n);
 
+// This is a Linux-specific extension to stdlib.h.
+#if defined __has_include && __has_include(<linux/limits.h>)
 #include <linux/limits.h>
 char *realpath(const char *path : itype(_Nt_array_ptr<const char>), char *resolved_path : itype(_Array_ptr<char>) count(PATH_MAX)) : itype(_Nt_array_ptr<char>);
+#endif
 
 #pragma CHECKED_SCOPE pop
 

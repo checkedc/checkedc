@@ -35,7 +35,8 @@ void (*sigset(int sig,
               ) : itype(_Ptr<void (int)>) // bounds-safe interface for signal return
      )(int);
 
-int sigemptyset(sigset_t *set : itype(_Ptr<sigset_t>));
+#ifdef _POSIX_C_SOURCE
+int sigemptyset(sigset _t *set : itype(_Ptr<sigset_t>));
 int sigfillset(sigset_t *set : itype(_Ptr<sigset_t>));
 int sigaddset(sigset_t *set : itype(_Ptr<sigset_t>), int signum);
 int sigdelset(sigset_t *set : itype(_Ptr<sigset_t>), int signum);
@@ -46,6 +47,7 @@ int sigaction(int signum, const struct sigaction *act : itype(_Ptr<const struct 
 
 
 int sigprocmask(int how, const sigset_t *set : itype(_Ptr<const sigset_t>), sigset_t *oldset : itype(_Ptr<sigset_t>));
+#endif // _POSIX_C_SOURCE
 
 #pragma CHECKED_SCOPE pop
 

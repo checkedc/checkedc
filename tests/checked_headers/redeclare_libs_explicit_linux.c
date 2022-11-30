@@ -20,6 +20,12 @@
 #pragma CHECKED_SCOPE on
 #endif
 
+// C11 headers, supported on Linux but not Windows
+#include <threads_checked.h>
+// CHECK_ENABLED: threads_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED: threads_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 // Posix Headers
 // These header files are not present in the Windows compilation environment.
