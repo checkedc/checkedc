@@ -104,9 +104,3 @@
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
 // CHECK_DISABLED-NOT: fcntl_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
-
-#include <sys/stat.h>
-// CHECK_ENABLED: stat_checked.h
-// CHECK_ENABLED: #pragma CHECKED_SCOPE on
-// CHECK_DISABLED-NOT: stat_checked.h
-// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on

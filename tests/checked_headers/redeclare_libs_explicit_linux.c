@@ -41,6 +41,12 @@
 // CHECK_DISABLED: socket_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
+#include <sys/stat_checked.h>
+// CHECK_ENABLED: stat_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED: stat_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
 #include <arpa/inet_checked.h>
 // CHECK_ENABLED: inet_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
@@ -82,3 +88,4 @@
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
 // CHECK_DISABLED: utime_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+

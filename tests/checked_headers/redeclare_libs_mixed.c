@@ -56,11 +56,6 @@
 // CHECK_MIXED: string_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
 
-#define _CHECKEDC_MOCKUP_THREADS 1
-#include <threads.h>
-// CHECK_MIXED-NOT: threads_checked.h
-// CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
-
 #include <time_checked.h>
 // CHECK_MIXED: time_checked.h
 // CHECK_MIXED: #pragma CHECKED_SCOPE on
@@ -70,10 +65,6 @@
 #include <fcntl.h>
 // CHECK_MIXED-NOT: fcntl_checked.h
 // CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
-
-#include <sys/stat_checked.h>
-// CHECK_MIXED: stat_checked.h
-// CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #include <checkedc_extensions.h>
 // CHECK_MIXED: checkedc_extensions.h

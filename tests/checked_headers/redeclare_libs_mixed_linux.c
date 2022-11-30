@@ -17,6 +17,10 @@
 // foo_checked.h is included for a system header file foo.h.
 // RUN: %clang -DNO_IMPLICIT_INCLUDE_CHECKED_HDRS -E %s | FileCheck %s --check-prefix CHECK_MIXED
 
+// C11 headers, supported on Linux but not Windows
+#include <threads.h>
+// CHECK_MIXED-NOT: threads_checked.h
+// CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
 
 // Posix Headers
 // These header files are not present in the Windows compilation environment.
@@ -27,6 +31,10 @@
 #include <sys/socket.h>
 // CHECK_MIXED-NOT: socket_checked.h
 // CHECK_MIXED-NOT: #pragma CHECKED_SCOPE on
+
+#include <sys/stat_checked.h>
+// CHECK_MIXED: stat_checked.h
+// CHECK_MIXED: #pragma CHECKED_SCOPE on
 
 #include <arpa/inet_checked.h>
 // CHECK_MIXED: inet_checked.h
