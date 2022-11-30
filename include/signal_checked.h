@@ -36,7 +36,7 @@ void (*sigset(int sig,
      )(int);
 
 #ifdef _POSIX_C_SOURCE
-int sigemptyset(sigset _t *set : itype(_Ptr<sigset_t>));
+int sigemptyset(sigset_t *set : itype(_Ptr<sigset_t>));
 int sigfillset(sigset_t *set : itype(_Ptr<sigset_t>));
 int sigaddset(sigset_t *set : itype(_Ptr<sigset_t>), int signum);
 int sigdelset(sigset_t *set : itype(_Ptr<sigset_t>), int signum);
