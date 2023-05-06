@@ -6,15 +6,15 @@
 #include <stdchecked.h>
 
 extern void f1() {
-  array_ptr<int> a : count(1) = 0;
+  int* _Array a  _Count(1) = 0;
   int i;
   ptr<int> c = 0;
   int b[10];
   int p[10];
 
   array_ptr<int> checkedc_p : bounds(checkedc_p, checkedc_p + 1) = 0;
-  a = _Dynamic_bounds_cast<array_ptr<int>>(b, count(10));
-  c = _Dynamic_bounds_cast<int>(p); // expected-error {{expected _Ptr or * type}}
+  a = _Dynamic_bounds_cast_M(int* _Array, b, count(10));
+  c = _Dynamic_bounds_cast_M_N(int ,p); // expected-error {{expected _Ptr or * type}}
 }
 
 extern void f2() {
@@ -30,8 +30,8 @@ extern void f3() {
   char p[10];
   ptr<int> c = 0;
   array_ptr<int> a : count(2) = 0;
-  a = _Assume_bounds_cast<array_ptr<int>>(p, count(p + 2)); // expected-error {{invalid argument type 'char *' to count expression}}
-  c = _Assume_bounds_cast<ptr<int>>(p, count(1)); // expected-error {{expected _Array_ptr type}}
+  a = _Assume_bounds_cast_M (int* _Array , p, count(p + 2)); // expected-error {{invalid argument type 'char *' to count expression}}
+  c = _Assume_bounds_cast_M(int* _Single ,p, count(1)); // expected-error {{expected _Array_ptr type}}
 }
 
 extern void f4() {
@@ -69,21 +69,21 @@ extern array_ptr<int> h4(void) : count(3) {
 
 extern void f6() {
   int i[2];
-  array_ptr<int> int_array_ptr_lb = i, int_array_ptr_ub = i + 1;
-  ptr<int> int_ptr_lb = i, int_ptr_ub = i + 1;
+  int* _Array int_array_ptr_lb = i, *_Array int_array_ptr_ub = i + 1;
+  int* _Single int_ptr_lb = i, *_Single int_ptr_ub = i + 1;
   int *int_unchecked_ptr_lb = i, *int_unchecked_ptr_ub = i + 1;
 
-  array_ptr<char> char_array_ptr_lb = (array_ptr<char>)i,
-                  char_array_ptr_ub = (array_ptr<char>)i + 1;
-  ptr<char> char_ptr_lb = (ptr<char>)i, char_ptr_ub = (ptr<char>)(i + 1);
+  char* _Array char_array_ptr_lb = (char* _Array)i,
+               *_Array char_array_ptr_ub = (char* _Array)i + 1;
+  char* _Single char_ptr_lb = (char* _Single)i, *_Single char_ptr_ub = (char* _Single)(i + 1);
   char *char_unchecked_ptr_lb = (char *)i,
        *char_unchecked_ptr_ub = (char *)i + 1;
 
-  array_ptr<int> t20 : bounds(int_array_ptr_lb, char_array_ptr_ub) = // expected-error {{pointer type mismatch}}
-        _Assume_bounds_cast<array_ptr<int>>(i, bounds(int_array_ptr_lb, char_array_ptr_ub)); // expected-error {{pointer type mismatch}}
+  int* _Array t20  _Bounds(int_array_ptr_lb, char_array_ptr_ub) = // expected-error {{pointer type mismatch}}
+      _Assume_bounds_cast_M(int* _Array, i, _Bounds(int_array_ptr_lb, char_array_ptr_ub)); // expected-error {{pointer type mismatch}}
 
-  array_ptr<int> t21 : bounds(int_ptr_lb, char_array_ptr_ub) = // expected-error {{pointer type mismatch}}
-        _Assume_bounds_cast<array_ptr<int>>(i, bounds(int_ptr_lb, int_array_ptr_ub));
+  int* _Array t21  _Bounds(int_ptr_lb, char_array_ptr_ub) = // expected-error {{pointer type mismatch}}
+      _Assume_bounds_cast_M(int* _Array ,i, bounds(int_ptr_lb, int_array_ptr_ub));
 }
 
 extern void f7(void *p) {
@@ -95,19 +95,19 @@ extern void f7(void *p) {
 
 extern void f8() {
   int *p;
-  ptr<int> q = 0;
-  ptr<int> r = 0;
-  ptr<int *> s = 0;
-  ptr<ptr<int>> t = 0;
-  r = _Assume_bounds_cast<ptr<int>>(q);
-  p = _Assume_bounds_cast<int *>(q);
-  r = _Dynamic_bounds_cast<ptr<int>>(q);
-  p = _Dynamic_bounds_cast<int *>(q);
-  s = _Assume_bounds_cast<ptr<int *>>(q);
-  t = _Assume_bounds_cast<ptr<ptr<int>>>(q);
-  t = _Dynamic_bounds_cast<ptr<ptr<int>>>(q);
-  r = _Assume_bounds_cast<ptr<int>>(q);
-  p = _Assume_bounds_cast<int *>(q);
+  int* _Single q = 0;
+  int* _Single r = 0;
+  int* *_Single s = 0;
+  int* _Single *_Single t = 0;
+  r = _Dynamic_bounds_cast_M_N(int* _Single, q);
+  p = _Assume_bounds_cast_M_N(int * , q);
+  r = _Dynamic_bounds_cast_M_N(int* _Single , q);
+  p = _Dynamic_bounds_cast_M_N(int * ,q);
+  s = _Assume_bounds_cast_M_N(int * *_Single, q);
+  t = _Assume_bounds_cast_M_N(int* _Single *_Single , q);
+  t = _Dynamic_bounds_cast_M_N(int* _Single *_Single ,q);
+  r = _Dynamic_bounds_cast_M_N(int* _Single ,q);
+  p = _Assume_bounds_cast_M_N(int *,q);
 
 }
 
@@ -172,19 +172,19 @@ extern void f11() {
   q = _Dynamic_bounds_cast<ptr<int>>(rr, count(1)); // expected-error{{expected _Array_ptr type}}
   q = _Dynamic_bounds_cast<ptr<int>>(rr, bounds(rr, rr + 1)); // expected-error{{expected _Array_ptr type}}
 
-  p = _Dynamic_bounds_cast<int *>(q, count(1)); // expected-error {{expected _Array_ptr type}}
-  q = _Dynamic_bounds_cast<ptr<int>>(q, count(1)); // expected-error {{expected _Array_ptr type}}
-  q = _Dynamic_bounds_cast<ptr<int>>(i, count(1)); // expected-error {{expected _Array_ptr type}}
-  p = _Dynamic_bounds_cast<int *>(i, count(1)); // expected-error {{expected _Array_ptr type}}
-  q = _Dynamic_bounds_cast<ptr<int>>(i, bounds(i, i + 1)); // expected-error 2 {{expected expression with pointer type}}
-  p = _Dynamic_bounds_cast<int *>(i, bounds(i, i + 1)); // expected-error 2 {{expected expression with pointer type}}
+  p = _Dynamic_bounds_cast_M(int *, q, count(1)); // expected-error {{expected _Array_ptr type}}
+  q = _Dynamic_bounds_cast_M(int* _Single, q, count(1)); // expected-error {{expected _Array_ptr type}}
+  q = _Dynamic_bounds_cast_M(int* _Single, i, count(1)); // expected-error {{expected _Array_ptr type}}
+  p = _Dynamic_bounds_cast_M(int *, i, count(1)); // expected-error {{expected _Array_ptr type}}
+  q = _Dynamic_bounds_cast_M(int* _Single, i, bounds(i, i + 1)); // expected-error 2 {{expected expression with pointer type}}
+  p = _Dynamic_bounds_cast_M(int *, i, bounds(i, i + 1)); // expected-error 2 {{expected expression with pointer type}}
 
-  q = _Dynamic_bounds_cast<ptr<int>>(p, count(1)); // expected-error {{expected _Array_ptr type}}
-  p = _Dynamic_bounds_cast<int *>(p, count(1)); // expected-error {{expected _Array_ptr type}}
-  q = _Dynamic_bounds_cast<ptr<int>>(p, bounds(p, p + 1)); // expected-error {{expected _Array_ptr type}}
-  p = _Dynamic_bounds_cast<int *>(p, bounds(p, p + 1)); // expected-error {{expected _Array_ptr type}}
-  
-  q = _Assume_bounds_cast<ptr<int>>(r, count(1)) + 3; // expected-error{{expected _Array_ptr type}}
-  c = _Dynamic_bounds_cast<ptr<int>>(p, count(4)); // expected-error{{expected _Array_ptr type}}
+  q = _Dynamic_bounds_cast_M(int* _Single, p, count(1)); // expected-error {{expected _Array_ptr type}}
+  p = _Dynamic_bounds_cast_M(int *, p, count(1)); // expected-error {{expected _Array_ptr type}}
+  q = _Dynamic_bounds_cast_M(int* _Single, p, bounds(p, p + 1)); // expected-error {{expected _Array_ptr type}}
+  p = _Dynamic_bounds_cast_M(int *, p, bounds(p, p + 1)); // expected-error {{expected _Array_ptr type}}
+
+  q = _Dynamic_bounds_cast_M(int* _Single, r, count(1)) + 3; // expected-error{{expected _Array_ptr type}}
+  c = _Dynamic_bounds_cast_M(int* _Single, p, count(4)); // expected-error{{expected _Array_ptr type}}
 }
 

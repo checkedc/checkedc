@@ -13,7 +13,7 @@
 
 // Test taking addresses of members using in bounds expressions for checked members.
 struct S1 {
-  _Array_ptr<int> p : count(len);
+  int* _Array p  _Count(len);
   int len;
 };
 
@@ -79,7 +79,7 @@ extern void f3(struct S1 *s1, struct S2 *s2, struct S1_Nested *s1_nested, struct
    _Array_ptr<int> *p6 = &(s2->s).p;  // expected-error {{cannot take address of member with bounds}}
    _Array_ptr<int> *p7 = &s1_nested->p;    // expected-error {{cannot take address of member with bounds}}
    _Array_ptr<int> *p8 = &(s1_nested->p);  // expected-error {{cannot take address of member with bounds}}
-   _Array_ptr<int> *p9 = &(s1_nested)->p;  // expected-error {{cannot take address of member with bounds}}
+   int* _Array *p9 = &(s1_nested)->p;  // expected-error {{cannot take address of member with bounds}}
 }
 
 // Test taking addresses of members with bounds-safe interfaces.
@@ -128,7 +128,7 @@ extern checked void f5(struct S3 s3, struct S4 s4, struct S3_Nested s3_nested) {
    _Ptr<int> p9 = &(s3_nested.child).len;            // expected-error {{cannot take address of member used in member bounds}}
    _Ptr<struct Nested_Len> p10 = &s3_nested.child;   // expected-error {{cannot take address of member used in member bounds}}
    _Ptr<struct Nested_Len> p11 = &(s3_nested).child; // expected-error {{cannot take address of member used in member bounds}}
-   _Ptr<struct Nested_Len> p12 = &(s3_nested.child); // expected-error {{cannot take address of member used in member bounds}}
+   struct Nested_Len* _Single p12 = &(s3_nested.child); // expected-error {{cannot take address of member used in member bounds}}
 }
 
 extern void f6(struct S3 *s3, struct S4 *s4, struct S3_Nested *s3_nested) {
@@ -159,7 +159,7 @@ extern checked void f7(_Ptr<struct S3> s3, _Ptr<struct S4> s4, _Ptr<struct S3_Ne
    _Ptr<int> p9 = &(s3_nested->child).len;            // expected-error {{cannot take address of member used in member bounds}}
    _Ptr<struct Nested_Len> p10 = &s3_nested->child;   // expected-error {{cannot take address of member used in member bounds}}
    _Ptr<struct Nested_Len> p11 = &(s3_nested)->child; // expected-error {{cannot take address of member used in member bounds}}
-   _Ptr<struct Nested_Len> p12 = &(s3_nested->child); // expected-error {{cannot take address of member used in member bounds}}
+   struct Nested_Len* _Single p12 = &(s3_nested->child); // expected-error {{cannot take address of member used in member bounds}}
 }
 
 extern void f8(struct S3 s3, struct S4 s4, struct S3_Nested s3_nested) {
@@ -195,7 +195,7 @@ extern checked void f10(struct S3 s3, struct S4 s4, struct S3_Nested s3_nested) 
    _Ptr<_Array_ptr<int>> p6 = &(s4.s).p; // expected-error {{cannot take address of member with bounds}}
    _Ptr<_Array_ptr<int>> p7 = &s3_nested.p;   // expected-error {{cannot take address of member with bounds}}
    _Ptr<_Array_ptr<int>> p8 = &(s3_nested.p); // expected-error {{cannot take address of member with bounds}}
-   _Ptr<_Array_ptr<int>> p9 = &(s3_nested).p; // expected-error {{cannot take address of member with bounds}}
+   int* _Array *_Single p9 = &(s3_nested).p; // expected-error {{cannot take address of member with bounds}}
 }
 
 extern checked void f11(_Ptr<struct S3> s3, _Ptr<struct S4> s4, _Ptr<struct S3_Nested> s3_nested) {
@@ -207,7 +207,7 @@ extern checked void f11(_Ptr<struct S3> s3, _Ptr<struct S4> s4, _Ptr<struct S3_N
    _Ptr<_Array_ptr<int>> p6 = &(s4->s).p;  // expected-error {{cannot take address of member with bounds}}
    _Ptr<_Array_ptr<int>> p7 = &s3_nested->p;   // expected-error {{cannot take address of member with bounds}}
    _Ptr<_Array_ptr<int>> p8 = &(s3_nested->p); // expected-error {{cannot take address of member with bounds}}
-   _Ptr<_Array_ptr<int>> p9 = &(s3_nested)->p; // expected-error {{cannot take address of member with bounds}}
+   int* _Array *_Single p9 = &(s3_nested)->p; // expected-error {{cannot take address of member with bounds}}
 }
 
 //
@@ -234,7 +234,7 @@ struct S8 {
 
 
 extern void f30(struct S5 *s5) {
-  _Ptr<int _Checked[10]> p1 = &s5->arr; // this is OK because arr can't be modified.
+  int(* _Single p1) _Checked[10] = &s5->arr; // this is OK because arr can't be modified.
 }
 
 extern void f31(struct S6 *s6) {
@@ -252,7 +252,7 @@ extern checked void f33(_Ptr<struct S7> s7) {
 }
 
 extern checked void f33a(struct S7 *s7 : itype(_Ptr<struct S7>)) {
-  _Ptr<int _Checked[10]> p1 = &s7->arr; // this is OK because arr can't be modified.
+  int(* _Single p1) _Checked[10]= &s7->arr; // this is OK because arr can't be modified.
 }
 
 
@@ -268,7 +268,7 @@ extern checked void f35(_Ptr<struct S8> s8) {
 
 extern checked void f35a(struct S8 *s8 : itype(_Ptr<struct S8>)) {
   _Ptr<int> p1 = &s8->len;           // expected-error {{cannot take address of member used in member bounds}}
-  _Ptr<int _Checked[10]> p2 = &s8->arr; // this is OK because arr can't be modified.
+  int (* _Single p2) _Checked[10]= &s8->arr; // this is OK because arr can't be modified.
 }
 
 // Spot check bounds for a flexible array member.
@@ -300,7 +300,7 @@ extern void f40(struct S9 *s9) {
 
 extern void f41(struct S10 *s10) {
   _Ptr<int> p1 = &s10->len;            // expected-error {{cannot take address of member used in member bounds}}
-  _Ptr<int _Checked[]> p2 = &s10->arr; // this is OK because arr can't be modified.
+  int (*_Single p2) _Checked[] = &s10->arr; // this is OK because arr can't be modified.
 }
 
 extern void f42(struct S11 *s11) {
@@ -318,7 +318,7 @@ extern void f44(struct S12 *s12) {
 
 extern checked void f45(_Ptr<struct S12> s12) {
   _Ptr<int> p1 = &s12->len;      // expected-error {{cannot take address of member used in member bounds}}
-  _Ptr<int _Checked[]> p2 = &s12->arr; // this is OK because arr can't be modified.
+  int (*_Single p2) _Checked[] = &s12->arr; // this is OK because arr can't be modified.
 }
 
 //
@@ -339,7 +339,7 @@ void f46(struct S20 s) {
   _Ptr<_Array_ptr<int>> p3 = &s.upper;  // expected-error {{cannot take address of member used in member bounds}}
   _Ptr<_Array_ptr<int>> p4 = &s.upper;  // expected-error {{cannot take address of member used in member bounds}}
   _Ptr<_Array_ptr<int>> p5 = &s.q;      // expected-error {{cannot take address of member with bounds}}
-  _Ptr<int> p6 = &s.len;                // expected-error {{cannot take address of member used in member bounds}}
+  int* _Single  p6 = &s.len;                // expected-error {{cannot take address of member used in member bounds}}
 }
 
 
@@ -362,7 +362,8 @@ extern void f60(_Array_ptr<int> x : count(len), int len) {
   _Ptr<_Array_ptr<int>> py = &y;     // expected-error {{cannot take address of variable 'y' with bounds}}
   _Ptr<_Array_ptr<int>> pg = &global_var1;  // expected-error {{cannot take address of variable 'global_var1' with bounds}}
   _Ptr<int _Checked[]>  parr1 = &global_arr1;
-  _Ptr<int _Checked[]>  parr2 = &(global_arr1);
+  int (*_Single parr2) _Checked[]= &(global_arr1);
+
 
   if (len >= 0 && len < 10) {
      int arr _Checked[10] : count(len);
@@ -387,7 +388,7 @@ extern _Checked void f62(int *x : count(len), int len) {
   _Ptr<_Array_ptr<int>> px1 = &x;          // expected-error {{cannot take address of variable 'x' with bounds}}
   _Ptr<_Array_ptr<int>> px2 = &(x);        // expected-error {{cannot take address of variable 'x' with bounds}}
   _Ptr<_Array_ptr<int>> px3 = (&x);        // expected-error {{cannot take address of variable 'x' with bounds}}
-  _Ptr<_Array_ptr<int>> pg = &global_var2; // expected-error {{cannot take address of variable 'global_var2' with bounds}}
+  int* _Array *_Single pg = &global_var2; // expected-error {{cannot take address of variable 'global_var2' with bounds}}
 
   _Ptr<int _Checked[]>  parr1 = &global_arr2;
   _Ptr<int _Checked[]>  parr2 = &(global_arr2);

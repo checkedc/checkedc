@@ -7,10 +7,10 @@
 
 void f1()
 _Checked{
-  _Array_ptr<int> p : count(2) = 0;
+  _Array_ptr<int> p _Count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
-  _Array_ptr<int> q : count(1) = &val;
+  _Array_ptr<int> q _Count(1) = &val;
   _Bundled {
     p = q;
     *(p+1) = 4; // expected-error {{out-of-bounds memory access}} 
@@ -26,7 +26,7 @@ _Checked{
   _Array_ptr<int> p : count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
-  _Array_ptr<int> q : count(1) = &val;
+  int* _Array q  _Count(1) = &val;
   _Bundled {
     p = val1;      // expected-warning {{cannot prove declared bounds for 'p' are valid after assignment}}
     p++;
@@ -44,7 +44,7 @@ _Checked{
   _Array_ptr<int> p : count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
-  _Array_ptr<int> q : count(1) = &val;
+  int* _Array q  _Count(1) = &val;
   _Bundled {
     p = q,
     *(p+1) = 4, // expected-error {{out-of-bounds memory access}}
@@ -63,7 +63,7 @@ _Checked{
   _Array_ptr<int> p : count(2) = 0;
   int val = 5;
   int val1 _Checked[8];
-  _Array_ptr<int> q : count(1) = &val;
+  int* _Array q : count(1) = &val;
   _Bundled {
     p = val1;       // expected-warning {{cannot prove declared bounds for 'p' are valid after assignment}}
     p++;
@@ -81,7 +81,7 @@ _Checked{
   _Array_ptr<int> p : count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
-  _Array_ptr<int> q : count(1) = &val;
+  int* _Array q  : count(1) = &val;
   _Bundled {
     p = flag ? q : val1;
     *(p+1) = 4;   // expected-error {{expression has unknown bounds}}
@@ -94,7 +94,7 @@ _Checked{
 
 void f6(int flag)
 _Checked{
-  _Array_ptr<int> p : count(2) = 0;
+  int* _Array p  _Count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
   _Array_ptr<int> q : count(1) = &val;
@@ -138,7 +138,7 @@ _Checked{
     _Array_ptr<int> p : count(2) = 0;
     int val = 5;
     int val1 _Checked[3];
-    _Array_ptr<int> q : count(1) = &val;
+    _Array_ptr<int> q  _Count(1) = &val;
     p = val1;
     p++;
     p++;
@@ -150,10 +150,10 @@ _Checked{
 
 void f9(int flag)
 _Checked{
-  _Array_ptr<int> p : count(2) = 0;
+  _Array_ptr<int> p _Count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
-  _Array_ptr<int> q : count(1) = &val;
+  int* _Array q  _Count(1) = &val;
   p = val1,
   p++,
   p++,
@@ -166,7 +166,7 @@ _Checked{
   int val = 5;
   _Array_ptr<int> q : count(2) = &val;   // expected-error {{declared bounds for 'q' are invalid after initialization}}
   _Bundled {
-    _Array_ptr<int> r : count(2) = &val; // expected-error {{declared bounds for 'r' are invalid after initialization}}
+    int* _Array r  _Count(2) = &val; // expected-error {{declared bounds for 'r' are invalid after initialization}}
   }
 }
 
@@ -174,7 +174,7 @@ void f11()
 _Checked{
   int val = 5;
   int valarr _Checked[4];
-  _Array_ptr<int> q : count(2) = &val;   // expected-error {{declared bounds for 'q' are invalid after initialization}}
+  int* _Array q  _Count(2) = &val;  // expected-error {{declared bounds for 'q' are invalid after initialization}}
   _Bundled {
     _Array_ptr<int> r : count(2) = &val;
     r = valarr;
@@ -186,7 +186,7 @@ _Checked{
   _Array_ptr<int> p : count(2) = 0;
   int val = 5;
   int val1 _Checked[3];
-  _Array_ptr<int> q : count(1) = &val;
+  int* _Array q  _Count(1) = &val;
   L1:
   _Bundled {
     p = val1;
@@ -202,8 +202,7 @@ _Checked{
 
 extern _Array_ptr<int> my_malloc(int len) : count(len);
 extern void copy1(_Array_ptr<int> to, _Array_ptr<int> from : count(n), int n);
-extern _Array_ptr<int> copy2(_Array_ptr<int> to, _Array_ptr<int> from : count(n), int n, int new_n) : count(new_n);
-
+extern int* _Array copy2(int* _Array to, int* _Array from  _Count(n), int n, int new_n)  _Count(new_n);
 
 _Array_ptr<int> resize1(_Array_ptr<int> buf : count(buflen), int buflen, int len) : count(len) {
   _Array_ptr<int> tmp : count(len) = my_malloc(len);
@@ -216,7 +215,7 @@ _Array_ptr<int> resize1(_Array_ptr<int> buf : count(buflen), int buflen, int len
 }
 
 int buflen = 0;
-_Array_ptr<int> buf : count(buflen) = 0;
+_Array_ptr<int> buf  _Count(buflen) = 0;
 
 void resize2(int newlen) {
   _Array_ptr<int> tmp : count(newlen) = my_malloc(newlen);
@@ -235,7 +234,7 @@ _Array_ptr<int> g4 : count(1) = &gtmp;
 int *h1 = &gtmp;
 _Ptr<int> h2 = &gtmp;
 _Array_ptr<int> h3 = &gtmp;
-_Array_ptr<int> h4 : count(1) = &gtmp;
+int* _Array h4  _Count(1) = &gtmp;
 
 
 void gf0(void) {
@@ -314,8 +313,8 @@ extern void test_bsi_f6(int((*compar)(const int *, const int *)) :
 extern int test_cmp(_Ptr<const int> a, _Ptr<const int> b);
 
 extern void check_call_bsi(int *arg1, _Ptr<int> arg2, _Array_ptr<int> arg3,
-                           _Array_ptr<int> arg4 : count(1),
-                           _Array_ptr<int> arg5 : count(arglen), int arglen) {
+                           int* _Array arg4  _Count(1),
+                           int* _Array arg5  _Count(arglen), int arglen) {
 
   _Bundled {
     test_bsi_f1(arg1);      // no checking expected when passing unchecked pointers.
@@ -388,14 +387,14 @@ struct Node {
 };
 
 struct Group {
-  _Array_ptr<struct Node> list : count (n);
+  struct Node* _Array list _Count(n);
   unsigned int n;
 };
 
 extern unsigned int my_strlen(_Nt_array_ptr<char>);
 
 // get the first name that starts with the letters 'Ar'
-_Nt_array_ptr<char> get_name(_Array_ptr<struct Group> groups : count(gcnt), unsigned int gcnt)
+char* _Nt_array get_name(_Array_ptr<struct Group> groups : count(gcnt), unsigned int gcnt)
 _Checked {
   unsigned int n = 0;
   _Array_ptr<struct Node> group : count(n) = 0;
@@ -407,7 +406,7 @@ _Checked {
     }
     for (int j = 0; j < n; j++) {
       _Nt_array_ptr<char> name = group[j].name;
-      unsigned int m = my_strlen(name) _Where name : count(m);
+      unsigned int m = my_strlen(name) _Where (name : count(m));
       if (m >= 2 && name[0] == 'A' && name[1] == 'r')
         return name;
     }

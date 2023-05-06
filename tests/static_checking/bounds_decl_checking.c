@@ -13,7 +13,7 @@ int gtmp;
 int *g1 = &gtmp;
 ptr<int> g2 = &gtmp;
 array_ptr<int> g3 = &gtmp;
-array_ptr<int> g4 : count(1) = &gtmp;
+int* _Array g4  _Count(1) = &gtmp;
 
 
 extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
@@ -31,7 +31,7 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   array_ptr<int> arr1 : count(3) = (int checked[3]){0, 1, 2};
   array_ptr<int> arr2 : count(4) = (int checked[3]){0, 1, 2}; // expected-error {{declared bounds for 'arr2' are invalid after initialization}}
   array_ptr<struct S1> arr_struct1 : count(1) = &(struct S1){0};
-  array_ptr<struct S1> arr_struct2 : count(2) = &(struct S1){0}; // expected-error {{declared bounds for 'arr_struct2' are invalid after initialization}}
+  struct S1* _Array arr_struct2  _Count(2) = &(struct S1){0}; // expected-error {{declared bounds for 'arr_struct2' are invalid after initialization}}
 
   // TODO: assignments of variables with array types
   // to pointer variables, and reads/writes of struct members.
@@ -119,7 +119,7 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
   int *t1 = &tmp1;
   ptr<int> t2 = &tmp1;
   array_ptr<int> t3 = &tmp1;
-  array_ptr<int> t4 : count(1) = &tmp1;
+  int* _Array t4  : count(1) = &tmp1;
 
   t1 = arg1;
   t2 = arg1;            // expected-error {{expression has unknown bounds}}
@@ -212,12 +212,12 @@ extern void check_exprs(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
 
 nt_array_ptr<int> g11 : bounds(unknown) = 0;
 nt_array_ptr<int> g12 = (int nt_checked[]) { 1, 0 }; // default bounds of count(0);
-nt_array_ptr<int> g13 : count(1) = (int nt_checked[]) { 1, 0 };
+int* _Nt_array g13  _Count(1) = (int nt_checked[]) { 1, 0 };
 
 struct S2 {
   nt_array_ptr<int> f1 : bounds(unknown);
   nt_array_ptr<int> f2;
-  nt_array_ptr<int> f3 : count(1);
+  int* _Nt_array f3  _Count(1);
 };
 
 extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
@@ -231,7 +231,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   arg3 = 0;
   arg1 = (nt_array_ptr<int>)0xabcd;
   arg2 = (nt_array_ptr<int>)0xabcd;  // expected-error {{inferred bounds for 'arg2' are unknown after assignment}}
-  arg3 = (nt_array_ptr<int>)0xabcd;  // expected-error {{inferred bounds for 'arg3' are unknown after assignment}}
+  arg3 = (int* _Nt_array)0xabcd;  // expected-error {{inferred bounds for 'arg3' are unknown after assignment}}
 
   // address-of
   arg1 = &*arg1;
@@ -291,7 +291,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   // locals assigned from parameters
   nt_array_ptr<int> t1 : bounds(unknown);
   nt_array_ptr<int> t2 = 0;
-  nt_array_ptr<int> t3 : count(1) = 0;
+  int* _Nt_array t3  _Count(1) = 0;
 
   t1 = arg1;
   t2 = arg1;            // expected-error {{inferred bounds for 't2' are unknown after assignment}}
@@ -311,7 +311,7 @@ extern void check_exprs_nullterm(nt_array_ptr<int> arg1 : bounds(unknown),
   int i1;
   nt_array_ptr<int> c2 : count(u1) = 0;
   nt_array_ptr<int> c3 : count(u1 * u2 + 2 * i1) = 0;
-  nt_array_ptr<int> c4 : count(i1) = 0;
+  int* _Nt_array c4  _Count(i1) = 0;
 
   c1 = c2;
   c2 = c1;            // expected-error {{it is not possible to prove that the inferred bounds of 'c2' imply the declared bounds of 'c2' after assignment}}
@@ -425,7 +425,7 @@ extern void test_f6(array_ptr<int> p : count(0));
 
 extern void check_call_args(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
                             array_ptr<int> arg4 : count(1),
-                            array_ptr<int> arg5 : count(arglen), int arglen,
+                            int* _Array arg5  _Count(arglen), int arglen,
                             array_ptr<int> arg6 : count(arglen_u), unsigned int arglen_u) {
   test_f1(arg1);
   test_f2(arg1);     // expected-error {{expression has unknown bounds}}
@@ -480,7 +480,7 @@ extern void check_nullterm_call_args(
   nt_array_ptr<char> arg2,
   nt_array_ptr<char> arg3 : count(1),
   nt_array_ptr<char> arg4 : count(arglen), int arglen,
-  nt_array_ptr<char> arg5 : count(arglen_u), unsigned int arglen_u) {
+  char* _Nt_array arg5  _Count(arglen_u), unsigned int arglen_u) {
   test_nullterm_f1(arg1);
   test_nullterm_f2(arg1);     // expected-error {{argument has unknown bounds}}
   test_nullterm_f3(arg1);     // expected-error {{argument has unknown bounds}}
@@ -520,14 +520,14 @@ extern void test_bsi_f1(int *p);
 extern void test_bsi_f2(int *p : itype(ptr<int>));
 extern void test_bsi_f3(int *p : itype(array_ptr<int>));
 extern void test_bsi_f4(int *p : count(1));
-extern void test_bsi_f5(int *p : count(len), int len);
+extern void test_bsi_f5(int *p  _Count(len), int len);
 extern void test_bsi_f6(int((*compar)(const int *, const int *)) :
   itype(_Ptr<int(_Ptr<const int>, _Ptr<const int>)>));
 extern int test_cmp(_Ptr<const int> a, _Ptr<const int> b);
 
 extern void check_call_bsi(int *arg1, ptr<int> arg2, array_ptr<int> arg3,
                            array_ptr<int> arg4 : count(1),
-                           array_ptr<int> arg5 : count(arglen), int arglen) {
+                             int* _Array arg5 : count(arglen), int arglen) {
   test_bsi_f1(arg1);    // no checking expected when passing unchecked pointers.
   test_bsi_f2(arg1);
   test_bsi_f3(arg1);
@@ -583,7 +583,7 @@ extern int test_nullterm_cmp(nt_array_ptr<const int> a, nt_array_ptr<const int> 
 extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
                                     nt_array_ptr<int> arg2 : bounds(unknown),
                                     nt_array_ptr<int> arg3,
-                                    nt_array_ptr<int> arg4 : count(1),
+                                    int* _Nt_array arg4  _Count(1),
                                     nt_array_ptr<int> arg5 : count(arglen),
                                     int arglen,
                                     int **arg6,
@@ -631,7 +631,7 @@ extern void check_nullterm_call_bsi(int *arg1 : itype(nt_array_ptr<int>),
   }
 }
 
-nt_array_ptr<char> nullterm_return1(void);
+char* _Nt_array nullterm_return1(void);
 nt_array_ptr<char> nullterm_return2(void) : bounds(unknown);
 
 void check_nullterm_return_use(void) {
@@ -639,7 +639,7 @@ void check_nullterm_return_use(void) {
   p = nullterm_return2(); // expected-error {{inferred bounds for 'p' are unknown after assignment}}
 }
 
-nt_array_ptr<char> check_nullterm_return1(void) {
+char* _Nt_array check_nullterm_return1(void) {
   nt_array_ptr<char> p : bounds(unknown) = 0;
   return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_nullterm_return1' has bounds}}
 }

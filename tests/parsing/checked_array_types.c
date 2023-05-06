@@ -141,15 +141,16 @@ extern int Multiply(struct Vector vec1, struct Vector vec2) {
     return 0;
 }
 
-extern int Multiply2(ptr<struct Vector> vec1p, ptr<struct Vector> vec2p) {
+extern int Multiply2(struct Vector *_Single vec1p, struct Vector *_Single vec2p) {
     if (vec1p->len != vec2p->len) {
-       return 1;
+        return 1;
     }
     for (int i = 0; i < vec1p->len; i++) {
         vec1p->data[i] *= vec2p->data[i];
     }
     return 0;
 }
+
 
 //
 // Declaring checked arrays of function pointers
@@ -167,6 +168,10 @@ ptr<int(int x, int  y)> array_of_ptr_to_func checked[10];
 extern ptr<int(int x, int  y)> array_of_ptr_to_func checked[];
 ptr<int(int x checked[10], int y)> aptr2 checked[10];
 ptr<int(int x nt_checked[10], int y)> aptr3 nt_checked[10];
+int (*_Single  m_array_of_ptr_to_func checked[10])(int x, int  y);
+extern int (*_Single m_array_of_ptr_to_func checked[]) (int x, int  y) ;
+int (*_Single m_aptr2 checked[10])(int x checked[10], int y) ;
+int (*_Single m_aptr3 nt_checked[10])(int x nt_checked[10], int y);
 
 //
 // Declaring pointers to arrays and arrays of pointers
@@ -176,12 +181,19 @@ ptr<int checked[5]> ptr_to_array;
 ptr<int nt_checked[5]> ptr_to_nullterm_array;
 array_ptr<int checked[5]> array_ptr_to_array;
 array_ptr<int nt_checked[5]> array_ptr_to_nullterm_array;
+int (*_Single m_ptr_to_array) checked[5] ;
+int (*_Single m_ptr_to_nullterm_array) nt_checked[5] ;
+int (*_Array m_array_ptr_to_array) checked[5] ;
+int (*_Array m_array_ptr_to_nullterm_array) nt_checked[5] ;
+
 
 int(*unchecked_ptr_to_incomplete_array)checked[];
 ptr<int checked[]> ptr_to_incomplete_array;
 ptr<int nt_checked[]> ptr_to_nullterm_incomplete_array;
 array_ptr<int checked[]> array_ptr_to_incomplete_array;
 array_ptr<int nt_checked[]> array_ptr_to_nullterm_incomplete_array;
+int (*_Array m_array_ptr_to_incomplete_array) checked[] ;
+int (*_Array m_array_ptr_to_nullterm_incomplete_array) nt_checked[] ;
 
 // Declaring checked arrays of pointers
 int *array_of_unchecked_ptrs checked[5];
@@ -192,12 +204,18 @@ array_ptr<int> array_of_array_ptrs checked[5];
 array_ptr<int> nullterm_array_of_array_ptrs nt_checked[5];
 nt_array_ptr<int> array_of_nullterm_array_ptrs checked[5];
 nt_array_ptr<int> nullterm_array_of_nullterm_array_ptrs nt_checked[5];
+int *_Array m_nullterm_array_of_array_ptrs nt_checked[5];
+int *_Nt_array m_array_of_nullterm_array_ptrs checked[5];
+int *_Nt_array m_nullterm_array_of_nullterm_array_ptrs nt_checked[5];
+
 
 // Declare an unchecked pointer to checked arrays of pointers
 int *(*uncheckedptr_to_array_of_unchecked_ptrs) checked[5];
 ptr<int>(*unchecked_ptr_to_array_of_ptrs) checked[5];
 array_ptr<int>(*unchecked_ptr_to_array_of_array_ptrs) checked[5];
 array_ptr<int>(*unchecked_ptr_to_null_term_array_of_array_ptrs) nt_checked[5];
+int *_Array (*m_unchecked_ptr_to_array_of_array_ptrs) checked[5];
+int *_Array (*m_unchecked_ptr_to_null_term_array_of_array_ptrs) nt_checked[5];
 
 // Declare ptr to checked arrays of pointers
 ptr<int *checked[5]> ptr_to_array_of_unchecked_ptrs;
@@ -205,6 +223,8 @@ ptr<ptr<int> checked[5]> ptr_to_array_of_ptrs;
 ptr<array_ptr<int> checked[5]> ptr_to_array_of_array_ptrs;
 ptr<array_ptr<int> nt_checked[5]> ptr_to_nullterm_array_of_array_ptrs;
 ptr<nt_array_ptr<int> nt_checked[5]> ptr_to_nullterm_array_of_nullterm_array_ptrs;
+int (*_Array *_Single m_ptr_to_nullterm_array_of_array_ptrs) nt_checked[5];
+int *_Nt_array (*_Single m_ptr_to_nullterm_array_of_nullterm_array_ptrs) nt_checked[5];
 
 // Declare ptr to a checked array of function pointers
 ptr<int (*checked[5])(int x, int y)> ptr_to_array_of_unchecked_func_ptrs;
@@ -215,6 +235,10 @@ ptr<ptr<ptr<int>(ptr<int> x, ptr<int> y)>checked[5]>
 ptr_to_array_of_checked_func_ptrs_with_ptr_parameters;
 ptr<ptr<ptr<int> (ptr<int> x, ptr<int> y)>nt_checked[5]>
   ptr_to_nullterm_array_of_checked_func_ptrs_with_ptr_parameters;
+int (*_Single *_Single *_Single
+         m_ptr_to_array_of_checked_func_ptrs_with_ptr_parameters checked[5])(int *_Single  x, int *_Single y);
+int (*_Single *_Single *_Single
+         m_ptr_to_nullterm_array_of_checked_func_ptrs_with_ptr_parameters nt_checked[5])(int* _Single x, int* _Single y);
 
 
 //
@@ -236,37 +260,37 @@ void parse_operators_with_types(void) {
     int s1 = sizeof(int checked[10]);
     int s2 = sizeof(ptr<int checked[5]>);
     int s3 = sizeof(array_ptr<int checked[5]>);
-    int s4 = sizeof(ptr<int>checked[5]);
-    int s5 = sizeof(array_ptr<int> checked[5]);
+    int s4 = sizeof(int (*_Single)checked[5]);
+    int s5 = sizeof(int (*_Single)checked[5]);
 
     // null-terminated versions.
     int s6 = sizeof(int nt_checked[10]);
     int s7 = sizeof(ptr<int nt_checked[5]>);
     int s8 = sizeof(array_ptr<int nt_checked[5]>);
-    int s9 = sizeof(ptr<int> nt_checked[5]);
-    int s10 = sizeof(array_ptr<int> nt_checked[5]);
+    int s9 = sizeof(int (*_Single) nt_checked[5]);
+    int s10 = sizeof(int (*_Array) nt_checked[5]);
 
     int s20 = _Alignof(int checked[10]);
     int s21 = _Alignof(ptr<int checked[5]>);
     int s22 = _Alignof(array_ptr<int checked[5]>);
     int s23 = _Alignof(ptr<int> checked[5]);
-    int s24 = _Alignof(array_ptr<int>checked[5]);
-    int s25 = _Alignof(nt_array_ptr<int>checked[5]);
+    int s24 = _Alignof(int (*_Array)checked[5]);
+    int s25 = _Alignof(int *_Nt_array checked[5]);
 
     // null-terminated versions.
     int s26 = _Alignof(int nt_checked[10]);
     int s27 = _Alignof(ptr<int nt_checked[5]>);
     int s28 = _Alignof(array_ptr<int nt_checked[5]>);
     int s29 = _Alignof(ptr<int> nt_checked[5]);
-    int s30 = _Alignof(array_ptr<int> nt_checked[5]);
-    int s31 = _Alignof(nt_array_ptr<int> nt_checked[5]);
+    int s30 = _Alignof(int *_Array nt_checked[5]);
+    int s31 = _Alignof(int *_Nt_array nt_checked[5]);
 
     // Test parsing of some cast operations that should pass checking
     // of bounds declarations
     int x = 0;
     int arr checked[5];
     ptr<int> px = (ptr<int>) &x;
-    array_ptr<int> pax = (array_ptr<int>) &x;
+    int* _Array pax = (int* _Array) &x;
     pax = arr;
     // ptr to array type
     ptr<int checked[5]> parr = 0;

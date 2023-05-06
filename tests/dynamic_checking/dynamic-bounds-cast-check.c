@@ -29,7 +29,7 @@ void failing_test_2(void);
 void failing_test_3(void);
 void failing_test_4(int k);
 void failing_test_5(array_ptr<char> pc : count(len), unsigned len);
-void failing_test_6(array_ptr<char> pc : count(len), unsigned len);
+void failing_test_6(char* _Array pc  _Count(len), unsigned len);
 void failing_test_7(array_ptr<char> pc : count(len), unsigned len);
 void failing_test_8(unsigned len);
 
@@ -41,7 +41,7 @@ void handle_error(int err) {
 
 // This signature for main is exactly what we want here,
 // it also means any uses of argv[i] are checked too!
-int main(int argc, array_ptr<char*> argv : count(argc)) {
+int main(int argc, char**_Array argv  _Count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
   // clang implementation raises a SIGILL when a bounds check fails.  This
@@ -115,7 +115,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     // CHECK-FAIL-4-NOT: Unexpected Success
     failing_test_4(5);
   } else if (strcmp(argv[1], "fail5") == 0) {
-    array_ptr<char> p : count(12) = "\0\0\0\0\0\0\0\0abcd";
+    char* _Array p  _Count(12) = "\0\0\0\0\0\0\0\0abcd";
     // CHECK-FAIL-5: Successful pointer conversion
     // CHECK-FAIL-5-NOT: Unexpected Success
     _Static_assert(sizeof(int) <= 8, "update test for integers larger than 64 bits.");
@@ -128,7 +128,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     failing_test_6(p, 1);
     failing_test_6(p, 0);
   } else if (strcmp(argv[1], "fail7") == 0) {
-    array_ptr<char> p : count(4) = "abcd";
+    char* _Array p  _Count(4) = "abcd";
     // CHECK-FAIL-7: Successful conversion to void *
     // CHECK-FAIL-7-NOT: Unexpected Success
     failing_test_7(p, 1);
@@ -157,24 +157,24 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
 // dynamic_check((r+3) != NULL) && dynamic_check(r <= r && r+15 <= r+10) - > OK
 // dynamic_check("abcdef", count(2)) -> OK.
 void passing_test_1(void) {
-  ptr<int> q = 0;
+  int* _Single q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
-  array_ptr<int> s : count(5) = r;
+  int* _Array s  _Count(5) = r;
 
   q = _Dynamic_bounds_cast<ptr<int>>(r);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(3));
+  q = _Dynamic_bounds_cast_M(int* _Array, r, _Count(3));
   printf("Printable1\n");
 
   q = _Dynamic_bounds_cast<array_ptr<int>>(r+3, count(3));
   printf("Printable2\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
+  q = _Dynamic_bounds_cast_M(int* _Array, r,  _Bounds(s, s+3));
   printf("Printable3\n");
 
-  nt_array_ptr<const char> p : count(2) =
-    _Dynamic_bounds_cast<nt_array_ptr<const char>>("abcdef", count(2));
+  const char* _Nt_array p  _Count(2) =
+      _Dynamic_bounds_cast<nt_array_ptr<const char>>("abcdef", _Count(2));
   printf("Printable4\n");
 
   puts("Expected Success");
@@ -191,14 +191,14 @@ void passing_test_2(void) {
   q = _Dynamic_bounds_cast<ptr<int>>(NULL);
   printf("Printable0\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(NULL, bounds(r, r+5));
+  q = _Dynamic_bounds_cast_M(int*_Array, NULL,  _Bounds(r, r+5));
   printf("Printable1\n");
 
   s = NULL;
   q = _Dynamic_bounds_cast<ptr<int>>(s);
   printf("Printable2\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(s, bounds(r, r+5));
+  q = _Dynamic_bounds_cast_M(int* _Array, s, _Bounds(r, r+5));
   printf("Printable3\n");
 
   puts("Expected Success");
@@ -210,7 +210,7 @@ void passing_test_3(void) {
   ptr<int> pi = &i;
   ptr<void> pv = pi;
   void *unchecked_pv = 0;
-  ptr<void> p1 = _Dynamic_bounds_cast<ptr<void>>(pi);
+  void* _Single p1 = _Dynamic_bounds_cast_M_N(void* _Single, pi);
   printf("Passed p1");
   ptr<void> p2 = _Dynamic_bounds_cast<ptr<void>>(pv);
   printf("Passed p2");
@@ -218,7 +218,7 @@ void passing_test_3(void) {
   printf("Passed unchecked_pv");
   ptr<void> p3 = _Assume_bounds_cast<ptr<void>>(unchecked_pv);
   printf("Passed p3");
-  void *p4 = _Assume_bounds_cast<void *>(unchecked_pv);
+  void *p4 = _Assume_bounds_cast_M_N(void *, unchecked_pv);
   printf("Passed p4");
   puts("Expected Success");
 }
@@ -227,7 +227,7 @@ void passing_test_3(void) {
 void failing_test_1(void) {
   ptr<int> q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(15));
+  q = _Dynamic_bounds_cast_M(int* _Array, r, _Count(15));
 
   printf("Unprintable\n");
 
@@ -238,7 +238,7 @@ void failing_test_1(void) {
 void failing_test_2(void) {
   ptr<int> q = 0;
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r+8, count(3));
+  q = _Dynamic_bounds_cast_M(int* _Array, r+8, _Count(3));
 
   printf("Unprintable\n");
 
@@ -251,13 +251,13 @@ void failing_test_3(void) {
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
   array_ptr<int> s : count(5) = r;
 
-  q = _Dynamic_bounds_cast<ptr<int>>(r);
+  q = _Dynamic_bounds_cast_M_N(int* _Single, r);
   printf("Printable0\n");
 
   q = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
   printf("Printable1\n");
 
-  q = _Dynamic_bounds_cast<array_ptr<int>>(r, bounds(s, s+3));
+  q = _Dynamic_bounds_cast_M(int* _Array, r,  _Bounds(s, s+3));
   printf("Printable2\n");
 
   s = 0;
@@ -273,7 +273,7 @@ void failing_test_3(void) {
 // k = 5
 void failing_test_4(int k) {
   int r checked[10] = {0,1,2,3,4,5,6,7,8,9};
-  array_ptr<int> s : count(3) = _Dynamic_bounds_cast<array_ptr<int>>(r, count(5));
+  int* _Array s  _Count(3) = _Dynamic_bounds_cast_M(array_ptr<int>, r, _Count(5));
 
   printf("Printable1\n");
   printf("Unprintable2: %d\n", *(s+k));
@@ -283,7 +283,7 @@ void failing_test_4(int k) {
 
 // TEst dynamic checks involving possibly failig conversions to ptr<int>.
 void failing_test_5(array_ptr<char> pc : count(len), unsigned len) {
-  ptr<int> pi = _Dynamic_bounds_cast<ptr<int>>(pc);
+  int* _Single pi = _Dynamic_bounds_cast_M_N(int* _Single, pc);
   if (len < sizeof(int))
     puts("Unexpected Success");
   else if (*pi == 0)
@@ -311,8 +311,8 @@ void failing_test_7(array_ptr<char> pc : count(len), unsigned len) {
 // Test dynamic checks involving possibly failing conversions from
 // string literals.
 void failing_test_8(unsigned len) {
- nt_array_ptr<const char> p : count(len) =
-   _Dynamic_bounds_cast<nt_array_ptr<const char>>("123456", count(len));
+  const char* _Nt_array p  _Count(len) =
+      _Dynamic_bounds_cast_M(const char *_Nt_array, "123456", _Count(len));
   if (len > 6)
     puts("Unexpected Success");
   else if ((len == 0 && p != 0) || *p == '1')

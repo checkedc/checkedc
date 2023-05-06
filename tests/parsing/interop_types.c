@@ -26,8 +26,8 @@ extern void f3(int *p : itype(int checked[]), int y) {
 extern void f4(int *p : itype(int checked[10]), int y) {
 }
 
-extern void f5(int **p : itype(ptr<ptr<int>>), int y) {
-  **p = y;
+extern void f5(int **p _Itype(int* _Single *_Single), int y) {
+   **p = y;
 }
 
 extern void f6(int **p : itype(array_ptr<ptr<int>>), int y) {
@@ -36,7 +36,7 @@ extern void f6(int **p : itype(array_ptr<ptr<int>>), int y) {
 extern void f7(int **p : itype(ptr<int> checked[]), int y) {
 }
 
-extern void f8(int **p : itype(int * checked[10]), int y) {
+extern void f8(int **p _Itype(int * checked[10]), int y) {
 }
 
 // Second parameter has interop type annotation
@@ -60,10 +60,10 @@ extern void g5(int y, int **p : itype(ptr<ptr<int>>)) {
 extern void g6(int y, int **p : itype(ptr<array_ptr<int>>)) {
 }
 
-extern void g7(int y, int **p : itype(array_ptr<ptr<int>>)) {
+extern void g7(int y, int **p _Itype(int *_Single  *_Array)) {
 }
 
-extern void g8(int y, int **p : itype(ptr<int> checked[])) {
+extern void g8(int y, int **p _Itype(int* _Single checked[])) {
 }
 
 extern void g9(int y, int **p : itype(int * checked[10])) {
@@ -86,7 +86,7 @@ extern int **h3(void) : itype(ptr<ptr<int>>) {
    return 0;
 }
 
-extern int **h4(void) : itype(array_ptr<ptr<int>>) {
+extern int **h4(void) _Itype(int *_Single  *_Array) {
    return 0;
 }
 
@@ -100,9 +100,9 @@ int **a3 : itype(ptr<ptr<int>>) = 0;
 int **a4 : itype(ptr<array_ptr<int>>) = 0;
 int **a5 : itype(array_ptr<ptr<int>>) = 0;
 int **a6 : itype(array_ptr<array_ptr<int>>) = 0;
-int ***a7 : itype(ptr<ptr<ptr<int>>>) = 0;
-int a8[10] : itype(int checked[10]);
-extern int a9[] : itype(int checked[]);
+int ***a7 _Itype(ptr<ptr<ptr<int>>>) = 0;
+int a8[10] _Itype(int checked[10]);
+extern int a9[] _Itype(int checked[]);
 //
 // Structure members with interop pointer type annotations
 //
@@ -114,8 +114,8 @@ struct S1 {
   float **data4 : itype(ptr<array_ptr<float>>);
   float **data5 : itype(array_ptr<ptr<float>>);
   float ***data6 : itype(ptr<ptr<ptr<float>>>);
-  float data7[4] : itype(float checked[4]);
-  float data8[] : itype(float checked[]);
+  float data7[4] _Itype(float checked[4]);
+  float data8[] _Itype(float checked[]);
 };
 
 ///
@@ -133,12 +133,12 @@ extern void f32(const int a[10] : itype(const int checked[10])) {
 extern void f33(const int *x : itype(ptr<const int>)) {
 }
 
-extern const int *f34(void) : itype(ptr<const int>) {
+extern const int *f34(void) _Itype(const int *  _Single ) {
   return 0;
 }
 
-const int *a10 : itype(ptr<const int>) = 0;
-int *const a11 : itype(const ptr<int>) = 0;
+const int *a10 _Itype(const int *  _Single ) = 0;
+int *const a11 _Itype(int* const _Single) = 0;
 
 // First dimension of an array interop type for a parameter can
 // have modifiers or the static keyword
@@ -152,7 +152,7 @@ extern void f36(int a[static const 10] : itype(int checked[static const 10])) {
 extern void f37(int a[volatile 10] : itype(int checked[volatile 10])) {
 }
 
-extern void f38(const int *const x : itype(const int checked[const])) {
+extern void f38(const int *const x _Itype(const int checked[const])) {
 }
 
 ///
@@ -160,13 +160,15 @@ extern void f38(const int *const x : itype(const int checked[const])) {
 ///
 
 typedef ptr<int> pint;
-typedef ptr<const int> pcint;
+typedef const int *  _Single  pcint;
+
 
 extern void f40(int *x : itype(pint)) {
 }
 
-extern void f41(const int *x : itype(pcint)) {
+extern void f41(const int *x _Itype(pcint)) {
 }
+
 
 // Identifier not allowed in a type name
 

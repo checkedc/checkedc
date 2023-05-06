@@ -9,7 +9,7 @@
 
 static char *test : itype(ptr<char>);
 char p = 5;
-static char *init : itype(ptr<char>) = &p;
+static char *init  _Itype(char* _Single) = &p;
 
 int testfn(char *buf : count(len), size_t len)
 _Checked {
@@ -18,7 +18,7 @@ _Checked {
 }
 
 
-int main(int argc, array_ptr<char*> argv : count(argc)) {
+int main(int argc, char**_Array argv : count(argc)) {
   // CHECK: Starting test
   puts("Starting test");
   testfn(init, 1);

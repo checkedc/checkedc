@@ -22,11 +22,11 @@ void int_local_var_bounds_decl(void) {
   int a1 checked[5];
 
   // byte_count
-  int t21 : byte_count(5 * sizeof(int)) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
+  int t21  _Byte_count(5 * sizeof(int)) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
 
   // bounds
   int t25 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
   long int t26 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
   unsigned long int t27 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
-  enum E1 t28 : bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
+  enum E1 t28   _Bounds(a1, a1 + 5) = (int)a1; // expected-warning {{cast to smaller integer type 'int' from '_Array_ptr<int>'}}
 }

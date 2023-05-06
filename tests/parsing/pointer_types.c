@@ -39,11 +39,11 @@ extern void f5(ptr<ptr<ptr<int>>> p, int y) {
    ***p = y;
 }
 
-extern void f6(array_ptr<int> p : count(1), int y) {
-    *p = y;
+extern void f6(int *_Array p  _Count(1), int y) {
+   *p = y;
 }
 
-extern void f7(array_ptr<int> p : count(1), int y) {
+extern void f7(int *_Array p  _Count(1), int y) {
    *p = y;
    f6(p, y);
 }
@@ -57,8 +57,8 @@ extern void f9(nt_array_ptr<int> p : count(1), int y) {
   f8(p, y);
 }
 
-extern void f10(nt_array_ptr<nt_array_ptr<int>> p : count(1),
-                nt_array_ptr<int> y) {
+extern void f10(int *_Nt_array *_Nt_array p  _Count(1),
+                int *_Nt_array y) {
   *p = y;
 }
 
@@ -92,9 +92,9 @@ extern void g6(int y, array_ptr<int> p : count(1)) {
    f7(p, y);
 }
 
-extern void g7(int y, nt_array_ptr<int> p : count(1)) {
-  *p = y;
-  f9(p, y);
+extern void g7(int y, int *_Nt_array p  _Count(1)) {
+   *p = y;
+   f9(p, y);
 }
 
 
@@ -131,16 +131,14 @@ extern array_ptr<int> h6(int y, array_ptr<int> p) {
   return p;
 }
 
-
-extern array_ptr<ptr<int>> h7(int y, array_ptr<ptr<int>> p : count(1)) {
+extern int *_Single *_Array h7(int y, int *_Single *_Array p  _Count(1)) {
   **p = y;
   return p;
 }
 
-extern nt_array_ptr<int> h8(int y, nt_array_ptr<int> p) {
+extern int *_Nt_array h8(int y, int *_Nt_array p) {
   return p;
 }
-
 
 extern nt_array_ptr<ptr<int>> h9(int y, nt_array_ptr<ptr<int>> p : count(1)) {
   **p = y;
@@ -156,8 +154,8 @@ extern void k1(int y)
    int v = y;
    ptr<int> t1 = &v;
    array_ptr<int> t2 : count(1) = &v;
-   array_ptr<ptr<int>> t3  : count(1) = &t1;
-   nt_array_ptr<int> t4 = 0;
+   int *_Single *_Array t3   _Count(1) = &t1;
+   int *_Nt_array t4 = 0;
    *t1 = 0;
    *t2 = 0;
    *t3 = 0;
@@ -182,9 +180,9 @@ extern int Multiply(struct Vector vec1, struct Vector vec2) {
     return 0;
 }
 
-extern int Multiply2(ptr<struct Vector> vec1p, ptr<struct Vector> vec2p) {
+extern int Multiply2(struct Vector* _Single vec1p, struct Vector* _Single vec2p) {
     if (vec1p->len != vec2p->len) {
-       return 1;
+        return 1;
     }
     for (int i = 0; i < vec1p->len; i++) {
         vec1p->data[i] *= vec2p->data[i];
@@ -209,8 +207,8 @@ ptr<int (int x, int y)> ptrfunc;
 // Function types have no size, so bounds checking does not make sense.
 //
 // Allowed: An array_ptr to an array of function pointers.
-array_ptr<ptr<int(int x, int  y)>> array_ptr_of_ptrfunc;
-nt_array_ptr<ptr<int(int x, int  y)>> nullterm_array_ptr_of_ptrfunc;
+int (*_Single *_Array array_ptr_of_ptrfunc)(int x, int  y) ;
+int (*_Single *_Nt_array nullterm_array_ptr_of_ptrfunc)(int x, int  y);
 
 //
 // Declaring pointers to arrays and arrays of pointers
@@ -241,9 +239,9 @@ nt_array_ptr<int> nullterm_array_of_nullterm_pointers nt_checked[5];
 
 // Declare an unchecked pointer to arrays of pointers
 int *(*uncheckedptr_to_array_of_unchecked_ptrs)[5];
-ptr<int>(*unchecked_ptr_to_array_of_ptrs)[5];
-array_ptr<int>(*unchecked_ptr_to_array_of_array_ptrs)[5];
-nt_array_ptr<int>(*unchecked_ptr_to_array_of_null_term_array_ptrs)[5];
+int* _Single(*unchecked_ptr_to_array_of_ptrs)[5];
+int *_Array(*unchecked_ptr_to_array_of_array_ptrs)[5];
+int *_Nt_array(*unchecked_ptr_to_array_of_null_term_array_ptrs)[5];
 
 int *(*uncheckedptr_to_nullterm_array_of_unchecked_ptrs) nt_checked[5];
 ptr<int>(*unchecked_ptr_to_nullterm_array_of_ptrs) nt_checked[5];
@@ -257,17 +255,18 @@ ptr<array_ptr<int>[5]> ptr_to_array_of_array_ptrs;
 ptr<nt_array_ptr<int>[5]> ptr_to_array_of_nullterm_array_ptrs;
 
 // Declare ptr to nullterm arrays of pointers
-ptr<int *nt_checked[5]> ptr_to_nullterm_array_of_unchecked_ptrs;
-ptr<ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_ptrs;
-ptr<array_ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_array_ptrs;
-ptr<nt_array_ptr<int>nt_checked[5]> ptr_to_nullterm_array_of_nullterm_array_ptrs;
+int * *_Single ptr_to_nullterm_array_of_unchecked_ptrs nt_checked[5];
+int *_Single ptr_to_nullterm_array_of_ptrs nt_checked[5];
+int *_Array *_Single  ptr_to_nullterm_array_of_array_ptrs nt_checked[5];
+int *_Nt_array *_Single ptr_to_nullterm_array_of_nullterm_array_ptrs nt_checked[5];
 
 
 // Declare ptr to an array of function pointers
 ptr<int (*[5])(int x, int y)> ptr_to_array_of_unchecked_func_ptrs;
 ptr<ptr<int (int x, int y)>[5]> ptr_to_array_of_checked_func_ptrs;
 // Make parameter and return types be ptrs too.
-ptr<ptr<ptr<int> (ptr<int> x, ptr<int> y)>[5]> ptr_to_array_of_checked_func_ptrs_with_ptr_parameters;
+ptr<ptr<int* _Single (int* _Single x, int* _Single y)>[5]>
+    ptr_to_array_of_checked_func_ptrs_with_ptr_parameters;
 
 //
 // Typedefs using checked pointer types
@@ -277,8 +276,8 @@ typedef ptr<int> t_ptr_int;
 typedef ptr<int (int x, int y)> t_ptr_func;
 typedef array_ptr<int> t_array_ptr_int;
 typedef array_ptr<ptr<int>> t_array_ptr_ptr_int;
-typedef nt_array_ptr<int> t_nullterm_array_ptr_int;
-typedef nt_array_ptr<ptr<int>> t_nullterm_array_ptr_ptr_int;
+typedef int *_Nt_array t_nullterm_array_ptr_int;
+typedef int *_Single *_Nt_array t_nullterm_array_ptr_ptr_int;
 
 //
 // Operators that take types
@@ -314,7 +313,7 @@ void parse_operators_with_types(void) {
     int s28 = _Alignof(int(int x, int y));
     int s29 = _Alignof(ptr<int>(int x, int y));
     // These are OK
-    int s30 = _Alignof(ptr<int(int x, int y)>);
+    int s30 = _Alignof(int (*_Single)(int x, int y));
     int s31 = _Alignof(int(*)(int x, int y));
 
     // Test parsing of some cast operations that should pass checking
@@ -331,4 +330,6 @@ void parse_operators_with_types(void) {
     // ptr to function type
     ptr<int (int x, int y)> pfunc = (ptr<int (int x, int y)>) 0;
     ptr<ptr<int (int x, int y)>[5]> ptr_to_pfunc_arr = (ptr<ptr<int (int x, int y)>[5]>) 0;
+    int (*_Single (*_Single m_ptr_to_pfunc_arr)[5])(int x, int y)= (int (*_Single (*_Single)[5])(int x, int y)) 0;
+
 }

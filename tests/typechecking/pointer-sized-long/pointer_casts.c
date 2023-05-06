@@ -14,7 +14,7 @@ _Static_assert(sizeof(void*) == sizeof(long),
 struct S1 {
   int len;
   // bound declaration on a long-typed member.
-  long p : bounds((char *)p, (char *)p + len);
+  long p  _Bounds((char *)p, (char *)p + len);
 };
 
 extern struct S1 f1();    // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
@@ -25,7 +25,7 @@ extern void f2(struct S1); // expected-error {{cannot redeclare a function with 
 extern void f3();
 extern void f3(long p : bounds((char *)p, (char *)p + len), int len);
 
-extern void f4(long p : bounds((char *)p, (char *)p + len), int len);
+extern void f4(long p  _Bounds((char *)p, (char *)p + len), int len);
 extern void f4();
 
 //
@@ -70,6 +70,7 @@ extern int f10(int a, _Array_ptr<int> b,
                                                                                  // expected-warning 2 {{cast to '_Array_ptr<int>' from smaller integer type 'short'}} \
                                                                                  // expected-warning 2 {{cast to smaller integer type 'short' from '_Array_ptr<int>'}}
 
-extern int f11(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
-extern int f11(int a, _Array_ptr<int> b,
-                _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (void *) (long) b + a));
+extern int f11(int a, int* _Array b, char* _Array p  _Bounds(b, b + a));
+extern int f11(int a, int* _Array b,
+               char* _Array p  _Bounds(b, (int* _Array) (void *) (long) b + a));
+

@@ -18,10 +18,10 @@ extern array_ptr<int> f5(array_ptr<int> arr : byte_count(5 * sizeof(int)))
                       : byte_count(5 * sizeof(int));
 extern array_ptr<int> f6(array_ptr<int> arr : bounds(arr, arr + 5))
                       : bounds(arr, arr + 5);
-extern array_ptr<int> f7(int start,
-                         array_ptr<int> arr : bounds(arr - start, arr - start + 5))
-                      : bounds(arr - start, arr - start + 5);
-extern array_ptr<char> f8(void) : bounds(unknown);
+extern int* _Array f7(int start,
+                      int* _Array arr  _Bounds(arr - start, arr - start + 5))
+    _Bounds(arr - start, arr - start + 5);
+extern char* _Array f8(void)  _Bounds(unknown);
 
 // Parsing of return bounds expressions containing return_value.  Test this by
 // expanding count/byte_count expressions into bounds expressions.
@@ -35,8 +35,8 @@ extern array_ptr<int> f3a(int len, array_ptr<int> arr : count(len))
 // only when they immediately follow a ':';
 extern array_ptr<char> f9(int count) : count(count);
 extern array_ptr<char> f10(int unknown) : count(unknown);
-extern array_ptr<int> f11(int bounds, array_ptr<int> arr : count(bounds))
-                      : bounds(arr, arr + bounds);
+extern int* _Array f11(int bounds, int* _Array arr  _Count(bounds))
+    _Bounds(arr, arr + bounds);
 
 // Parsing function definitions.
 extern array_ptr<int> f1(array_ptr<int> arr : count(5)) : count(5) {
@@ -53,10 +53,11 @@ extern array_ptr<int> f3(int len,
   return arr;
 }
 
-extern array_ptr<int> f4(array_ptr<int> arr : byte_count(20))
-                      : byte_count(20) {
+extern int* _Array f4(int* _Array arr  _Byte_count(20))
+    _Byte_count(20) {
   return arr;
 }
+
 
 extern array_ptr<int> f5(array_ptr<int> arr : byte_count(5 * sizeof(int)))
                       : byte_count(5 * sizeof(int)) {
@@ -68,10 +69,10 @@ extern array_ptr<int> f6(array_ptr<int> arr : bounds(arr, arr + 5))
   return arr;
 }
 
-extern array_ptr<int> f7(int start,
-                         array_ptr<int> arr : bounds(arr - start, arr - start + 5))
-                      : bounds(arr - start, arr - start + 5) {
-   return arr;
+extern int* _Array f7(int start,
+                      int* _Array arr  _Bounds(arr - start, arr - start + 5))
+    _Bounds(arr - start, arr - start + 5) {
+  return arr;
 }
 
 extern array_ptr<char> f8(void) : bounds(unknown) {
@@ -92,8 +93,8 @@ extern array_ptr<char> f10(int unknown) : count(unknown) {
 
 // 'bounds' is a contextual keyword.  It is only a keyword when it
 // immediately follows the ':' in a bounds declaration.
-extern array_ptr<int> f11(int bounds, array_ptr<int> arr : count(bounds))
-                      : bounds(arr, arr + bounds) {
+extern int* _Array f11(int bounds, int* _Array arr  _Count(bounds))
+    _Bounds(arr, arr + bounds) {
   return arr;
 }
 
@@ -128,8 +129,10 @@ extern array_ptr<int[10]> f16(array_ptr<int[10]> arr : count(5))
   return arr;
 }
 
-extern array_ptr<int[10]> f17(array_ptr<int[10]> arr : count(5))
-                          : bounds(arr, arr + 3) {
+typedef  int (* _Array arrayptr10)[10];
+
+extern arrayptr10 f17(arrayptr10 arr  _Count(5))
+    _Bounds(arr, arr + 3) {
   return arr;
 }
 
@@ -151,8 +154,10 @@ extern ptr<array_ptr<int>(int len) : count(len)> f19(int len) {
 }
 
 // Check that return_value can be used.  Expand count to a bounds expression.
-extern ptr<array_ptr<int>(int len) : bounds(return_value, len + return_value)>
-f19a(int len) {  return 0; }
+typedef int* _Array f19a_temp(int len) _Bounds(return_value, return_value + len);
+extern f19a_temp* _Single f19a(int len) {
+  return 0;
+}
 
 // Like the prior function, but returns an unchecked pointer instead. The
 // unchecked pointer points to a function that takes in a length and returns an
@@ -170,8 +175,9 @@ extern array_ptr<int> (*f20(int arg))(int len) : count(len) {
 
 // Function that returns an array pointer to ptrs to functions that take in a
 // length and return array_ptr<int>s of that length.
-extern array_ptr<ptr<array_ptr<int>(int len) : count(len)>> f21(int arg)
-                                                            : count(arg) {
+typedef int* _Array f21_temp(int len) _Count(len);
+typedef f21_temp* _Single f21_temp2;
+extern f21_temp2* _Array f21(int arg)  _Count(arg) {
   return 0;
 }
 
@@ -209,7 +215,7 @@ extern void f24(void) {
   // Use 'bounds' instead of 'count'.
   ptr<array_ptr<int>(array_ptr<int> arg : count(5)) : bounds(arg, arg + 5)>
     r1 = 0;
-  ptr<int(array_ptr<int> arg : count(n), int n) : bounds(arg, arg + n)> r2 = 0;
+  int (*_Single r2)(int* _Array arg  _Count(n), int n)  _Bounds(arg, arg + n) = 0;
   // Unchecked pointers to functions.
   int(*s1)(array_ptr<int> : count(5)) = 0;
   int(*s2)(array_ptr<int> arg : count(5)) = 0;
@@ -218,8 +224,8 @@ extern void f24(void) {
   // Use 'byte_count' instead of 'count'.
   int(*t1)(array_ptr<int> : byte_count(5 * sizeof(int))) = 0;
   int(*t2)(array_ptr<int> arg : count(5 * sizeof(int))) = 0;
-  int(*t3)(int n, array_ptr<int> arg : count(n * sizeof(int))) = 0;
-  int(*t4)(array_ptr<int> arg : count(n * sizeof(int)), int n) = 0;
+  int(*t3)(int n, int* _Array arg  _Count(n * sizeof(int))) = 0;
+  int(*t4)(int* _Array arg  _Count(n * sizeof(int)), int n) = 0;
 }
 
 typedef array_ptr<int> func1(int len) : count(len);
@@ -237,7 +243,7 @@ extern array_ptr<char> f26(void) : count(len) { // expected-error {{use of undec
 }
 
 // Misspell bounds to cause a parsing error.
-extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len)) { // expected-error {{expected bounds expression}}
+extern int* _Array f27(int len, int* _Array arr  _Count(len)) : boounds(arr, arr + len)) { // expected-error {{expected bounds expression}}
   return 0;
 }
 
@@ -252,7 +258,7 @@ extern array_ptr<int> f29(int len, array_ptr<int> arr : count(len)) : bounds(arr
 }
 
 // Omit both arguments to bounds to cause a parsing error
-extern array_ptr<int> f30(int len, array_ptr<int> arr : count(len)) : bounds() { // expected-error {{expected expression}}
+extern int* _Array f30(int len, int* _Array arr  _Count(len))  _Bounds() { // expected-error {{expected expression}}
   return 0;
 }
 
@@ -283,7 +289,7 @@ int *(f33(int i)) : count(10) { // expected-error {{unexpected bounds expression
 // _Return value can only be used in a return bounds expression
 //
 
-int f40(array_ptr<int> a : bounds(return_value, return_value + 10)); // expected-error 2 {{_Return_value can be used only in a return bounds expression}}
+int f40(int* _Array a  _Bounds(return_value, return_value + 10)); // expected-error 2 {{_Return_value can be used only in a return bounds expression}}
 
 int f41(void) {
   return_value = 0;  // expected-error {{_Return_value can be used only in a return bounds expression}}

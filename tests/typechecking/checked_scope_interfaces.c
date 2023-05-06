@@ -22,7 +22,7 @@
 #include <stdchecked.h>
 
 // Parameters with simple types.
-checked int f1(int *s : itype(ptr<int>)) {
+checked int f1(int *s _Itype(int *_Single)) {
   int t1 = *s;        // Allowed in checked scope.
   int t2 = *(s + 4);  // expected-error {{arithmetic on _Ptr type}}
   int t3 = s[4];      // expected-error {{subscript of '_Ptr<int>'}}
@@ -32,8 +32,8 @@ checked int f1(int *s : itype(ptr<int>)) {
   array_ptr<int> t4 : count(1) = s;
   s = t4;
 
-  array_ptr<float> t5 : count(1) = s; // expected-error {{incompatible type}}
-  array_ptr<float> t6 = 0;
+  float* _Array t5  _Count(1) = s; // expected-error {{incompatible type}}
+  float* _Array t6 = 0;
   s = t6;                              // expected-error {{incompatible type}}
 
   return 0;
@@ -51,7 +51,7 @@ checked int f2(int *s : count(len), int len) {
   return 0;
 }
 
-checked int f3(int *s : itype(array_ptr<int>), int len) {
+checked int f3(int *s  _Itype(int *_Array), int len) {
   array_ptr<int> t1 = s + 5; // allowed
   int t2 = *s;                // expected-error {{expression has unknown bounds}}
   int t3 = s[4];              // expected-error {{expression has unknown bounds}}
@@ -61,8 +61,8 @@ checked int f3(int *s : itype(array_ptr<int>), int len) {
   return 0;
 }
 
-checked int f4(int *s : itype(int checked[4])) {
-  array_ptr<int> t1 = s + 4;
+checked int f4(int *s  _Itype(int checked[4])){
+  int *_Array t1 = s + 4;
   int t2 = *s;
   int t3 = s[3];
   *(s + 3) = 0;
@@ -83,8 +83,8 @@ checked int f5(int *s : itype(int checked[])) {
 
 // Test cases where a bounds-safe interface type is implied by a bounds
 // expression on an unchecked type
-checked int f6(int *s : count(4)) {
-  array_ptr<int> t1 = s + 3;
+checked int f6(int *s  _Count(4)) {
+  int *_Array t1 = s + 3;
   int t2 = *s;
   int t3 = s[3];
   *(s + 3) = 0;
@@ -103,8 +103,8 @@ checked int f7(int *s : bounds(s, s + 4)) {
   return 0;
 }
 
-checked int f8(int *s : byte_count(4 * sizeof(int))) {
-  array_ptr<int> t1 = s + 3;
+checked int f8(int *s  _Byte_count(4 * sizeof(int))) {
+  int *_Array t1 = s + 3;
   int t2 = *s;
   int t3 = s[3];
   *(s + 3) = 0;
@@ -113,11 +113,11 @@ checked int f8(int *s : byte_count(4 * sizeof(int))) {
   return 0;
 }
 
-checked int* func10(ptr<int> p, int *q : itype(ptr<int>)) : itype(ptr<int>) {
+checked int* func10(int *_Single p, int *q  _Itype(int *_Single))  _Itype(int *_Single) {
   int a = 5;
-  ptr<int> pa = &a;
-  ptr<int> pb = p;
-  ptr<int> pc = q;
+  int *_Single pa = &a;
+  int *_Single pb = p;
+  int *_Single pc = q;
   return 0;
 }
 
@@ -137,43 +137,43 @@ int *gptr : bounds(garr, garr + 5);
 int gval : bounds(garr, garr + 10);
 
 checked void test_globals(void) {
-  // ptr<int>
+  // int *_Single
   int t1 = *g1;        // Allowed in checked scope.
   int t2 = *(g1 + 4);  // expected-error {{arithmetic on _Ptr type}}
   int t3 = g1[4];      // expected-error {{subscript of '_Ptr<int>'}}
   *(g1 + 4) = 0;       // expected-error {{arithmetic on _Ptr type}}
   g1[4] = 0;           // expected-error {{subscript of '_Ptr<int>'}}
 
-  array_ptr<int> t4 : count(1) = g1;
+  int *_Array t4  _Count(1) = g1;
   g1 = t4;
 
-  array_ptr<float> t5 : count(1) = g1; // expected-error {{incompatible type}}
-  array_ptr<float> t6 = 0;
+  float* _Array t5  _Count(1) = g1; // expected-error {{incompatible type}}
+  float* _Array t6 = 0;
   g1 = t6;                              // expected-error {{incompatible type}}
 
-  // array_ptr<int> with bounds.
+  // int *_Array with bounds.
   int t11 = *g2;
-  int t12 = *(g2 + 4);  
+  int t12 = *(g2 + 4);
   int t13 = g2[4];
   *(g2 + 4) = 0;
   g2[4] = 0;
 
-  // array_ptr<int> without bounds
-  array_ptr<int> t21 = g3 + 4; // allowed
+  // int *_Array without bounds
+  int *_Array t21 = g3 + 4; // allowed
   int t22 = *g3;                // expected-error {{expression has unknown bounds}}
   int t23 = g3[4];              // expected-error {{expression has unknown bounds}}
   *(g3 + 4) = 0;                // expected-error {{expression has unknown bounds}}
   g3[4] = 0;                    // expected-error {{expression has unknown bounds}}
 
   // int checked[5]
-  array_ptr<int> t31 = g4 + 4;
+  int *_Array t31 = g4 + 4;
   int t32 = *g4;
   int t33 = g4[4];
   *(g4 + 4) = 0;
   g4[4] = 0;
 
   // int checked[]
-  array_ptr<int> t41 = g5+ 4;
+  int *_Array t41 = g5+ 4;
   int t42 = *g5;                // expected-error {{expression has unknown bounds}}
   int t43 = g5[4];              // expected-error {{expression has unknown bounds}}
   *(g5 + 4) = 0;               // expected-error {{expression has unknown bounds}}
@@ -187,9 +187,8 @@ void f10(int *p : itype(ptr<int>));
 void f11(int *p : count(4));
 void f12(int *p : itype(array_ptr<int>));
 void f13(int *p : itype(int checked[]));
-void f14(int *p : itype(int checked[4]));
-void f15(ptr<int> p, int *q : itype(ptr<int>));
-
+void f14(int *p  _Itype(int checked[4]));
+void f15(int *_Single p, int *q  _Itype(int *_Single));
 
 extern int empty_global_arr[] : itype(int checked[]);
 
@@ -197,7 +196,7 @@ extern int empty_global_arr[] : itype(int checked[]);
 checked int test_call_parameters(void) {
   ptr<int> param1 = 0;
   array_ptr<int> param2 : count(4) = 0;
-  array_ptr<int> param3;
+  int *_Array param3;
   int arr1 checked[4];
   f10(param1);
   f10(param2);
@@ -243,8 +242,8 @@ checked void f11d(int *lower : itype(array_ptr<int>),
 checked void f11e(char *buf : bounds(buf, end),
                   char *end : itype(_Array_ptr<char>));
 checked void f12a(int *p : itype(array_ptr<int>));
-checked void f13a(int *p : itype(int checked[]));
-checked void f14a(int *p : itype(int checked[4]));
+checked void f13a(int *p  _Itype(int checked[]));
+checked void f14a(int *p  _Itype(int checked[4]));
 checked void f15a(ptr<int> p, int *q : itype(ptr<int>));
 
 
@@ -255,13 +254,14 @@ checked int* f20(int a checked[][5], int b checked[][5]) : itype(ptr<int>) {
   return 0;
 }
 
-checked int* f21(int *a : itype(ptr<int>), int *b : itype(array_ptr<int>)) : itype(array_ptr<int>) checked {
+checked int* f21(int *a  _Itype(int *_Single), int *b  _Itype(int *_Array))
+    _Itype(int *_Array) checked {
   int e checked[5][5];
   _Unchecked {
     int *upa = f20(e, e);
   }
   int *upa = f20(e, e);     // expected-error {{local variable in a checked scope must have a checked type}}
-  ptr<int> pb = f20(e, e);
+  int *_Single pb = f20(e, e);
   return pb;
 }
 
@@ -273,7 +273,7 @@ checked int *f21b(int *b : count(4)) : byte_count(4 * sizeof(int)) {
   return b;
 }
 
-checked int *f21c(int *b : count(4)) : bounds(return_value, return_value + 4) {
+checked int *f21c(int *b : count(4)) _Bounds(return_value, return_value + 4) {
   return b;
 }
 
@@ -287,7 +287,7 @@ checked int *f21d(int *b : count(4)) :
 // Test checked return types implied by a bounds-safe interface
 checked void test_checked_returns(void) {
   int arr1 checked[5][5];
-  ptr<int> t1 = f20(arr1, arr1);
+  int *_Single t1 = f20(arr1, arr1);
 
   int arr2 checked[4];
   array_ptr<int> t2 = f21(0, arr2);
@@ -308,7 +308,7 @@ checked int* f22() : itype(array_ptr<int>);  // expected-error {{function withou
 // Illegal interface types for parameters in a checked scope.
 //
 
-checked int* f23(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *) checked {// expected-error 3 {{type must be a checked type}}
+checked int* f23(int a[]  _Itype(int *), char b[]  _Itype(char *))  _Itype(int *) checked {// expected-error 3 {{type must be a checked type}}
 }
 
 //-----------------------------------------------------------------------
@@ -318,7 +318,7 @@ checked int* f23(int a[] : itype(int *), char b[] : itype(char *)) : itype(int *
 
 // Return a ptr from a checked scope for a function with a
 // a bounds-safe interface return type of ptr.
-int *f30(void) : itype(ptr<int>) {
+int *f30(void)  _Itype(int *_Single)  {
   checked{
     ptr<int> p = 0;
   return p;
@@ -339,7 +339,7 @@ int *f31(int len) : count(len) {
 // Return an ptr from a checked scope for a function with a
 // a bounds-safe interface return type of ptr, where the
 // returned value has a bounds-safe interface type.
-int *f32(int * p : itype(ptr<int>)) : itype(ptr<int >) {
+int *f32(int * p  _Itype(int *_Single))  _Itype(ptr<int >)  {
   checked{
     return p;
   }
@@ -385,7 +385,7 @@ int *f36(void) : itype(ptr<int>) {
 
 int ga = 5;
 
-checked int * func37(void) : itype(array_ptr<int>) _Unchecked {
+checked int * func37(void)  _Itype(int *_Array) _Unchecked  {
    int *upa = &ga;
    return upa;
 }
@@ -402,8 +402,8 @@ checked int * func38(void) : itype(ptr<int>) _Unchecked {
 #pragma CHECKED_SCOPE ON
 struct S1 {
   int *f1 : itype(ptr<int>);
-  int *f2 : count(5);
-  int *f3 : count(len);
+  int *f2  _Count(5);
+  int *f3  _Count(len);
   int *f4 : bounds(f5, f5 + 5);  // use of f5 here is intentional.
   int *f5 : bounds(f5, f5 + len);
   int len;
@@ -523,15 +523,15 @@ struct S2 {
   int *f4 : itype(array_ptr<int>);
   int arr[5] : itype(int checked[5]);
   // pointer to function that returns a ptr<ptr<int>>
-  int **((*fp1)(int *param : itype(ptr<int>))) :
-    itype(ptr<ptr<ptr<int>> (int *param : itype(ptr<int>))>);
+  int **((*fp1)(int *param  _Itype(int *_Single))) :
+    itype(int *_Single *_Single (*_Single)(int *param  _Itype(int *_Single)));
 
   // pointer to function that returns an array_ptr<ptr<int>>
   int **((*fp2)(int *param : itype(ptr<int>),int len)) :
     itype(ptr<array_ptr<ptr<int>>(int *param : itype(ptr<int>), int len) : count(len)>);
 };
 
-checked int test_struct3(struct S2 *p : itype(ptr<struct S2>)) {
+checked int test_struct3(struct S2 *p  _Itype(ptr<struct S2>)) {
   (*(p->fp1))(p->f1) + 5;    // expected-error {{arithmetic on _Ptr type}}
   *((*(p->fp1))(p->f1)) + 5; // expected-error {{arithmetic on _Ptr type}}
   (*(p->fp2))(p->f1, 5) + 4;
@@ -545,7 +545,7 @@ checked int test_struct3(struct S2 *p : itype(ptr<struct S2>)) {
 }
 
 // Unchecked version - there should be no error messages.
-unchecked int test_struct4(struct S2 *p : itype(ptr<struct S2>)) {
+unchecked int test_struct4(struct S2 *p  _Itype(ptr<struct S2>))  {
   (*(p->fp1))(p->f1) + 5;
   *((*(p->fp1))(p->f1)) + 5;
   (*(p->fp2))(p->f1, 5) + 4;
@@ -576,7 +576,7 @@ base_with_interfaces table2[10] : itype(fnptr_interface checked[10]);
 // In a checked scope, table1 and table2 are retyped as having checked types
 // based on their bounds-safe interfaces. That means that the result of an
 // indirect function call through table1 or table2 has typr Ptr.
-checked void test1_array_of_function_pointers(ptr<int> arg1, ptr<ptr<int>> arg2, int num) {
+checked void test1_array_of_function_pointers(int *_Single arg1, ptr<int *_Single> arg2, int num) {
   ptr<int> result1 = (*(table1[num]))(arg1, arg2);
   (*(table1[num]))(arg1, arg2) + 5;  // expected-error {{arithmetic on _Ptr type}}
   (*(table2[num]))(arg1, arg2);
@@ -626,25 +626,25 @@ int mblen(const char *s : count(n), size_t n);
 
 void (*signal(int sig,
               void ((*func)(int)) :
-                itype(_Ptr<void (int)>) // bound-safe interface for func
-              ) : itype(_Ptr<void (int)>) // bounds-safe interface for signal return
-     )(int);
+              itype(_Ptr<void (int)>) // bound-safe interface for func
+              )  _Itype(_Ptr<void (int)>) // bounds-safe interface for signal return
+      )(int);
 
 void handler(int);  // for testing signal.
 
 void test_bounds_safe_interface(void) {
-  array_ptr<int> arr0 : count(4) = checked_calloc(4, sizeof(size_t));
+  int *_Array arr0  _Count(4) = checked_calloc(4, sizeof(size_t));
 
   for (int i = 0; i < 4; i++)
     _Unchecked{
-    checked_malloc(arr0[i]);
-  }
-  ptr<int> arr1 = checked_malloc(10);
+      checked_malloc(arr0[i]);
+    }
+  int *_Single arr1 = checked_malloc(10);
 #pragma CHECKED_SCOPE OFF
   void *unchecked_ptr;
 #pragma CHECKED_SCOPE ON
-  array_ptr<int> arr2 = checked_realloc(arr1, 20);
-  array_ptr<int> arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{local variable used in a checked scope must have a checked type}}
+  int *_Array arr2 = checked_realloc(arr1, 20);
+  int *_Array arr3 = checked_realloc(unchecked_ptr, 20);  // expected-error {{local variable used in a checked scope must have a checked type}}
 
   _Unchecked {
     typedef void (*return_fn)(int);
