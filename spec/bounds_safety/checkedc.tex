@@ -185,14 +185,10 @@
 {\center
 \mbox{ }\\
 \vspace{1in}
-{\huge Extending C with bounds safety and improved type safety\par}
+{\huge Checked C Specification \par}
 %{Version 0.7.1 (June 8, 2018) \par}
-{Version 0.9 - Draft as of \today \par}
+{Version 1.0 - Draft as of \today \par}
 \vspace{0.25in}
-{Checked C Technical Report Number 1 \par}
-\vspace{0.125in}
-{Author: David Tarditi, Microsoft\par} 
-\vspace{0.5in}
 {\it Summary \par}
 \input{abstract}
 }
@@ -202,16 +198,21 @@
 \mbox{  }\\
 \vspace{1.0in}
 
-Microsoft is making this Specification available under the Open Web
-Foundation Final Specification Agreement (version OWF 1.0).  The OWF 1.0
-is available at {\color{blue} \url{http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0}}.
+This specification is made available under the Open Web
+Foundation Final Specification Agreement (version OWF 1.0).  The OWF 1.0 Agreement
+is available at {\color{blue} 
+\url{https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0}}.
 
-This Specification is part of an on-going research project.
-Contributions to this specification
-are made under the Open Web Foundation Contributor License 1.0. 
-This license is available at {\color{blue} \url{http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owf-contributor-license-agreement-1-0---copyright-and-patent}}.
+Contributions to this specification are made under the Open Web Foundation Contributor License 1.0. 
+This license is available at {\color{blue} 
+\url{https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owf-contributor-license-agreement-1-0-copyright-and-patent}}.
+
+This specification is based on  "Extending C with bounds safety and improved type safety", version 0.9,
+{\color{blue} \url{https://github.com/microsoft/checkedc/releases/download/CheckedC-Clang-12.0.1-rel3/checkedc-v0.9.pdf}.
 
 \newpage
+
+\include{changelog}
 
 % use roman numbers for the table of contents
 \setcounter{page}{1}
@@ -225,6 +226,7 @@ This license is available at {\color{blue} \url{http://www.openwebfoundation.org
 \pagenumbering{arabic}
 
 \include{pictures/rel-align-picture1}
+\part{Specification}
 \include{introduction}
 \include{core-extensions}
 \include{variable-bounds}
@@ -232,21 +234,17 @@ This license is available at {\color{blue} \url{http://www.openwebfoundation.org
 \include{void-ptr-replacements}
 \include{interoperation}
 \include{structure-bounds}
+\include{related-work}
+\include{design-alternatives}
+\part{Possible future features}
 \include{pointers-to-pointers}
 \include{simple-invariants}
-\include{related-work}
-%\chapter{Experience applying to this to OpenSSL}
-%\label{chapter:eval}
 \include{open-issues}
-\include{design-alternatives}
-
 \nocite{Jones2009}
 \nocite{Jim2002}
+
 \bibliographystyle{plain}
 \bibliography{sources}
 
 \appendix
-% \include{fragments}
-% \include{span-compilation}
-
 \end{document}

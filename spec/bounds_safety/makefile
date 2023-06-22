@@ -1,5 +1,6 @@
 PAPERNAME=checkedc
 FILES = abstract.tex \
+        changelog.tex \
         checking-variable-bounds.tex \
         core-extensions.tex \
         design-alternatives.tex \
