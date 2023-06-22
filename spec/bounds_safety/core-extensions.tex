@@ -856,37 +856,6 @@ nt_array_ptr<nt_array_ptr<char>> sentences nt_checked[4] =
    };
 \end{lstlisting}
 
-\section{Relative alignment of \arrayptr\ values}
-\label{section:relative-alignment}
-
-\arrayptrT\ pointers provide
-pointer arithmetic on arrays. The bounds for these pointers usually
-describe a range of memory that is exactly the size of some array of \var{T}.
-The pointers point to an element of the array. In other words, the lower
-bound, the upper bound, and pointer are  relatively aligned to the type
-\var{T}. Given a lower bound \var{lb}, an upper bound \var{ub}, and a
-pointer \var{p}, there should exist some integer \var{count} such that
-\var{ub} = \var{lb} + \var{count}. In addition, there is either some
-integer \var{index} such that \var{p} = \var{lb} + \var{index},
-where addition is C pointer arithmetic, or \var{p} is null.
-
-The type to which a pointer and its bounds are relatively aligned is
-called the relative alignment type. By default, the relative alignment
-type for a pointer and its bounds is the referent type. However, the
-relative alignment type can be overridden by specifying it explicitly as
-part of the bounds.  This is described in
-Section~\ref{section:representing-relative-alignment}.
-This can be used for bounds for the results of pointers casts and
-for  \arrayptrvoid\ pointers. The type
-\void\ has no defined size, so the default relative alignment is
-undefined for \void.
-
-We considered removing the entire concept of relative alignment from the
-design to simplify the design.  We decided against that because it would
-increase the cost of bounds checking throughout the program.
-Section~\ref{section:design-alternatives:always-unaligned} explains
-this choice in more detail.
-
 \section{Pointer arithmetic error conditions}
 \label{section:pointer-arithmetic-errors}
 
