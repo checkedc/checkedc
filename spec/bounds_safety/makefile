@@ -11,6 +11,7 @@ FILES = abstract.tex \
         open-issues.tex \
         pointers-to-pointers.tex \
         related-work.tex \
+        roadmap.tex \
         simple-invariants.tex \
         span-compilation.tex \
         structure-bounds.tex \
