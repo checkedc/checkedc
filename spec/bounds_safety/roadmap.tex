@@ -423,7 +423,7 @@ alignment for an \arrayptrint\ is
 \begin{lstlisting}
 array_ptr<int> data : bounds(lower, upper) = ...
 array_ptr<char> byte_data : bounds(lower, upper) rel_align(int) = (array_ptr<char>) data;
-array_ptr<int> finish : bounds(lower, upper) = (array_ptr(int>) byte_data;
+array_ptr<int> finish : bounds(lower, upper) = (array_ptr<int>) byte_data;
 \end{lstlisting}
 
 The third example illustrates a subtlety when an
@@ -433,11 +433,11 @@ use of pointer arithmetic may require that relative alignment be
 lowered. Suppose that the size of \code{short int} is 2 bytes and the
 size of an \code{int} is 4 bytes:
 
-\begin{lstlisting}
+\begin{verbatim}
 array_ptr<int> d : bounds(lower, upper) = ...
 array_ptr<short int> e : bounds(lower, upper) rel_align(int) = (array_ptr<short int>) d;
 array_ptr<short int> f : bounds(lower, upper) rel_align(short int) = e + 1;
-\end{lstlisting}
+\end{verbatim}
 
 While \code{e} can have relative alignment of \code{int}, \code{f}
 cannot because pointer arithmetic is done at the granularity of
@@ -467,6 +467,7 @@ void copy(array_ptr<char> dst : bounds(dst, dst + num),
     for (int i = 0; i < num; i++) {
       dst[i] = src[i];
     }
+ }
 }
 \end{lstlisting}
 
