@@ -19,10 +19,6 @@ can corrupt memory directly and indirectly.
 Pointers to void are used widely for {\em untyped} programming that bypasses
 static checking.  Uses include:
 \begin{itemize}
-\item As handles that hide details of API implementations.  An
-API may provide a handle that is typed as \uncheckedptrvoid\ for 
-users of the API, with the API implementation using a pointer to an actual
-type.
 \item As pointers to arrays of bytes.  This is done by APIs such as \lstinline+memcpy+.
 \item In generic data structures or functions. For example, 
 a program may have a data structure and functions for operating on lists. 
@@ -38,19 +34,14 @@ the user-supplied data can be cast to \uncheckedptrvoid{}.
 These extensions are restricted so that code remains data-layout compatible and binary-code
 compatible with existing code.  The extensions include:
 \begin{itemize}
-\item Opaque types: these allow different kinds of handles to be distinguished.
-They are incomplete types with enough information to represent
-the types, but nothing else.  They can be copied around and used, but the internal
-details remain unknown in the scope of the declaration.  No conversions to and 
-from opaque types are allowed.
-
 \item Generic structs, functions, and type definitions: these allow structs
 or functions to be re-used for many types.   For example,
 a generic structure for a  \lstinline+List+ can be re-used for many different types of list
 elements.  Generic functions can implement generic list operations such as \lstinline+Append+.
 
-\item Hidden types: these generalize opaque types to handle callbacks involving
-user-supplied data.  Hidden types allow programmers to package up a callback function and data and
+\item Existential types: these providing a way way of hiding implementations or representing
+lists of callbacks involving user-supplied data.  Existential types allow programmers to package
+ up a callback function and data and
 say that they use  some type \lstinline+T+ whose details are hidden from the code that does
 the callback.   Enough details about \lstinline+T+ are available that the callback can be 
 implemented in a type-safe fashion efficiently.  Hidden types hide details of the type
@@ -62,53 +53,12 @@ to provide type-safe interfaces for functions that operate on arrays of bytes.
 Informally, bounds checking provides a way to guarantee that entire objects are handled,
 avoiding corruptions caused by operating only on partial objects.
 
-The remaining sections of this chapter explain the extensions for 
-opaque types, generic functions, generic structures, and hidden types.  They also
+The remaining sections of this chapter explain the extensions for generic functions, 
+generic structures, and hidden types.  They also
 provide examples that illustrate how the extensions can be used to
 replace uses of \uncheckedptrvoid{}.
 
-\section{Opaque types}
 
-We extend \keyword{typedef} declarations so that they can also declare opaque types. 
-The \keyword{typedef} is followed by the new keyword \keyword{opaque}.
-This creates a new named type that is distinct from all other types during
-typechecking and that uses the specified type as its runtime representation.
-Importantly, the new named type is not the same as the specified type.  This allows
-handle types to be distinguished during typechecking:
-\begin{lstlisting}
-typedef opaque void *ProcessHandle;
-typedef opaque void *FileHandle;
-\end{lstlisting}
-An attempt to use a \lstinline+ProcessHandle+ where a \lstinline+FileHandle+ 
-is expected will result in a typechecking error.
-
-To implement operations on an opaque type,
-programmers reveal the actual implementation type of the opaque type
-in some scopes of the program.  The
-keyword \keyword{typedef} is followed by the new keyword \keyword{reveal}:
-\begin{lstlisting}
-typedef reveal _Ptr<struct ProcessData> ProcessHandle;
-typedef reveal _Ptr<struct FileData> FileHandle;
-\end{lstlisting}
-In the scope of a \keyword{reveal} declaration, casts between the
-opaque type and the implementation type are allowed.  
-Converting the implementation type to the representation
-type and back to the implementation type must not lose information.  
-The rules for conversions in the C specification are followed.   Note that 
-this allows the representation type to be larger (in terms of bits) than the implementation type.
-
-C-style casts between opaque types and other types are otherwise not allowed.
-In the special case where a programmer must convert an opaque type to another
-type (for example, a \uncheckedptrvoid{} is being stored as an integer in an existing
-program), the special operator \lstinline|opaque_cast| is provided.
-
-It is implementation-defined whether a pointer to a function type with a
-parameter or return type that is an implementation type can be converted
-explicitly to a pointer to a function type where the corresponding type
-is the opaque type.   The calling convention must be the same for
-the implementation and representation type.  If the representation type is \uncheckedptrvoid{}
-and the implementation type is also a pointer type,  these conversions would be
-allowed in C implementations where all pointer types have the same calling convention.
 
 \section{Generic functions}
 \label{sec:generic-functions}
@@ -231,56 +181,6 @@ of the pointer could result in an invalid pointer.
 This is handled in the bounds-safe interface by requiring that the
 size be a multiple of the size of \lstinline+T+.
 
-\section{Type variables with representation constraints}
-
-The code for \lstinline+bsearch+ can be re-used because \lstinline+bsearch+ is
-not making assumptions about the runtime representation of data with a type
-given by type variable \var{T}.  However, sometimes programmers do make assumptions 
-about the representation of \var{T}.  They may write a hash table that maps
-keys to pointers or integers.    A programmer may specify the representation type by
-adding a {\it representation} clause to the declaration of a type variable.   The
-type variable name is followed by \lstinline+: rep(+ \var{type name}\lstinline+)+.
-For example, we may have an add function for hash table that maps integers to data:
-\begin{lstlisting}
-for_any (Data : rep(void *))
-   hash_add(struct HashTable<T> *table, int key, Data d);
-\end{lstlisting}
-The function \lstinline+hash_add+ can only hold data that fits within a 
-\uncheckedptrvoid{} pointer.  When a type variable has a representation type specified, 
-there must be a lossless conversion from types supplied as type arguments for
-a type variable to the representation type and back.
-This is the same restriction placed on 
-representation and implementation types for opaque types.   In this example, on a
-32-bit architecture where \lstinline+int+ is the same size as \uncheckedptrvoid{}, 
-\lstinline+hash_add+ could be applied to \lstinline+int+.  It could not be applied to
-to 64-bit integers:
-\begin{lstlisting}
-hash_add<int>(t, key, 314);            // allowed.
-hash_add<long long>(t, key, 314L);     // not allowed.
-\end{lstlisting}
-The compiler will implicitly insert conversions to the type representation
-at calls to the generic function where the type of a parameter is given
-by a type variable.  It will insert conversions from the type representation
-when the return is given by a type variable.
-
-At uses other than as a call target, it is implementation-defined whether a pointer to a function type 
-created by applying a generic function to type arguments can be used where
-a pointer to a function type with the monomorphic type (the function type obtained
-by substituting the type arguments for the type variables) is expected.  If a type
-variable occurs as the type of a parameter or the return, the corresponding type argument
-for the type variable must have the same calling convention as the type variable's
-representation type.   Non-generic and applied generic functions with the same function type
-need to agree on their calling conventions.
-
-As an example, floating-point types may have a different calling convention
-than integer or pointer types.  It makes sense for \lstinline+hash_add+ to allow
-hash tables that map keys to \keyword{float} values, if \keyword{float}
-values fit into a \keyword{void *}.  The compiler can insert  
-bitwise-conversions at calls and returns.   However, \lstinline+hash_add<float>+
-is not interchangeable with a function \lstinline+f(struct HashTable<T> *table, int key, float f)+.
-\lstinline+hash_add+ expects its argument to be passed the same way that \uncheckedptrvoid{} 
-is passed.
-
 \section{Generic structures}
 We use the example of a generic \lstinline+List+ structure.   In the case of structs,
 the \forany{} clause comes after the tag name of the structure.  
@@ -349,6 +249,6 @@ The type variables are available in any following \var{declaration-specifiers} t
 of the declaration.  The scope of the type variables extends to the end of
 the declaration or function definition.
 
-\section{Hidden types}
+\section{Existential types}
 This section is to be filled in.
 

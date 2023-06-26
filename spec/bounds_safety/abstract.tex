@@ -1,34 +1,30 @@
 % !Tex root = checkedc.tex
 
-\parbox{5.5in}{
+\parbox{6.0in}{
 There are large amounts of existing critical infrastructure and
 systems software written in C. This software is prone to
 low-level programming errors that lead to security vulnerabilities,
 correctness issues, and reliability problems.  This specification describes
 Version 2 of Checked C, an extension to C designed to help software
-developers improve the security, correctness, and reliability of existing
-C code.  Checked C emphasizes backwards-compatibility and a
-path for improving existing C code.
+developers improve the security, correctness, and reliability of
+existing C code.
 }
 
 \vspace{11pt}
 
-\parbox{5.5in}{Checked C adds 3 features: language support for
+\parbox{6.0in}{Checked C emphasizes backwards-compatibility.
+It adds opt-in features: language support for
 eliminating errors that cause memory corruption,
 improved type-safety, and lightweight statically verifiable assertions.
-These features build upon one another: avoiding memory corruption
-is key to providing type-safety, and type-safety is key to being able
-to statically verify C programs.  Combined, these features enable an
-evidence-based approach for improving C programs.  Checked C provides a
-lower-cost alternative to rewriting existing infrastructure and systems software in a type-safe
-language such as Rust. Rewrites are often impractical for existing
-C code: they are costly in terms of engineering effort and risk introducing
-new bugs or behavior changes that cause compatibility problems.}
+These features build on one another: avoiding memory corruption
+is need for  type-safety, and type-safety makes it easier
+to statically check properties of C programs.
+Checked C provides an alternative to rewriting existing C code in another
+language, which may be too costly or impractical.}
 
 \vspace{11pt}
 
-\parbox{5.5in}{
-Checked C adds new pointer types and array types that are
+\parbox{6.0in}{Checked C adds new pointer types and array types that are
 null-checked and bounds-checked. The new pointer types
 are layout-compatible with existing pointer
 types, making Checked C code binary-compatible with existing C code.
@@ -40,7 +36,7 @@ Static checking ensures the correctness of the bounds annotations.}
 
 \vspace{11pt}
 
-\parbox{5.5in}{Checked C also adds checked scopes. Checked scopes
+\parbox{6.0in}{Checked C also adds checked scopes. Checked scopes
 provide guarantees about the bounds-safety and type-safety of code
 declaration within them. In checked
 scopes, only new bounds-checked and null-checked pointer types
@@ -49,10 +45,8 @@ safety.  Casts between void pointers and pointers to
  data that contains pointers are not allowed.}
 
 \vspace{11pt}
-\parbox{5.5in}{Checked C adds
-generic functions and structures and existential types.
-This lets most void pointer uses be replaced with type-safe code
-instead.  Generic type variables are treated as incomplete types.
-The restricts the use of generic type variables so that only 
-single copies of functions are needed at runtime.
-}
+
+\parbox{6.0in}{Checked C adds generic functions and structures
+and existential types. This lets most void pointers uses be replaced
+with type-safe code. Generic type variables are treated as incomplete
+types and only single copies of functions are needed.}

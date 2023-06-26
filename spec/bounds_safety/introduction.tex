@@ -242,12 +242,6 @@ constraints on signed integer expressions used in bounds expressions
 were understood and could be written down in the language of
 simple invariants.
 
-The design is a work-in-progress.  Some material will be missing
-or incomplete because the language design has not yet been done.
-Readers should be aware that all parts of the document are subject to change.
-We are interested in feedback and suggestions about ways to improve
-the design.
-
 \section{Principles for extensions}
 \label{chapter:principles}
 
@@ -373,19 +367,6 @@ the variables may be inconsistent with respect to bounds declarations
 that use them. The variable can be updated so that consistency is
 re-established at the end of the bundled block.
 
-Chapter~\ref{chapter:checking-bounds} describes rules that the compiler uses to check the validity
-of bounds declarations. It covers inferring bounds for expressions.
-Because expression may have assignments embedded within them, it also
-covers inferring effects of an expression on the bounds of variables.
-This inferred information is then used to validate that declarations and
-statements correctly declare bounds and maintain the bounds information.
-
-Chapter~\ref{chapter:interoperation} covers interoperation between
-checked and unchecked code. It covers conversions between checked and
-unchecked pointers, as well as conversions between the new kinds of checked pointers.
-It pins down the notion of checked code  and unchecked code. Finally, it covers
-bounds-safe interfaces in depth.
-
 Chapter~\ref{chapter:structure-bounds} extends these ideas from variables to data
 structures by
 introducing member bounds, which are type-level invariants about members
@@ -409,6 +390,19 @@ that invariants for bounds are not violated.  Assignments via pointer
 indirections need to be coordinated to maintain the invariant.  This
 gives rise to constraints on the pointers and the variables or
 members whose addresses have been taken.
+
+Chapter~\ref{chapter:interoperation} covers interoperation between
+checked and unchecked code. It covers conversions between checked and
+unchecked pointers, as well as conversions between the new kinds of checked pointers.
+It pins down the notion of checked code  and unchecked code. Finally, it covers
+bounds-safe interfaces in depth.
+
+Chapter~\ref{chapter:checking-bounds} describes rules that the compiler uses to check the validity
+of bounds declarations. It covers inferring bounds for expressions.
+Because expression may have assignments embedded within them, it also
+covers inferring effects of an expression on the bounds of variables.
+This inferred information is then used to validate that declarations and
+statements correctly declare bounds and maintain the bounds information.
 
 Chapter~\ref{chapter:simple-invariants}
 extends the checking of bounds to incorporate simple
@@ -437,10 +431,9 @@ example, a fact can be that the range of an integer variable \code{i}
 is always between 0 and 10. This can be used to deduce that an array
 access in a crucial inner loop is always in bounds.
 
-Chapter~\ref{chapter:related-work} describes related work that addresses
-the lack of bounds checking in C.  Because of the serious practical consequences
-for computer security and software reliability, there has been extensive work
-in the area.  We are heavily influenced by the Deputy system \cite{Feng2006,Condit2007}.
+Chapter\ref{chapter:roadmap} describes future planned features for Checked C.
+These feature are currently not implemented in the Checked C compiler.
+
 \omitted{
 Chapter~\ref{chapter:eval} evaluates the design by describing our experience modifying
 an existing C open-source code base by hand to use the Checked C
@@ -456,34 +449,15 @@ Chapter~\ref{chapter:eval} or
 unaddressed by the design. It also describes next steps for implementing
 this in a C compiler.
 }
-Chapter~\ref{chapter:open-issues} summarizes open issues that remain to be addressed
-by the design.
-Chapter~\ref{chapter:design-alternatives} discusses design alternatives
+
+Appendix~\ref{chapter:related-work} describes related work that addresses
+the lack of bounds checking in C.  Because of the serious practical consequences
+for computer security and software reliability, there has been extensive work
+in the area.  We are heavily influenced by the Deputy system \cite{Feng2006,Condit2007}.
+
+Appendix~\ref{chapter:design-alternatives} discusses design alternatives
 that were considered and not chosen.  It explains why those alternatives were
 not chosen.
-
-Here are the suggested roadmaps for the different groups of readers.
-For programmers interested in learning about Checked C,
-we suggest reading Chapter~\ref{chapter:core-extensions} except
-Sections~\ref{section:pointer-arithmetic-errors} and \ref{section:changes-to-undefined-behavior},
-Chapter~\ref{chapter:tracking-bounds}
-except Section~\ref{section:extent-of-declarations},
-Section~\ref{section:inferring-expression-bounds} of Chapter~\ref{chapter:checking-bounds},
-Chapter~\ref{chapter:interoperation} except for Section~\ref{section:checking-bounds-interfaces},
-Chapter~\ref{chapter:structure-bounds} except for Sections~\ref{section:member-bounds-state-extent}
-and \ref{section:checking-bounds-with-structures},
-and Chapter~\ref{chapter:simple-invariants} through the first section.
-Sections~\ref{section:pointer-cast-results},  \ref{section:integer-overflow-informal},
-and \ref{section:pointer-integer-conversions} are advanced topics that can be read
-after the other recommended chapters and sections.
-
-We suggest language designers and compiler writers
-read most of the document. Language designers can skip Sections~\ref{section:computing-extent},
-\ref{section:canonicalization}, and \ref{section:canonicalization-example}.
-Compiler writers can skip the discussions in Section~\ref{section:programmer-dynamic-checks}
-and Chapters~\ref{chapter:related-work} and \ref{chapter:design-alternatives}.
-
-
 
 \section{Acknowledgements}
 

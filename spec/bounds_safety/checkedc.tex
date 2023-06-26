@@ -185,7 +185,7 @@
 {\center
 \mbox{ }\\
 \vspace{1in}
-{\huge Checked C Version 2 Specification \par}
+{\huge Checked C Specification \par}
 %{Version 0.7.1 (June 8, 2018) \par}
 {Version 2.0 - Draft as of \today \par}
 {Secure Software Development Project \par}
@@ -229,27 +229,21 @@ Test
 
 \include{changelog}
 \include{pictures/rel-align-picture1}
-\part{Specification}
 \include{introduction}
 \include{core-extensions}
 \include{variable-bounds}
-\include{checking-variable-bounds}
+\include{structure-bounds}
+\include{pointers-to-pointers}
 \include{void-ptr-replacements}
 \include{interoperation}
-\include{structure-bounds}
+\include{checking-variable-bounds}
+\include{simple-invariants}
+\include{roadmap}
+\appendix
 \include{related-work}
 \include{design-alternatives}
-\part{Roadmap of planned language features}
-\include{roadmap}
-\part{Possible future features}
-\include{pointers-to-pointers}
-\include{simple-invariants}
-\include{open-issues}
 \nocite{Jones2009}
 \nocite{Jim2002}
-
 \bibliographystyle{plain}
 \bibliography{sources}
-
-\appendix
 \end{document}

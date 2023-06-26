@@ -8,7 +8,6 @@ FILES = abstract.tex \
         interoperation.tex \
         introduction.tex \
         lessons.tex \
-        open-issues.tex \
         pointers-to-pointers.tex \
         related-work.tex \
         roadmap.tex \

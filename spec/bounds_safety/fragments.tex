@@ -4,6 +4,144 @@
 
 Here are some fragments of ideas that need to be more fully developed.
 
+\section{Definite initialization}
+
+We require initializers for variables that have checked pointer types that may
+be used to access memory.  We also require initializers for variables that have members
+or elements that have checked pointers and that may be used to access memory.
+We want to relax this requirement so that fewer program changes are needed when 
+porting legacy code to Checked C.  We plan to allow delayed initialization by adding a
+{\em definite initialization} analysis
+similar to those for C\# or Java for variables or members with checked pointer types.
+In programs for those languages, a variable may be declared without an initialization value, as
+long is it is definitely initialized before it may be used.  A dataflow analysis prescribed by the
+language definition is used to determine when a variable is definitely initialized.
+
+\section{Opaque types}
+
+Pointers to void are sometimes used as handles that hide details of API implementations.  An
+API may provide a handle that is typed as \uncheckedptrvoid\ for 
+users of the API, with the API implementation using a pointer to an actual
+type.
+
+Opaque types: these allow different kinds of handles to be distinguished.
+They are incomplete types with enough information to represent
+the types, but nothing else.  They can be copied around and used, but the internal
+details remain unknown in the scope of the declaration.  No conversions to and 
+from opaque types are allowed.
+
+\section{Opaque types}
+
+We extend \keyword{typedef} declarations so that they can also declare opaque types. 
+The \keyword{typedef} is followed by the new keyword \keyword{opaque}.
+This creates a new named type that is distinct from all other types during
+typechecking and that uses the specified type as its runtime representation.
+Importantly, the new named type is not the same as the specified type.  This allows
+handle types to be distinguished during typechecking:
+\begin{lstlisting}
+typedef opaque void *ProcessHandle;
+typedef opaque void *FileHandle;
+\end{lstlisting}
+An attempt to use a \lstinline+ProcessHandle+ where a \lstinline+FileHandle+ 
+is expected will result in a typechecking error.
+
+To implement operations on an opaque type,
+programmers reveal the actual implementation type of the opaque type
+in some scopes of the program.  The
+keyword \keyword{typedef} is followed by the new keyword \keyword{reveal}:
+\begin{lstlisting}
+typedef reveal _Ptr<struct ProcessData> ProcessHandle;
+typedef reveal _Ptr<struct FileData> FileHandle;
+\end{lstlisting}
+In the scope of a \keyword{reveal} declaration, casts between the
+opaque type and the implementation type are allowed.  
+Converting the implementation type to the representation
+type and back to the implementation type must not lose information.  
+The rules for conversions in the C specification are followed.   Note that 
+this allows the representation type to be larger (in terms of bits) than the implementation type.
+
+C-style casts between opaque types and other types are otherwise not allowed.
+In the special case where a programmer must convert an opaque type to another
+type (for example, a \uncheckedptrvoid{} is being stored as an integer in an existing
+program), the special operator \lstinline|opaque_cast| is provided.
+
+It is implementation-defined whether a pointer to a function type with a
+parameter or return type that is an implementation type can be converted
+explicitly to a pointer to a function type where the corresponding type
+is the opaque type.   The calling convention must be the same for
+the implementation and representation type.  If the representation type is \uncheckedptrvoid{}
+and the implementation type is also a pointer type,  these conversions would be
+allowed in C implementations where all pointer types have the same calling convention.
+
+
+
+\section{Undefined behavior in C11 of misaligned pointer casts}
+
+Pointer casts that produce incorrectly aligned pointers have undefined
+behavior, according to the C11 standard. This hole should be filled in
+for checked pointer types. For checked pointer types, we should specify
+either (1) dereferencing an incorrectly aligned pointer shall cause a
+runtime error or (2) the cast itself shall check any alignment
+requirements. For case 1, note that pointer arithmetic for checked pointer types
+is already
+defined to preserve misalignment. 
+
+\section{Concrete syntax for function post-conditions}
+ 
+The current syntax for describing post-conditions places a \keyword{where}
+clause after the function parameter list declaration:
+
+\begin{lstlisting}
+f( ...)
+where cond1 ...
+\end{lstlisting}
+
+This syntax might lead to confusion. We might want to adopt an alternate
+syntax that makes this clearer. Some suggestions are the keywords
+\keyword{on_return} or \keyword{after}:
+
+\begin{lstlisting}
+f(...)
+on_return cond1 ...
+
+f(...)
+after cond1 ...
+\end{lstlisting}
+
+section{Further out work}
+\begin{itemize}
+\item Allow conditional bounds expressions.   While conditional
+expressions are allowed in the non-modifying expressions in a bounds expression, 
+there is not a conditional form of bounds expressions.  This is useful for
+specifying that an expression only has bounds if some condition is true.
+This could be provided by adding a clause to bounds-exp that uses the
+same syntax as C conditional expressions:
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\>\var{non-modifying-exp} \code{?} \var{bounds-exp} \code{:} \var{bounds-exp}
+\end{tabbing}
+
+We would need to add descriptions of introduction and elimination
+forms, as well as enhance the rules for checking the validity of bounds.
+
+\item Allow bounds declarations to declare bounds for expressions.
+This would allow the system to easily support tagged null pointers.
+The bounds for the untagged pointer would be described. 
+A tagged pointer could not be used to access memory.  It would have to be
+untagged first  to have valid bounds.
+
+\item Consider whether to allow functions to be
+parametric with respect to the state of member bounds. This might be
+useful to describe a function that sets one of the members of a
+structure type and does not affect the state of other members.
+
+\item We could allow signed integer expressions to be invertible
+by trying to prove that the expressions are in range, using the
+checking of facts in \keyword{where} clauses.
+\end{itemize}
+
+
+
 \section{Discussion of optimizing bounds check and overflow}
 
 We had the following discussion in Section~{section:bounds-checking-at-indirections}
