@@ -346,7 +346,7 @@ more complicated language features. This allows a reader to understand
 concepts one at time.
 
 Chapter~\ref{chapter:tracking-bounds} describes how programmers declare the bounds for
-\arrayptr\ variables and the meaning of bounds declarations.
+\arrayptr\ variables and structure members. It also describes the meaning of bounds declarations.
 Bounds can be declared at variable declarations. They can also be
 declared for automatic (local) variables at assignments. If the only
 bounds declaration for a variable is at the declaration of the variable,
@@ -367,14 +367,10 @@ the variables may be inconsistent with respect to bounds declarations
 that use them. The variable can be updated so that consistency is
 re-established at the end of the bundled block.
 
-Chapter~\ref{chapter:structure-bounds} extends these ideas from variables to data
-structures by
-introducing member bounds, which are type-level invariants about members
-of structure types. For now, it assumes that the programmer has done
-concurrency control around shared data properly and ignores the fact
-that data structures may be modified in racy ways such that invariants
-are violated.  The chapter also describes the rules that the compiler
-uses to check programs with member bounds.
+Member bounds declarations are type-level invariants about members
+of structure types. We assume that the concurrency control is
+been done correctly on data structures.  Race conditions may
+make the type-level invariants invalid.
 
 Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} describes how
 to extend reasoning about bounds to pointers to data that has \arrayptr-typed

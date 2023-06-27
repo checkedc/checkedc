@@ -103,11 +103,6 @@ between the \keyword{suspends} and \keyword{holds} declarations for
 pointers.  Those can only be created through casting.  It is the programmer's responsibility
 to update bounds-checked members properly in that case (Section~\ref{section:pointer-casting}).
 
-The checking described in Chapter~\ref{chapter:structure-bounds} is extended from
-operating over variable member paths to operating over expression member paths, where
-the initial variable is replaced by a non-modifying expression that dereferences a structure
-pointer.
-
 \section{Speculative idea: support for by-reference parameter passing of \protect\arrayptr s}
 
 It will be important to support by-reference parameter passing of \arrayptr-typed variables

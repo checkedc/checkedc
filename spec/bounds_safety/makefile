@@ -13,7 +13,6 @@ FILES = abstract.tex \
         roadmap.tex \
         simple-invariants.tex \
         span-compilation.tex \
-        structure-bounds.tex \
         variable-bounds.tex \
         void-ptr-replacements.tex \
         sources.bib \
