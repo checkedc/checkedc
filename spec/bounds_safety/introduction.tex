@@ -317,15 +317,6 @@ range over these values or program elements.  We might say something like
 
 \section{Organization of this document}
 
-The target audience for this document includes programmers interested in
-learning about Checked C, compiler writers, and language designers.
-These groups have different and conflicting needs.  Programmers will find that
-some sections have too much detail, while language designers will likely
-find that some sections do not have enough detail.  Language designers
-may be less interested in compiler implementation details.
-We first describe the organization of the document and then provide
-a roadmap for the different audiences.
-
 Chapter~\ref{chapter:core-extensions} describes
 the new pointer types and the new array types, including syntax,
 semantics, and error conditions. It also covers other extensions to C
@@ -339,31 +330,30 @@ requirement on the result of overflow than ``the result is undefined.''
 Chapter~\ref{chapter:tracking-bounds} describes how programmers declare the bounds for
 \arrayptr\ variables and structure members. It also describes the meaning of bounds declarations.
 Bounds can be declared at variable declarations. They can also be
-declared for automatic (local) variables at assignments. If the only
+declared for local variables at expression statements. If the only
 bounds declaration for a variable is at the declaration of the variable,
-the bounds declaration is an invariant bounds declaration. An invariant
-bounds declaration must be true for the lifetime of the variable. If
-there are bounds declarations for the variable at assignments or other
-declarations, all bounds declarations for the variable are
+the bounds declaration is an invariant bounds declaration that is true 
+for the lifetime of the variable. If there are bounds declarations for the
+variable at assignments or other declarations, all bounds declarations for the variable are
 dataflow-sensitive. Dataflow-sensitive bounds declarations extend via
 dataflow to uses of the variable.
 
 Invariant bounds declarations must usually be valid after every
 statement and declaration in the scope of a variable. Sometime multiple
-statements are needed to update the set of a variables used in an
-invariant bounds declaration. To support this, expression statements and
-declarations can be \emph{bundled}, in which case bounds declarations
-must be valid only at the end of the bundle. Within the bundled block,
-the variables may be inconsistent with respect to bounds declarations
-that use them. The variable can be updated so that consistency is
-re-established at the end of the bundled block.
+statements are needed to update the variables in a bounds
+declaration.
+To support this, expression statements and
+declarations can be be replaced in \emph{bundled} block, in which
+case bounds declarationsmust be valid only at the end of the block.
+In the bundled block, the variables may be inconsistent with respect to
+bounds declarations that use them. 
 
 Member bounds declarations are type-level invariants about members
-of structure types. We assume that the concurrency control is
-been done correctly on data structures.  Race conditions may
-make the type-level invariants invalid.
+of structure types. We assume that that concurrency control is
+been done correctly for those data structure.  Race conditoin in
+updates could make the type-level invariants invalid.
 
-When pointers to structure are used to modify members, we require
+When pointers to structure are used to modify members, Checked C requires
 that modifications to members preserve type-level bounds invariants.
 This follows the lead of the Deputy system \cite{Condit2007}.
 

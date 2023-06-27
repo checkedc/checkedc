@@ -5,32 +5,32 @@ There are large amounts of existing critical infrastructure and
 systems software written in C. This software is prone to
 low-level programming errors that lead to security vulnerabilities,
 correctness issues, and reliability problems.  This specification describes
-Version 2 of Checked C, an extension to C designed to help software
-developers improve the security, correctness, and reliability of
-existing C code.
+Version 2 of Checked C, an extension to C designed to help improve the security,
+correctness, and reliability of existing C code.
 }
 
 \vspace{11pt}
 
-\parbox{6.0in}{Checked C emphasizes backwards-compatibility.
-It adds opt-in features: language support for
-eliminating errors that cause memory corruption,
-improved type-safety, and lightweight statically verifiable assertions.
-These features build on one another: avoiding memory corruption
-is need for  type-safety, and type-safety makes it easier
-to statically check properties of C programs.
+\parbox{6.0in}{Checked C provides backwards-compatibility.
+It adds opt-in features for eliminating classes of errors that
+cause memory corruption, improved type-safety, and  statically verifiable
+assertions.
+These features build on each other: avoiding memory corruption
+is needed for type-safety, and type-safety makes it easier
+to check properties of C programs.
 Checked C provides an alternative to rewriting existing C code in another
 language, which may be too costly or impractical.}
 
 \vspace{11pt}
 
-\parbox{6.0in}{Checked C adds new pointer types and array types that are
-null-checked and bounds-checked. The new pointer types
+\parbox{6.0in}{Checked C adds new pointer types and array types
+with null-checking and bounds-checking.  
+The pointer types
 are layout-compatible with existing pointer
 types, making Checked C code binary-compatible with existing C code.
 Pointer bounds are described using annotations on variable
 declarations that use existing program variables and data.
-Bounds are checked dynamically at runtime before memory accesses.
+Bounds are checked at runtime before memory accesses.
 Compiler optimizations eliminate unnecessary runtime bounds checking.
 Static checking ensures the correctness of the bounds annotations.}
 
@@ -38,7 +38,7 @@ Static checking ensures the correctness of the bounds annotations.}
 
 \parbox{6.0in}{Checked C also adds checked scopes. Checked scopes
 provide guarantees about the bounds-safety and type-safety of code
-declaration within them. In checked
+in them. In checked
 scopes, only new bounds-checked and null-checked pointer types
 can be used.  Type casts are also restricted to ensure type
 safety.  Casts between void pointers and pointers to
@@ -47,6 +47,6 @@ safety.  Casts between void pointers and pointers to
 \vspace{11pt}
 
 \parbox{6.0in}{Checked C adds generic functions and structures
-and existential types. This lets most void pointers uses be replaced
+and existential types. This lets many uses of void pointers be replaced
 with type-safe code. Generic type variables are treated as incomplete
 types and only single copies of functions are needed.}
