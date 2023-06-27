@@ -50,63 +50,25 @@ uninitialized data.
 
 Pointers to  structures can be supported by ensuring that modifications to members
 preserve type-level bounds invariants, following the approach of the Deputy
-system \cite{Condit2007}.  This in turn means that accesses through structure
-pointers return values that  follow the type-level bounds invariants, provided that modifications
-are not interleaved.  Complicated aliasing problems are avoided because the
-alias relationship of members within a structure is well-known.  Expressions
-and statements that modify members must be relatively simple; they cannot access memory
-that may be aliased.
+system \cite{Condit2007}.  This in turn means that member accesses via structure
+pointers produce values that follow the type-level bounds invariants.  
+Complicated aliasing problems are avoided because the
+alias relationship of members within a structure is well-known.
 
-Just like a member bounds can be suspended for a variable, a member bounds can 
-be suspended for an object that is referenced by a pointer. The syntax is:
-
-\begin{tabbing}
-\var{fact:}\= \\
-\>\code{suspends(}\var{e}\code{->}\var{mp}\code{)} \\
-\>\code{holds(}\var{e}\code{->}\var{mp}\code{)} \\
-\end{tabbing}
-
-where \var{e} is a pointer to a structure type \var{S} and \var{mp} is a member of
-path.  The syntax \code{(*}\var{e}\code{.}\var{mp} is equivalent to 
-\var{e}\code{->}\var{mp} and can be used in its place.  
-The syntax \code{suspends(*}\var{e}\code{)} suspends all member bounds for 
-the object pointed to by \var{e} and the syntax \code{holds(*}\var{e}\code{)} 
-means that all member bounds for \var{e} must hold.
-
-The expression \var{e} must be a non-modifying expression to ensure that the \var{e}
-refers to the same object at \keyword{suspends} and \keyword{holds} declarations.
-It must meet the following additional restrictions:
+Checked C requires that type-level bounds invariants hold after each expression
+statement or bundled block and before any function calls.  For type-level bounds
+invariants involving multiple members, the code for updating members accessed
+via structure pointers must be fairly simple because of possible aliasing issues.
 \begin{itemize}
-\item \var{e} cannot access memory via a pointer operation.
-      It cannot contain a \code{*}, \code{->},  or a \code{[]} operation.
-\item No variable whose value is used \var{e} can be modified between the \code{suspends}
-and \code{holds} declarations.
-\item No variable whose value is used in \var{e} can have its address taken. 
-This is to avoid indirect modifications of variables.
+\item It must be possible to prove that the base expressions used in the
+member assignments produce the same ponter value.  One case is that the same
+non-modifiable base expression is used in the member assignments  (given
+var{e}\code{.}\var{m}, e is the base expression).
+\item There cannot be any function calls.  An exception to this is if the memory
+for the structure is known to be newly allocated (and cannot possibly be aliased).
+\item There cannot be any memory accesses via any other pointers that might alias
+the pointer being used for the update.
 \end{itemize}
-
-There are additional restrictions to avoid problems due to pointer aliasing 
-(when two pointers may point to the same memory).   We propose simple restrictions
-for correctness.
-Function calls are not allowed between \keyword{suspends} and 
-\keyword{holds} declarations for \var{e}\code{->}\var{mp}.  The function calls 
-might depend on the object pointed to by \var{e} having a  valid type-level invariant.
-  
-We continue to assume that the addresses of \arrayptr\ members and members
-used in member bounds cannot be taken.  It is undefined behavior for unchecked
-code to create pointers to the memory of those members.   With this assumption, we 
-can allow assignments through and reads via other pointer expressions
-between the \keyword{suspends} and \keyword{holds} declarations for
-\var{e}\code{->}\var{mp}.  This is provided that the assignments do not modify 
-\var{S}\code{.}\var{mp} or members in the bounds of \var{S}\code{.}\var{mp}.  No pointers should alias
-\var{mp} or the other members, so the only aliases can be other structure
-pointers.  Those can only be created through casting.  It is the programmer's responsibility
-to update bounds-checked members properly in that case (Section~\ref{section:pointer-casting}).
-
-The checking described in Chapter~\ref{chapter:structure-bounds} is extended from
-operating over variable member paths to operating over expression member paths, where
-the initial variable is replaced by a non-modifying expression that dereferences a structure
-pointer.
 
 \section{Speculative idea: support for by-reference parameter passing of \protect\arrayptr s}
 
