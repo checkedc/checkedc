@@ -467,7 +467,11 @@ in a more precise answer. The prohibitions against it for \code{++}, and
 \code{--} operands and the left operand of an assignment operator keeps array
 variables from being modifiable.
 
-\section{Variable and member initialization}
+\section{Initialization of checked pointers}
+
+Checked pointers must be initialized before the pointers are used.
+
+\subsection{Variable and member initialization}
 
 Variables that have checked pointer types and that may be used to access memory
 must be initialized when they are declared.   This includes variables that have \ptr\ or
@@ -517,9 +521,12 @@ ptr<int> data checked[10] = { 0 };  // initializer for array required.
 struct VariableBuffer stack checked[10] = { 0 }; // initializer for array required.
 \end{lstlisting}
 
+\subsection{Checked pointers in heap-allocated data}
+
 For heap-allocated data that contains checked pointers that may be used to access memory, the
 data must be zero-initialized by the programmer.  We recommend that programmers use
 \lstinline+calloc+ instead of \lstinline+malloc+ for heap-allocating data containing checked pointers.
+A compiler might enforce this requirement in checked scopes.
 
 \section{Program scopes for checked pointer types}
 

@@ -271,7 +271,7 @@ this choice in more detail.
 \subsection{Bounds declarations for results of casts between \plainarrayptr\ types}
 \label{section:pointer-cast-results}
 
-(This section should be replaced in Chapter~\ref{chapter:core-extensions} when
+(This section should be moved to Chapter~\ref{chapter:core-extensions} when
 relative alignment is implemented.).
 
 Typically \arrayptr\ pointers and their bounds are relatively
@@ -423,7 +423,7 @@ alignment for an \arrayptrint\ is
 \begin{lstlisting}
 array_ptr<int> data : bounds(lower, upper) = ...
 array_ptr<char> byte_data : bounds(lower, upper) rel_align(int) = (array_ptr<char>) data;
-array_ptr<int> finish : bounds(lower, upper) = (array_ptr(int>) byte_data;
+array_ptr<int> finish : bounds(lower, upper) = (array_ptr<int>) byte_data;
 \end{lstlisting}
 
 The third example illustrates a subtlety when an
@@ -433,11 +433,11 @@ use of pointer arithmetic may require that relative alignment be
 lowered. Suppose that the size of \code{short int} is 2 bytes and the
 size of an \code{int} is 4 bytes:
 
-\begin{lstlisting}
+\begin{verbatim}
 array_ptr<int> d : bounds(lower, upper) = ...
 array_ptr<short int> e : bounds(lower, upper) rel_align(int) = (array_ptr<short int>) d;
 array_ptr<short int> f : bounds(lower, upper) rel_align(short int) = e + 1;
-\end{lstlisting}
+\end{verbatim}
 
 While \code{e} can have relative alignment of \code{int}, \code{f}
 cannot because pointer arithmetic is done at the granularity of
@@ -467,6 +467,7 @@ void copy(array_ptr<char> dst : bounds(dst, dst + num),
     for (int i = 0; i < num; i++) {
       dst[i] = src[i];
     }
+ }
 }
 \end{lstlisting}
 
@@ -516,7 +517,7 @@ array_ptr<int> r : count(2) = (array_ptr<int>) p;
 \section{Alternative designed consider and not used: Removing relative alignment}
 \label{section:design-alternatives:always-unaligned}
 
-(This section should be moved to Chapter~\ref{{chapter:design-alternatives}} when relative
+(This section should be moved to Chapter~\ref{chapter:design-alternatives} when relative
 alignment is implemented).
 
 We considered removing the concept of relative alignment from the design in order
@@ -547,3 +548,95 @@ the upper bounds check. A compiler would have to know that a pointer
 and bounds are relatively aligned in order to eliminate the upper bounds
 check. It would be hard for a compiler to prove this because it would
 require interprocedural or whole-program analysis.
+
+\section{Support for by-reference parameter passing of \protect\arrayptr s}
+
+It is important to support by-reference parameter passing of \arrayptr-typed variables
+in C.  It is a common way that multiple values are returned from a function.  By-reference parameter
+passing of \arrayptr s will lead to programs where the addresses of local variables or struct
+members of type \arrayptr\ are taken.
+
+For example, a function that returns a newly-allocated buffer and its length could be written as:
+\begin{lstlisting}
+void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len),
+            ptr<int> plen)
+{ ...
+}
+\end{lstlisting}
+A caller would take the addresses of local variables to use this function:
+\begin{lstlisting}
+void f(void)
+{
+    int len;
+    array_ptr<char> buf : count(len) = NULL;
+    create(&buf, &len);
+}
+\end{lstlisting}
+
+We can gain insight into this problem by considering a related
+problem.   When the address of a variable that occurs in a bounds declaration is 
+taken, it is important to ensure that the invariants for the bounds declaration are not
+broken accidentally.  Consider:
+\begin{lstlisting}
+void bad_code(array_ptr<char> buf : count(len), int len) 
+{
+    ptr<int> plen = &len;
+    *plen = 5;
+}
+\end{lstlisting}
+The problem with allowing the address of just \code{len} to be taken is
+that the lvalue for \code{len} actually has additional constraints. This
+suggests that pointer variables that hold addresses of address-taken variables should
+themselves have additional constraints.  For example:
+\begin{lstlisting}
+void constrained_code(array_ptr<char> buf : count(len), int len) 
+{
+    ptr<int> plen = NULL;
+    ptr<array_ptr<char>> pbuf = NULL where *pbuf : count(*plen);
+    bundle {
+       plen = &len;
+       pbuf = &buf;
+    }
+    bundle {
+       array_ptr<int> a = malloc((sizeof(char)*5);
+       *plen = 5;
+       *pbuf = a;
+    }
+}
+\end{lstlisting}
+There are some interesting issues that arise from this idea:
+\begin{compactitem}
+\item The bounds on the lvalues for \code{len} and
+\code{buf} must be invariant throughout the execution of the program.
+While we can put constraints on pointers that point to those lvalues,
+we do not know when the lvalues will be updated.
+The implication of this is that only local variables with invariant
+bounds declarations (Section~\ref{section:invariant-bounds-declarations})
+can have their addresses taken.   Local variables
+with flow-sensitive bounds declarations cannot have their addresses taken.
+The function could alter the bounds declarations for the local variables
+so that they disagree with constraints on the pointers.
+\item Once the address of a variable involved in a bounds declaration 
+is taken, we cannot add new bounds declarations involving the variable.
+The pointer-level bounds declarations would not reflect the new constraint.
+\item The constraints on the pointers must fully capture 
+all the constraints on the underlying variables.
+\item Finally, constraints on the pointers cannot be dropped.
+\end{compactitem}
+
+The operations that could be done while updating
+address-taken variables or assigning through pointers with 
+constraints on them must be limited.
+To maintain the bounds declaration, we must ensure that
+variables are not modified unexpectedly via aliases. 
+Without aliasing information, function calls could not
+be allowed.  Updates to address-taken variables could
+not be intermingled with reads or writes through pointers
+with constraints to avoid the possibility of aliasing.
+
+Taking the addresses of members that are used in member
+bounds fits nicely into this approach for supporting
+by-reference paramters.  The lvalues involved there do have
+invariant bounds through the execution of the program,
+which is the same requirement that we have placed on
+local variables.
