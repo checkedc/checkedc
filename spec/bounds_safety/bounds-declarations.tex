@@ -144,19 +144,10 @@ valid. This implies that any access to memory where \var{ev}
 \lstinline|!= 0 &&| \var{lbv} \lstinline|<=| \var{ev} \lstinline|&&| \var{ev}
 \lstinline|<| \var{ubv} will be within the bounds of \var{obj}.
 
-In this chapter, to simplify the description, it is assumed that none of
-the \arrayptr\ variables that have bounds declarations have
-their addresses taken. It is also assumed that the values of variables
-whose addresses are taken are not used in bounds declarations. It is
-acceptable to use the address of an address-taken variable in a bounds
-declaration. This is provided that the resulting address is not used to
-access memory in the bounds declaration (that is, indirectly access the
-value of a variable). For example, given the declaration \code{int x},
-the expression \code{&x} may appear in a bounds expression.
-Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} extends the
-design to avoid these restrictions.  It covers pointers to data with
-\arrayptr\ values,  pointers to variables used in bounds, and bounds
-that use pointers.
+Checked C currently does not allow \arrayptr\ variables that have bounds declarations to have
+their addresses taken. It also does not allow the values of variables
+whose addresses are taken to be used in bounds declarations. This is to avoid
+the need to reason about pointer aliasing.
 
 \section{Using bounds declarations}
 
@@ -565,6 +556,31 @@ struct S {
    N n;
 };
 \end{lstlisting}
+
+\subsubsection{Pointers to structures}
+
+When members in structure with bounds declarations or involved in bounds declarations are
+modified, the modifications must preserve the 
+ type-level bounds invariants, following the approach of the Deputy
+system \cite{Condit2007}.  This in turn means that member accesses via structure
+pointers produce values that follow the type-level bounds invariants.  
+Complicated aliasing problems are avoided because the
+alias relationship of members within a structure is well-known.
+
+Checked C requires that type-level bounds invariants hold after each expression
+statement or bundled block and before any function calls.  For type-level bounds
+invariants involving multiple members, the code for updating members accessed
+via pointers to structures must be simple because of possible aliasing issues.
+\begin{itemize}
+\item It must be possible to prove that the base expressions used in the
+member assignments produce the same ponter value.  One case is that the same
+non-modifiable base expression is used in the member assignments  (given
+var{e}\code{.}\var{m}, e is the base expression).
+\item There cannot be any function calls.  An exception to this is if the memory
+for the structure is known to be newly allocated (and cannot possibly be aliased).
+\item There cannot be any memory accesses via any other pointers that might alias
+the pointer being used for the update.
+\end{itemize}
 
 \subsubsection{Compatibility of structure types with bounds declarations}
 

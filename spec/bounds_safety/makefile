@@ -9,7 +9,6 @@ FILES = abstract.tex \
         interoperation.tex \
         introduction.tex \
         lessons.tex \
-        pointers-to-pointers.tex \
         related-work.tex \
         roadmap.tex \
         simple-invariants.tex \
