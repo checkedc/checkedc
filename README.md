@@ -13,7 +13,7 @@ and test code.
 - The Checked C fork of LLVM/clang is
   [here](https://github.com/checkedc/checkedc-llvm-project).
 - The instructions to build and test the Checked C compiler are documented on
-  the [SSDP Checked C clang wiki](https://github.com/checkedc/checkedc-llvm-project/wiki).
+  the [Checked C clang wiki](https://github.com/checkedc/checkedc-llvm-project/wiki).
 
 # History
 
@@ -69,7 +69,7 @@ reporting bugs, and giving us feedback. There are other ways to [contribute](CON
 The software in this repository is covered by the MIT license.  See the file LICENSE.TXT for the license.  The
 Checked C specification is made available by Microsoft under the [OpenWeb Foundation Final
 Specification Agreement, version 1.0](http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0).
-Contributions of code to the SSDP Checked LLVM/clang repos are
+Contributions of code to the Checked LLVM/clang repos are
 subject to the [LLVM/clang licensing terms](https://github.com/checkedc/checkedc-llvm-project/blob/main/clang/LICENSE.TXT).
 
 # Code of conduct
