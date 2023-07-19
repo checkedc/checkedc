@@ -14,7 +14,7 @@
 // controlled by the macro BOUNDS_INTERFACE.
 //
 // To shorten test times (and keep the parallelism more balanced when tests are
-// run in parallel), separate test suite driver files are used for these 
+// run in parallel), separate test suite driver files are used for these
 // additional cases.
 //
 //
@@ -109,7 +109,7 @@
 // RUN: %checkedc_rununder %t1 nt_constant_bounds compound 0 | FileCheck %s --check-prefixes=NT-CB-COMPOUND-START,NT-CB-COMPOUND-SUCCESS
 //
 //
-// Test operations on a pointer to a null-terminated array with bounds dependent on the value of an argument n. 
+// Test operations on a pointer to a null-terminated array with bounds dependent on the value of an argument n.
 // The pointer points an array of n integers, where the integers are initialized to 0, 2 ...2 * (n-1).
 // 3rd argument = array length. 4th argument = element to do operation on.
 //
@@ -153,7 +153,7 @@
 // i.e. with a stride of 2.
 // The 3rd argument = the array length (n), the 4th and 5th argument specify the
 // element to do the operation on.  The 4th argument is the 1st dimension index,
-// and the 5th argument is the 2nd dimension index.  
+// and the 5th argument is the 2nd dimension index.
 //
 // RUN: %checkedc_rununder %t1 md_dependent_bounds read 2 2 0   | FileCheck %s --check-prefixes=MD-DB-READ-START,MD-DB-READ-FAIL
 // RUN: %checkedc_rununder %t1 md_dependent_bounds read 3 -1 1  | FileCheck %s --check-prefixes=MD-DB-READ-START,MD-DB-READ-FAIL
@@ -203,8 +203,8 @@
 #include <stdchecked.h>
 
 #define SIZE 100  // pre-allocated array size.  We return pointers to
-                  // pre-allocated static arrays so that we can check 
-                  // operations that use the pointer to modify memory.     
+                  // pre-allocated static arrays so that we can check
+                  // operations that use the pointer to modify memory.
 #define CONSTANT_SIZE 5  // constant bound value.
 
 
@@ -307,7 +307,7 @@ array_ptr<int> g_const_bounds(void) : count(CONSTANT_SIZE)
 #ifdef BOUNDS_INTERFACE
 int *g_nt_dependent_bounds(unsigned int i) : itype(nt_array_ptr<int>) count(i)
 #else
-nt_array_ptr<int> g_nt_dependent_bounds(unsigned int i) : count(i) 
+nt_array_ptr<int> g_nt_dependent_bounds(unsigned int i) : count(i)
 #endif
 unchecked {
   if (i >= SIZE + 1)
@@ -321,8 +321,8 @@ unchecked {
 }
 
 // Allocate and initialize a zero-terminated integer array of
-// size i + 1, with the array initialized with 
-// values 1, 2, .. CONSTANT_SIZE - 1, 0. 
+// size i + 1, with the array initialized with
+// values 1, 2, .. CONSTANT_SIZE - 1, 0.
 #ifdef BOUNDS_INTERFACE
 int *g_nt_const_bounds(void) : itype(nt_array_ptr<int>) count(CONSTANT_SIZE)
 #else
@@ -333,7 +333,7 @@ nt_array_ptr<int> g_nt_const_bounds(void) : count(CONSTANT_SIZE)
 }
 
 // Allocate and initialize an array of size i of 3-element arrays.
-// with the array elements initialized by the sequence 
+// with the array elements initialized by the sequence
 // 1, 3, 5 ...  (i - 1) * 3 * 2 + 5 (i.e. with a stride of 2).
 #ifdef BOUNDS_INTERFACE
 arrty *g_md_dependent_bounds(unsigned int i) : itype(array_ptr<int checked[3]>) count(i)
@@ -345,7 +345,7 @@ array_ptr<int checked[3]> g_md_dependent_bounds(unsigned int i) : count(i)
      return NULL;
   // TODO: after incorporating dataflow information into bounds declaration
   // checking, this dynamic_bounds_cast won't be needed.
-  array_ptr<int checked[3]> result : count(i) = 
+  array_ptr<int checked[3]> result : count(i) =
     dynamic_bounds_cast<array_ptr<int checked[3]>>(arr_2d, count(i));
   int_md_array_init(result, i, 2);
   return result;
@@ -659,7 +659,7 @@ int compute_val(int dim1, int dim2) {
 void test_md_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc),
                        int idx) {
   // g_md_dependent_bounds(i) returns a pointer to i 3-element arrays.
-  // where the array elements are initialzied to the sequence 
+  // where the array elements are initialzied to the sequence
   // 1, 3, 5 ...  3 * 2 * i (i.e.  with a stride of 2).
   // The pointer value is arr_2d. i must be < SIZE
   // (the size of arr_1d)
@@ -698,7 +698,7 @@ void test_md_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : cou
       // MD-DB-WRITE-FAIL-NOT: Passed md dependent bounds write
       // MD-DB-WRITE-SUCCESS: Passed md dependent bounds write
       break;
-    } 
+    }
     case INC: {
       puts("Starting md dependent bounds increment");
       // MD-DB-INC-START: Starting md dependent bounds increment
@@ -740,12 +740,15 @@ void test_md_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : cou
 int main(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
-  // clang implementation raises a SIGILL when a bounds check fails.  This
-  // may change in the future.
+  // clang implementation raises a SIGILL or SIGTRAP when a bounds check fails,
+  // depending on the target platform.  This may change in the future.
   signal(SIGILL, handle_error);
+#if defined(__APPLE__) && defined(__aarch64__)
+  signal(SIGTRAP, handle_error);
+#endif
 
   // Unfortunately, using atoi everywhere below isn't super
-  // great, as it will return 0 if it can't parse, which is a valid, 
+  // great, as it will return 0 if it can't parse, which is a valid,
   // non-erroring index. This is why we use CHECK-*-NOT to make sure
   // the tests fail before getting to certain output.
 

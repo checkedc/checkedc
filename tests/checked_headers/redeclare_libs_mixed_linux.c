@@ -1,4 +1,4 @@
-// UNSUPPORTED: system-windows
+// UNSUPPORTED: !linux
 //
 // Test include files for all combinations of Checked C enabled/disabled,
 // and implicit inclusion of checked headers enabled/disabled. By default, both
