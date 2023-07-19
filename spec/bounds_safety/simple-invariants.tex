@@ -345,30 +345,6 @@ value, the actual parameters are substituted for the formal parameters.
 The set of facts in the clause are then added to the set of facts true
 after the call.
 
-\subsection{Avoiding bounds checks at runtime}
-\label{section:avoiding-bounds-checks}
-
-It can be important to avoid dynamic bounds checks at runtime. The
-built-in method \inbounds{\var{e}} can be used to do this. It can be applied
-to expressions of type \arrayptr. At compile time, the compiler
-checks that the bounds expressions for \var{e} are always true given the
-facts true before the evaluation of \var{e}. At runtime, \inbounds{\var{e}}
-simply returns the value of \var{e}. The compiler generates code for
-\code{*}\inbounds{\var{e}} with no dynamic bounds checks. The prior example
-can be written as:
-
-\begin{lstlisting}
-int sum10(array_ptr<int> buf : count(10)) {
-    int sum = 0;
-    int i = 0
-    where i >= 0;
-    while (i<10) {
-        sum += *in_bounds(buf + i);
-        i = i + 1
-        where i >= 0;
-    }
-}
-\end{lstlisting}
 
 \section{Examples}
 
