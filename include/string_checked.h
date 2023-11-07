@@ -27,6 +27,7 @@
 #ifndef __STRING_CHECKED_H
 #define __STRING_CHECKED_H
 
+#pragma TLIB_SCOPE on
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE on
 
@@ -177,6 +178,6 @@ char *strndup(const char *s : itype(_Nt_array_ptr<const char>), size_t n) : ityp
 #include "_builtin_string_checked.h"
 
 #pragma CHECKED_SCOPE pop
-
+#pragma TLIB_SCOPE off
 #endif // guard
 #endif // Checked C 

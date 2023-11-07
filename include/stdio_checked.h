@@ -23,6 +23,7 @@
 #ifndef __STDIO_CHECKED_H
 #define __STDIO_CHECKED_H
 
+#pragma TLIB_SCOPE on
 #pragma CHECKED_SCOPE push
 #pragma CHECKED_SCOPE on
 
@@ -209,6 +210,7 @@ int fileno (FILE *stream : itype(_Ptr<FILE>));
 #include "_builtin_stdio_checked.h"
 
 #pragma CHECKED_SCOPE pop
+#pragma TLIB_SCOPE off
 
 #endif // guard
 #endif // Checked C
