@@ -219,7 +219,7 @@ struct S23 {
 struct S24 {
   int len;
   array_ptr<int> arr : boounds(arr, arr + 5);  // expected-error 2 {{use of undeclared identifier 'arr'}} \
-                                               // expected-warning {{implicit declaration of function 'boounds'}}
+                                               // expected-error {{call to undeclared function 'boounds'}}
 };
 
 // Misspell count to cause an semantic checking error.
@@ -228,7 +228,7 @@ struct S24 {
 struct S25 {
   int len;
   int* _Array arr : coount(5); // expected-error {{expected bounds expression}} \
-                                  // expected-warning {{implicit declaration of function 'coount'}}
+                                  // expected-error {{call to undeclared function 'coount'}}
 };
 
 // Omit an argument to bounds to cause a parsing error

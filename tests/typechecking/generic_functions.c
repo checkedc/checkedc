@@ -34,7 +34,7 @@ void CallGenericFunction(void) {
 _For_any(T) T *func1();             // expected-error {{expected prototype for a generic function}}
 
 // Declaration of old-style K&R function definition.
-_For_any(T) void func2(x, y)        // expected-error {{expected prototype for a generic function}}
+_For_any(T) void func2(x, y)        // expected-error {{expected prototype for a generic function}}  expected-warning {{a function definition without a prototype is deprecated}}
   T *x;
   T *y;
 {

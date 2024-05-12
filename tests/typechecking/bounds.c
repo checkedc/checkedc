@@ -1089,7 +1089,7 @@ void function_pointers(void) {
   int* _Nt_array(*t13a)(void)  _Bounds(s1, s1 + 5) = fn10a;
   int *(*t14)(void) = fn12;
   int *(*t15)(void) : bounds(s1, s1 + 5) = fn12;
-  int *(*t16)(void) : bounds(s1, s1 + 6) = fn12;    // expected-warning {{incompatible function pointer types}}
+  int *(*t16)(void) : bounds(s1, s1 + 6) = fn12;    // expected-error {{incompatible function pointer types}}
   ptr<int *(void) : bounds(s1, s1 + 6)> t17 = fn12; // expected-error {{incompatible type}}
 
   // Unchecked pointer to function assigned to checked pointer to
@@ -1108,8 +1108,8 @@ void function_pointers(void) {
   fn204(fn104);
   // These are mismatched unchecked function pointers with bounds-safe interfaces
   // on parameters.
-  fn204(fn104a); // expected-warning {{incompatible function pointer types}}
-  fn204(fn104b); // expected-warning {{incompatible function pointer types}}
+  fn204(fn104a); // expected-error {{incompatible function pointer types}}
+  fn204(fn104b); // expected-error {{incompatible function pointer types}}
   fn205(fn105);
   fn206(fn106);
   fn207(fn107);

@@ -47,7 +47,7 @@ void TestTypeApplicationSimple() {
   };
   struct Foo<int> li;
   int *ele = li.x;
-  char ele2 = li.x; // expected-warning {{incompatible pointer to integer conversion initializing 'char' with an expression of type 'int *'}}
+  char ele2 = li.x; // expected-error {{incompatible pointer to integer conversion initializing 'char' with an expression of type 'int *'}}
 }
 
 //

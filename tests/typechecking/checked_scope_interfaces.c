@@ -439,7 +439,7 @@ int test_struct2(struct S1 *p : itype(ptr<struct S1>)) {
   int t6 = *(p->f6 + 4);
   int t7 = *(p->arr + 4);
   (*(p->fp1))(p->f1);
-  (*(p->fp1))(0x5000);    // expected-warning {{incompatible integer to pointer conversion passing 'int' to parameter of type 'int *'}}
+  (*(p->fp1))(0x5000);    // expected-error {{incompatible integer to pointer conversion passing 'int' to parameter of type 'int *'}}
   return 0;
 }
 
@@ -651,7 +651,7 @@ void test_bounds_safe_interface(void) {
     return_fn rfn = signal(0, handler);
 
     typedef void (*wrong_fn)(int, int);
-    wrong_fn wrong = signal(0, handler);   // expected-warning {{incompatible function pointer types}}
+    wrong_fn wrong = signal(0, handler);   // expected-error {{incompatible function pointer types}}
   }
 
   typedef ptr<void (int)> checked_return_fn;

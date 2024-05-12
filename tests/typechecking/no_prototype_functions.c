@@ -3,6 +3,7 @@
 // The following lines are for the LLVM test harness:
 //
 // RUN: %clang_cc1 -verify -verify-ignore-unexpected=note %s
+// UNSUPPORTED: !linux
 
 #include <stdchecked.h>
 

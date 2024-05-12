@@ -29,7 +29,7 @@ extern void f4() {
   array_ptr<int> a : count(2) = 0;
   array_ptr<char> b : count(2) = 0;
 
-  a = _Asume_bounds_cast<array_ptr<int>>(b, count(2)); // expected-error{{use of undeclared identifier}} expected-warning {{implicit declaration of function 'count' is invalid in C99}}
+  a = _Asume_bounds_cast<array_ptr<int>>(b, count(2)); // expected-error{{use of undeclared identifier}} expected-error {{call to undeclared function 'count'}}
   a = _Dssume_bounds_cast<int>(b); // expected-error{{use of undeclared identifier}}
 }
 

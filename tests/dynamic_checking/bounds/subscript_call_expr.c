@@ -32,7 +32,7 @@
 // RUN: %checkedc_rununder %t1 constant_bounds read 4 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-SUCCESS
 // RUN: %checkedc_rununder %t1 constant_bounds read 0 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-SUCCESS
 // Make sure we aren't accidentally running the bounds-safe interface verison of this test.
-// RUN: %checkedc_rununder %t1 constant_bounds read 0 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-SUCCESS,CHECK-BSI-NOT
+// RUN: %checkedc_rununder %t1 constant_bounds read 0 | FileCheck %s --check-prefixes=CB-READ-START,CB-READ-SUCCESS,CHECK-ARRAYS
 //
 // RUN: %checkedc_rununder %t1 constant_bounds write 5| FileCheck %s --check-prefixes=CB-WRITE-START,CB-WRITE-FAIL
 // RUN: %checkedc_rununder %t1 constant_bounds write -1 | FileCheck %s --check-prefixes=CB-WRITE-START,CB-WRITE-FAIL
@@ -485,7 +485,7 @@ void test_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : count(
     }
     case INC: {
       puts("Starting dependent bounds increment");
-      // BB-INC-START: Starting dependent bounds increment
+      // DB-INC-START: Starting dependent bounds increment
       int i = atoi(argv[idx]);
       idx++; // TODO: fold back into prior line
       int j = atoi(argv[idx]);
@@ -621,7 +621,7 @@ void test_nt_dependent_bounds(int argc, array_ptr<nt_array_ptr<char>> argv : cou
     }
     case INC: {
       puts("Starting nt dependent bounds increment");
-      // BB-INC-START: Starting nt dependent bounds increment
+      // NT-DB-INC-START: Starting nt dependent bounds increment
       int i = atoi(argv[idx]);
       idx++; // TODO: fold back into prior line
       int j = atoi(argv[idx]);
@@ -789,7 +789,13 @@ int main(int argc, array_ptr<nt_array_ptr<char>> argv : count(argc)) {
   // tests precede the check below.
   puts("Testing interfaces");
   // CHECK-BSI: Testing interfaces
+  // CHECK-ARRAYS-NOT: Testing interfaces
+#else
+  puts("Testing regular arrays");
+  // CHECK-BSI-NOT: Testing regular arrays
+  // CHECK-ARRAYS: Testing regular arrays
 #endif
+
 
   return EXIT_SUCCESS;
 }

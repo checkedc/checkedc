@@ -1646,7 +1646,7 @@ int *check_return2(float *p) {
 }
 
 int *check_return3(void) {
-  return 5; // expected-warning {{incompatible integer to pointer conversion}}
+  return 5; // expected-error {{incompatible integer to pointer conversion}}
 }
 
 int *check_return4(ptr<int> p) {
@@ -1806,7 +1806,7 @@ void *check_voidptr_return2(float *p) {
 }
 
 void *check_voidptr_return3(void) {
-  return 5; // expected-warning {{incompatible integer to pointer conversion}}
+  return 5; // expected-error {{incompatible integer to pointer conversion}}
 }
 
 void *check_voidptr_return4(ptr<int> p) {

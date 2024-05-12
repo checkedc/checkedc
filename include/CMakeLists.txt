@@ -84,7 +84,7 @@ set(posix_sys_files
 # Hack - compute the CLANG version from the LLVM version.  The
 # CLANG_VERSION variable is not available at this point during the build.
 
-string(REGEX MATCH "[0-9]+\\.[0-9]+(\\.[0-9]+)?" CHECKEDC_CLANG_VERSION
+string(REGEX MATCH "[0-9]+" CHECKEDC_CLANG_VERSION
   ${PACKAGE_VERSION})
 
 set(output_dir ${LLVM_LIBRARY_OUTPUT_INTDIR}/clang/${CHECKEDC_CLANG_VERSION}/include)
