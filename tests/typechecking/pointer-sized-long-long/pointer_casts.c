@@ -19,14 +19,14 @@ struct S1 {
 
 extern struct S1 f1();    // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
 
-extern void f2();
+extern void f2();         // expected-warning {{a function declaration without a prototype is deprecated}}
 extern void f2(struct S1); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a structure with a member with a checked type}}
 
-extern void f3();
+extern void f3();        // expected-warning {{a function declaration without a prototype is deprecated}}
 extern void f3(long long p : bounds((char *)p, (char *)p + len), int len);
 
 extern void f4(long long p : bounds((char *)p, (char *)p + len), int len);
-extern void f4();
+extern void f4();        // expected-warning {{a function declaration without a prototype is deprecated}}
 
 //
 // Spot-check other attempts at creating no prototype functions that return
