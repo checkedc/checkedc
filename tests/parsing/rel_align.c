@@ -340,9 +340,9 @@ struct S11 {
 struct S12 {
   int len;
   array_ptr<int> arr : boounds(arr, arr + 5) rel_align(char);  // expected-error 2 {{use of undeclared identifier 'arr'}} \
-                                               // expected-warning {{implicit declaration of function 'boounds'}} 
+                                               // expected-error {{call to undeclared function 'boounds'}}
   array_ptr<int> arr1: booundss(arr1, arr1 + 5) rel_align_value(sizeof(int)); // expected-error 2 {{use of undeclared identifier 'arr1'}} \
-                                               // expected-warning {{implicit declaration of function 'booundss'}}
+                                               // expected-error {{call to undeclared function 'booundss'}}
 };
 
 struct S13 {
