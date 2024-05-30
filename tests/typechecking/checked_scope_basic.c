@@ -214,20 +214,20 @@ SCOPE_KIND int func16() {               // expected-error {{function without a p
 
 #pragma CHECKED_SCOPE ON
 // First test definitions without preceding prototypes.
-int KNR_func1(a, b, c) // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+int KNR_func1(a, b, c) // expected-error {{function without a prototype cannot be used or declared in a checked scope}} expected-warning {{a function definition without a prototype is deprecated}}
   int a, b, c;
 {
   return 1;
 }
 
-int KNR_func2(a, b)    // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+int KNR_func2(a, b)    // expected-error {{function without a prototype cannot be used or declared in a checked scope}} expected-warning {{a function definition without a prototype is deprecated}}
   ptr<int> a;
   int b;
  {
   return 1;
 }
 
-int KNR_func3(a, b)    // expected-error {{function without a prototype cannot be used or declared in a checked scope}}
+int KNR_func3(a, b)    // expected-error {{function without a prototype cannot be used or declared in a checked scope}} expected-warning {{a function definition without a prototype is deprecated}}
   ptr<char> a;
   ptr<int> b;
 {
@@ -243,7 +243,7 @@ int KNR_func3(a, b)    // expected-error {{function without a prototype cannot b
 // no-prototype function types are not compatible with prototype function
 // types with checked pointers.
 int KNR_with_proto(int, int b);
-int KNR_with_proto(a, b)
+int KNR_with_proto(a, b) // expected-warning {{a function definition without a prototype is deprecated}}
 int a;
 int b;
 {
@@ -254,20 +254,20 @@ int b;
 // Now test uses within checked scopes.
 // First we have to declared some K&R style functions.
 
-int KNR_func4(a, b, c)
+int KNR_func4(a, b, c)  // expected-warning {{a function definition without a prototype is deprecated}}
 int a, b, c;
 {
   return 1;
 }
 
-int KNR_func5(a, b)
+int KNR_func5(a, b)   // expected-warning {{a function definition without a prototype is deprecated}}
 int* _Single a;
 int b;
 {
   return 1;
 }
 
-int KNR_func6(a, b)
+int KNR_func6(a, b)   // expected-warning {{a function definition without a prototype is deprecated}}
 char*_Single a;
 ptr<int> b;
 {

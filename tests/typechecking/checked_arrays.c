@@ -174,7 +174,7 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   int (*t20)[10] = t2d;
   int (*t21)[10] = u2d;  // expected-error {{expression of incompatible type 'int _Checked[10][10]'}}
                          // assignment of checked array to unchecked array not allowed
-  int(*t21a)[10] = x2d;  // expected-error {{expression of incompatible type 'int _Checked[10]_Nt_checked[10]'}}
+  int(*t21a)[10] = x2d;  // expected-error {{expression of incompatible type 'int _Checked[10] _Nt_checked[10]'}}
                          // assignment of checked array to unchecked array not allowed
   array_ptr<int[10]> t22 = s2d; // expected-error {{expression of incompatible type '_Array_ptr<int _Checked[10]>'}}
                                 // assignment of checked to unchecked not allowed
@@ -187,16 +187,16 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   array_ptr<int[10]> t23 = t2d;
   array_ptr<int[10]> t24 = u2d; // expected-error {{expression of incompatible type 'int _Checked[10][10]'}}
                                 // assignment of checked to unchecked not allowed
-  array_ptr<int[10]> t24a = x2d; // expected-error {{expression of incompatible type 'int _Checked[10]_Nt_checked[10]'}}
+  array_ptr<int[10]> t24a = x2d; // expected-error {{expression of incompatible type 'int _Checked[10] _Nt_checked[10]'}}
                                  // assignment of checked to unchecked not allowed
-  array_ptr<int checked[10]> t24b = x2d; // expected-error {{expression of incompatible type 'int _Checked[10]_Nt_checked[10]'}}
+  array_ptr<int checked[10]> t24b = x2d; // expected-error {{expression of incompatible type 'int _Checked[10] _Nt_checked[10]'}}
                                  // assignment of checked to unchecked not allowed
   array_ptr<int nt_checked[10]> t24c = u2d; // expected-error {{expression of incompatible type 'int _Checked[10][10]'}}
                                          // assignment of checked to unchecked not allowed
   array_ptr<int checked[10]> t25 = s2d;
   array_ptr<int nt_checked[10]> t25a = w2d;
   array_ptr<int checked[10]> t26 = t2d;
-  array_ptr<int nt_checked[10]> t26a = t2d; // expected-error {{expression of incompatible type 'int [10][10]'}}
+  array_ptr<int nt_checked[10]> t26a = t2d; // expected-error {{expression of incompatible type 'int[10][10]'}}
   array_ptr<int checked[10]> t27 = u2d;
 
   // Assignments to array-typed parameters are allowed.  The outermost array modifier
@@ -212,12 +212,12 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
           // assignment of checked pointer to unchecked pointer not allowed
 
   // Assignments to array-typed local and global variables are not allowed
-  t = p;  // expected-error {{array type 'int [10]' is not assignable}}
-  t = r;  // expected-error {{array type 'int [10]' is not assignable}}
+  t = p;  // expected-error {{array type 'int[10]' is not assignable}}
+  t = r;  // expected-error {{array type 'int[10]' is not assignable}}
   u = r;  // expected-error {{array type 'int _Checked[10]' is not assignable}}
   x = w;  // expected-error {{array type 'int _Nt_checked[10]' is not assignable}}
-  global_arr = p; // expected-error {{array type 'int [10]' is not assignable}}
-  global_arr = r; // expected-error {{array type 'int [10]' is not assignable}}
+  global_arr = p; // expected-error {{array type 'int[10]' is not assignable}}
+  global_arr = r; // expected-error {{array type 'int[10]' is not assignable}}
   global_checked_arr = r; // expected-error {{array type 'int _Checked[10]' is not assignable}}
 }
 
@@ -233,12 +233,10 @@ extern void check_dimensions1(void) {
   int t3b nt_checked[10]checked[10];   // expected-error {{only integer and pointer types allowed}}
   int t3c nt_checked[10][10];          // expected-error {{only integer and pointer types allowed}}
   typedef int dim_unchecked[10];
-  dim_unchecked t4 checked[10];        // expected-error {{checked array of unchecked array not allowed \
-('dim_unchecked' is an unchecked array)}}
+  dim_unchecked t4 checked[10];        // expected-error {{checked array of unchecked array not allowed}}
 
   typedef int dim_checked checked[10];
-  dim_checked t5[10];                  // expected-error {{unchecked array of checked array not allowed \
-('dim_checked' is a checked array)}}
+  dim_checked t5[10];                  // expected-error {{unchecked array of checked array not allowed}}
 
   // checked parenthesized declarators
   int (t6 checked[10])[10];            // checked propagates to enclosing array declarators
@@ -247,8 +245,7 @@ extern void check_dimensions1(void) {
   int ((t9[10]))checked[10];           // expected-error {{unchecked array of checked array not allowed}}
   dim_unchecked(t10 checked[10])[10]; // expected-error {{checked array of unchecked array not allowed \
 ('dim_unchecked' is an unchecked array)}}
-  dim_checked (t11[10])[10];           // expected-error {{unchecked array of checked array not allowed \
-('dim_checked' is a checked array)}}
+  dim_checked (t11[10])[10];           // expected-error {{unchecked array of checked array not allowed}}
 
   // make sure checked-ness propagated
   int *t12 = t6[0];                    // expected-error {{expression of incompatible type 'int _Checked[10]'}}
@@ -875,7 +872,7 @@ extern void check_call(void) {
   f1(z, 0);              // expected-error {{parameter of incompatible type 'int *'}}
   f1(x2d, 0);            // expected-warning {{incompatible pointer types passing}}
   f1(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type 'int *'}}
-  f1(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type 'int *'}}
+  f1(z2d, 0);            // expected-error {{passing 'int _Checked[10] _Nt_checked[10]' to parameter of incompatible type 'int *'}}
 
   // f2(int p[10], int y)
   f2(x, 0);
@@ -883,7 +880,7 @@ extern void check_call(void) {
   f2(z, 0);              // expected-error {{parameter of incompatible type 'int *'}}
   f2(x2d, 0);            // expected-warning {{incompatible pointer types passing}}
   f2(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type 'int *'}}
-  f2(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type 'int *'}}
+  f2(z2d, 0);            // expected-error {{passing 'int _Checked[10] _Nt_checked[10]' to parameter of incompatible type 'int *'}}
 
   // f3(int p checked[10], int y)
   f3(x, 0);
@@ -891,15 +888,15 @@ extern void check_call(void) {
   f3(z, 0);              // expected-error {{argument does not meet declared bounds for 1st parameter}}
   f3(x2d, 0);            // expected-error {{parameter of incompatible type}}
   f3(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type '_Array_ptr<int>'}}
-  f3(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type '_Array_ptr<int>'}}
+  f3(z2d, 0);            // expected-error {{passing 'int _Checked[10] _Nt_checked[10]' to parameter of incompatible type '_Array_ptr<int>'}}
 
   // f3a(int p nt_checked[10], int y)
-  f3a(x, 0);             // expected-error {{passing 'int [10]' to parameter of incompatible type '_Nt_array_ptr<int>'}}
+  f3a(x, 0);             // expected-error {{passing 'int[10]' to parameter of incompatible type '_Nt_array_ptr<int>'}}
   f3a(y, 0);             // expected-error {{passing 'int _Checked[10]' to parameter of incompatible type '_Nt_array_ptr<int>'}}
   f3a(z, 0);
   f3a(x2d, 0);            // expected-error {{parameter of incompatible type}}
   f3a(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type '_Nt_array_ptr<int>'}}
-  f3a(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type '_Nt_array_ptr<int>'}}
+  f3a(z2d, 0);            // expected-error {{passing 'int _Checked[10] _Nt_checked[10]' to parameter of incompatible type '_Nt_array_ptr<int>'}}
 
 
   // f4(int **p, int y);
@@ -908,7 +905,7 @@ extern void check_call(void) {
   f4(z, 0);              // expected-error {{passing 'int _Nt_checked[10]' to parameter of incompatible type 'int **'}}
   f4(x2d, 0);            // expected-warning {{incompatible pointer types passing}}
   f4(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type 'int **'}}
-  f4(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type 'int **'}}
+  f4(z2d, 0);            // expected-error {{passing 'int _Checked[10] _Nt_checked[10]' to parameter of incompatible type 'int **'}}
 
   // f5(int (*p)[10], int y);
   f5(x, 0);              // expected-warning {{incompatible pointer types passing}}
@@ -916,15 +913,15 @@ extern void check_call(void) {
   f5(z, 0);              // expected-error {{passing 'int _Nt_checked[10]' to parameter of incompatible type 'int (*)[10]'}}
   f5(x2d, 0);            // OK
   f5(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type 'int (*)[10]'}}
-  f5(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type 'int (*)[10]'}}
+  f5(z2d, 0);            // expected-error {{passing 'int _Checked[10] _Nt_checked[10]' to parameter of incompatible type 'int (*)[10]'}}
 
    // f6(ptr<int[10]>, int y);
   f6(x, 0);              // expected-error {{parameter of incompatible type}}
-  f6(y, 0);              // expected-error {{passing 'int _Checked[10]' to parameter of incompatible type '_Ptr<int [10]>'}}
-  f6(z, 0);              // expected-error {{passing 'int _Nt_checked[10]' to parameter of incompatible type '_Ptr<int [10]>'}}
+  f6(y, 0);              // expected-error {{passing 'int _Checked[10]' to parameter of incompatible type '_Ptr<int[10]>'}}
+  f6(z, 0);              // expected-error {{passing 'int _Nt_checked[10]' to parameter of incompatible type '_Ptr<int[10]>'}}
   f6(x2d, 0);            // OK
-  f6(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type '_Ptr<int [10]>'}}
-  f6(z2d, 0);            // expected-error {{passing 'int _Checked[10]_Nt_checked[10]' to parameter of incompatible type '_Ptr<int [10]>'}}
+  f6(y2d, 0);            // expected-error {{passing 'int _Checked[10][10]' to parameter of incompatible type '_Ptr<int[10]>'}}
+  f6(z2d, 0);            // expected-error {{passing 'int _Checked[10] _Nt_checked[10]' to parameter of incompatible type '_Ptr<int[10]>'}}
 
    // f7(array_ptr<int[10]>, int y);
   f7(x, 0);              // expected-error {{parameter of incompatible type}}
@@ -1147,7 +1144,7 @@ array_ptr<int> h5(void) {
 }
 
 nt_array_ptr<int> h5a(void) {
-  return global;         // expected-error {{incompatible result type}}
+  return global;         // expected-error {{incompatible result type}} 
 }
 
 int *h6(void) {
