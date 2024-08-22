@@ -12,16 +12,16 @@ extern void f1() {
   int b[10];
 
   int *p = 0;
-  array_ptr<int> checkedc_p : bounds(checkedc_p, checkedc_p + 1) = 0;
+  int* _Array checkedc_p : bounds(checkedc_p, checkedc_p + 1) = 0;
   c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
   c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
   a = _Assume_bounds_cast<array_ptr<int>>(p, count(4));
   checkedc_p = _Assume_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1));
   checkedc_p = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1)); // expected-error {{expression has unknown bounds}}
-  a = _Assume_bounds_cast<array_ptr<int>>(p, count(1));
+  a = _Assume_bounds_cast<int* _Array>(p, count(1));
   a = _Assume_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1));
   array_ptr<int> d = _Assume_bounds_cast<array_ptr<int>>(p, count(4));
-  c = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
+  c = _Dynamic_bounds_cast<int* _Single>(p); // expected-error {{expression has unknown bounds}}
 }
 
 struct S1 {
@@ -31,7 +31,7 @@ struct S1 {
   } pair;
   array_ptr<int> arr1 : bounds(pair.lower, pair.upper);
   struct {
-    array_ptr<int> arr2 : bounds(pair.lower, pair.upper);
+    int* _Array arr2 : bounds(pair.lower, pair.upper);
   } nested;
 };
 
@@ -52,8 +52,8 @@ extern void f3() {
   p = _Dynamic_bounds_cast<int *>(r); // expected-error {{expression has unknown bounds}}
   q = _Assume_bounds_cast<ptr<int>>(p);
   q = _Dynamic_bounds_cast<ptr<int>>(p); // expected-error {{expression has unknown bounds}}
-  q = _Dynamic_bounds_cast<ptr<int>>(r); // expected-error {{expression has unknown bounds}}
-  q = _Dynamic_bounds_cast<ptr<int>>(r) + 3; // expected-error{{arithmetic on _Ptr type}}
+  q = _Dynamic_bounds_cast_M_N(int* _Single, r); // expected-error {{expression has unknown bounds}}
+  q = _Dynamic_bounds_cast_M_N(int* _Single, r) + 3; // expected-error{{arithmetic on _Ptr type}}
 
   *(_Assume_bounds_cast<ptr<int>>(r) + 2) = 4; // expected-error{{arithmetic on _Ptr type}}
   // For the statement below, the compiler figures out that r + 2 is out of bounds r : count(1).
@@ -63,7 +63,7 @@ extern void f3() {
   // t : count(3) normals to bounds(t, t + 3), and t[3] is out of that range.
   int n = (_Dynamic_bounds_cast<array_ptr<int>>(t, count(3)))[3]; // expected-error {{out-of-bounds memory access}}
   s1 = _Dynamic_bounds_cast<array_ptr<int>>(p, count(5)); // expected-error {{expression has unknown bounds}}
-  s2 = _Assume_bounds_cast<array_ptr<int>>(r, count(5));
+  s2 = _Assume_bounds_cast<int* _Array>(r, count(5));
 }
 
 extern ptr<int> f4(int arr checked[]) {
@@ -83,7 +83,7 @@ checked int *f5(int *p, ptr<int> q, array_ptr<int> r, array_ptr<int> s: count(2)
       int b checked[5][5];
       for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 5; j++) {
-          b[i][j] += *q + *(_Dynamic_bounds_cast<array_ptr<int>>(r, count(1))); // expected-error {{expression has unknown bounds}}
+          b[i][j] += *q + *(_Dynamic_bounds_cast<int* _Array>(r, count(1))); // expected-error {{expression has unknown bounds}}
         }
       }
     }
@@ -143,8 +143,8 @@ extern void f18(int i) {
   r = _Dynamic_bounds_cast<array_ptr<int>>(p, count(1)); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for 'r' are invalid after assignment}}
   r = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1)); // expected-error {{expression has unknown bounds}} expected-error {{declared bounds for 'r' are invalid after assignment}}
 
-  r = _Dynamic_bounds_cast<array_ptr<int>>(i, count(5)); // expected-error {{expression has unknown bounds}}
-  r = _Dynamic_bounds_cast<array_ptr<int>>(i, bounds(i, i + 1)); // expected-error 2 {{expected expression with pointer}}
+  r = _Dynamic_bounds_cast<int* _Array>(i, count(5)); // expected-error {{expression has unknown bounds}}
+  r = _Dynamic_bounds_cast<int* _Array>(i, bounds(i, i + 1)); // expected-error 2 {{expected expression with pointer}}
 
   int len;
 
@@ -185,7 +185,7 @@ extern void f19(){
   x = _Dynamic_bounds_cast<array_ptr<int>>(b, bounds(p, p + 1)); // expected-error {{to have a pointer}}
 
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, count(b)); // expected-error {{invalid argument type}}
-  x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, 1)); // expected-error {{expected expression with}}
+  x = _Dynamic_bounds_cast<int* _Array>(p, bounds(p, 1)); // expected-error {{expected expression with}}
   x = _Dynamic_bounds_cast<array_ptr<int>>(p, bounds(p, p + 1)); // expected-error {{declared bounds for 'x' are invalid after assignment}}
 }
 
@@ -206,7 +206,7 @@ extern void f20(void *p) {
 }
 
 extern void f21(array_ptr<char> buf : count(len), int len) {
-  array_ptr<int> intbuf : count(12) = _Dynamic_bounds_cast<array_ptr<int>>(buf, bounds(intbuf, intbuf + 12));
+  int* _Array intbuf  _Count(12) = _Dynamic_bounds_cast<int* _Array>(buf, bounds(intbuf, intbuf + 12));
   int i = intbuf[12]; // expected-error {{out-of-bounds memory access}} \
                       // expected-note {{accesses memory at or above the upper bound}} \
                       // expected-note {{(expanded) inferred bounds are 'bounds(intbuf, intbuf + 12)'}}
@@ -220,7 +220,7 @@ extern void f22() {
 }
 
 extern void f23() {
-  array_ptr<char> buf : count(10) = _Assume_bounds_cast<array_ptr<char>>(h7(), count(10));
+  array_ptr<char> buf  _Count(10) = _Assume_bounds_cast<array_ptr<char>>(h7(), count(10));
   char c = buf[10]; // expected-error {{out-of-bounds memory access}} \
                     // expected-note {{accesses memory at or above the upper bound}} \
                     // expected-note {{(expanded) inferred bounds are 'bounds(buf, buf + 10)'}}
@@ -244,7 +244,7 @@ extern void f24() {
 }
 
 extern void f25(array_ptr<char> buf : count(len), int len) {
-  array_ptr<int> intbuf : count(6) = _Dynamic_bounds_cast<array_ptr<int>>(buf + 5, count(6));
+  int* _Array intbuf  _Count(6) = _Dynamic_bounds_cast<int* _Array>(buf + 5, count(6));
   int i = intbuf[6]; // expected-error {{out-of-bounds memory access}} \
                      // expected-note {{accesses memory at or above the upper bound}} \
                      // expected-note {{(expanded) inferred bounds are 'bounds(intbuf, intbuf + 6)'}}

@@ -7,7 +7,7 @@
 #include <stdchecked.h>
 
 struct S1 {
-  array_ptr<int> arr : count(5);
+  int* _Array arr  _Count(5);
 };
 
 struct S2 {
@@ -33,7 +33,7 @@ struct S6 {
 };
 
 struct S7 {
-  array_ptr<int> arr : bounds(arr, arr + 5);
+  int* _Array arr  _Bounds(arr, arr + 5);
 };
 
 // Structure with a variable length array at the end
@@ -45,7 +45,7 @@ struct S8 {
 // Pointer into the middle of an array
 struct S9 {
   int start;
-  array_ptr<int> arr : bounds(arr - start, arr - start + 5);
+  int* _Array arr  _Bounds(arr - start, arr - start + 5);
 };
 
 struct S10 {
@@ -62,7 +62,7 @@ struct S11 {
 
 struct S12 {
   int count;
-  array_ptr<int> arr : count(count);
+  int* _Array arr  _Count(count);
 };
 
 struct S13 {
@@ -78,7 +78,7 @@ struct S13 {
   array_ptr<int> arr3 : bounds(unknown + arr2, unknown + arr2 + 5); // expected-error {{expected ')'}} \
                                                               // expected-note {{to match this '('}}
   // not a keyword
-  array_ptr<int> arr4 : bounds(arr3, arr3 + unknown); 
+  int* _Array arr4  _Bounds(arr3, arr3 + unknown);
 };
 
 struct S14 {
@@ -94,7 +94,7 @@ struct S14 {
   // not a keyword as an argument.
   array_ptr<int> arr3 : bounds(bounds + arr2, bounds + arr2 + 5);
   // not a keyword
-  array_ptr<int> arr4 : bounds(arr3, arr3 + bounds);
+  int* _Array arr4  _Bounds(arr3, arr3 + bounds);
 };
 
 //
@@ -127,8 +127,8 @@ struct S15 {
   // Members that are arrays and that have bounds specified for them.
   // Legal but not too interestting.
   int arr13[10] : count(9);
-  int arr14[10] : byte_count(9 * sizeof(int));
-  int arr15[10] : bounds(arr15, arr15 + 9);
+  int arr14[10]  _Byte_count(9 * sizeof(int));
+  int arr15[10]  _Bounds(arr15, arr15 + 9);
 };
 
 // Members that are pointers to functions that have bounds declarations on
@@ -151,19 +151,19 @@ extern void S16(void) {
   int(*s1)(array_ptr<int> : count(5));
   int(*s2)(array_ptr<int> arg : count(5));
   int(*s3)(int n, array_ptr<int> arg : count(n));
-  int(*s4)(array_ptr<int> arg : count(n), int n);
+  int(*s4)(int* _Array arg  _Count(n), int n);
   // Use 'byte_count' instead of 'count'.
   int(*t1)(array_ptr<int> : byte_count(5 * sizeof(int)));
   int(*t2)(array_ptr<int> arg : count(5 * sizeof(int)));
-  int(*t3)(int n, array_ptr<int> arg : count(n * sizeof(int)));
-  int(*t4)(array_ptr<int> arg : count(n * sizeof(int)), int n);
+  int(*t3)(int n, int* _Array arg  _Count(n * sizeof(int)));
+  int(*t4)(int* _Array arg  _Count(n * sizeof(int)), int n);
 }
 
 struct S17 {
   // Members that are pointers to functions that have bounds on
   // arguments or return values.
-  int (*f1)(int len, array_ptr<int> arr : count(len));
-  array_ptr<int> (*f2)(int len, array_ptr<int> arr : count(len)) : count(len);
+  int (*f1)(int len, int* _Array arr  _Count(len));
+  int* _Array (*f2)(int len, int* _Array arr  _Count(len))  _Count(len);
   // same as f1, but checked ptr
   ptr<int (int len, array_ptr<int> arr : count(len))> f3; 
   // same as f2, but checked ptr
@@ -180,8 +180,8 @@ struct S17 {
 // Bounds distributed across multiple nested members
 struct S18 {
   struct S19 {
-     array_ptr<int> lower;
-     array_ptr<int> upper;
+    int* _Array lower;
+    int* _Array upper;
   } pair;
   array_ptr<int> arr1 : bounds(pair.lower, pair.upper);
   struct S20 {
@@ -193,7 +193,7 @@ struct S18 {
 struct S21 {
   struct {
     array_ptr<int> lower;
-    array_ptr<int> upper;
+    int* _Array upper;
   } pair;
   array_ptr<int> arr1 : bounds(pair.lower, pair.upper);
   struct {
@@ -210,7 +210,7 @@ struct S22 {
 };
 
 struct S23 {
-  array_ptr<int> arr : 6 + 6; // expected-error {{expected bounds expression}}
+  int* _Array arr : 6 + 6; // expected-error {{expected bounds expression}}
 };
 
 // Misspell bounds to cause an semantic checking error.
@@ -227,7 +227,7 @@ struct S24 {
 // and generate several errors.
 struct S25 {
   int len;
-  array_ptr<int> arr : coount(5); // expected-error {{expected bounds expression}} \
+  int* _Array arr : coount(5); // expected-error {{expected bounds expression}} \
                                   // expected-warning {{implicit declaration of function 'coount'}}
 };
 
@@ -246,7 +246,7 @@ struct S27 {
 // Omit the argument to count to cause a parsing error.
 struct S28 {
   int len;
-  array_ptr<int> arr : count(); //expected-error {{expected expression}}
+  int* _Array arr  _Count(); //expected-error {{expected expression}}
 };
 
 //
@@ -264,7 +264,7 @@ int f1(void) {
   int buffer checked[100];
   struct S30 {
      int len;
-     array_ptr<int> arr : bounds(buffer, buffer + len); // expected-error 2 {{use of undeclared member 'buffer'}}
+     int* _Array arr  _Bounds(buffer, buffer + len); // expected-error 2 {{use of undeclared member 'buffer'}}
   };
 }
 
@@ -302,7 +302,7 @@ union U1 {
 // with the same size that are arrays of scalars.
 union U2 {
   array_ptr<int> ip : count(4);
-  array_ptr<char> cp : count(4 * sizeof(int));
+  char* _Array cp  _Count(4 * sizeof(int));
 };
 
 // Unions where dynamic tags are used to ensure correct use of members.
@@ -328,7 +328,7 @@ struct S32 {
   int tag : 1;
   union {
     array_ptr<char> cp : count(tag ? len : 0);
-    array_ptr<int> ip : count(!tag ? 0 : len);
+    int* _Array ip  _Count(!tag ? 0 : len);
   };
 };
 
@@ -336,7 +336,7 @@ struct S32 {
 union U5 {
   _Bool isInteger;
   ptr<int> ip;
-  ptr<float> fp;
+  float* _Single fp;
 };
 
 union U6 {

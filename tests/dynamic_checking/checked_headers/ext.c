@@ -16,9 +16,9 @@
 // A function with an interface similar to snprintf but without the variable
 // number of arguments. The purpose is to test such a call interface in checked
 // scope.
-void iface(char * restrict s : itype(restrict _Nt_array_ptr<char>) count(n-1),
-           size_t n _Where n > 0,
-           const char * restrict src : itype(restrict _Nt_array_ptr<const char>)) {
+void iface(char * restrict s  _Itype( char* _Nt_array restrict) count(n-1),
+           size_t n _Where( n > 0),
+           const char * restrict src  _Itype( const char* _Nt_array restrict)) {
   return;
 }
 
@@ -36,7 +36,7 @@ void iface_array_ptr(char * restrict s : itype(restrict _Array_ptr<char>) count(
 
 
 
-void iface_test1(_Array_ptr<char> p : count(len), size_t len) {
+void iface_test1(char* _Array p _Count(len), size_t len) {
 
   char buf _Checked[50];
   iface_array_ptr(buf, 50, "Hello world");
@@ -53,7 +53,7 @@ void iface_test2(_Nt_array_ptr<char> p : count(len), size_t len) {
   iface(p, len + 1, "Hello world");
 }
 
-void test3(_Array_ptr<char> buf : count(len), size_t len) {
+void test3(char* _Array buf _Count(len), size_t len) {
   _Unchecked{ snprintf_array_ptr(buf, len, "Hello world - 3"); }
 }
 

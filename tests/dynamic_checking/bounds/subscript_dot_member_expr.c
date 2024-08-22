@@ -5,14 +5,14 @@
 // struct S v;
 // v.f[e]
 //
-// Uses are tested in read, assignment,increment, and compound assignment 
+// Uses are tested in read, assignment,increment, and compound assignment
 // expressions.  The type of use is controlled by the macro names TEST_READ,
 // TEST_WRITE, TEST_INCREMENT, and TEST_COMPOUND_ASSIGNMENT.  The file must
 // be compiled with exactly one of those macro names defined.
 //
 // The source code for this test is parameterized by the member access operator
 // so that it can be re-used for member expressions formed using the arrow
-// operator.  The member access operator is controlled by macro name ARROW.  
+// operator.  The member access operator is controlled by macro name ARROW.
 // When the the macro name is undefined, the dot (.) operator is used.  When it is
 // defined, the arrow (->) operator is used.
 //
@@ -123,9 +123,12 @@ void handle_error(int err) {
 int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
-  // clang implementation raises a SIGILL when a bounds check fails.  This
-  // may change in the future.
+  // clang implementation raises a SIGILL or SIGTRAP when a bounds check fails,
+  // depending on the target platform.  This may change in the future.
   signal(SIGILL, handle_error);
+#if defined(__APPLE__) && defined(__aarch64__)
+  signal(SIGTRAP, handle_error);
+#endif
 
   // This makes sure output is not buffered for when
   // we hit errors.
@@ -135,7 +138,7 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
     puts("Error Setting Up Buffering");
     return EXIT_FAILURE;
   }
-  
+
   if (argc < 2) {
     // CHECK-NOT: Requires Argument
     puts("Requires Argument");
@@ -145,14 +148,14 @@ int main(int argc, array_ptr<char*> argv : count(argc)) {
   int v checked[5] = { 0, 1, 2, 3, 4};
   struct S1 s1 = { v, 5 };
   struct S2 s2 = { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, -1 };
-  
+
   // CHECK: Starting Test
   puts("Starting Test");
 #ifdef ARROW_OPERATOR
   puts("Using arrow operator"); // ARROW: Using arrow operator
 #else
   puts("Using dot operator");
-#endif 
+#endif
 
 
   if (strcmp(argv[1], "pass1") == 0) {
@@ -341,7 +344,7 @@ void failing_test_2(int i) {
   TEST_OP(s.arr[i], 1);
   printf("Unreachable: %d\n", s.arr[i]);
 #endif
-  
+
   puts("Unexpected Success");
 }
 

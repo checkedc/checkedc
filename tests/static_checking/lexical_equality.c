@@ -11,6 +11,10 @@
 // expression first.  Then we check against prior kinds of expressions.     //
 //--------------------------------------------------------------------------//
 
+#define _Dynamic_bounds_cast_M(T, e1, ... ) _Dynamic_bounds_cast<T>(e1, __VA_ARGS__)
+#define _Dynamic_bounds_cast_M_N(T, e1 ) _Dynamic_bounds_cast<T>(e1)
+#define _Assume_bounds_cast_M(T, e1, ... ) _Assume_bounds_cast<T>(e1, __VA_ARGS__)
+#define _Assume_bounds_cast_M_N(T, e1 ) _Assume_bounds_cast<T>(e1)
 
 //--------------------------------------------------------------------------//
 // Constants                                                                //
@@ -25,13 +29,13 @@ extern int f1_1(_Array_ptr<int> p : count(0));
 extern int f1_2(_Array_ptr<int> p : count(1));
 extern int f1_2(_Array_ptr<int> p : count(1));
 extern int f1_3(_Array_ptr<int> p : count(5));
-extern int f1_3(_Array_ptr<int> p : count(5));
+extern int f1_3(int* _Array p  _Count(5));
 
 // Integer constant inequality
 extern int f1_4(_Array_ptr<int> p : count(0));
 extern int f1_4(_Array_ptr<int> p : count(1));         // expected-error {{conflicting parameter bounds}}
 extern int f1_5(_Array_ptr<int> p : count(0));
-extern int f1_5(_Array_ptr<int> p : count(5));         // expected-error {{conflicting parameter bounds}}
+extern int f1_5(int* _Array p  _Count(5));         // expected-error {{conflicting parameter bounds}}
 
 // Character constant equality
 extern int f1_6(_Array_ptr<int> p : count('a'));
@@ -43,7 +47,7 @@ extern int f1_7(_Array_ptr<int> p : count('b'));       // expected-error {{confl
 
 // Character constant vs. integer constant inequality
 extern int f1_8(_Array_ptr<int> p : count(0));
-extern int f1_8(_Array_ptr<int> p : count('a'));       // expected-error {{conflicting parameter bounds}}
+extern int f1_8(int* _Array p  _Count('a'));       // expected-error {{conflicting parameter bounds}}
 
 
 // Floating-point constants,  
@@ -76,7 +80,7 @@ extern int f3_1(_Array_ptr<int> p : count((int) 0.0F));
 extern int f3_2(_Array_ptr<int> p : count((int) 5.0f));
 extern int f3_2(_Array_ptr<int> p : count((int) 5.0f));
 extern int f3_2(_Array_ptr<int> p : count((int) 5.0F));
-extern int f3_2(_Array_ptr<int> p : count((int) 5.0F));
+extern int f3_2(int* _Array p  _Count((int) 5.0F));
 
 // Inequality of floating point constants with type float.
 extern int f4_1(_Array_ptr<int> p : count((int) 0.0f));
@@ -84,14 +88,14 @@ extern int f4_1(_Array_ptr<int> p : count((int) 5.0f));  // expected-error {{con
 extern int f4_2(_Array_ptr<int> p : count((int) 0.0F));
 extern int f4_2(_Array_ptr<int> p : count((int) 5.0F));  // expected-error {{conflicting parameter bounds}}
 extern int f4_3(_Array_ptr<int> p : count((int) 0.0f));
-extern int f4_3(_Array_ptr<int> p : count((int) 5.0F));  // expected-error {{conflicting parameter bounds}}
+extern int f4_3(int* _Array p  _Count((int) 5.0F));  // expected-error {{conflicting parameter bounds}}
 
 // Inequality of floating point constants with type float and type double.
 
 extern int f5_1(_Array_ptr<int> p : count((int) 0.0));
 extern int f5_1(_Array_ptr<int> p : count((int) 0.0f));  // expected-error {{conflicting parameter bounds}}
 extern int f5_2(_Array_ptr<int> p : count((int) 0.0));
-extern int f5_2(_Array_ptr<int> p : count((int) 0.0F));  // expected-error {{conflicting parameter bounds}}
+extern int f5_2(int* _Array p  _Count((int) 0.0F));  // expected-error {{conflicting parameter bounds}}
 
 // Equality of floating point constants with type long double.
 extern int f6_1(_Array_ptr<int> p : count((int) 0.0l));
@@ -99,7 +103,7 @@ extern int f6_1(_Array_ptr<int> p : count((int) 1.0l));  // expected-error {{con
 extern int f6_2(_Array_ptr<int> p : count((int) 0.0l));
 extern int f6_2(_Array_ptr<int> p : count((int) 5.0L));  // expected-error {{conflicting parameter bounds}}
 extern int f6_3(_Array_ptr<int> p : count((int) 0.0l));
-extern int f6_3(_Array_ptr<int> p : count((int) 5.0l));  // expected-error {{conflicting parameter bounds}}
+extern int f6_3(int* _Array p  _Count((int) 5.0l));  // expected-error {{conflicting parameter bounds}}
 
 // Inequality of floating point constants with type double and type
 // long double.
@@ -115,7 +119,7 @@ extern int f7_2(_Array_ptr<int> p : count((int) 0.0L));  // expected-error {{con
 extern int f8_1(_Array_ptr<int> p : count((int) 0.0f));
 extern int f8_1(_Array_ptr<int> p : count((int) 0.0l));  // expected-error {{conflicting parameter bounds}}
 extern int f8_2(_Array_ptr<int> p : count((int) 0.0f));
-extern int f8_2(_Array_ptr<int> p : count((int) 0.0L));  // expected-error {{conflicting parameter bounds}}
+extern int f8_2(int* _Array p  _Count((int) 0.0L));  // expected-error {{conflicting parameter bounds}}
 
 // We omit inequality of floating point constants and integer constants. We
 // insert an explicit cast for integers so that the enclosing expressions 
@@ -126,7 +130,7 @@ extern int f9_1(_Array_ptr<int> p : count((int) 0.0));  // expected-error {{conf
 extern int f9_2(_Array_ptr<int> p : count((int) 5));
 extern int f9_2(_Array_ptr<int> p : count((int) 5.0f));  // expected-error {{conflicting parameter bounds}}
 extern int f9_3(_Array_ptr<int> p : count((int) 150));
-extern int f9_3(_Array_ptr<int> p : count((int) 1.5e2L));  // expected-error {{conflicting parameter bounds}}
+extern int f9_3(int* _Array p  _Count((int) 1.5e2L));  // expected-error {{conflicting parameter bounds}}
 
 //-----------------------------------------------------//
 // Variables                                           //
@@ -141,7 +145,7 @@ extern _Array_ptr<int> arr1_1 : count(arr1_len);
 
 // Global variable inequality.
 extern _Array_ptr<int> arr1_2 : count(arr1_len);
-extern _Array_ptr<int> arr1_2 : count(arr2_len);       // expected-error {{variable redeclaration has conflicting bounds}}
+extern int* _Array arr1_2  _Count(arr2_len);       // expected-error {{variable redeclaration has conflicting bounds}}
 
 // Parameter variable equality.   Positions of arguments matter, not
 // variable names.
@@ -152,7 +156,7 @@ extern int f20_2(int d, _Array_ptr<int> arr1 : count(d));
 
 // Parameter variable inequality.
 extern int f20_3(_Array_ptr<int> arr1 : count(a), int a, int b);
-extern int f20_3(_Array_ptr<int> arr1 : count(b), int a, int b); // expected-error {{conflicting parameter bounds}}
+extern int f20_3(int* _Array arr1  _Count(b), int a, int b); // expected-error {{conflicting parameter bounds}}
 
 // We can't check parameter variable vs. global variable inequality just
 // using redeclarations of functions.  Parameter bounds can only refer to
@@ -165,7 +169,7 @@ extern _Array_ptr<int> arr1_3 : count(arr1_len); // expected-error {{variable re
 
 // Parameter variable vs. constant inequality.
 extern int f21_1(_Array_ptr<int> arr1 : count(len), int len);  
-extern int f21_1(_Array_ptr<int> arr1 : count(5), int len);  // expected-error {{conflicting parameter bounds}}
+extern int f21_1(int* _Array arr1  _Count(5), int len);  // expected-error {{conflicting parameter bounds}}
 
 //-----------------------------------------------------//
 // Unary operator expressions.                         //
@@ -189,8 +193,8 @@ extern int f30_6(int a, _Array_ptr<int> p : count(!a));
 extern int f30_6(int a, _Array_ptr<int> p : count(!a));
 extern int f30_7(int a, _Array_ptr<int> p : byte_count(sizeof(a)));
 extern int f30_7(int a, _Array_ptr<int> p : byte_count(sizeof(a)));
-extern int f30_8(int a, _Array_ptr<int> p : byte_count(sizeof(int[2])));
-extern int f30_8(int a, _Array_ptr<int> p : byte_count(sizeof(int[2])));
+extern int f30_8(int a, int* _Array p  _Byte_count(sizeof(int[2])));
+extern int f30_8(int a, int* _Array p  _Byte_count(sizeof(int[2])));
 
 // Inequality of integer unary operator expressions.  The argument expression
 // and enclosing expression are identical; only the operators
@@ -222,8 +226,8 @@ extern int f31_8(_Array_ptr<int> p : count(sizeof(a)), int a);
 extern int f31_8(_Array_ptr<int> p : count(+a), int a); // expected-error {{conflicting parameter bounds}}
 extern int f31_9(_Array_ptr<int> p : count(sizeof(a)), int a);
 extern int f31_9(_Array_ptr<int> p : count(~a), int a); // expected-error {{conflicting parameter bounds}}
-extern int f31_10(_Array_ptr<int> p : count(sizeof(a)), int a);
-extern int f31_10(_Array_ptr<int> p : count(!a), int a); // expected-error {{conflicting parameter bounds}}
+extern int f31_10(int* _Array p  _Count(sizeof(a)), int a);
+extern int f31_10(int* _Array p  _Count(!a), int a); // expected-error {{conflicting parameter bounds}}
 
 // inequality of sizeof(expression) vs. size(type).
 extern int f31_11(int a, _Array_ptr<int> p : byte_count(sizeof(a)));
@@ -234,8 +238,8 @@ extern int f32_1(int a, _Array_ptr<int> p : bounds(&arr4[5], &arr4[50]));
 extern int f32_1(int a, _Array_ptr<int> p : bounds(&arr4[6], &arr4[50]));  // expected-error {{conflicting parameter bounds}}
 
 // Inequality of dereference expressions
-extern int f32_2(_Ptr<int> plen, _Array_ptr<int> p : count(*plen), _Ptr<int> slen);
-extern int f32_2(_Ptr<int> plen, _Array_ptr<int> p : count(*slen), _Ptr<int> slen); // expected-error {{conflicting parameter bounds}}
+extern int f32_2(int* _Single plen, int* _Array p  _Count(*plen), int* _Single slen);
+extern int f32_2(int* _Single plen, int* _Array p  _Count(*slen), int* _Single slen); // expected-error {{conflicting parameter bounds}}
 
 // Inequality of dereference expressions vs. other unary operators
 extern int f32_3(_Ptr<int> plen, _Array_ptr<int> p : count(*plen), int slen);
@@ -249,7 +253,7 @@ extern int f32_5(_Array_ptr<int> p : count((int) (5.0)), int a);  // expected-er
 
 // Inequality of unary operator expressions and variables.
 extern int f32_6(_Array_ptr<int> p : count(!a), int a);
-extern int f32_6(_Array_ptr<int> p : count(a), int a);            // expected-error {{conflicting parameter bounds}}
+extern int f32_6(int* _Array p  _Count(a), int a);            // expected-error {{conflicting parameter bounds}}
 
 //-----------------------------------------------------//
 // Binary operator expressions.                        //
@@ -263,7 +267,7 @@ extern int f40_1(int a, int b, _Array_ptr<int> p : count(a * b));
 extern int f40_2(int a, int b, _Array_ptr<int> p : count(a / b));
 extern int f40_2(int a, int b, _Array_ptr<int> p : count(a / b));
 extern int f40_3(int a, int b, _Array_ptr<int> p : count(a % b));
-extern int f40_3(int a, int b, _Array_ptr<int> p : count(a % b));
+extern int f40_3(int a, int b, int* _Array p  _Count(a % b));
 
 // Additive operators.
 extern int f40_4(int a, int b, _Array_ptr<int> p : count(a + b));
@@ -275,7 +279,7 @@ extern int f40_5(int a, int b, _Array_ptr<int> p : count(a - b));
 extern int f40_6(int a, int b, _Array_ptr<int> p : count(a << b));
 extern int f40_6(int a, int b, _Array_ptr<int> p : count(a << b));
 extern int f40_7(int a, int b, _Array_ptr<int> p : count(a >> b));
-extern int f40_7(int a, int b, _Array_ptr<int> p : count(a >> b));
+extern int f40_7(int a, int b, int* _Array p  _Count(a >> b));
 
 // Relational operators.
 extern int f41_1(int a, int b, _Array_ptr<int> p : count(a < b));
@@ -285,13 +289,13 @@ extern int f41_2(int a, int b, _Array_ptr<int> p : count(a > b));
 extern int f41_3(int a, int b, _Array_ptr<int> p : count(a <= b));
 extern int f41_3(int a, int b, _Array_ptr<int> p : count(a <= b));
 extern int f41_4(int a, int b, _Array_ptr<int> p : count(a >= b));
-extern int f41_4(int a, int b, _Array_ptr<int> p : count(a >= b));
+extern int f41_4(int a, int b, int* _Array p  _Count(a >= b));
 
 // Equality operators.
 extern int f41_5(int a, int b, _Array_ptr<int> p : count(a == b));
 extern int f41_5(int a, int b, _Array_ptr<int> p : count(a == b));
 extern int f41_6(int a, int b, _Array_ptr<int> p : count(a != b));
-extern int f41_6(int a, int b, _Array_ptr<int> p : count(a != b));
+extern int f41_6(int a, int b, int* _Array p  _Count(a != b));
 
 // Bitwise operators.
 extern int f41_7(int a, int b, _Array_ptr<int> p : count(a & b));
@@ -312,8 +316,8 @@ extern int f43_1(int a, _Array_ptr<int> b, _Array_ptr<int> p : bounds(b, b + a))
 extern int f43_1(int a, _Array_ptr<int> b, _Array_ptr<int> p : bounds(b, b + a));
 extern int f43_2(int a, _Array_ptr<int> b, _Array_ptr<int> p : bounds(b - a, b));
 extern int f43_2(int a, _Array_ptr<int> b, _Array_ptr<int> p : bounds(b - a, b));
-extern int f43_3(_Array_ptr<int> a, _Array_ptr<int> b, _Array_ptr<int> p : count(b - a));
-extern int f43_3(_Array_ptr<int> a, _Array_ptr<int> b, _Array_ptr<int> p : count(b - a));
+extern int f43_3(int* _Array a, int* _Array b, int* _Array p  _Count(b - a));
+extern int f43_3(int* _Array a, int* _Array b, int* _Array p  _Count(b - a));
 
 // Inequality of binary operators on integers.
 //
@@ -324,7 +328,7 @@ extern int f43_3(_Array_ptr<int> a, _Array_ptr<int> b, _Array_ptr<int> p : count
 #define TESTOP /
 #define FUNC(index) NAME(50, index)
 
-extern int FUNC(1)(int a, int b, _Array_ptr<int> p : count(a TESTOP b)); 
+extern int FUNC(1)(int a, int b, int* _Array p  _Count(a TESTOP b));
 extern int FUNC(1)(int a, int b, _Array_ptr<int> p : count(a * b));  // expected-error {{conflicting parameter bounds}}
 
 // Remainder vs. prior binary operators.
@@ -351,7 +355,7 @@ extern int FUNC(1)(int a, int b, _Array_ptr<int> p : count(a * b));  // expected
 extern int FUNC(2)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
 extern int FUNC(2)(int a, int b, _Array_ptr<int> p : count(a / b));  // expected-error {{conflicting parameter bounds}}
 
-extern int FUNC(3)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
+extern int FUNC(3)(int a, int b, int* _Array p  _Count(a TESTOP b));
 extern int FUNC(3)(int a, int b, _Array_ptr<int> p : count(a % b));  // expected-error {{conflicting parameter bounds}}
 
 // Minus vs. prior binary operators.
@@ -369,7 +373,7 @@ extern int FUNC(2)(int a, int b, _Array_ptr<int> p : count(a / b));  // expected
 extern int FUNC(3)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
 extern int FUNC(3)(int a, int b, _Array_ptr<int> p : count(a % b));  // expected-error {{conflicting parameter bounds}}
 
-extern int FUNC(4)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
+extern int FUNC(4)(int a, int b, int* _Array p  _Count(a TESTOP b));
 extern int FUNC(4)(int a, int b, _Array_ptr<int> p : count(a + b));  // expected-error {{conflicting parameter bounds}}
 
 // << vs. prior binary operators
@@ -390,8 +394,8 @@ extern int FUNC(3)(int a, int b, _Array_ptr<int> p : count(a % b));  // expected
 extern int FUNC(4)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
 extern int FUNC(4)(int a, int b, _Array_ptr<int> p : count(a + b));  // expected-error {{conflicting parameter bounds}}
 
-extern int FUNC(5)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
-extern int FUNC(5)(int a, int b, _Array_ptr<int> p : count(a - b));  // expected-error {{conflicting parameter bounds}}
+extern int FUNC(5)(int a, int b, int* _Array p  _Count(a TESTOP b));
+extern int FUNC(5)(int a, int b, int* _Array p  _Count(a - b));  // expected-error {{conflicting parameter bounds}}
 
 // >> vs. prior binary operators
 #undef TESTOP
@@ -414,8 +418,8 @@ extern int FUNC(4)(int a, int b, _Array_ptr<int> p : count(a + b));  // expected
 extern int FUNC(5)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
 extern int FUNC(5)(int a, int b, _Array_ptr<int> p : count(a - b));  // expected-error {{conflicting parameter bounds}}
 
-extern int FUNC(6)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
-extern int FUNC(6)(int a, int b, _Array_ptr<int> p : count(a << b));  // expected-error {{conflicting parameter bounds}}
+extern int FUNC(6)(int a, int b, int* _Array p  _Count(a TESTOP b));
+extern int FUNC(6)(int a, int b, int* _Array p  _Count(a << b));  // expected-error {{conflicting parameter bounds}}
 
 // < vs. prior binary operators
 #undef TESTOP
@@ -875,8 +879,8 @@ extern int FUNC(14)(int a, int b, _Array_ptr<int> p : count(a ^ b));  // expecte
 extern int FUNC(15)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
 extern int FUNC(15)(int a, int b, _Array_ptr<int> p : count(a | b));  // expected-error {{conflicting parameter bounds}}
 
-extern int FUNC(15)(int a, int b, _Array_ptr<int> p : count(a TESTOP b));
-extern int FUNC(15)(int a, int b, _Array_ptr<int> p : count(a && b));  // expected-error {{conflicting parameter bounds}}
+extern int FUNC(15)(int a, int b, int* _Array p  _Count(a TESTOP b));
+extern int FUNC(15)(int a, int b, int* _Array p  _Count(a && b));  // expected-error {{conflicting parameter bounds}}
 
 // Additive pointer operators.
 extern int f67_1(int a, int b, _Array_ptr<int> p : bounds(p, p + a));
@@ -906,7 +910,7 @@ extern int f80_1(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, (_Arra
 
 extern int f80_2(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds((apint) b, (apint) b + a));
 extern int f80_2(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds((apint) b, (apint) b + a));
-extern int f80_2(int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds((_Array_ptr<int>) b, (_Array_ptr<int>) b +  a));
+extern int f80_2(int a, int* _Array b, char* _Array p  _Bounds((int* _Array) b, (int* _Array) b +  a));
 
 // Inequality of C-style cast operators.
 // We embed the expression being varied inside another
@@ -929,8 +933,8 @@ extern int f80_5(int a, _Array_ptr<int> b,
 
 extern int f80_5(int a, _Array_ptr<int> b,
                  _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) ((apint) b + a)));
-extern int f80_5(int a, _Array_ptr<int> b,
-                 _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) ((apchar) b + a))); // expected-error {{conflicting parameter bounds}}
+extern int f80_5(int a, int* _Array b,
+                 char* _Array p  _Bounds(b, (int* _Array) ((apchar) b + a))); // expected-error {{conflicting parameter bounds}}
 
 // Inequality of C-style cast operators vs. other expressions
 
@@ -973,7 +977,7 @@ extern int f91_2(struct S *a, _Array_ptr<int> b : count(c->f1), struct S *c);
 extern int f91_2(struct S *a, _Array_ptr<int> b : count(c->f1), struct S *c);
 
 extern int f91_3(struct S *a, _Array_ptr<int> b : count(a->f2), struct S *c);
-extern int f91_3(struct S *a, _Array_ptr<int> b : count(a->f2), struct S *c);
+extern int f91_3(struct S *a, int* _Array b  _Count(a->f2), struct S *c);
 
 // Inequality of member accesses
 extern int f92_1(struct S a, _Array_ptr<int> b : count(a.f1));
@@ -992,7 +996,7 @@ extern int f93_2(struct S *a, _Array_ptr<int> b : count(a->f1), struct S *c);
 extern int f93_2(struct S *a, _Array_ptr<int> b : count(c->f1), struct S *c);  // expected-error {{conflicting parameter bounds}}
 
 extern int f93_3(struct S *a, _Array_ptr<int> b : count(a->f1), struct S *c);
-extern int f93_3(struct S *a, _Array_ptr<int> b : count(c->f2), struct S *c);  // expected-error {{conflicting parameter bounds}}
+extern int f93_3(struct S *a, int* _Array b  _Count(c->f2), struct S *c);  // expected-error {{conflicting parameter bounds}}
 
 //
 // Check equality of canonicalized expressions
@@ -1019,8 +1023,8 @@ extern int f201_1(int a, _Array_ptr<int> b,
 
 extern int f201_2(int a, _Array_ptr<int> b,
                   _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (void *) b + a));
-extern int f201_2(int a, _Array_ptr<int> b,
-                  _Array_ptr<char> p : bounds(b, (_Array_ptr<int>) (int *) b + a));
+extern int f201_2(int a, int* _Array b,
+                  char* _Array p  _Bounds(b, (int* _Array) (int *) b + a));
 
 // Casts between signed/unsigned integers that have the same bit size.
 //
@@ -1043,15 +1047,15 @@ extern int f202_1(int a, _Array_ptr<int> b,
 
 extern int f202_2(unsigned int a,
                    _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
-extern int f202_2(unsigned int a, _Array_ptr<int> b,
-                  _Array_ptr<char> p : bounds(b, b + (unsigned) (int) a));
+extern int f202_2(unsigned int a, int* _Array b,
+                  char* _Array p  _Bounds(b, b + (unsigned) (int) a));
 
 // C-style casts and implicit casts to/from the same types.
 extern int f203_1(short int a, _Array_ptr<int> b : count(a + 1));
 extern int f203_1(short int a, _Array_ptr<int> b : count((int) a + 1));
 
 extern int f203_2(short int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + a));
-extern int f203_2(short int a, _Array_ptr<int> b, _Array_ptr<char> p : bounds(b, b + (int) a));
+extern int f203_2(short int a, int* _Array b, char* _Array p  _Bounds(b, b + (int) a));
 
 //
 // & and * operations that cancel are ignored.
@@ -1073,9 +1077,9 @@ extern int f211_1(_Array_ptr<int> b : bounds(*(&arr), arr + 5));
 
 // address-of an array does nothing at runtime  However, we have to make sure
 // the types are compatible.
-extern int f211_2(_Array_ptr<int> b : bounds(&arr, &arr));
+extern int f211_2(int* _Array b  _Bounds(&arr, &arr));
 extern int f211_2(_Array_ptr<int> b : bounds((int (*) _Checked[10]) arr, (int (*) _Checked[10]) arr));
-extern int f211_2(_Array_ptr<int> b : bounds(&arr, (int (*) _Checked[10]) arr));
+extern int f211_2(int* _Array b  _Bounds(&arr, (int (*) _Checked[10]) arr));
 
 //-----------------------------------------------------//
 // Checked C bounds cast expressions.                  //
@@ -1094,17 +1098,17 @@ extern void f212_2(_Array_ptr<char> a : bounds(_Assume_bounds_cast<_Array_ptr<in
 extern void f212_3(_Array_ptr<char> a : bounds(_Assume_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
 extern void f212_3(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
 
-extern void f212_4(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
-extern void f212_4(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Dynamic_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
+extern void f212_4(char* _Array a  _Bounds(_Dynamic_bounds_cast_M(int* _Array, a, count(1)), _Assume_bounds_cast_M(int* _Array, a, count(2)) + 3));
+extern void f212_4(char* _Array a  _Bounds(_Dynamic_bounds_cast_M(int* _Array, a, count(1)), _Dynamic_bounds_cast_M(int* _Array, a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
 
-extern void f212_5(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
-extern void f212_5(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(5)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
+extern void f212_5(char* _Array a  _Bounds(_Dynamic_bounds_cast_M(int* _Array, a, count(1)), _Assume_bounds_cast_M(int* _Array, a, count(2)) + 3));
+extern void f212_5(char* _Array a  _Bounds(_Dynamic_bounds_cast_M(int* _Array, a, count(5)), _Assume_bounds_cast_M(int* _Array, a, count(2)) + 3)); // expected-error {{conflicting parameter bounds}}
 
-extern void f212_6(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, count(2)) + 3));
-extern void f212_6(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(a, count(1)), _Assume_bounds_cast<_Array_ptr<int>>(a, bounds(a, a + 2)) + 3)); // expected-error {{conflicting parameter bounds}}
+extern void f212_6(char* _Array a  _Bounds(_Dynamic_bounds_cast_M(int* _Array, a, count(1)), _Assume_bounds_cast_M(int* _Array, a, count(2)) + 3));
+extern void f212_6(char* _Array a  _Bounds(_Dynamic_bounds_cast_M(int* _Array, a, count(1)), _Assume_bounds_cast_M(int* _Array, a, bounds(a, a + 2)) + 3)); // expected-error {{conflicting parameter bounds}}
 
-extern void f212_7(_Array_ptr<char> a : bounds(_Dynamic_bounds_cast<_Array_ptr<int>>(b, count(1)), b + 3), _Array_ptr<int> b : count(1));
-extern void f212_7(_Array_ptr<char> a : bounds(b, b + 3), _Array_ptr<int> b : count(1)); // expected-error {{conflicting parameter bounds}}
+extern void f212_7(char* _Array a  _Bounds(_Dynamic_bounds_cast_M(int* _Array, b, count(1)), b + 3), int* _Array b  _Count(1));
+extern void f212_7(char* _Array a  _Bounds(b, b + 3), int* _Array b  _Count(1)); // expected-error {{conflicting parameter bounds}}
 
-extern void f212_8(_Array_ptr<char> a : bounds(b, _Assume_bounds_cast<_Array_ptr<int>>(b, count(1)) + 3), _Array_ptr<int> b : count(1));
-extern void f212_8(_Array_ptr<char> a : bounds(b, b + 3), _Array_ptr<int> b : count(1)); // expected-error {{conflicting parameter bounds}}
+extern void f212_8(char* _Array a  _Bounds(b, _Assume_bounds_cast_M(int* _Array, b, count(1)) + 3), int* _Array b  _Count(1));
+extern void f212_8(char* _Array a  _Bounds(b, b + 3), int* _Array b  _Count(1)); // expected-error {{conflicting parameter bounds}}

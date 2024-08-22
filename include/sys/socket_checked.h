@@ -5,8 +5,7 @@
 /////////////////////////////////////////////////////////////////////////
 
 // The Windows environment may not have sys/socket.h
-#if defined __has_include_next
-#if __has_include_next(<sys/socket.h>)
+#if defined __has_include_next && __has_include_next(<sys/socket.h>)
 
 #ifdef __checkedc
 #pragma CHECKED_SCOPE push
@@ -29,8 +28,6 @@
 #ifdef __APPLE__
 // Seems not to be a thing for Mac
 #define __THROW
-#define __CONST_SOCKADDR_ARG const struct sockaddr *
-#define __SOCKADDR_ARG struct sockaddr *__restrict
 #endif
 
 extern int socketpair (int __domain, int __type, int __protocol, 
@@ -38,24 +35,24 @@ extern int socketpair (int __domain, int __type, int __protocol,
 
 extern int bind (
     int __fd, 
-    __CONST_SOCKADDR_ARG __addr : itype(_Ptr<const struct sockaddr>), 
+    const struct sockaddr *__addr : itype(_Ptr<const struct sockaddr>),
     socklen_t __len)
      __THROW;
 
 extern int getsockname (
     int __fd, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    struct sockaddr *__restrict __addr : itype(_Ptr<struct sockaddr> __restrict),
     socklen_t *__restrict __len : itype(_Ptr<socklen_t> __restrict)
     ) __THROW;
 
 extern int connect (
     int __fd, 
-    __CONST_SOCKADDR_ARG __addr : itype(_Ptr<const struct sockaddr>), 
+    const struct sockaddr *__addr : itype(_Ptr<const struct sockaddr>),
     socklen_t __len);
 
 extern int getpeername (
     int __fd, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    struct sockaddr *__restrict __addr : itype(_Ptr<struct sockaddr> __restrict),
     socklen_t *__restrict __len : itype(_Ptr<socklen_t> __restrict)
     ) __THROW;
 
@@ -74,14 +71,14 @@ extern ssize_t sendto (
     const void *__buf : itype(_Array_ptr<const void>) byte_count(__n), 
     size_t __n, 
     int __flags, 
-    __CONST_SOCKADDR_ARG __addr : itype(_Ptr<const struct sockaddr>), 
+    const struct sockaddr *__addr : itype(_Ptr<const struct sockaddr>),
     socklen_t __addr_len);
 
 extern ssize_t recvfrom (
     int __fd, 
     void *__restrict __buf : itype(_Array_ptr<void> __restrict) byte_count(__n), 
     size_t __n, int __flags, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    struct sockaddr *__restrict __addr : itype(_Ptr<struct sockaddr> __restrict),
     socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict));
 
 extern ssize_t sendmsg (
@@ -124,13 +121,13 @@ extern int setsockopt (
 
 extern int accept (
     int __fd, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    struct sockaddr *__restrict __addr : itype(_Ptr<struct sockaddr> __restrict),
     socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict));
 
 #ifdef __USE_GNU
 extern int accept4 (
     int __fd, 
-    __SOCKADDR_ARG __addr : itype(_Ptr<struct sockaddr> __restrict), 
+    struct sockaddr *__restrict __addr : itype(_Ptr<struct sockaddr> __restrict),
     socklen_t *__restrict __addr_len : itype(_Ptr<socklen_t> __restrict), 
     int __flags);
 #endif
@@ -140,5 +137,6 @@ extern int accept4 (
 #endif // guard
 #endif // Checked C
 
-#endif // has socket.h
-#endif // defined __has_include_next
+#else // doesn't have sys/socket.h
+#error "cannot include 'sys/socket_checked.h' because this system does not have the original 'sys/socket.h'"
+#endif

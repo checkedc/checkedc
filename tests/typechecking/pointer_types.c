@@ -13,11 +13,11 @@ extern void check_indirection_unsafe_ptr(int *p, const int *const_p, int y) {
 	y = *const_p;
 }
 
-extern void check_indirection_ptr(ptr<int> p, ptr<const int> const_p, int y) {
-	*p = y;
-	y = *p;
-	*const_p = y; // expected-error {{read-only variable is not assignable}}
-	y = *const_p;
+extern void check_indirection_ptr(int* _Single p, const int *_Single const_p, int y) {
+        *p = y;
+        y = *p;
+        *const_p = y; // expected-error {{read-only variable is not assignable}}
+        y = *const_p;
 }
 
 extern void check_indirection_array_ptr(array_ptr<int> p : count(1),
@@ -84,17 +84,17 @@ extern void check_subscript_nt_array_ptr(nt_array_ptr<int> p : count(1),
 
 // Test restrictions on null-terminated pointer types.
 void check_nullterm_restrictions(void) {
-  nt_array_ptr<int> t1 = 0;              // integer types are OK.
-  nt_array_ptr<ptr<int>> t2 = 0;         // pointer types are OK.
+  int* _Nt_array t1 = 0;              // integer types are OK.
+  int* _Single *_Nt_array t2 = 0;         // pointer types are OK.
   enum E { Null, Blue, White };
-  nt_array_ptr<enum E> t3 = 0;           // enum types are OK
+  enum E* _Nt_array t3 = 0;           // enum types are OK
 
-  nt_array_ptr<void> t10 = 0;            // expected-error {{only integer and pointer types are allowed}}
-  nt_array_ptr<float> t11 = 0;           // expected-error {{only integer and pointer types are allowed}}
-  nt_array_ptr<double> t12 = 0;          // expected-error {{only integer and pointer types are allowed}}
-  nt_array_ptr<int checked[5]> t13 = 0;  // expected-error {{only integer and pointer types are allowed}}
+  void* _Nt_array t10 = 0;            // expected-error {{only integer and pointer types are allowed}}
+  float* _Nt_array t11 = 0;           // expected-error {{only integer and pointer types are allowed}}
+  double* _Nt_array t12 = 0;          // expected-error {{only integer and pointer types are allowed}}
+  int* _Nt_array t13 checked[5] = 0;  // expected-error {{array initializer must be an initializer list}}
   struct S { int i; };
-  nt_array_ptr<struct S>  t14 = 0;        // expected-error {{only integer and pointer types are allowed}}
+  struct S* _Nt_array  t14 = 0;        // expected-error {{only integer and pointer types are allowed}}
 }
 
 
@@ -120,13 +120,13 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
                               // T * = nt_array_ptr<T> not OK
     ptr<int> t8 = r;          // expected-error {{expression has unknown bounds}}
                               // ptr<T> = array_ptr<T> OK
-    ptr<int> t8a = v;         // ptr<T> = nt_array_ptr<T> OK.
-    array_ptr<int> t9 = q;    // array_ptr<T> = ptr<T> OK
-    array_ptr<int> t10a = v;  // array_ptr<T> = nt_array_ptr<T> OK.
-    nt_array_ptr<int> t10b = q; // expected-error {{incompatible type}}
-                               // nt_array_ptr<T> = ptr<T> not OK.
-    nt_array_ptr<int> t10ca = r; // expected-error {{incompatible type}}
-                                // nt_array_ptr<T> = array_ptr<T> not OK.
+    int* _Single t8a = v;         // ptr<T> = nt_array_ptr<T> OK.
+    int* _Array t9 = q;    // array_ptr<T> = ptr<T> OK
+    int* _Array t10a = v;  // array_ptr<T> = nt_array_ptr<T> OK.
+    int* _Nt_array t10b = q; // expected-error {{incompatible type}}
+                              // nt_array_ptr<T> = ptr<T> not OK.
+    int* _Nt_array t10ca = r; // expected-error {{incompatible type}}
+                              // nt_array_ptr<T> = array_ptr<T> not OK.
 
     // check assigning different kinds of pointers with different referent
     // types
@@ -172,7 +172,7 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
                               // array_ptr<T> = S * not OK;
     array_ptr<float> t25 = q; // expected-error {{incompatible type}}
                               // array_ptr<T> = ptr<S> not OK;
-    array_ptr<float> t26 = r; // expected-error {{incompatible type}}
+    float* _Array t26 = r; // expected-error {{incompatible type}}
                               // array_ptr<T> = array_ptr<S> not OK
 
     // C compilers enforcing C99 conversion rules allow implicit 
@@ -210,8 +210,8 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
     ptr<int> t38 = (_Bool)(1);   // expected-error {{incompatible type}}
     ptr<float> t39 = (_Bool)(1); // expected-error {{incompatible type}}
     array_ptr<int> t40 = (_Bool)(1);   // expected-error {{incompatible type}}
-    array_ptr<float> t41 = (_Bool)(1); // expected-error {{incompatible type}}
-    nt_array_ptr<int> t41a = (_Bool)(1); // expected-error {{incompatible type}}
+    float* _Array t41 = (_Bool)(1); // expected-error {{incompatible type}}
+    int* _Nt_array t41a = (_Bool)(1); // expected-error {{incompatible type}}
 
     // Implicit conversion of 0 to a safe pointer type is OK.
     ptr<int> t42 = 0;
@@ -242,7 +242,7 @@ extern void check_assign(int val, int *p, ptr<int> q, array_ptr<int> r,
 
     array_ptr<int> t53 = unchecked_ptr_to_checked_ptr;  // expected-error {{incompatible type}}
     array_ptr<int> t54 = checked_ptr_to_checked_ptr;    // expected-error {{incompatible type}}
-    array_ptr<int> t56 = array_ptr_to_checked_ptr;      // expected-error {{incompatible type}}
+    int* _Array t56 = array_ptr_to_checked_ptr;      // expected-error {{incompatible type}}
 
     unchecked_ptr_to_checked_ptr = q;      // expected-error {{incompatible type}}
     checked_ptr_to_checked_ptr = p;        // expected-error {{incompatible type}}
@@ -336,12 +336,12 @@ check_assign_void_unchecked(int val, int *p, ptr<int> q,
     array_ptr<int> t25 = u;
     nt_array_ptr<int> t25a = (void *)&val; // expected-error {{incompatible type}}
                                            // nt_array_ptr<int> = void * not OK.
-    nt_array_ptr<int> t25b = s;  // expected-error {{incompatible type}}
-                                 // nt_array_ptr<int> = void * not OK, even with obunds
-    nt_array_ptr<int> t25c = t;  // expected-error {{incompatible type}}
-                                 // nt_array_ptr<int> = ptr<void> not OK.
-    nt_array_ptr<int> t25d = u;  // expected-error {{incompatible type}}
-                                 // nt_array_ptr<int> = array_ptr<void> not OK.
+    int* _Nt_array t25b = s;  // expected-error {{incompatible type}}
+                                           // int* _Nt_array = void * not OK, even with obunds
+    int* _Nt_array t25c = t;  // expected-error {{incompatible type}}
+                                           // int* _Nt_array = void* _Single not OK.
+    int* _Nt_array t25d = u;  // expected-error {{incompatible type}}
+                                           // int* _Nt_array = void* _Array not OK.
     // conversions between integers and safe void pointers.
     int t26 = t;             // expected-error {{incompatible type}}
                              // int = ptr<void> not OK;
@@ -367,8 +367,8 @@ check_assign_void_unchecked(int val, int *p, ptr<int> q,
     array_ptr<void> t35 = (_Bool)(1);   // expected-error {{incompatible type}}
 
     // Implicit conversion of 0 to a safe void pointer type is OK.
-    ptr<void> t37 = 0;
-    array_ptr<void> t38 = 0;
+    void* _Single t37 = 0;
+    void* _Array t38 = 0;
 }
 
 // Test assignments between different kinds of pointers where the
@@ -377,7 +377,7 @@ check_assign_void_unchecked(int val, int *p, ptr<int> q,
 // Checked scope
 struct CheckedData1 {
    int len;
-   array_ptr<int> p : count(len);
+   int* _Array p : count(len);
 };
 
 extern void
@@ -1214,8 +1214,8 @@ extern void check_call(void) {
     int val = 0;
     float fval = 0.0;
     int *p = 0;
-    ptr<int> q = 0;
-    array_ptr<int> r : count(1) = 0;
+    int* _Single q = 0;
+    int* _Array r : count(1) = 0;
 
 
     float *s = 0;
@@ -1523,12 +1523,12 @@ extern void check_call_void_checked(void) checked {
 extern void check_call_void_checked_bounds_only(void) checked bounds_only {
     int val = 0;
     float fval = 0.0;
-    ptr<int> q = 0;
-    array_ptr<int> r : count(1) = 0;
+    int* _Single q = 0;
+    int* _Array r : count(1) = 0;
     ptr<struct CheckedData1> s = 0;
-    ptr<void> t = 0;
-    array_ptr<void> u : byte_count(sizeof(struct CheckedData1)) = 0;
-    nt_array_ptr<int> v : count(1) = 0;
+    void* _Single t = 0;
+    void* _Array u : byte_count(sizeof(struct CheckedData1)) = 0;
+    int* _Nt_array v : count(1) = 0;
 
     // Test different kinds of pointers where the parameter type is a pointer to void and
     // the referent type is not a void pointer.
@@ -1832,7 +1832,7 @@ array_ptr<void> check_voidptr_return21(int *p) {
   return p;
 }
 
-array_ptr<void> check_voidptr_return21a(int *p) : byte_count(sizeof(int)) {
+void* _Array check_voidptr_return21a(int *p) : byte_count(sizeof(int)) {
   return p; // expected-error {{return value has unknown bounds, bounds expected because the function 'check_voidptr_return21a' has bounds}}
 }
 
@@ -1874,7 +1874,7 @@ array_ptr<void> check_voidptr_return28(nt_array_ptr<int> p : count(1)) {
   return p;
 }
 
-array_ptr<void> check_voidptr_return29(ptr<struct CheckedData1> p) {
+void* _Array check_voidptr_return29(ptr<struct CheckedData1> p) {
   return p;
 }
 
@@ -2483,8 +2483,8 @@ void check_pointer_equality_compare(void)
     array_ptr<void> r_void = val_int;
     array_ptr<void> r2_void = val_int;
 
-    nt_array_ptr<int> s_int = 0;
-    nt_array_ptr<int> s2_int = 0;
+    int* _Nt_array s_int = 0;
+    int* _Nt_array s2_int = 0;
     nt_array_ptr<char> s_char = 0;
 
     // equality/inequality comparisons using different kinds of pointers to float
@@ -2762,8 +2762,8 @@ void check_illegal_operators(void)
     int val[5];
     int *p = val;
     ptr<int> q = &val[0];
-    array_ptr<int> r = val;
-    nt_array_ptr<int> s = 0;
+    int* _Array r = val;
+    int* _Nt_array s = 0;
 
     p * 5;  // expected-error {{invalid operands to binary expression}}
     5 * p;  // expected-error {{invalid operands to binary expression}}
@@ -3051,9 +3051,9 @@ extern void test_sprintf(char *s);
 void check_address_of_types(char s[10],
                             char *c : itype(char _Checked[10]),
                             char buf _Nt_checked[],
-                            _Nt_array_ptr<char> str,
-                            _Array_ptr<char> arr : count(10),
-                            _Ptr<char> p) {
+                            char* _Nt_array str,
+                            char* _Array arr : count(10),
+                            char* _Single p) {
   _Unchecked {
     test_sprintf(s);
     test_sprintf(&*s);

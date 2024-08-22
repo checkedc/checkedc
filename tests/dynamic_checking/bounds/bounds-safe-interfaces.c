@@ -96,9 +96,12 @@ void read_test(int failure_point, int *p : count(p_len), int p_len,
 int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
-  // clang implementation raises a SIGILL when a bounds check fails.  This
-  // may change in the future.
+  // clang implementation raises a SIGILL or SIGTRAP when a bounds check fails,
+  // depending on the target platform.  This may change in the future.
   signal(SIGILL, handle_error);
+#if defined(__APPLE__) && defined(__aarch64__)
+  signal(SIGTRAP, handle_error);
+#endif
 
   // This makes sure output is not buffered for when
   // we hit errors.
@@ -163,14 +166,14 @@ void write_driver(int failure_point, int *a1 : count(10),
   dynamic_check(s1->len >= 5);
   switch (failure_point) {
     // Vary global variable.
-    case 0: 
+    case 0:
       write_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
       break;
     case 1:
       global_arr_len = 0;
       write_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
       break;
-    case 2: 
+    case 2:
       global_arr_len = 1;
       write_test(failure_point, a1, 10, a2, 10, a3, 2, b1, 10, b2, 0, s1);
       break;

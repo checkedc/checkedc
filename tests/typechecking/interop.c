@@ -14,7 +14,7 @@
 //
 //
 
-void f1(int *p : itype(ptr<int>)) {
+void f1(int *p  _Itype(int* _Single)) {
 }
 
 void f2(int *p : count(len), int len) {
@@ -23,7 +23,7 @@ void f2(int *p : count(len), int len) {
 void f3(int *p : byte_count(len * sizeof(int)), int len) {
 }
 
-void f4(int *p : bounds(p, p + len), int len) {
+void f4(int *p  _Bounds(p, p + len), int len) {
 }
 
 // single-dimensional array parameters
@@ -48,7 +48,7 @@ void f2_incomplete_arr(int p[] : count(len), int len) {
 void f3_incomplete_arr(int p[] : byte_count(len * sizeof(int)), int len) {
 }
 
-void f4_incomplete_arr(int p[] : bounds(p, p + len), int len) {
+void f4_incomplete_arr(int p[]  _Bounds(p, p + len), int len) {
 }
 
 // multi-dimensional array parameters
@@ -73,7 +73,7 @@ void f2_incomplete_md_arr(int p[][10] : count(len), int len) {
 void f3_incomplete_md_arr(int p[][10] : byte_count(len * sizeof(int[10])), int len) {
 }
 
-void f4_incomplete_md_arr(int p[][10] : bounds(p, p + len), int len) {
+void f4_incomplete_md_arr(int p[][10]  _Bounds(p, p + len), int len) {
 }
 
 // void * parameters with interop declarations.  Note that count bounds
@@ -88,7 +88,7 @@ void f2_void(void *p : count(len), int len) { // expected-error {{expected 'p' t
 void f3_void(void *p : byte_count(len * sizeof(int)), int len) {
 }
 
-void f4_void(void *p : bounds(p, (char *)p + len), int len) {
+void f4_void(void *p  _Bounds(p, (char *)p + len), int len) {
 }
 
 void g1(ptr<int> p) {
@@ -158,7 +158,7 @@ void g2_complete_array_arg(void) {
 
 // Test passing multi-diemensional arrays through bounds-safe
 // interfaces.
-void g2_md(array_ptr<int checked[10]> ap : count(len), int len) {
+void g2_md(int (* _Array ap) checked[10] _Count(len), int len) {
   if (len >= 10) {
     f1_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
     f2_complete_md_arr(ap); // expected-error {{it is not possible to prove argument meets declared bounds for 1st parameter}}
@@ -172,7 +172,7 @@ void g2_md(array_ptr<int checked[10]> ap : count(len), int len) {
   f4_incomplete_md_arr(ap, len);
 }
 
-void g2_incomplete_md_array_param(int ap checked[][10] : count(len), int len) {
+void g2_incomplete_md_array_param(int ap checked[][10]  _Count(len), int len) {
   f1_incomplete_md_arr(ap);
   f2_incomplete_md_arr(ap, len);
   f3_incomplete_md_arr(ap, len);
@@ -217,7 +217,7 @@ void g3(ptr<float> p) {
   f1(p); // expected-error {{incompatible type}}
 }
 
-void g4(array_ptr<float> ap : count(len), int len) {
+void g4(float* _Array ap  _Count(len), int len) {
   f2(ap, len);  // expected-error {{incompatible type}}
   f3(ap, len);  // expected-error {{incompatible type}}
   f4(ap, len);  // expected-error {{incompatible type}}
@@ -261,10 +261,10 @@ void f1_const(const int *p : itype(ptr<const int>)) {
 void f2_const(const int *p : count(len), int len) {
 }
 
-void f3_const(const int *p : byte_count(len * sizeof(int)), int len) {
+void f3_const(const int *p  _Byte_count(len * sizeof(int)), int len) {
 }
 
-void f4_const(const int *p : bounds(p, p + len), int len) {
+void f4_const(const int *p  _Bounds(p, p + len), int len) {
 }
 
 // Pointers to non-const qualified data can be passed to parameters that are pointers
@@ -278,7 +278,7 @@ void g10(ptr<const int> p) {
   f1_const(p);
 }
 
-void g11(array_ptr<int> ap : count(len), int len) {
+void g11(int* _Array ap  _Count(len), int len) {
   f2_const(ap, len);
   f3_const(ap, len);
   f4_const(ap, len);
@@ -346,7 +346,7 @@ void g20(ptr<int> p) {
   v1 = p;
 }
 
-void g21(array_ptr<int> ap : count(10)) {
+void g21(int* _Array ap  _Count(10)) {
   v2 = ap;
   v3 = ap;
   v4 = ap;
@@ -363,7 +363,7 @@ void g22(ptr<float> p) {
   v1 = p;  // expected-error {{incompatible type}}
 }
 
-void g23(array_ptr<float> ap : count(10)) {
+void g23(float* _Array ap  _Count(10)) {
   v2 = ap; // expected-error {{incompatible type}}
   v3 = ap; // expected-error {{incompatible type}}
   v4 = ap; // expected-error {{incompatible type}}
@@ -387,7 +387,7 @@ void g26(ptr<void> p) {
   v1_void = p;
 }
 
-void g27(array_ptr<void> ap : byte_count(10 * sizeof(int))) {
+void g27(void* _Array ap  _Byte_count(10 * sizeof(int))) {
   v3 = ap;
   v4 = ap;
   v3_void = ap;
@@ -411,10 +411,10 @@ void g30(ptr<int> p) {
     const_v1 = p;
 }
 
-void g31(array_ptr<int> ap : count(10)) {
-  const_v2 = ap;
-  const_v3 = ap;
-  const_v4 = ap; // expected-error {{it is not possible to prove that the inferred bounds of 'const_v4' imply the declared bounds of 'const_v4' after assignment}}
+void g31(int* _Array ap  _Count(10)) {
+    const_v2 = ap;
+    const_v3 = ap;
+    const_v4 = ap; // expected-error {{it is not possible to prove that the inferred bounds of 'const_v4' imply the declared bounds of 'const_v4' after assignment}}
 }
 
 // Pointers to const-data should not be assigned to pointers to non-const qualified
@@ -434,7 +434,7 @@ void g34(ptr<int> p) {
   v1_const = p; // expected-error {{cannot assign to variable}}
 }
 
-void g35(array_ptr<int> ap : count(10)) {
+void g35(int* _Array ap  _Count(10)) {
   v2_const = ap;  // expected-error {{cannot assign to variable 'v2_const' with const-qualified}}
   v3_const = ap;  // expected-error {{cannot assign to variable 'v3_const' with const-qualified}}
   v4_const = ap;  // expected-error {{cannot assign to variable 'v4_const' with const-qualified}}
@@ -460,7 +460,7 @@ struct S1_void {
   void *arr3 : bounds(arr3, (char *) arr3 + 10 * sizeof(int));
 };
 
-void g40(ptr<struct S1> p, ptr<int> p1, array_ptr<int> p2 : count(10)) {
+void g40(struct S1* _Single p, int* _Single p1, int* _Array p2  _Count(10)) {
   p->pint = p1;
   p->arr1 = p2;
   p->arr2 = p2;
@@ -529,7 +529,7 @@ struct S3 {
   int *const arr3 : bounds(arr3, arr3 + 10);
 };
 
-void g47(ptr<struct S3> p, ptr<int> p1, array_ptr<int> p2 : count(10)) {
+void g47(struct S3* _Single p, void* _Single p1, int* _Array p2  _Count(10)) {
   p->pint = p1; // expected-error {{cannot assign to non-static data member 'pint' with const-qualified type }}
   p->arr1 = p2; // expected-error {{cannot assign to non-static data member 'arr1' with const-qualified type}}
   p->arr2 = p2; // expected-error {{cannot assign to non-static data member 'arr2' with const-qualified type}}
@@ -615,7 +615,7 @@ void g82(callback_fn3 fn) {
 
 // Assign a checked pointer to the dereference of an
 // unchecked pointer with a bounds-safe interface.
-void g90(int **interop_ptr : itype(array_ptr<ptr<int>>) count(3), ptr<int> checked_ptr) {
+void g90(int **interop_ptr  _Itype(array_ptr<ptr<int>>) count(3), int* _Single checked_ptr) {
   *interop_ptr = checked_ptr;
   *(interop_ptr - 1) = checked_ptr;
   *(2 + interop_ptr) = checked_ptr;

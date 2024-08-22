@@ -1,6 +1,6 @@
-// Test bounds checking of uses of array subscript expressions.  
+// Test bounds checking of uses of array subscript expressions.
 //
-// Uses are tested in read, assignment,increment, and compound assignment 
+// Uses are tested in read, assignment,increment, and compound assignment
 // expressions.  The type of use is controlled by the macro names TEST_READ,
 // TEST_WRITE, TEST_INCREMENT, and TEST_COMPOUND_ASSIGNMENT.  The file must
 // be compiled with exactly one of those macro names defined.
@@ -198,12 +198,15 @@ void handle_error(int err) {
 int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
-  // clang implementation raises a SIGILL when a bounds check fails.  This
-  // may change in the future.
+  // clang implementation raises a SIGILL or SIGTRAP when a bounds check fails,
+  // depending on the target platform.  This may change in the future.
   signal(SIGILL, handle_error);
+#if defined(__APPLE__) && defined(__aarch64__)
+  signal(SIGTRAP, handle_error);
+#endif
 
   // Unfortunately, using atoi everywhere below isn't super
-  // great, as it will return 0 if it can't parse, which is a valid, 
+  // great, as it will return 0 if it can't parse, which is a valid,
   // non-erroring index. This is why we use CHECK-*-NOT to make sure
   // the tests fail before getting to certain output.
 

@@ -4,6 +4,144 @@
 
 Here are some fragments of ideas that need to be more fully developed.
 
+\section{Definite initialization}
+
+We require initializers for variables that have checked pointer types that may
+be used to access memory.  We also require initializers for variables that have members
+or elements that have checked pointers and that may be used to access memory.
+We want to relax this requirement so that fewer program changes are needed when 
+porting legacy code to Checked C.  We plan to allow delayed initialization by adding a
+{\em definite initialization} analysis
+similar to those for C\# or Java for variables or members with checked pointer types.
+In programs for those languages, a variable may be declared without an initialization value, as
+long is it is definitely initialized before it may be used.  A dataflow analysis prescribed by the
+language definition is used to determine when a variable is definitely initialized.
+
+\section{Opaque types}
+
+Pointers to void are sometimes used as handles that hide details of API implementations.  An
+API may provide a handle that is typed as \uncheckedptrvoid\ for 
+users of the API, with the API implementation using a pointer to an actual
+type.
+
+Opaque types: these allow different kinds of handles to be distinguished.
+They are incomplete types with enough information to represent
+the types, but nothing else.  They can be copied around and used, but the internal
+details remain unknown in the scope of the declaration.  No conversions to and 
+from opaque types are allowed.
+
+\section{Opaque types}
+
+We extend \keyword{typedef} declarations so that they can also declare opaque types. 
+The \keyword{typedef} is followed by the new keyword \keyword{opaque}.
+This creates a new named type that is distinct from all other types during
+typechecking and that uses the specified type as its runtime representation.
+Importantly, the new named type is not the same as the specified type.  This allows
+handle types to be distinguished during typechecking:
+\begin{lstlisting}
+typedef opaque void *ProcessHandle;
+typedef opaque void *FileHandle;
+\end{lstlisting}
+An attempt to use a \lstinline+ProcessHandle+ where a \lstinline+FileHandle+ 
+is expected will result in a typechecking error.
+
+To implement operations on an opaque type,
+programmers reveal the actual implementation type of the opaque type
+in some scopes of the program.  The
+keyword \keyword{typedef} is followed by the new keyword \keyword{reveal}:
+\begin{lstlisting}
+typedef reveal _Ptr<struct ProcessData> ProcessHandle;
+typedef reveal _Ptr<struct FileData> FileHandle;
+\end{lstlisting}
+In the scope of a \keyword{reveal} declaration, casts between the
+opaque type and the implementation type are allowed.  
+Converting the implementation type to the representation
+type and back to the implementation type must not lose information.  
+The rules for conversions in the C specification are followed.   Note that 
+this allows the representation type to be larger (in terms of bits) than the implementation type.
+
+C-style casts between opaque types and other types are otherwise not allowed.
+In the special case where a programmer must convert an opaque type to another
+type (for example, a \uncheckedptrvoid{} is being stored as an integer in an existing
+program), the special operator \lstinline|opaque_cast| is provided.
+
+It is implementation-defined whether a pointer to a function type with a
+parameter or return type that is an implementation type can be converted
+explicitly to a pointer to a function type where the corresponding type
+is the opaque type.   The calling convention must be the same for
+the implementation and representation type.  If the representation type is \uncheckedptrvoid{}
+and the implementation type is also a pointer type,  these conversions would be
+allowed in C implementations where all pointer types have the same calling convention.
+
+
+
+\section{Undefined behavior in C11 of misaligned pointer casts}
+
+Pointer casts that produce incorrectly aligned pointers have undefined
+behavior, according to the C11 standard. This hole should be filled in
+for checked pointer types. For checked pointer types, we should specify
+either (1) dereferencing an incorrectly aligned pointer shall cause a
+runtime error or (2) the cast itself shall check any alignment
+requirements. For case 1, note that pointer arithmetic for checked pointer types
+is already
+defined to preserve misalignment. 
+
+\section{Concrete syntax for function post-conditions}
+ 
+The current syntax for describing post-conditions places a \keyword{where}
+clause after the function parameter list declaration:
+
+\begin{lstlisting}
+f( ...)
+where cond1 ...
+\end{lstlisting}
+
+This syntax might lead to confusion. We might want to adopt an alternate
+syntax that makes this clearer. Some suggestions are the keywords
+\keyword{on_return} or \keyword{after}:
+
+\begin{lstlisting}
+f(...)
+on_return cond1 ...
+
+f(...)
+after cond1 ...
+\end{lstlisting}
+
+section{Further out work}
+\begin{itemize}
+\item Allow conditional bounds expressions.   While conditional
+expressions are allowed in the non-modifying expressions in a bounds expression, 
+there is not a conditional form of bounds expressions.  This is useful for
+specifying that an expression only has bounds if some condition is true.
+This could be provided by adding a clause to bounds-exp that uses the
+same syntax as C conditional expressions:
+\begin{tabbing}
+\var{bounds}\=\var{-exp:} \\
+\>\var{non-modifying-exp} \code{?} \var{bounds-exp} \code{:} \var{bounds-exp}
+\end{tabbing}
+
+We would need to add descriptions of introduction and elimination
+forms, as well as enhance the rules for checking the validity of bounds.
+
+\item Allow bounds declarations to declare bounds for expressions.
+This would allow the system to easily support tagged null pointers.
+The bounds for the untagged pointer would be described. 
+A tagged pointer could not be used to access memory.  It would have to be
+untagged first  to have valid bounds.
+
+\item Consider whether to allow functions to be
+parametric with respect to the state of member bounds. This might be
+useful to describe a function that sets one of the members of a
+structure type and does not affect the state of other members.
+
+\item We could allow signed integer expressions to be invertible
+by trying to prove that the expressions are in range, using the
+checking of facts in \keyword{where} clauses.
+\end{itemize}
+
+
+
 \section{Discussion of optimizing bounds check and overflow}
 
 We had the following discussion in Section~{section:bounds-checking-at-indirections}
@@ -107,3 +245,89 @@ loop body at or after the read of a variable. There will be a path from
 the beginning of the function to the read of the variable. From
 condition 2 of consistency, that path must also have a bounds
 declaration, which is a contradiction.
+
+\section{Speculative idea: tracking initialization state of data}
+\label{section:allocation-of-uninitialized-data}
+
+In the long run, it is unsatisfactory to require that allocators always
+return zeroed data.  Some allocators such as \code{malloc} return pointers to
+uninitialized data.  This improves efficiency when data is
+simply overwritten by the caller.  For example, it is not necessary
+for bounds safety for arrays of characters to be zeroed.
+
+Here we describe a strawman proposal for addressing this issue.  
+We could add a way to track the initialization state of ranges of memory 
+that contain pointers. We already have a way of 
+describing ranges of memory: bounds expressions.  We can add
+predicates that use bounds expressions to describe the initialization
+state of memory pointed to by a variable:
+\begin{itemize}
+\item Three predicates can be used in \keyword{where}\ clauses
+to describe the initialization state of a \arrayptr\ or \ptr-typed variable:
+\code{_init_data}, \code{_uninit_data}, and \code{_zero_data}.
+A predicate applies to a variable if it is combined using the \code{:}
+notation: \var{x} \code{: _uninit_data} means that \var{x} points to data
+that is uninitialized.
+\item The predicates also have range versions that take bounds expressions
+as arguments by suffixing the predicate name with \code{_range}.  For example, 
+if we want to express that the first n elements of \var{x} are initialized
+and the remaining elements are not, we could have
+\var{x} \code{: init_data(x, x + n) &&} \var{x}
+\code{: uninit_data(x + n + 1, x + len)}, where \code{len} is 
+the length of the array pointed to by \var{x}.
+\item The default state of data is that it is assumed to be initialized.
+Data must explicitly have another state declared for it to be in another
+initialization state.
+\item We need to address aliasing: static checking must ensure
+that areas of memory do not have contradictary initialization states.
+At a minimum, we would need a way to specify that a variable holds
+a unique pointer to memory that no one else has \cite{Jim2002}.
+\item There will be local rules for expression and statements that deduce that a new
+initialization state declaration is valid after a statement.  We leave 
+the rules to be worked out later.
+\item Additional static checking rules will be added to ensure the
+correctness with respect to bounds of casts to checked pointer types that have pointer types embedded
+within them.
+\end{itemize}
+
+Here are potential bounds-safe interfaces for \code{malloc} and \code{calloc}.
+We omit notation for describing that \code{malloc} and \code{calloc} produce 
+pointers to new memory:
+\begin{lstlisting}
+void *malloc(size_t len) 
+where return_value : byte_count(len) and return_value: _uninit_data;
+
+void *calloc(size_t num, size_t size)
+where return_value : byte_count(num * size) and return_value : _zero_data;
+\end{lstlisting}
+A cast from the result of a \code{malloc} call to a checked pointer type with pointer types
+would propagate the  \code{_uninit} predicate:
+\begin{lstlisting}
+struct S {
+    int len;
+    int array_ptr<char> chars : len;
+}
+
+void f(void) 
+{
+   S *s = malloc(sizeof(S)) where s : _uninit_data;
+   s->chars = NULL where s : _init_data;
+   ...
+\end{lstlisting}
+Of course we might want inference rules that add annotations automatically.  
+
+It might be possible to use ranges to write code that tracks at a fine grain that 
+data is being zeroed:
+\begin{lstlisting}
+array_ptr<char> zero_mem(array_ptr<char> x : count(len) where x : _uninit, size_t len) 
+   where x : _zero_init
+{
+   array_ptr<char> p : bounds(x, x + len) = x
+       where p : _init_data(x, p) and p : _uninit_data(p, x + len);
+       
+   while (p < x + len) { 
+       *p++ = 0;
+   }
+   return;
+}
+\end{lstlisting}

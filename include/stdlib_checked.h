@@ -74,9 +74,14 @@ void *aligned_alloc(size_t alignment, size_t size) : byte_count(size);
 _Itype_for_any(T) void *calloc(size_t nmemb, size_t size) : itype(_Array_ptr<T>) byte_count(nmemb * size);
 _Itype_for_any(T) void free(void *pointer : itype(_Array_ptr<T>) byte_count(0));
 _Itype_for_any(T) void *malloc(size_t size) : itype(_Array_ptr<T>) byte_count(size);
-_Itype_for_any(T) void *realloc(void *pointer : itype(_Array_ptr<T>) byte_count(1), size_t size) : itype(_Array_ptr<T>) byte_count(size);
+_Itype_for_any(T) void *realloc(void *pointer : itype(_Array_ptr<T>) byte_count(0), size_t size) : itype(_Array_ptr<T>) byte_count(size);
 
 char *getenv(const char *n : itype(_Nt_array_ptr<const char>)) : itype(_Nt_array_ptr<char>);
+#if defined(_WIN32) || defined(_WIN64)
+int putenv(const char *string : itype(_Nt_array_ptr<const char>));
+#else
+int putenv(char *string : itype(_Nt_array_ptr<char>));
+#endif
 
 int atexit(void ((*func)(void)) : itype(_Ptr<void (void)>));
 int atquick_exit(void ((*func)(void)) : itype(_Ptr<void (void)>));
@@ -122,6 +127,12 @@ size_t wcstombs(char * restrict output : count(n),
                 const wchar_t * restrict pwcs :
                   itype(restrict _Nt_array_ptr<const wchar_t>),
                 size_t n);
+
+// This is a Linux-specific extension to stdlib.h.
+#if defined __has_include && __has_include(<linux/limits.h>)
+#include <linux/limits.h>
+char *realpath(const char *path : itype(_Nt_array_ptr<const char>), char *resolved_path : itype(_Array_ptr<char>) count(PATH_MAX)) : itype(_Nt_array_ptr<char>);
+#endif
 
 #pragma CHECKED_SCOPE pop
 

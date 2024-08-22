@@ -1,5 +1,7 @@
 PAPERNAME=checkedc
 FILES = abstract.tex \
+        bounds-declarations.tex \
+        changelog.tex \
         checking-variable-bounds.tex \
         core-extensions.tex \
         design-alternatives.tex \
@@ -7,13 +9,10 @@ FILES = abstract.tex \
         interoperation.tex \
         introduction.tex \
         lessons.tex \
-        open-issues.tex \
-        pointers-to-pointers.tex \
         related-work.tex \
+        roadmap.tex \
         simple-invariants.tex \
         span-compilation.tex \
-        structure-bounds.tex \
-        variable-bounds.tex \
         void-ptr-replacements.tex \
         sources.bib \
         checkedc.tex

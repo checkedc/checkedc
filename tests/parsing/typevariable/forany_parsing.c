@@ -10,15 +10,15 @@
 // expected-no-diagnostics
 
 // Testing for function declaration with function body, with parameters
-_For_any(T, S) _Ptr<T> TestDefinitionWithParameter(_Ptr<T> at, _Ptr<T> bt, _Ptr<S> cs) {
+_For_any(T, S) T* _Single TestDefinitionWithParameter(T* _Single at, T* _Single bt, _Ptr<S> cs) {
   _Ptr<T> newT = at;
   return newT;
 }
 
 // Testing for function declaration without function body, without parameters.
-_For_any(R) _Ptr<R> TestDeclarationWithNoParameter(void);
+_For_any(R) R* _Single TestDeclarationWithNoParameter(void);
 // Testing for function declaration without function body, with parameters
-_For_any(Q) _Ptr<Q> TestDeclarationWithParameter(_Ptr<Q> aq, _Ptr<Q> bq, _Ptr<Q> cq);
+_For_any(Q) Q* _Single TestDeclarationWithParameter(Q* _Single aq, _Ptr<Q> bq, _Ptr<Q> cq);
 
 int callPolymorphicTypes() {
   int num = 0;

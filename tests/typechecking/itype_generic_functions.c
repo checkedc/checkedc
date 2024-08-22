@@ -10,7 +10,7 @@ _Itype_for_any(T) void* oneTypeVariable(void* a : itype(_Ptr<T>), void* b : ityp
   return a;
 }
 
-_Itype_for_any(T, Q) void* manyTypeVariables(void* a : itype(_Ptr<T>), void* b : itype(_Ptr<Q>)) : itype(_Ptr<Q>) {
+_Itype_for_any(T, Q) void* manyTypeVariables(void* a  _Itype(T* _Single), void* b  _Itype(Q* _Single))  _Itype(Q* _Single) {
   return b;
 }
 
@@ -19,11 +19,10 @@ _Itype_for_any(T)
 void* validItypeGenericFunction(int a, void* b : itype(_Ptr<T>), void* c : itype(_Ptr<T>)) : itype(_Ptr<T>);
 
 _Itype_for_any(T)
-void* validItypeGenericFunction(int a, void* b : itype(_Ptr<T>) , void* c : itype(_Ptr<T>) ) : itype(_Ptr<T>) {
-  _Ptr<T> m = b;
+    void* validItypeGenericFunction(int a, void* b  _Itype(T* _Single) , void* c  _Itype(T* _Single) )  _Itype(T* _Single) {
+  T* _Single m = b;
   return m;
 }
-
 
 
 void CallItypeGenericFunctions(void) {

@@ -1121,6 +1121,50 @@ _Unchecked {
 \end{lstlisting}
 
 
+\section{Bounds-safe interfaces for structure types}
+\label{section:structure-bounds-safe-interfaces}
+
+Existing structure types can have bounds-safe interfaces declared
+for them. This allows checked code to use those data structures and for
+the uses to be checked. Existing unchecked code is unchanged.
+To create a bound-safe interface for a structure type, a programmer
+declares member bounds or interface types for structure members with
+unchecked pointer types.
+
+Here is a member bounds declaration for a structure that is a counted buffer
+of characters:
+
+\begin{lstlisting}
+struct CountedBuffer {
+     char *arr : count(len);
+     int len;
+}
+\end{lstlisting}
+
+Here are bounds-safe interface types for members of a structure for binary
+tree nodes. The structure contains pointers to two other nodes.  In
+checked code, pointer arithmetic on those pointers is not allowed.
+
+\begin{lstlisting}
+struct BinaryNode {
+    int data;
+    BinaryNode *left : itype(ptr<BinaryNode>);
+    BinaryNode *right : itype(ptr<BinaryNode>);
+}
+\end{lstlisting}
+
+If bounds information is declared for one member of a structure with an
+unchecked pointer type, it must be declared for all other members of the
+structure with unchecked pointer types.
+
+The \emph{semantics of unchecked
+pointers in unchecked contexts does not change even when bounds are declared 
+for the pointers}. The declared bounds are used only by checked code that uses the
+data structure, when storing checked pointers into the data structure, and when converting
+unchecked pointers read from the data structure to checked pointers.  Code in unchecked
+contexts that uses only unchecked pointer types is compiled as though the bounds-safe
+interface has been stripped from the source code.
+
 \section{Bounds-safe interfaces for generic functions and struct types}
 \label{sec:generic-bounds-safe-interfaces}
 This section describe how to provide bounds-safe interfaces for existing functions
@@ -1407,8 +1451,7 @@ with functions without prototypes by induction.  It includes:
 \item Checked pointer and array types.
 \item Complete structure and union types with members that have types in $E$.
 \item Pointers to function types that have argument or return types that are in $E$.
-\item Complete structure and union types with members with bounds declarations (these
-      are described in Chapter~\ref{chapter:structure-bounds}).
+\item Complete structure types with members with bounds declarations.
 \item Pointers to function types with bounds declarations.
 \end{enumerate}
 Clauses 4 and 5 handle the case of integer-typed values that have bounds declarations

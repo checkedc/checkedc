@@ -81,7 +81,7 @@ union U7 {
 // embedded in objects.
 //
 
-extern ptr<int> f1();      // expected-error {{function with no prototype cannot have a return type that is a checked type}}
+extern int* _Single f1();  // expected-error {{function with no prototype cannot have a return type that is a checked type}}
 extern array_ptr<int> f2();// expected-error {{function with no prototype cannot have a return type that is a checked type}}
 extern struct S1 f3();     // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
 extern struct S2 f4();     // expected-error {{function with no prototype cannot have a return type that is a structure with a member with a checked type}}
@@ -106,7 +106,7 @@ extern int (*f19())(ptr<int>);  // expected-error {{function with no prototype c
 
 // Returns an unchecked pointer to a no-prototype function returning a checked
 // value (ptr<int>)
-extern ptr<int> (*f20(void))(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
+extern int* _Single (*f20(void))(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
 // Returns a checked pointer to a function with a checked argument (ptr<int>)
 extern ptr<int (ptr<int>)> f21(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
 
@@ -120,7 +120,7 @@ extern ptr<int (ptr<int>)> f21(); // expected-error {{function with no prototype
 // pointers to function types that take or return checked values.
 
 extern ptr<int> *f30();
-extern array_ptr<int> *f31();
+extern int* _Array *f31();
 extern struct S1 *f32();
 extern struct S2 *f33();
 extern struct S3 *f34();
@@ -139,7 +139,7 @@ extern struct S9 *f41();
 extern array_ptr<int> f50() : count(5); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
 extern int f51() : byte_count(10);
 extern int *f52() : byte_count(10);
-extern int *f53() : itype(ptr<int>);
+extern int *f53() _Itype(ptr<int>);
 
 // No prototype functions cannot be redeclared to take arguments that are
 // checked values or objects with checked values embedded within them.
@@ -148,7 +148,7 @@ extern void f60();
 extern void f60(ptr<int>); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a checked type}}
 
 extern void f61();
-extern void f61(array_ptr<int>); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a checked type}}
+extern void f61(int* _Array); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a checked type}}
 
 extern void f62();
 extern void f62(struct S1); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a structure with a member with a checked type}}
@@ -202,7 +202,7 @@ extern void f80(int checked[]); // expected-error {{cannot redeclare a function 
 // Function type arguments.
 
 extern void f81();
-extern void f81(ptr<int> f(void)); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a checked type}}
+extern void f81(int* _Single f(void)); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a checked type}}
 
 extern void f82();
 extern void f82(int f(ptr<int>)); // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a checked type}}
@@ -216,7 +216,7 @@ extern void f84(int f());   // expected-error {{conflicting types for 'f84'}}
 // No prototype functions can be redeclared with bounds-safe interfaces on integer and
 // unchecked pointer arguments.
 extern void f85();
-extern void f85(char *p : bounds(p, p + len), int len);
+extern void f85(char *p _Bounds(p, p + len), int len);
 
 //
 // Redeclaring a function with a checked argument as a no prototype function is not allowed.
@@ -236,10 +236,10 @@ extern void f91();
 //
 
 struct S20 {
-  ptr<int> (*f)(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
+  int* _Single (*f)(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
 };
 
-typedef ptr<int> functype1(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
+typedef int* _Single functype1(); // expected-error {{function with no prototype cannot have a return type that is a checked type}}
 
 // Check the obscure case of a function being declared as a no-prototype, then
 // being declared to have a prototype with an incomplete type, and then
@@ -249,7 +249,7 @@ struct S21;
 extern void f100();
 extern void f100(struct S21);
 struct S21 {
-   ptr<int> m;
+  int* _Single m;
 };
 
 extern void f100(struct S21 x) { // expected-error {{cannot redeclare a function with no prototype to have an argument type that is a structure with a member with a checked type}}

@@ -1,24 +1,21 @@
 % !Tex root = checkedc.tex
 
-\chapter{Bounds declarations for variables}
+\chapter{Bounds declarations}
 \label{chapter:tracking-bounds}
 
-Variables with \arrayptr\ types that are used to access
+Variables and structure members with \arrayptr\ types that are used to access
 memory must have bounds declared for them.  The same requirement
-holds for variables with incomplete checked array types.
+holds for variables and structure members with incomplete checked array types.
 The bounds will be used to check
 memory accesses at runtime involving the pointers stored in the variable
 or pointers produced by pointer arithmetic that uses those pointers.
 Runtime checks can be omitted if a compiler proves that they are
-redundant. In addition, for performance-critical code, checks will be
-omitted when programmers demonstrate at compile-time that the checks are
-redundant (see Section~\ref{section:avoiding-bounds-checks} for details).
+redundant.
 
-\section{Bounds declarations}
+\section{Kinds of bounds declarations}
 \label{section:bounds-declarations}
 
-Bounds are declared using bounds declarations. Bounds declarations have
-the form:
+Bounds are declared using bounds declarations. They have the form:
 
 \begin{tabbing}
 \var{bounds}\=-\var{decl:} \\
@@ -31,7 +28,7 @@ the form:
 \> \boundsany
 \end{tabbing}
 
-where \var{x} is a variable. Additional forms for handling
+where \var{x} is a variable or structure member. Additional forms for handling
 \void\ pointers and casts are described in
 Sections~\ref{section:pointers-to-void} and \ref{section:pointer-cast-results}.
 
@@ -147,19 +144,10 @@ valid. This implies that any access to memory where \var{ev}
 \lstinline|!= 0 &&| \var{lbv} \lstinline|<=| \var{ev} \lstinline|&&| \var{ev}
 \lstinline|<| \var{ubv} will be within the bounds of \var{obj}.
 
-In this chapter, to simplify the description, it is assumed that none of
-the \arrayptr\ variables that have bounds declarations have
-their addresses taken. It is also assumed that the values of variables
-whose addresses are taken are not used in bounds declarations. It is
-acceptable to use the address of an address-taken variable in a bounds
-declaration. This is provided that the resulting address is not used to
-access memory in the bounds declaration (that is, indirectly access the
-value of a variable). For example, given the declaration \code{int x},
-the expression \code{&x} may appear in a bounds expression.
-Chapter~\ref{chapter:pointers-to-data-with-arrayptrs} extends the
-design to avoid these restrictions.  It covers pointers to data with
-\arrayptr\ values,  pointers to variables used in bounds, and bounds
-that use pointers.
+Checked C currently does not allow \arrayptr\ variables that have bounds declarations to have
+their addresses taken. It also does not allow the values of variables
+whose addresses are taken to be used in bounds declarations. This is to avoid
+the need to reason about pointer aliasing.
 
 \section{Using bounds declarations}
 
@@ -444,6 +432,180 @@ invariant. The invariant can be suspended temporarily during updates.
 Because externally-scoped \arrayptr\ variables can have bounds declared
 for them only at their definitions, by definition their bounds are
 always invariants.
+
+\subsection{Bounds declarations for structure members}
+
+Structure types may have members with \arrayptr\ types. Those
+members must have \emph{member bounds declarations} associated with them for
+the values stored there to be used to access memory.
+
+Structure member declarations may include bounds declarations as part
+of the declaration.  Here is an example:
+
+\begin{lstlisting}
+struct S {
+    array_ptr<int> data : count(num);
+    int num;
+};
+\end{lstlisting}
+
+
+Member bounds declarations are program invariants that are true
+by default for objects of that type.  This provides a way to deal with issues
+caused by aliasing.  Aliasing is when multiple pointers point to or
+into the same object in memory.  Aliasing makes it hard to reason about programs.
+
+Consider the example:
+\begin{lstlisting}
+f(S *q, S *r, bool b)
+{
+   if (b) {
+      q->arr = malloc(sizeof(int)*5);
+      q->len = 5;
+   }
+   else {
+      r->arr = malloc(sizeof(int)*5);
+      r->len = 5;
+   }
+}
+\end{lstlisting}
+
+Even when b is true, the value \code{r->arr} may still be
+changed by a call to f. This can happen when \code{q} and \code{r}
+are the same value and are aliases for the same memory location.
+Changing one named value (\code{q->arr}) can have the
+effect of changing some other value with a distinct name
+(\code{r->arr}). In general, it is difficult to know
+whether an assignment through one pointer variable is affecting the
+members of other pointer variables.
+
+Member bounds declarations being program invariants for structure members allows
+localized reasoning about the members. A programmer can assume that the
+bounds declarations are true for members of objects of that type.
+
+\subsubsection{Declaring bounds for structure members}
+
+Member bounds declarations have the form:
+\begin{tabbing}
+\var{member}\=\var{-bounds-decl:}\\
+\> \var{member-path} \code{:} \var{member-bounds-exp} \\
+\\
+\var{member-path:}\\
+\> \var{identifier} \\
+\> \var{member-path} \code{.} \var{identifier}
+\end{tabbing}
+
+A member path is a sequence of one or more member names, separated by
+the `\code{.}' operator. The sequence of members must be a valid sequence of
+member accesses for the structure type. The common case of using a
+member of the structure type is simply a member path of length 1.
+
+Member bounds expressions are similar to the bounds expressions
+described in Section~\ref{section:bounds-declarations}, 
+except that members of the structure type are
+used in place of variables in the non-modifying expressions. In
+addition, pointer indirection and indirect member references are
+excluded.
+
+A structure member whose type is \arrayptr\ or a
+checked array type may have at most one bounds declared for it. The
+typing rules for member bounds declarations are similar to those for
+variable bounds declarations. For bounds declarations of the form
+\boundsdecl{\var{member-path}}{\boundscount{\var{e1}}}, the
+\var{member-path} cannot have the type \arrayptrvoid\ and
+the expression \var{e1} must have an integral type. For bounds declarations
+of the form \boundsdecl{\var{member-path}}{\bounds{\var{e1}}{\var{e2}}},
+the types of \var{e1} and \var{e2} must be pointers to the same type.
+Typically \var{member-path} is also  a pointer to that type or an
+array of that type.  However, \var{member-path} can be a pointer to
+or an array of a different type.
+
+A structure consists of a list of member declarations, each of which
+consists of a type specifier followed by one or more structure member
+declarators. Structure member declarators are changed to allow 
+optional in-line specification of member bounds
+clauses.
+
+\begin{tabbing}
+\var{struct}\=\var{-member-declarator:}\\
+\> \var{declarator where-clause\textsubscript{opt}} \\
+\> \var{declarator\textsubscript{opt}} \code{:}
+   \var{constant-expression} \\
+\> \var{declarator} \code{:} \var{member-bounds-exp}
+\var{where-clause\textsubscript{opt}} \\
+\\
+\end{tabbing}
+
+A member bounds expression can use members and child members of the
+structure being declared. Any member paths occurring in the member
+bounds expressions must start with members of the structure type being
+declared. Here is an example of the use of child members:
+
+\begin{lstlisting}
+struct A {
+   array_ptr<int> data;
+};
+
+struct N {
+    int num;
+};
+
+struct S {
+   A a
+   where count(a.data) == n.num;
+   N n;
+};
+\end{lstlisting}
+
+\subsubsection{Pointers to structures}
+
+When members in structure with bounds declarations or involved in bounds declarations are
+modified, the modifications must preserve the 
+ type-level bounds invariants, following the approach of the Deputy
+system \cite{Condit2007}.  This in turn means that member accesses via structure
+pointers produce values that follow the type-level bounds invariants.  
+Complicated aliasing problems are avoided because the
+alias relationship of members within a structure is well-known.
+
+Checked C requires that type-level bounds invariants hold after each expression
+statement or bundled block and before any function calls.  For type-level bounds
+invariants involving multiple members, the code for updating members accessed
+via pointers to structures must be simple because of possible aliasing issues.
+\begin{itemize}
+\item It must be possible to prove that the base expressions used in the
+member assignments produce the same pointer value.  One case is that the same
+non-modifiable base expression is used in the member assignments  (given
+var{e}\code{.}\var{m}, e is the base expression).
+\item There cannot be any function calls.  An exception to this is if the memory
+for the structure is known to be newly allocated (and cannot possibly be aliased).
+\item There cannot be any memory accesses via any other pointers that might alias
+the pointer being used for the update.
+\end{itemize}
+
+\subsubsection{Compatibility of structure types with bounds declarations}
+
+The C Standard defines compatibility of two structure types declared in
+separate translation units \cite[Section 6.2.7]{ISO2011}.  This definition
+is extended to include member bounds declarations and member bounds-safe
+interfaces.  If the structure types are completed in both translation
+units, for each pair of corresponding members,
+\begin{itemize}
+\item If the members have unchecked pointer type,
+\begin{itemize}
+\item If the members both have bounds-safe interfaces, the bounds-safe
+interfaces must either both be bounds expressions or both be interface
+types. If both have bounds expressions, the bounds expressions must be
+syntactically identical after being placed into a canonical form.
+If both have interface types, the interface types must be compatible.
+\item Otherwise,  one member must have a bounds-safe interface and the
+other member must omit a bounds-safe interface, or both members must omit
+bounds-safe interfaces.
+\end{itemize}
+\item Otherwise, both members must have member bounds declarations or both
+members must not have member bounds declarations.  If both members have
+member bounds declarations, the bounds expressions must be syntactically
+identical after being placed into canonical form.
+\end{itemize}
 
 \subsection{Byte counts for pointers to void}
 \label{section:pointers-to-void}
@@ -1215,248 +1377,6 @@ int (array_ptr<int> arr : count(j + i), int i, int j)
 int (array_ptr<int> arr : count(5))
 int (array_ptr<int> arr : count(2 + 3))
 int (array_ptr<int> arr : count(4 + 1))
-\end{lstlisting}
-
-\section{Bounds declarations for results of casts between \plainarrayptr\ types}
-\label{section:pointer-cast-results}
-
-Typically \arrayptr\ pointers and their bounds are relatively
-aligned. Together, they represent a view of an array of \var{T}, where
-the pointer has type
-\arrayptrT. The
-bounds specify a range of memory that is exactly the size of some array
-of \var{T} and the pointer points exactly at an element of that array. For
-example, suppose short ints are 2 bytes in size and
-{\boundsdecl{\code{x}}{\bounds{\code{y}}{\code{z}}}}, where the types of \code{x},
-\code{y}, \code{z} are \arrayptrinst{\code{short int}} .
-
-This illustration shows 12 consecutive bytes in memory beginning at
-address \code{a}\textsubscript{0}, where \code{y} and \code{z} bound a
-3-element array and \code{x} points to the middle of the array. The
-memory occuped by the 3-element array is shaded in light blue, and the
-element pointed to by x is also cross-hatched. The distances in bytes
-between \code{x}, \code{y}, and \code{z} are all multiples of 2,
-the size of \code{short int}.
-\begin{center}
-\relalignpic{4}
-\end{center}
-
-This simplifies bounds checking because there is no concern during a
-bounds check that a pointer will access memory at the end or beginning
-of the array that partially overlaps with the bounds. Suppose, for
-example, that \code{x} was not relatively aligned to \code{y} and
-\code{z} and points at a\textsubscript{7}. The object pointed to by
-\code{x} now straddles the array bounds. This illustration shows this:
-\begin{center}
-\relalignpic{7}
-\end{center}
-
-When \code{x} is not relatively aligned, the bounds check for x
-becomes more expensive. With relative alignment, the bounds check is
-\code{y <= x} and \code{x < z}. Without relative
-alignment, the check for the upper bound needs to compute the highest
-address that will be accessed using x. For this example, the highest
-address accessed will be
-\lstinline|(|\arrayptrchar\lstinline|) x + sizeof(short int) - 1|, so the check becomes
-\code{y <= x} and \code{x + 1 < z}.
-
-A pointer cast can create a pointer that is not relatively aligned to
-the referent type of the pointer type. This can happen when:
-
-\begin{enumerate}
-\item
-  A pointer is cast to be a pointer to a larger type. For example, if an
-  \arrayptrinst{\code{short int}}\ is cast to be an
-  \arrayptrint , the resulting pointer
-  may not be relatively aligned to its bounds for \code{int}. In the
-  first illustration where \code{x} points to \code{a}\textsubscript{4},
-  \arrayptrint\ \code{x} is not relatively
-  aligned to \code{y} for \code{int}.
-\item
-  A pointer is cast to be a pointer to a smaller type, and the size of
-  the original referent type is not a multiple of the size of the
-  smaller type. For example, a pointer to a 12-byte struct may not be
-  relatively aligned to its bounds when it is cast to a pointer to an
-  8-byte struct.
-\end{enumerate}
-
-The use of struct types to illustrate the second case is intentional.
-For most C implementations, the second case never happens for casts
-involving scalar types. Scalar types are powers of 2 in size (1, 2, 4,
-and 8 bytes). This means that for a cast from a larger scalar type to a
-smaller scalar type, the larger scalar type will always be a multiple of
-the smaller scalar type.
-
-In general, an
-\arrayptrT\ that is
-relatively aligned for \var{T} is guaranteed to be relatively aligned
-for \arrayptrinst{\textit{S}} only
-when \sizeof{\var{S}} is a common factor of
-\sizeof{\var{T}}. In other cases, programmers need to
-supply additional information using program invariants to show that an
-\arrayptr\ pointer is relatively aligned to its bounds. Of
-course, programmers who are doing casts to use operations on larger
-types instead of operations on smaller types (for example, \code{int}
-instead of \code{char}) usually already are doing these checks.
-
-\subsection{Representing relative alignment in bounds declarations}
-\label{section:representing-relative-alignment}
-
-Bounds expressions are extended with an optional relative alignment
-clause to represent situations where an \arrayptrT\ is not relatively
-aligned to its bounds for type \var{T}:
-
-\begin{tabbing}
-\var{bounds}\=\var{-exp:}\\
-\> \var{\ldots{}}\\
-\> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}}
-         \var{relative-alignment-clause\textsubscript{opt}} \\
-\\
-\var{relative-alignment-clause:}\\
-\> \relalign{\var{type}} \\
-\> \relalignval{\var{constant-exp}}
-\end{tabbing}
-
-This clause is only added to bounds pairs because (by definition) count
-expressions always describe pointers that are relatively aligned to
-their bounds.  \code{rel_align} and \code{rel_align_value} are
-identifiers.  The optional clause specifies a
-relative alignment type \var{T} or the required relative alignment in
-bytes.  Given
-\boundsdecl{\var{x}}{\boundsrel{\var{e1}}{\var{e2}}{\var{T}}},
-\lstinline|((|\arrayptrchar\lstinline|)| \var{x} \lstinline|- (|\arrayptrchar\lstinline|)| \var{e1})
-        \lstinline|%| \sizeof{\var{T}}\lstinline|== 0| and
-\lstinline|((|\arrayptrchar\lstinline|)| \var{e2} \lstinline|- (|\arrayptrchar\lstinline|)| \var{x})
-        \lstinline|% sizeof(|\var{T}\lstinline|) == 0| must be true. If the number of bytes is
-specified, \sizeof{\var{T}} is replaced by the
-constant expression.  The relative alignment clause \relalign{\var{type}}
-is just short-hand for \relalignval{\sizeof{\var{type}}}.
-
-\subsection{Effect on bounds checks}
-
-If the default relative alignment has been overridden and
-\boundsdecl{\var{e1}}{\boundsrel{\var{e2}}{\var{e3}}{\var{T}}}, the compiler checks whether
-\sizeof{referent-type(\var{e1})} is a common factor of \sizeof{\var{T}}
-If it is, it inserts the same
-runtime check as before. Otherwise, it inserts a runtime check that
-\var{e2} \lstinline|<=| \var{e1} \lstinline|&&|
-\var{e1} \lstinline|+| \sizeof{referent-type(\var{e1})} \lstinline|- 1 <| \var{e3}.
-
-\subsection{Examples of uses of bounds declarations that specify relative alignment}
-
-Here are examples of the use of relative alignment clauses in
-conjunction with pointer casts. In the first example, there is an
-\arrayptr\ to raw data consisting of characters. The pointer is
-cast to be an \arrayptrint . However,
-the relative alignment remains \code{char}:
-
-\begin{lstlisting}
-// cast data to be an array_ptr<int> instead
-array_ptr<char> raw_data : bounds(lower, upper) = ...
-array_ptr<int> data : bounds(lower, upper) rel_align(char) =
-    (array_ptr<int>) raw_data;
-\end{lstlisting}
-
-In the second example, the code starts with an
-\arrayptrint. The pointer is cast to
-be an \arrayptrchar. That
-\arrayptr\ is then cast back to be an
-\arrayptrint . In the second cast, the
-\code{rel_align} clause is omitted because the default relative
-alignment for an \arrayptrint\ is
-\code{int}.
-
-\begin{lstlisting}
-array_ptr<int> data : bounds(lower, upper) = ...
-array_ptr<char> byte_data : bounds(lower, upper) rel_align(int) = (array_ptr<char>) data;
-array_ptr<int> finish : bounds(lower, upper) = (array_ptr(int>) byte_data;
-\end{lstlisting}
-
-The third example illustrates a subtlety when an
-\arrayptrT\ has a
-relative alignment that is larger than the actual size of \var{T}. The
-use of pointer arithmetic may require that relative alignment be
-lowered. Suppose that the size of \code{short int} is 2 bytes and the
-size of an \code{int} is 4 bytes:
-
-\begin{lstlisting}
-array_ptr<int> d : bounds(lower, upper) = ...
-array_ptr<short int> e : bounds(lower, upper) rel_align(int) = (array_ptr<short int>) d;
-array_ptr<short int> f : bounds(lower, upper) rel_align(short int) = e + 1;
-\end{lstlisting}
-
-While \code{e} can have relative alignment of \code{int}, \code{f}
-cannot because pointer arithmetic is done at the granularity of
-\code{short int}.
-
-The final example illustrates the use of a dynamic check to allow an
-\arrayptrchar\ to be cast to a larger type with a larger relative alignment.
-It is a function that does a memory copy and uses an optimized aligned copy if
-possible.  For simplicity, it is assumed that the memory pointed to by
-\code{dst} and \code{src} does not overlap and that \code{sizeof(int)} is 4:
-\begin{lstlisting}
-void copy(array_ptr<char> dst : bounds(dst, dst + num),
-          array_ptr<char> src : bounds(src, src + num),
-          size_t num)
-{
-  if (num % 4 == 0) {
-    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(char) =
-        (array_ptr<int>) dst;
-    array_ptr<int> aligned_src : bounds(src, src + num) rel_align(char) =
-        (array_ptr<int>) src;
-    int n = num / 4;
-    for (int i = 0; i < n; i++) {
-      aligned_dst[i] = aligned_src[i];
-    }
- }
- else {
-    for (int i = 0; i < num; i++) {
-      dst[i] = src[i];
-    }
-}
-\end{lstlisting}
-
-However, \lstinline|num % 4 == 0| implies that \code{aligned_dst} and
-\code{align_src} are relatively aligned to their bounds, so the
-relative alignment can be changed:
-
-\begin{lstlisting}
-void copy(array_ptr<char> dst : bounds(dst, dst + num),
-          array_ptr<char> src : bounds(src, src + num),
-          size_t num)
-{
-  if (num % 4 == 0) {
-    // num % 4 == 0 implies that aligned_dst and aligned_src are
-    // relatively aligned to their bounds.
-    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(int) =
-        (array_ptr<int>) dst;
-    array_ptr<int> aligned_src : bounds(src, src + num) rel_align(int) =
-        (array_ptr<int>) src;
-    int n = num / 4;
-    for (int i = 0; i<n; i++) {
-      aligned_dst[i] = aligned_src[i];
-    }
- }
- else
-   ...
-}
-\end{lstlisting}
-
-Of course, the \code{rel_align(int)} is redundant and can be omitted.
-
-\subsection{Relative alignment and constant counts}
-
-When an \arrayptr\ with a constant count is cast to another
-\arrayptr\ type, all the facts about relative alignment are
-easily checkable at compile time. This means that a pointer to data can
-easily be cast to be a pointer to a larger type. Suppose in the
-following example that the size of integers is 4 bytes. A pointer to 8
-bytes of characters can be converted easily a pointer to 2 integers:
-
-\begin{lstlisting}
-char a[] = "0123456";
-array_ptr<char> p : count(8) = a;
-array_ptr<int> r : count(2) = (array_ptr<int>) p;
 \end{lstlisting}
 
 \section{Extent of bounds declared at statements}

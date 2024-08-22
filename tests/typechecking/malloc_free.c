@@ -37,7 +37,7 @@ void f4(void) unchecked {
 
 // Test you can always `free` a `malloc`d ptr
 void f11(void) {
-    ptr<int> x = malloc<int>(sizeof(int));
+    int* _Single x = malloc _TyArgs(int) (sizeof(int));
     free<int>(x);
 }
 
@@ -78,9 +78,9 @@ void f22(void) {
 
 // Test you can always `free` a `realloc`d array_ptr
 void f23(void) {
-    array_ptr<int> x : count(4) = malloc<int>(4 * sizeof(int));
-    array_ptr<int> y : count(8) = realloc<int>(x, 8 * sizeof(int));
-    free<int>(y);
+    int* _Array x  _Count(4) = malloc _TyArgs(int) (4 * sizeof(int));
+    int* _Array y  _Count(8) = realloc _TyArgs(int) (x, 8 * sizeof(int));
+    free _TyArgs(int) (y);
 }
 
 // Test you can always `free` a `aligned_alloc`d array_ptr

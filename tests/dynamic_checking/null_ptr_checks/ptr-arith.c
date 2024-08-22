@@ -128,6 +128,9 @@ void pass3() {
 
 int main(int argc, array_ptr<char *> argv : count(argc)) {
   signal(SIGILL, handle_error);
+#if defined(__APPLE__) && defined(__aarch64__)
+  signal(SIGTRAP, handle_error);
+#endif
 
   // This makes sure output is not buffered for when
   // we hit errors.

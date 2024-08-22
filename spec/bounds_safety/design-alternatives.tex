@@ -139,39 +139,6 @@ carry counts of elements.  The C++ proposal does not
 support decrementing the \spanptr.   For symmetry with \arrayptr, we think it
 would be important in the Checked C extension that \spanptr\ values carry lower bounds.
 
-
-\section{Removing relative alignment}
-\label{section:design-alternatives:always-unaligned}
-
-We considered removing the concept of relative alignment from the design in order
-to simplify the design. 
-Relative alignment is described in Sections~\ref{section:relative-alignment}
-and~\ref{section:pointer-cast-results}.  If relative alignment
-is removed, however, compilers have to assume that bounds and pointers are
-not relatively aligned.   This would result in more costly bounds checks and
-more bounds checks in optimized code.
-
-Checks against upper bounds would  take several more instructions.
-Given a pointer \var{p} to type \var{T}, \lstinline|*|\var{p} accesses the memory from
-\var{p} to \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline| - 1|. Given an upper bound \var{ub}, the
-upper bounds check for \var{p} becomes \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1 <|
-\var{ub}, not \var{p} \lstinline|<| \var{ub}.  The
-computation of \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1| would need an overflow 
-check also,  so several extra instructions would be added to an upper bounds check, 
-not just an extra addition.
-
-There would also be more bounds checks because it would be harder for compiler optimizers
-to eliminate upper bounds checks in loops.  Most programmers would write code that
-strides through an array using a comparison that
-\var{p} \lstinline|<| \var{ub}. The comparison 
-\var{p} \lstinline|<| \var{ub} does not imply
-\var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1 <| \var{ub}, so the comparison is
-not sufficient for a compiler to optimize away
-the upper bounds check. A compiler would have to know that a pointer
-and bounds are relatively aligned in order to eliminate the upper bounds
-check. It would be hard for a compiler to prove this because it would
-require interprocedural or whole-program analysis.
-
 \section{Address-of operations and array-to-pointer conversions always produce checked pointer types}
 
 We considered a design where the address-of operator (\&) and

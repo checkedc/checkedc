@@ -3,7 +3,7 @@
 //
 // RUN: %clang_cc1 -verify %s
 
-_For_any(T) _Ptr<T> Foo(_Ptr<T> a, _Ptr<T> b) {
+_For_any(T) T* _Single Foo(T* _Single a, T* _Single b) {
   return a;
 }
 

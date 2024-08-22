@@ -1,0 +1,642 @@
+\chapter{Planned extension features}
+\label{chapter:roadmap}
+This chapter describes Checked C features that we plan
+to implement within the Checked C compiler.
+
+\section{Pointer arithmetic overflow checking}
+\label{section:pointer-arithmetic-errors}
+
+For existing unchecked C pointers, the definition of pointer arithmetic is
+described in terms of addresses of elements of an array object. The C
+Standard \cite{ISO2011} states, that given a pointer p that points to some element i of
+an array object, p + j points to the (i+j)th element of that object.
+Pointer arithmetic is defined only for pointers to elements of the array
+object or one past the last element of the array object.
+
+We take an alternative approach to defining the meaning of pointer
+arithmetic and the error conditions for pointer arithmetic. Pointer
+arithmetic is allowed to go out-of-bounds and has a well-defined
+semantics. Section~\ref{section:new-pointer-types-semantics}
+defines the semantics of the new pointer types
+directly in terms of byte addresses, instead of with respect to
+addresses of elements of an array. Pointer arithmetic that overflows or
+involves a null pointer is defined to produce a runtime error.
+
+The new pointer types allow pointer arithmetic that produces
+out-of-bounds values. The C definition leaves pointer arithmetic that
+produces out-of-bounds values undefined because it is not clear what the
+meaning of should be when the pointers are dereferenced. The new pointer
+types prevent out-of-bounds pointers from being dereferenced, and solve
+this problem another way. In addition, in practice C implementations
+often allow pointer arithmetic to produce out-of-bounds values and C
+programs end up relying on this implementation-specific behavior. There
+is no reason to cause existing code that computes out-of-bounds pointers
+but does not dereference them to break when it is converted to use the
+new pointer types.
+
+When pointer arithmetic overflows or involves a null pointer, the
+resulting value of the expression cannot be used and program execution
+stops. If a system provides for error handling, an error handling
+mechanism may be invoked to redirect program execution to a new point of
+execution that does not use the value of the expression.
+
+Defining pointer arithmetic this way simplifies reasoning about the new
+pointer types. Expected identities such as \code{p + 1 > p} now hold
+because, if \code{p + 1} overflows, the value cannot be
+used. This allows programmers to narrow the bounds for
+\arrayptr\ values by incrementing the lower bound or
+decrementing the upper bound, even in situations where the bounds are at
+the ends of the address space. Later sections describe places where
+allowing an undefined value to be used would complicate reasoning about
+programs.
+
+If a compiler cannot prove that a new pointer type value is non-null
+before a pointer arithmetic operation, it must insert a check.
+Similarly, if a compiler cannot prove that a pointer arithmetic
+expression for a new pointer type cannot overflow, it must insert a
+check. This may slow a typical program down by a slight amount.
+
+\subsection{Semantics of pointer arithmetic for new pointer types}
+\label{section:new-pointer-types-semantics}
+
+This section defines the semantics of pointer arithmetic and explains
+when overflow occurs in pointer arithmetic. It is assumed that memory is
+addressable at the byte level. The order of bits within a byte is not
+specified. The order of bytes within built-in types larger than a byte,
+such as integers and floating-point numbers, is also not specified.
+Pointers shall be treated as addresses of locations of bytes in memory.
+The addresses shall be unsigned integers with a defined range of 0 to
+\code{UINTPTR_MAX}. The maximum value of a signed integer that can be
+added to an address shall be given by \code{INTPTR_MAX} and the
+minimum value of a signed integer that can be added to an address shall
+be given by \code{INTPTR_MIN}.
+
+For the new
+\arrayptrT\ pointer
+types, there are distinct operations for addition and subtraction of
+pointers by signed and unsigned integers. The operations behave
+similarly, but have different overflow conditions for scaling because
+the ranges of signed integers and unsigned integers are different.
+
+\begin{itemize}
+\item
+  First scaling an integer by \sizeof{\var{T}} is
+  defined. To scale an integer \var{i}, \var{i} shall be multiplied by
+  \sizeof{\var{T}}, producing an integer \var{j}. If
+  \var{i} is a signed integer, the scaled result shall be treated as a
+  signed integer. If \var{i} is an unsigned integer, the scaled result
+  shall be treated as an unsigned integer. For a signed integer, the
+  minimum and maximum range for \var{j} shall be \code{INTPTR_MIN} and
+  \code{INTPTR_MAX}. For an unsigned integer, the minimum and maximum
+  range for \var{j} shall be 0 and \code{UINTPTR_MAX}. If \var{j} is
+  outside its valid range, the operation doing the scaling operation
+  shall produce a runtime error.
+\item
+  \var{p} \code{+} \var{i}, where \var{p} is an
+  \arrayptrT\ pointer
+  and \var{i} is an integer. The integer \var{i} shall be scaled by
+  \sizeof{\var{T}}, producing an integer \var{j}. The
+  pointer \var{p} will be interpreted as an unsigned integer. The mathematical
+  value \var{p} + \var{j} shall be the result of the operation. If
+  \var{p} + \var{j} is out of range for a pointer, the operation shall
+  produce a runtime error.
+\item
+  \var{i} \code{+} \var{p}, where \var{p} is an
+  \arrayptrT\ pointer
+  and \var{i} is an integer, shall be defined as \var{p} \code{+}
+  \var{i}.
+\item
+  \var{p} \code{-} \var{i}, where \var{p} is an
+  \arrayptrT\ pointer
+  and \var{i} is an integer. The integer \var{i} shall be scaled by
+  \sizeof{\var{T}}, producing an integer \var{j}. The
+  pointer \var{p} will be interpreted as an unsigned integer. The
+  mathematical value \var{p} - \var{j} shall be the result of the
+  operation. If \var{p -} \var{j} is out of range for a pointer, the
+  operation shall produce a runtime error.
+\item
+  \var{p} \code{-} \var{q}, where \var{p} and \var{q} are
+  \arrayptrT\
+  pointers. The two pointers will be interpreted as unsigned integers
+  and the mathematical value \var{p} - \var{q} shall be computed,
+  producing an integer \var{j}. If \var{j} is out of range for signed
+  integer that can be added to an address, the operation shall produce a
+  runtime error. If \var{j} is a multiple of
+  \sizeof{\var{T}}, the result shall be
+  \var{j}/\sizeof{\var{T}}. If \var{j} is not a
+  multiple of \sizeof{\var{T}}, then the value shall
+  be determined as follows:
+
+  \begin{itemize}
+  \item
+    If \var{j} is non-negative,
+    \var{j}/\sizeof{\var{T}} shall round toward 0.
+  \item
+    If \var{j} is negative, it shall be implementation-defined whether
+    \var{j}/\sizeof{\var{T}} rounds toward 0 or away
+    from 0.
+  \end{itemize}
+\end{itemize}
+
+An important implication of these definitions is that they put a maximum
+limit on the number of elements in an array of type \var{T}. It is
+\code{UINTPTR_MAX/}\sizeof{\var{T}}. They also put
+maximum limits on the number of elements that can be accessed in an
+array by a signed integer or an unsigned integer. That leads to limits
+on the size of arrays that can be described by some bounds. A signed
+integer that must be non-negative can describe an array of
+\code{INTPTR_MAX/}\sizeof{var{T}} elements.
+
+\subsection{Expressing pointer arithmetic as integer arithmetic}
+\label{section:pointers-as-integers}
+
+During static checking, pointer arithmetic operations will be converted
+to use integer arithmetic. This is necessary in C because at times
+programmers do explicit size computations that follow the same rules as
+pointer arithmetic.
+
+To support this expansion, integer arithmetic operators are extended
+with the operators \plusovf, \minusovf, and \mulovf. The
+operators interpret pointers as unsigned integers in some range 0 to
+\code{UINTPTR_MAX}. An operator produces a runtime error if the value
+of its result cannot be represented by the result type:
+
+\begin{itemize}
+\item
+  \plusovf\ takes an unsigned integer \var{i} and an
+  integer \var{j} and produces an unsigned integer in the range 0 to
+  \code{UINTPTR_MAX}. Its result is the mathematical value \var{i} + \var{j}.
+\item
+  For subtraction, there are two forms:
+
+  \begin{itemize}
+  \item
+    \minusovf\ takes an unsigned integer \var{i} and an
+    integer \var{j} as an argument and computes \var{i} - \var{j}, producing an unsigned
+    integer in the range 0 to \code{UINTPTR_MAX}. Its result is the
+    mathematical value \var{i} - \var{j}.
+  \item
+    \lstinline|-|\textsubscript{ovf\_diff } takes two unsigned integers \var{i}
+    and \var{j} and computes \var{i} - \var{j}, producing a signed integer of type
+    \code{ptrdiff_t}. Its result is the mathematical value \var{i} - \var{j}.
+  \end{itemize}
+\item
+  \mulovf\ takes two integers \var{i} and \var{j} (both either
+  signed or unsigned) as arguments. It produces an integer whose type is
+  the same as the input argument types. Its result is the mathematical
+  value \var{i} * \var{j}.
+\end{itemize}
+
+Given an expression \code{e1} with a pointer type and an expression
+\code{e2} with an integer type, the expansion of \code{e1 + e2} from
+pointer arithmetic to integer arithmetic depends on the type of
+\code{e2}. The number of bytes to added must be the same kind of
+signed or unsigned integer as \code{e2}.
+
+\begin{itemize}
+\item
+  If \code{e2} is an unsigned integer, \code{e1 + e2} expands to
+  \code{e1} \plusovf\ \sizeof{\var{T}} \mulovf\ \code{e2}.
+\item
+  If \code{e2} is a signed integer, the expansion of \code{e1 + e2}
+  must cast \sizeof{\var{T}} to a signed integer. We introduce a
+  signed integer type \code{signed_size_t} that is large enough for
+  this cast. \code{e1 + e2} expands to \code{e1} \plusovf\
+  \code{((signed_size_t)} \sizeof{\var{T}}\code{)} \mulovf\ \code{e2}. This cast is
+  necessary because in C, multiplying a signed integer by an unsigned
+  integer implicitly converts the signed integer to be an unsigned
+  integer.
+\end{itemize}
+
+\subsection{Runtime performance implications}
+
+There will be concerns about the effect of overflow checks on the speed
+of pointer arithmetic using the new pointer types. These concerns are an
+empirical question to be settled after implementing and using the new
+pointer types. It is unclear what the actual cost will be. First, there
+will be sometimes additional conditions on expressions used in
+pointer arithmetic that prevent overflow from occurring. Second,
+compiler optimizations often can remove the checks. Third, programmers
+can use lightweight invariants to show statically that checks are not
+necessary.
+
+In our experience working on an operating system written in managed code
+that required these checks, the slowdown was a few percent, even when
+\emph{all} arithmetic instructions were checked for overflow too. The
+cost of checks was low because it is often the case that checks are
+redundant or can be combined into adjacent machine instructions. For
+example, in the code \lstinline|t = *p; p += 1;| the first dereference of
+\lstinline+p+ implies that \lstinline+p+ is non-null before the increment.
+Otherwise, in a typical C environment, the program would fault at
+\lstinline+*p+. In the code \lstinline|if (p < hi) { p += 1; }|
+the check \lstinline+p < hi+ implies that the increment cannot
+overflow. The checks are also inexpensive on superscalar processors:
+they can be placed so that they are statically predicted by
+processors to never fail.
+
+\section{Relative alignment of \arrayptr\ values}
+\label{section:relative-alignment}
+
+(This section should be placed in Chapter~{\ref{chapter:core-extensions}}
+when relative alignment has been implemented).
+
+\arrayptrT\ pointers provide
+pointer arithmetic on arrays. The bounds for these pointers usually
+describe a range of memory that is exactly the size of some array of \var{T}.
+The pointers point to an element of the array. In other words, the lower
+bound, the upper bound, and pointer are  relatively aligned to the type
+\var{T}. Given a lower bound \var{lb}, an upper bound \var{ub}, and a
+pointer \var{p}, there should exist some integer \var{count} such that
+\var{ub} = \var{lb} + \var{count}. In addition, there is either some
+integer \var{index} such that \var{p} = \var{lb} + \var{index},
+where addition is C pointer arithmetic, or \var{p} is null.
+
+The type to which a pointer and its bounds are relatively aligned is
+called the relative alignment type. By default, the relative alignment
+type for a pointer and its bounds is the referent type. However, the
+relative alignment type can be overridden by specifying it explicitly as
+part of the bounds.  This is described in
+Section~\ref{section:representing-relative-alignment}.
+This can be used for bounds for the results of pointers casts and
+for  \arrayptrvoid\ pointers. The type
+\void\ has no defined size, so the default relative alignment is
+undefined for \void.
+
+We considered removing the entire concept of relative alignment from the
+design to simplify the design.  We decided against that because it would
+increase the cost of bounds checking throughout the program.
+Section~\ref{section:design-alternatives:always-unaligned} explains
+this choice in more detail.
+
+\subsection{Bounds declarations for results of casts between \plainarrayptr\ types}
+\label{section:pointer-cast-results}
+
+(This section should be moved to Chapter~\ref{chapter:core-extensions} when
+relative alignment is implemented.).
+
+Typically \arrayptr\ pointers and their bounds are relatively
+aligned. Together, they represent a view of an array of \var{T}, where
+the pointer has type
+\arrayptrT. The
+bounds specify a range of memory that is exactly the size of some array
+of \var{T} and the pointer points exactly at an element of that array. For
+example, suppose short ints are 2 bytes in size and
+{\boundsdecl{\code{x}}{\bounds{\code{y}}{\code{z}}}}, where the types of \code{x},
+\code{y}, \code{z} are \arrayptrinst{\code{short int}} .
+
+This illustration shows 12 consecutive bytes in memory beginning at
+address \code{a}\textsubscript{0}, where \code{y} and \code{z} bound a
+3-element array and \code{x} points to the middle of the array. The
+memory occuped by the 3-element array is shaded in light blue, and the
+element pointed to by x is also cross-hatched. The distances in bytes
+between \code{x}, \code{y}, and \code{z} are all multiples of 2,
+the size of \code{short int}.
+\begin{center}
+\relalignpic{4}
+\end{center}
+
+This simplifies bounds checking because there is no concern during a
+bounds check that a pointer will access memory at the end or beginning
+of the array that partially overlaps with the bounds. Suppose, for
+example, that \code{x} was not relatively aligned to \code{y} and
+\code{z} and points at a\textsubscript{7}. The object pointed to by
+\code{x} now straddles the array bounds. This illustration shows this:
+\begin{center}
+\relalignpic{7}
+\end{center}
+
+When \code{x} is not relatively aligned, the bounds check for x
+becomes more expensive. With relative alignment, the bounds check is
+\code{y <= x} and \code{x < z}. Without relative
+alignment, the check for the upper bound needs to compute the highest
+address that will be accessed using x. For this example, the highest
+address accessed will be
+\lstinline|(|\arrayptrchar\lstinline|) x + sizeof(short int) - 1|, so the check becomes
+\code{y <= x} and \code{x + 1 < z}.
+
+A pointer cast can create a pointer that is not relatively aligned to
+the referent type of the pointer type. This can happen when:
+
+\begin{enumerate}
+\item
+  A pointer is cast to be a pointer to a larger type. For example, if an
+  \arrayptrinst{\code{short int}}\ is cast to be an
+  \arrayptrint , the resulting pointer
+  may not be relatively aligned to its bounds for \code{int}. In the
+  first illustration where \code{x} points to \code{a}\textsubscript{4},
+  \arrayptrint\ \code{x} is not relatively
+  aligned to \code{y} for \code{int}.
+\item
+  A pointer is cast to be a pointer to a smaller type, and the size of
+  the original referent type is not a multiple of the size of the
+  smaller type. For example, a pointer to a 12-byte struct may not be
+  relatively aligned to its bounds when it is cast to a pointer to an
+  8-byte struct.
+\end{enumerate}
+
+The use of struct types to illustrate the second case is intentional.
+For most C implementations, the second case never happens for casts
+involving scalar types. Scalar types are powers of 2 in size (1, 2, 4,
+and 8 bytes). This means that for a cast from a larger scalar type to a
+smaller scalar type, the larger scalar type will always be a multiple of
+the smaller scalar type.
+
+In general, an
+\arrayptrT\ that is
+relatively aligned for \var{T} is guaranteed to be relatively aligned
+for \arrayptrinst{\textit{S}} only
+when \sizeof{\var{S}} is a common factor of
+\sizeof{\var{T}}. In other cases, programmers need to
+supply additional information using program invariants to show that an
+\arrayptr\ pointer is relatively aligned to its bounds. Of
+course, programmers who are doing casts to use operations on larger
+types instead of operations on smaller types (for example, \code{int}
+instead of \code{char}) usually already are doing these checks.
+
+\subsection{Representing relative alignment in bounds declarations}
+\label{section:representing-relative-alignment}
+
+Bounds expressions are extended with an optional relative alignment
+clause to represent situations where an \arrayptrT\ is not relatively
+aligned to its bounds for type \var{T}:
+
+\begin{tabbing}
+\var{bounds}\=\var{-exp:}\\
+\> \var{\ldots{}}\\
+\> \bounds{\var{non-modifying-exp}}{\var{non-modifying-exp}}
+         \var{relative-alignment-clause\textsubscript{opt}} \\
+\\
+\var{relative-alignment-clause:}\\
+\> \relalign{\var{type}} \\
+\> \relalignval{\var{constant-exp}}
+\end{tabbing}
+
+This clause is only added to bounds pairs because (by definition) count
+expressions always describe pointers that are relatively aligned to
+their bounds.  \code{rel_align} and \code{rel_align_value} are
+identifiers.  The optional clause specifies a
+relative alignment type \var{T} or the required relative alignment in
+bytes.  Given
+\boundsdecl{\var{x}}{\boundsrel{\var{e1}}{\var{e2}}{\var{T}}},
+\lstinline|((|\arrayptrchar\lstinline|)| \var{x} \lstinline|- (|\arrayptrchar\lstinline|)| \var{e1})
+        \lstinline|%| \sizeof{\var{T}}\lstinline|== 0| and
+\lstinline|((|\arrayptrchar\lstinline|)| \var{e2} \lstinline|- (|\arrayptrchar\lstinline|)| \var{x})
+        \lstinline|% sizeof(|\var{T}\lstinline|) == 0| must be true. If the number of bytes is
+specified, \sizeof{\var{T}} is replaced by the
+constant expression.  The relative alignment clause \relalign{\var{type}}
+is just short-hand for \relalignval{\sizeof{\var{type}}}.
+
+\subsection{Effect on bounds checks}
+
+If the default relative alignment has been overridden and
+\boundsdecl{\var{e1}}{\boundsrel{\var{e2}}{\var{e3}}{\var{T}}}, the compiler checks whether
+\sizeof{referent-type(\var{e1})} is a common factor of \sizeof{\var{T}}
+If it is, it inserts the same
+runtime check as before. Otherwise, it inserts a runtime check that
+\var{e2} \lstinline|<=| \var{e1} \lstinline|&&|
+\var{e1} \lstinline|+| \sizeof{referent-type(\var{e1})} \lstinline|- 1 <| \var{e3}.
+
+\subsection{Examples of uses of bounds declarations that specify relative alignment}
+
+Here are examples of the use of relative alignment clauses in
+conjunction with pointer casts. In the first example, there is an
+\arrayptr\ to raw data consisting of characters. The pointer is
+cast to be an \arrayptrint . However,
+the relative alignment remains \code{char}:
+
+\begin{lstlisting}
+// cast data to be an array_ptr<int> instead
+array_ptr<char> raw_data : bounds(lower, upper) = ...
+array_ptr<int> data : bounds(lower, upper) rel_align(char) =
+    (array_ptr<int>) raw_data;
+\end{lstlisting}
+
+In the second example, the code starts with an
+\arrayptrint. The pointer is cast to
+be an \arrayptrchar. That
+\arrayptr\ is then cast back to be an
+\arrayptrint . In the second cast, the
+\code{rel_align} clause is omitted because the default relative
+alignment for an \arrayptrint\ is
+\code{int}.
+
+\begin{lstlisting}
+array_ptr<int> data : bounds(lower, upper) = ...
+array_ptr<char> byte_data : bounds(lower, upper) rel_align(int) = (array_ptr<char>) data;
+array_ptr<int> finish : bounds(lower, upper) = (array_ptr<int>) byte_data;
+\end{lstlisting}
+
+The third example illustrates a subtlety when an
+\arrayptrT\ has a
+relative alignment that is larger than the actual size of \var{T}. The
+use of pointer arithmetic may require that relative alignment be
+lowered. Suppose that the size of \code{short int} is 2 bytes and the
+size of an \code{int} is 4 bytes:
+
+\begin{verbatim}
+array_ptr<int> d : bounds(lower, upper) = ...
+array_ptr<short int> e : bounds(lower, upper) rel_align(int) = (array_ptr<short int>) d;
+array_ptr<short int> f : bounds(lower, upper) rel_align(short int) = e + 1;
+\end{verbatim}
+
+While \code{e} can have relative alignment of \code{int}, \code{f}
+cannot because pointer arithmetic is done at the granularity of
+\code{short int}.
+
+The final example illustrates the use of a dynamic check to allow an
+\arrayptrchar\ to be cast to a larger type with a larger relative alignment.
+It is a function that does a memory copy and uses an optimized aligned copy if
+possible.  For simplicity, it is assumed that the memory pointed to by
+\code{dst} and \code{src} does not overlap and that \code{sizeof(int)} is 4:
+\begin{lstlisting}
+void copy(array_ptr<char> dst : bounds(dst, dst + num),
+          array_ptr<char> src : bounds(src, src + num),
+          size_t num)
+{
+  if (num % 4 == 0) {
+    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(char) =
+        (array_ptr<int>) dst;
+    array_ptr<int> aligned_src : bounds(src, src + num) rel_align(char) =
+        (array_ptr<int>) src;
+    int n = num / 4;
+    for (int i = 0; i < n; i++) {
+      aligned_dst[i] = aligned_src[i];
+    }
+ }
+ else {
+    for (int i = 0; i < num; i++) {
+      dst[i] = src[i];
+    }
+ }
+}
+\end{lstlisting}
+
+However, \lstinline|num % 4 == 0| implies that \code{aligned_dst} and
+\code{align_src} are relatively aligned to their bounds, so the
+relative alignment can be changed:
+
+\begin{lstlisting}
+void copy(array_ptr<char> dst : bounds(dst, dst + num),
+          array_ptr<char> src : bounds(src, src + num),
+          size_t num)
+{
+  if (num % 4 == 0) {
+    // num % 4 == 0 implies that aligned_dst and aligned_src are
+    // relatively aligned to their bounds.
+    array_ptr<int> aligned_dst : bounds(dst, dst + num) rel_align(int) =
+        (array_ptr<int>) dst;
+    array_ptr<int> aligned_src : bounds(src, src + num) rel_align(int) =
+        (array_ptr<int>) src;
+    int n = num / 4;
+    for (int i = 0; i<n; i++) {
+      aligned_dst[i] = aligned_src[i];
+    }
+ }
+ else
+   ...
+}
+\end{lstlisting}
+
+Of course, the \code{rel_align(int)} is redundant and can be omitted.
+
+\subsection{Relative alignment and constant counts}
+
+When an \arrayptr\ with a constant count is cast to another
+\arrayptr\ type, all the facts about relative alignment are
+easily checkable at compile time. This means that a pointer to data can
+easily be cast to be a pointer to a larger type. Suppose in the
+following example that the size of integers is 4 bytes. A pointer to 8
+bytes of characters can be converted easily a pointer to 2 integers:
+
+\begin{lstlisting}
+char a[] = "0123456";
+array_ptr<char> p : count(8) = a;
+array_ptr<int> r : count(2) = (array_ptr<int>) p;
+\end{lstlisting}
+
+\section{Alternative designed consider and not used: Removing relative alignment}
+\label{section:design-alternatives:always-unaligned}
+
+(This section should be moved to Chapter~\ref{chapter:design-alternatives} when relative
+alignment is implemented).
+
+We considered removing the concept of relative alignment from the design in order
+to simplify the design. 
+Relative alignment is described in Sections~\ref{section:relative-alignment}
+and~\ref{section:pointer-cast-results}.  If relative alignment
+is removed, however, compilers have to assume that bounds and pointers are
+not relatively aligned.   This would result in more costly bounds checks and
+more bounds checks in optimized code.
+
+Checks against upper bounds would  take several more instructions.
+Given a pointer \var{p} to type \var{T}, \lstinline|*|\var{p} accesses the memory from
+\var{p} to \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline| - 1|. Given an upper bound \var{ub}, the
+upper bounds check for \var{p} becomes \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1 <|
+\var{ub}, not \var{p} \lstinline|<| \var{ub}.  The
+computation of \var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1| would need an overflow 
+check also,  so several extra instructions would be added to an upper bounds check, 
+not just an extra addition.
+
+There would also be more bounds checks because it would be harder for compiler optimizers
+to eliminate upper bounds checks in loops.  Most programmers would write code that
+strides through an array using a comparison that
+\var{p} \lstinline|<| \var{ub}. The comparison 
+\var{p} \lstinline|<| \var{ub} does not imply
+\var{p} \lstinline|+| \sizeof{\var{T}} \lstinline|- 1 <| \var{ub}, so the comparison is
+not sufficient for a compiler to optimize away
+the upper bounds check. A compiler would have to know that a pointer
+and bounds are relatively aligned in order to eliminate the upper bounds
+check. It would be hard for a compiler to prove this because it would
+require interprocedural or whole-program analysis.
+
+\section{Support for by-reference parameter passing of \protect\arrayptr s}
+
+It is important to support by-reference parameter passing of \arrayptr-typed variables
+in C.  It is a common way that multiple values are returned from a function.  By-reference parameter
+passing of \arrayptr s will lead to programs where the addresses of local variables or struct
+members of type \arrayptr\ are taken.
+
+For example, a function that returns a newly-allocated buffer and its length could be written as:
+\begin{lstlisting}
+void create(ptr<array_ptr<char>> pbuf where *pbuf: count(*len),
+            ptr<int> plen)
+{ ...
+}
+\end{lstlisting}
+A caller would take the addresses of local variables to use this function:
+\begin{lstlisting}
+void f(void)
+{
+    int len;
+    array_ptr<char> buf : count(len) = NULL;
+    create(&buf, &len);
+}
+\end{lstlisting}
+
+We can gain insight into this problem by considering a related
+problem.   When the address of a variable that occurs in a bounds declaration is 
+taken, it is important to ensure that the invariants for the bounds declaration are not
+broken accidentally.  Consider:
+\begin{lstlisting}
+void bad_code(array_ptr<char> buf : count(len), int len) 
+{
+    ptr<int> plen = &len;
+    *plen = 5;
+}
+\end{lstlisting}
+The problem with allowing the address of just \code{len} to be taken is
+that the lvalue for \code{len} actually has additional constraints. This
+suggests that pointer variables that hold addresses of address-taken variables should
+themselves have additional constraints.  For example:
+\begin{lstlisting}
+void constrained_code(array_ptr<char> buf : count(len), int len) 
+{
+    ptr<int> plen = NULL;
+    ptr<array_ptr<char>> pbuf = NULL where *pbuf : count(*plen);
+    bundle {
+       plen = &len;
+       pbuf = &buf;
+    }
+    bundle {
+       array_ptr<int> a = malloc((sizeof(char)*5);
+       *plen = 5;
+       *pbuf = a;
+    }
+}
+\end{lstlisting}
+There are some interesting issues that arise from this idea:
+\begin{compactitem}
+\item The bounds on the lvalues for \code{len} and
+\code{buf} must be invariant throughout the execution of the program.
+While we can put constraints on pointers that point to those lvalues,
+we do not know when the lvalues will be updated.
+The implication of this is that only local variables with invariant
+bounds declarations (Section~\ref{section:invariant-bounds-declarations})
+can have their addresses taken.   Local variables
+with flow-sensitive bounds declarations cannot have their addresses taken.
+The function could alter the bounds declarations for the local variables
+so that they disagree with constraints on the pointers.
+\item Once the address of a variable involved in a bounds declaration 
+is taken, we cannot add new bounds declarations involving the variable.
+The pointer-level bounds declarations would not reflect the new constraint.
+\item The constraints on the pointers must fully capture 
+all the constraints on the underlying variables.
+\item Finally, constraints on the pointers cannot be dropped.
+\end{compactitem}
+
+The operations that could be done while updating
+address-taken variables or assigning through pointers with 
+constraints on them must be limited.
+To maintain the bounds declaration, we must ensure that
+variables are not modified unexpectedly via aliases. 
+Without aliasing information, function calls could not
+be allowed.  Updates to address-taken variables could
+not be intermingled with reads or writes through pointers
+with constraints to avoid the possibility of aliasing.
+
+Taking the addresses of members that are used in member
+bounds fits nicely into this approach for supporting
+by-reference paramters.  The lvalues involved there do have
+invariant bounds through the execution of the program,
+which is the same requirement that we have placed on
+local variables.

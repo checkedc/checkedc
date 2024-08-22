@@ -147,8 +147,8 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   array_ptr<int> t10  = s;
   array_ptr<int> t9b = w;
   array_ptr<int> t11 = t;
-  array_ptr<int> t11a = u;
-  array_ptr<int> t12 = u;
+  int* _Array t11a = u;
+  int* _Array t12 = u;
   nt_array_ptr<int> t12a = x;
   nt_array_ptr<int> t12b = u;      // expected-error {{expression of incompatible type 'int _Checked[10]'}}
   array_ptr<int> t13 = s2d[0];
@@ -158,8 +158,8 @@ extern void check_assign(int val, int p[10], int q[], int r checked[10], int s c
   array_ptr<int> t14 = t2d[0];
   array_ptr<int> t15 = u2d[0];
   array_ptr<int> t15a = x2d[0];
-  nt_array_ptr<int> t15b : bounds(unknown) = x2d[0];
-  nt_array_ptr<int> t15c = u2d[0]; // expected-error {{expression of incompatible type 'int _Checked[10]'}}
+  int* _Nt_array t15b _Bounds(unknown) = x2d[0];
+  int* _Nt_array t15c = u2d[0]; // expected-error {{expression of incompatible type 'int _Checked[10]'}}
 
   // Multi-dimensional array type conversions to pointer types.
   int *t16 = s2d[0];     // expected-error {{expression of incompatible type 'int _Checked[10]'}}
@@ -471,9 +471,9 @@ extern void check_condexpr(int val) {
 
   // N and M are arbitrary positive integer constants below.
   int *t1 = val ? p : p;            // T[N] and T[M] OK;
-  array_ptr<int> t2 = val ? p : r;  // T[N] and T checked[M] OK
-  array_ptr<int> t2a = val ? p : v; // T[N] and T nt_checked[M] OK.
-  nt_array_ptr<int> t2b = val ? p : v; // expected-error {{incompatible type}}
+  int* _Array t2 = val ? p : r;  // T[N] and T checked[M] OK
+  int* _Array t2a = val ? p : v; // T[N] and T nt_checked[M] OK.
+  int* _Nt_array t2b = val ? p : v; // expected-error {{incompatible type}}
                                        // T[N] and T nt_checked[M] produce
                                        // only array_ptr.
   array_ptr<int> t3 = val ? r : p;  // T checked[N] and T[M] OK
@@ -487,7 +487,7 @@ extern void check_condexpr(int val) {
                                         // But they produce only array_ptr.
   nt_array_ptr<int> t4d = val ? v : r;  // expected-error {{incompatible type}}
                                         // But they produce only array_ptr
-  nt_array_ptr<int> t4e = val ? v : v;  // T nt_checked[M] and T nt_checked[N] OK.
+  int* _Nt_array t4e = val ? v : v;  // T nt_checked[M] and T nt_checked[N] OK.
 
   // omit assignment because type of expression is not valid when there is an error.
   val ? s : r;     // expected-error {{pointer type mismatch}}
@@ -514,9 +514,9 @@ extern void check_condexpr(int val) {
   array_ptr<int> t5 = val ? r : 0;
   array_ptr<int> t5a = val ? v : 0;
   array_ptr<int> t6 = val ? 0 : r;
-  nt_array_ptr<int> t6a = val ? 0 : v; // expected-warning {{cannot prove declared bounds for 't6a' are valid after initialization}}
+  int* _Nt_array t6a = val ? 0 : v; // expected-warning {{cannot prove declared bounds for 't6a' are valid after initialization}}
   array_ptr<float> t7 = val ? u : 0;
-  array_ptr<float> t8 = val ? 0 : u;
+  float* _Array t8 = val ? 0 : u;
 }
 
 extern void check_condexpr_2d(int val) {
@@ -621,7 +621,7 @@ extern void check_condexpr_cv(void)
   array_ptr<const int> t32 = val ? r_const : r;       // array_ptr<const int> and array_ptr<int> OK
   array_ptr<const int> t33 = val ? r_const : r_const; // array_ptr<const int> and array_ptr<const int> OK
 
-  array_ptr<const int> t25a = val ? p : s_const;       // int * and nt_array_ptr<const int> OK
+  const int* _Array    t25a = val ? p : s_const;       // int * and nt_array_ptr<const int> OK
   array_ptr<const int> t26a = val ? s_const : p;       // nt_array_ptr<const int> and int * OK
   array_ptr<const int> t27a = val ? p_const : s;       // const int * and nt_array_ptr<int> OK
   array_ptr<const int> t28a = val ? s : p_const;       // nt_array_ptr<int> and const int * OK
@@ -633,7 +633,7 @@ extern void check_condexpr_cv(void)
   array_ptr<const int> t33b = val ? r_const : s_const; // array_ptr<const int> and nt_array_ptr<const int> OK
   array_ptr<const int> t33c = val ? s : s_const;       // nt_array_ptr<int> and nt_array_ptr<const int> OK
   array_ptr<const int> t33d = val ? s_const : s;       // nt_array_ptr<const int> and nt_array_ptr<int> OK
-  array_ptr<const int> t33e = val ? s_const : s_const; // nt_array_ptr<const int> and nt_array_ptr<const int> OK
+  const int* _Array t33e = val ? s_const : s_const; // nt_array_ptr<const int> and nt_array_ptr<const int> OK
 
   array_ptr<int> t34 = val ? p : r_const;   // expected-warning {{discards qualifiers}}
                                             // int * and array_ptr<const int> produce array_ptr<const int>
@@ -651,8 +651,8 @@ extern void check_condexpr_cv(void)
                                             // array_ptr<int> and array_ptr<const int> produce array_ptr<const int>
   array_ptr<int> t41 = val ? r_const : r;   // expected-warning {{discards qualifiers}}
                                             // array_ptr<const int> and array_ptr<int> produce array_ptr<const int>
-  array_ptr<int> t42 = val ? r_const : r_const;   // expected-warning {{discards qualifiers}}
-                                            // array_ptr<const int> and array_ptr<const int> produce array_ptr<const int>
+  int* _Array t42 = val ? r_const : r_const;   // expected-warning {{discards qualifiers}}
+                                             // array_ptr<const int> and array_ptr<const int> produce array_ptr<const int>
 
   array_ptr<int> t34a = val ? p : s_const;  // expected-warning {{discards qualifiers}}
                                             // int * and nt_array_ptr<const int> produce array_ptr<const int>
@@ -680,7 +680,7 @@ extern void check_condexpr_cv(void)
                                                  // nt_array_ptr<int> and nt_array_ptr<const int> produce array_ptr<const int>
   array_ptr<int> t43d = val ? s_const : s;       // expected-warning {{discards qualifiers}}
                                                  // nt_array_ptr<const int> and nt_array_ptr<int> produce array_ptr<const int>
-  array_ptr<int> t42e = val ? s_const : s_const; // expected-warning {{discards qualifiers}}
+  int* _Array t42e = val ? s_const : s_const; // expected-warning {{discards qualifiers}}
                                                  // nt_array_ptr<const int> and nt_array_ptr<const int> produce array_ptr<const int>
 
   // test different kinds of pointers with volatile modifers
@@ -719,7 +719,7 @@ extern void check_condexpr_cv(void)
   array_ptr<volatile int> t82d = val ? s_volatile : s;          // nt_array_ptr<volatile int> and nt_array_ptr<int> OK
   array_ptr<volatile int> t82e = val ? s_volatile : s_volatile; // nt_array_ptr<volatile int> and nt_array_ptr<volatile int> OK
 
-  array_ptr<int> t83 = val ? p : r_volatile;          // expected-warning {{discards qualifiers}}
+  int* _Array t83 = val ? p : r_volatile;             // expected-warning {{discards qualifiers}}
                                                       // int * and array_ptr<volatile int> produce array_ptr<volatile int>
   array_ptr<int> t84 = val ? r_volatile : p;          // expected-warning {{discards qualifiers}}
                                                       // array_ptr<volatile int> and int * produce array_ptr<volatile int>
@@ -762,7 +762,7 @@ extern void check_condexpr_cv(void)
                                                        // nt_array_ptr<int> and nt_array_ptr<volatile int> produce array_ptr<volatile int>
   array_ptr<int> t92d = val ? s_volatile : s;          // expected-warning {{discards qualifiers}}
                                                        // nt_array_ptr<volatile int> and nt_array_ptr<int> produce array_ptr<volatile int>
-  array_ptr<int> t92e = val ? s_volatile : s_volatile; // expected-warning {{discards qualifiers}}
+  int* _Array t92e = val ? s_volatile : s_volatile;    // expected-warning {{discards qualifiers}}
                                                        // nt_array_ptr<volatile int> and nt_array_ptr<volatile int> produce array_ptr<volatile int>
 }
 
@@ -827,7 +827,7 @@ extern void f13(_Bool p, int y) {
 extern void f1_void(void *p, int y) {
 }
 
-extern void f2_void(ptr<void> p, int y) {
+extern void f2_void(void* _Single p, int y) {
 }
 
 extern void f3_void(array_ptr<void> p, int y) {
@@ -1037,7 +1037,7 @@ extern void check_call_void(void) {
 
   // TODO: s will need bounds information
   void *s = 0;
-  ptr<void> t = 0;
+  void* _Single t = 0;
   array_ptr<void> u = 0;
 
   // Test different kinds of pointers where the parameter type is a pointer to void and
@@ -1885,14 +1885,14 @@ extern void check_vla(int i) {
 
 // Test assigning an unchecked pointer with an nt_array_ptr
 // bounds-safe interface to a checked nt_array_ptr.
-extern void check_nt_bounds_safe_interface(const char *interop_string : itype(nt_array_ptr<const char>),
-                                           char **interop_ptr : itype(nt_array_ptr<ptr<char>>),
+extern void check_nt_bounds_safe_interface(const char *interop_string : itype(const char* _Nt_array),
+                                           char **interop_ptr _Itype(nt_array_ptr<ptr<char>>),
                                            char checked_arr nt_checked[3],
                                            char unchecked_arr[3]) {
   // LHS of assignment has nt_array_ptr<T> type and RHS of assignment
   // is an unchecked pointer with nt_array_ptr<T> bounds-safe interface.
-  nt_array_ptr<const char> checked_str = interop_string;
-  nt_array_ptr<ptr<char>> checked_ptr = interop_ptr;
+  const char* _Nt_array checked_str = interop_string;
+  char* _Single * _Nt_array checked_ptr = interop_ptr;
 
   // LHS of assignment has nt_array_ptr<T> type and RHS of assigment
   // is an unchecked pointer with nt_array_ptr<U> bounds-safe interface,

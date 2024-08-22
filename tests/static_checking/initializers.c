@@ -18,7 +18,7 @@ extern void f1() {
   array_ptr<int> v7 : byte_count(5 * sizeof(int)) = 0;
   array_ptr<int> v8 : byte_count(5 * sizeof(int));    // expected-error {{automatic variable 'v8' with bounds must have initializer}}
   array_ptr<int> v9 : bounds(v9, v9 + 5) = 0;
-  array_ptr<int> v10 : bounds(v10, v10 + 5);          // expected-error {{automatic variable 'v10' with bounds must have initializer}}
+  int* _Array v10  _Bounds(v10, v10 + 5);          // expected-error {{automatic variable 'v10' with bounds must have initializer}}
 
   ptr<int> v20 = 0;
   ptr<int> v21;         // expected-error {{automatic variable 'v21' with _Ptr type must have initializer}}
@@ -50,7 +50,7 @@ nt_array_ptr<int> g31 : count(0) = (int checked[]) { 0, [2] = 2, 3, 5, 0 };
 nt_array_ptr<char> g32 : count(5) = "abcde";
 array_ptr<char> g33 : count(5) = "abcde";
 array_ptr<char> g34 : count(5) = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
-array_ptr<char> g35 : count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' };
+char* _Array g35  _Count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' };
 
 //
 // Checked arrays of checked pointers
@@ -61,7 +61,7 @@ nt_array_ptr<char> g37 nt_checked[] = { "the", "brown", "fox", "jumped",
 
 void callback1(int a);
 void callback2(int a);
-nt_array_ptr<ptr<void(int)>> callback_table = (ptr<void(int)>[]) { callback1, callback2, 0 };
+void(*_Single *_Nt_array callback_table)(int) = (ptr<void(int)>[]) { callback1, callback2, 0 };
 
 void f3(char *escape) {
 }
@@ -122,8 +122,8 @@ void f5(void) checked {
   nt_array_ptr<char> t32 : count(5) = "abcde";
 
   array_ptr<char> t33 : count(5) = "abcde";
-  array_ptr<char> t34 = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
-  array_ptr<char> t35 : count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' };
+  char* _Array t34 = (char[5]) { 'a', 'b', 'c', 'd', 'e' };
+  char* _Array t35  _Count(5) = (char checked[5]) { 'a', 'b', 'c', 'd', 'e' };
 
   //
   // Make sure parentheses are ignored.
@@ -135,8 +135,8 @@ void f5(void) checked {
   // Checked arrays of checked pointers.
   //
   nt_array_ptr<char> t38 checked[3][2] = { [1] = "ab", "cd", "ef", "jk" };
-  nt_array_ptr<char> t39 nt_checked[] = { "the", "brown", "fox", "jumped",
-    "over", "the", "fence", 0 };
+  char* _Nt_array t39 nt_checked[] = { "the", "brown", "fox", "jumped",
+                                      "over", "the", "fence", 0 };
 
   char c = ((char *[2]) { "abc", "def" })[0][0];  // expected-error {{type in a checked\
  scope must use only checked types or parameter/return types with bounds-safe interfaces}}
@@ -147,7 +147,7 @@ void f5(void) checked {
 void f6(void) {
   ptr<int> p = 0;                   // initializer required.
   array_ptr<int> q : count(5) = 0;  // has bounds; initializer required.
-  array_ptr<int> lower, upper;      // no bounds; initializer not required.
+  int* _Array lower,* _Array upper;      // no bounds; initializer not required.
   lower = q;
   upper = q + 5;
 
@@ -172,7 +172,7 @@ void f6(void) {
  // Check { 0 } initialization idiom where first member is a floating point number.
   struct FloatWithVariableBuffer {
     float weight;
-    array_ptr<int> buf : count(len);
+    int* _Array buf  _Count(len);
     int len;
   };
 
@@ -193,8 +193,8 @@ void f6(void) {
 
   struct checked_value_no_bounds {
     int x;
-    array_ptr<int> lower;
-    array_ptr<int> upper;
+    int* _Array lower;
+    int* _Array upper;
     float y;
   };
 
@@ -206,8 +206,8 @@ void f6(void) {
 
   struct checked_value_has_bounds {
     int x;
-    array_ptr<char> lower : count(5);
-    array_ptr<char> upper : count(5);
+    array_ptr<char> lower  _Count(5);
+    array_ptr<char> upper  _Count(5);
     float y;
   };
 
@@ -232,8 +232,8 @@ void f6(void) {
 
   union u_checked_value_has_bounds {
     int x;
-    array_ptr<char> lower : count(5);
-    array_ptr<char> upper : count(5);
+    char* _Array lower : count(5);
+    char* _Array upper : count(5);
     float y;
   };
   union u_checked_value_has_bounds init_U2 = { 0 }; // has bounds; initializer required and we did, should pass
@@ -250,7 +250,7 @@ void f6(void) {
 
   typedef struct {
     int data;
-    array_ptr<char> name : count(20);
+    array_ptr<char> name _Count(20);
     struct Node* next;
   } Node;
 
@@ -354,7 +354,7 @@ void f11 (void) checked {
    //a struct with unchecked pointers with bounds exprs in a checked scope
   typedef struct {
     int x;
-    int* p : count(1);
+    int* p  _Count(1);
     char* cp : count(5);
   } S;
   S s1; // expected-error {{containing an unchecked pointer with a bounds expression in a checked scope must have an initializer}}

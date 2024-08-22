@@ -10,10 +10,10 @@ extern int cLen;
 extern array_ptr<int> f : byte_count(cLen * sizeof(int));
 extern array_ptr<int> g : bounds(f - 2, f + 3) rel_align(char);
 extern array_ptr<int> h : bounds(f - 2, f + 3) rel_align_value(sizeof(char));
-extern array_ptr<int> i : count(5), j : bounds(i - 2, i + 3) rel_align(char),
-                      l : bounds(i - 2, i + 3) rel_align_value(sizeof(char)),
-                      k : bounds(j + 2, j + 5) rel_align(char),
-                      m : bounds(j + 2, j + 5) rel_align_value(sizeof(char));
+extern int* _Array i  _Count(5), * _Array j  _Bounds(i - 2, i + 3) rel_align(char),
+    * _Array l  _Bounds(i - 2, i + 3) rel_align_value(sizeof(char)),
+    * _Array k  _Bounds(j + 2, j + 5) rel_align(char),
+    * _Array  m  _Bounds(j + 2, j + 5) rel_align_value(sizeof(char));
 
 char buf checked[128] : count(128);
 array_ptr<char> cursor : bounds(buf, buf + 128) rel_align(char) = buf + 64;
@@ -28,8 +28,8 @@ extern void f1(array_ptr<int> arr : count(5)) {
   array_ptr<int> midarr1 : bounds(midarr1 - 1, midarr1 - 1 + 2) rel_align_value(sizeof(char)) = arr + 2;
 
   static array_ptr<int> cache1 : count(5);
-  static array_ptr<int> cache1_ptr : bounds(cache1 - 2, cache1 + 3) rel_align(char);
-  static array_ptr<int> cache1_ptr1 : bounds(cache1 - 2, cache1 + 3) rel_align_value(sizeof(char));
+  static int* _Array cache1_ptr  _Bounds(cache1 - 2, cache1 + 3) rel_align(char);
+  static int* _Array cache1_ptr1  _Bounds(cache1 - 2, cache1 + 3) rel_align_value(sizeof(char));
 }
 
 extern void f2(array_ptr<int> arr : count(5)) {
@@ -38,9 +38,9 @@ extern void f2(array_ptr<int> arr : count(5)) {
                                     u : bounds(u, u + 5) rel_align(char) = arr,
                                     v : bounds(unknown) = arr;
 
-  array_ptr<int> t1 : byte_count(5 * sizeof(int)) = arr,
-                                     u1 : bounds(u1, u1 + 5) rel_align_value(sizeof(int)) = arr,
-                                     v1 : bounds(unknown) = arr;
+  int* _Array t1  _Byte_count(5 * sizeof(int)) = arr,
+                                 * _Array u1  _Bounds(u1, u1 + 5) rel_align_value(sizeof(int)) = arr,
+                                 * _Array v1  _Bounds(unknown) = arr;
 }
 
 extern void f3(array_ptr<int> arr : count(5)) {
@@ -51,7 +51,7 @@ extern void f3(array_ptr<int> arr : count(5)) {
 
   array_ptr<int> v1 : bounds(v1, (v1 + 5) + len - len) rel_align_value(sizeof(char)) = arr;
   array_ptr<int> w1 : bounds((w1 + len - (len)), (w1 + len)) rel_align_value(sizeof(char)) = arr;
-  array_ptr<int> midarr1 : bounds(midarr1 - 1, (midarr1 - 1) + 2) rel_align_value(1) = arr + 2;
+  int* _Array midarr1  _Bounds(midarr1 - 1, (midarr1 - 1) + 2) rel_align_value(1) = arr + 2;
 }
 
 extern void f4(array_ptr<int> arr : count(len), int len) {
@@ -63,7 +63,7 @@ extern void f4(array_ptr<int> arr : count(len), int len) {
   array_ptr<int> t1 : bounds(t, t + count) rel_align_value(sizeof(char)) = arr;
   int bounds = len;
   array_ptr<int> u : bounds(u, u + bounds) rel_align(char) = arr;
-  array_ptr<int> u1 : bounds(u1, u1 + bounds) rel_align_value(sizeof(char)) = arr;
+  int* _Array u1  _Bounds(u1, u1 + bounds) rel_align_value(sizeof(char)) = arr;
 }
 
 extern void f5(void) {
@@ -76,7 +76,7 @@ extern void f5(void) {
 
   static int cache checked[5] : count(5);
   static array_ptr<int> cache_ptr : bounds(cache - 2, cache + 3) rel_align(char);
-  static array_ptr<int> cache_ptr1 : bounds(cache - 2, cache + 3) rel_align_value(sizeof(char));
+  static int* _Array cache_ptr1  _Bounds(cache - 2, cache + 3) rel_align_value(sizeof(char));
 }
 
 extern void f6(int *arr checked[] : count(5)) {
@@ -127,11 +127,11 @@ extern array_ptr<int> f9s(int start, array_ptr<int> arr : bounds(arr - start, ar
 extern array_ptr<int> f10(int bounds, array_ptr<int> arr : count(bounds))
                       : bounds(arr, arr + bounds) rel_align(char);
 
-extern array_ptr<int> f10s(int bounds, array_ptr<int> arr : count(bounds))
-                      : bounds(arr, arr + bounds) rel_align_value(sizeof(char));
+extern int* _Array f10s(int bounds, int* _Array arr  _Count(bounds))
+    _Bounds(arr, arr + bounds) rel_align_value(sizeof(char));
 
-extern array_ptr<int> f11(array_ptr<int> arr : bounds(arr, arr + 5) rel_align(char))
-    : bounds(arr, arr + 5) rel_align(char) {
+extern int* _Array f11(int* _Array arr  _Bounds(arr, arr + 5) rel_align(char))
+    _Bounds(arr, arr + 5) rel_align(char) {
   return arr;
 }
 
@@ -165,8 +165,8 @@ extern array_ptr<ptr<int>> f14(array_ptr<ptr<int>> arr : count(5))
   return arr;
 }
 
-extern array_ptr<ptr<int>> f14s(array_ptr<ptr<int>> arr : count(5))
-    : bounds(arr, arr + 5) rel_align_value(5) {
+extern array_ptr<ptr<int>> f14s(array_ptr<ptr<int>> arr  _Count(5))
+    _Bounds(arr, arr + 5) rel_align_value(5) {
   return arr;
 }
 
@@ -175,8 +175,8 @@ extern array_ptr<int[10]> f15(array_ptr<int[10]> arr : count(5))
   return arr;
 }
 
-extern array_ptr<int[10]> f15s(array_ptr<int[10]> arr : count(5))
-    : bounds(arr, arr + 3) rel_align_value(sizeof(char)) {
+extern array_ptr<int[10]> f15s(array_ptr<int[10]> arr  _Count(5))
+    _Bounds(arr, arr + 3) rel_align_value(sizeof(char)) {
   return arr;
 }
 
@@ -189,15 +189,15 @@ extern void f16(void) {
     : bounds(arg2, arg2 + n) rel_align(char)> r3 = 0;
   ptr<int(array_ptr<int> arg3 : count(n), int n)
     : bounds(arg3, arg3 + n) rel_align_value(sizeof(char))> r4 = 0;
-  typedef int func2(array_ptr<int> arr : count(len), int len)
-      : bounds(arr, arr + len) rel_align(char);
+  typedef int func2(int* _Array arr  _Count(len), int len)
+      _Bounds(arr, arr + len) rel_align(char);
 }
 
 extern array_ptr<int> f17(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(1) { // expected-error {{expected bounds expression}}
 													    }
 extern array_ptr<int> f18(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align(char) { // expected-error {{expected bounds expression}}
 }
-extern array_ptr<int> f19(int len, array_ptr<int> arr : count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}}
+extern int* _Array f19(int len, int* _Array arr  _Count(len)) : boounds(arr, arr + len) rel_align_value(len) { // expected-error {{expected bounds expression}}
 }
 
 int f20(void) {
@@ -205,7 +205,7 @@ int f20(void) {
   struct S30 {
     int len;
     array_ptr<int> arr : bounds(buffer, buffer + len) rel_align(char); // expected-error 2 {{use of undeclared member 'buffer'}}
-    array_ptr<int> arr1: bounds(buffer, buffer + len) rel_align_value(sizeof(len));// expected-error 2 {{use of undeclared member 'buffer'}}
+    int* _Array arr1 _Bounds(buffer, buffer + len) rel_align_value(sizeof(len));// expected-error 2 {{use of undeclared member 'buffer'}}
     array_ptr<int> arr2: bounds(buffer, buffer + len) rel_align_value(sizeof(char));// expected-error 2 {{use of undeclared member 'buffer'}}
   };
 }
@@ -229,12 +229,13 @@ extern array_ptr<int> f25(int len, array_ptr<int> arr : count(len)) : boounds(ar
 
 extern array_ptr<int> f26(int len, array_ptr<int> arr : count(len)) : boounds() rel_align(1) {} // expected-error {{expected bounds expression or bounds-safe interface type}}
 
-extern array_ptr<int> f27(int len, array_ptr<int> arr : count(len)) : boounds() rel_alive(1) { // expected-error {{expected bounds expression or bounds-safe interface type}}
+extern int* _Array f27(int len, int* _Array arr  _Count(len)) : boounds() rel_alive(1) { // expected-error {{expected bounds expression or bounds-safe interface type}}
 }
+
 extern void f28(void) {
-  array_ptr<int> arg : bo0unds(arg, arg + 5) rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
-  array_ptr<int> arg1 : bo0unds rel_alive(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
-  array_ptr<int> arg2 : bo0unds rel_align(1) = 0;  // expected-error {{expected bounds expression or bounds-safe interface type}}
+   int* _Array arg _Bo0unds(arg, arg + 5) rel_alive(1) = 0;  // expected-error {{expected ';' at end of declaration}}
+   int* _Array arg1 _Bo0unds rel_alive(1) = 0;  // expected-error {{expected ';' at end of declaration}}
+   int* _Array arg2 _Bo0unds rel_align(1) = 0;  // expected-error {{expected ';' at end of declaration}}
 }
 
 struct S1 {
@@ -245,8 +246,8 @@ struct S1 {
 struct S2 {
   int start;
   array_ptr<int> arr : bounds(arr - start, arr - start + 5) rel_align(char);
-  array_ptr<int> arr1 : bounds(arr1 - start, arr1 - start + 5)
-                        rel_align_value(sizeof(char) + sizeof(char));
+  int* _Array arr1  _Bounds(arr1 - start, arr1 - start + 5)
+      rel_align_value(sizeof(char) + sizeof(char));
 };
 
 struct S3 {
@@ -261,7 +262,7 @@ struct S3 {
   array_ptr<int> arr5 : bounds(unknown + arr2, unknown + arr2 + 5) rel_align_value(sizeof(char));// expected-error {{expected ')'}} \
                                                                                            // expected-note {{to match this '('}} \
                                                                                            // expected-error {{expected range bounds expression}} 
-  array_ptr<int> arr6 : bounds(arr2, arr2 + unknown) rel_align_value(1);
+  int* _Array arr6  _Bounds(arr2, arr2 + unknown) rel_align_value(1);
 };
 
 struct S4 {
@@ -273,7 +274,7 @@ struct S4 {
 
   array_ptr<int> arr5 : bounds(bounds + arr5, bounds + arr5 + 2) rel_align_value(sizeof(int));
   array_ptr<int> arr6 : bounds(bounds + arr2, bounds + arr2 + 5) rel_align_value(sizeof(char));
-  array_ptr<int> arr7 : bounds(arr6, arr6 + bounds) rel_align_value(sizeof(char));
+  int* _Array arr7  _Bounds(arr6, arr6 + bounds) rel_align_value(sizeof(char));
 };
 
 struct S5 {
@@ -289,7 +290,7 @@ struct S5 {
   int *arr12 : bounds(arr12, arr12 + 9) rel_align(char);
   int *arr13 : bounds(arr13, arr13 + 9) rel_align_value(sizeof(char));
   int arr14[10] : bounds(arr14, arr14 + 9) rel_align(char);
-  int arr15[10] : bounds(arr15, arr15 + 9) rel_align_value(sizeof(char));
+  int arr15[10]  _Bounds(arr15, arr15 + 9) rel_align_value(sizeof(char));
 };
 
 extern void S6(void) {
@@ -299,8 +300,8 @@ extern void S6(void) {
     : bounds(arg1, arg1 + 5) rel_align_value(sizeof(char))> r2 = 0;
   ptr<int(array_ptr<int> arg2 : count(n), int n)
     : bounds(arg2, arg2 + n) rel_align(char)> r3 = 0;
-  ptr<int(array_ptr<int> arg3 : count(n), int n)
-    : bounds(arg3, arg3 + n) rel_align_value(n)> r4 = 0; // expected-error {{expression is not an integer constant expression}} 
+  ptr<int(int* _Array arg3  _Count(n), int n)
+          _Bounds(arg3, arg3 + n) rel_align_value(n)> r4 = 0; // expected-error {{expression is not an integer constant expression}}
 }
 
 struct S7 {
@@ -312,7 +313,7 @@ struct S7 {
   array_ptr<int> arr1 : bounds(pair.lower, pair.upper) rel_align_value(sizeof(pair));
   struct S9 {
     array_ptr<int> arr2 : bounds(pair.lower, pair.upper) rel_align(char);
-    array_ptr<int> arr3 : bounds(pair.lower, pair.upper) rel_align_value(sizeof(pair));
+    int* _Array arr3  _Bounds(pair.lower, pair.upper) rel_align_value(sizeof(pair));
   } nested;
 };
 
@@ -325,14 +326,14 @@ struct S10 {
   array_ptr<int> arr1 : bounds(pair.lower, pair.upper) rel_align_value(sizeof(char));
   struct {
     array_ptr<int> arr2 : bounds(pair.lower, pair.upper) rel_align(char);
-    array_ptr<int> arr3 : bounds(pair.lower, pair.upper) rel_align_value(sizeof(pair));
+    int* _Array arr3  _Bounds(pair.lower, pair.upper) rel_align_value(sizeof(pair));
   } nested;
 };
 
 struct S11 {
   array_ptr<int> arr : bounds(arr, unknown_id) rel_align(char); // expected-error {{use of undeclared member}} 
 
-  array_ptr<int> arr1: bounds(arr1, unknown_id) rel_align_value(sizeof(char)); // expected-error {{use of undeclared member}} 
+  int* _Array arr1 _Bounds(arr1, unknown_id) rel_align_value(sizeof(char)); // expected-error {{use of undeclared member}}
 
 };
 
@@ -350,16 +351,16 @@ struct S13 {
 
   array_ptr<int> arr1: bounds() rel_align_value(len); // expected-error {{expected expression}} \
 						      // expected-error {{expression is not an integer constant expression}} 
-  array_ptr<int> arr3 : bounds() rel_align(); // expected-error {{expected expression}}  expected-error {{expected a type}} 
+  int* _Array arr3  _Bounds() rel_align(); // expected-error {{expected expression}}  expected-error {{expected a type}}
 
-  array_ptr<int> arr4 : bounds() rel_align_value(); // expected-error 2 {{expected expression}}
+  int* _Array arr4  _Bounds() rel_align_value(); // expected-error 2 {{expected expression}}
 };
 
 array_ptr<int> global_bound;
 
 struct S14 {
   int len;
-  array_ptr<int> arr : bounds(global_bound, global_bound + len) rel_align(int); // expected-error 2 {{use of undeclared member 'global_bound'}}
+  int* _Array arr  _Bounds(global_bound, global_bound + len) rel_align(int); // expected-error 2 {{use of undeclared member 'global_bound'}}
 
   array_ptr<int> arr1
       : bounds(global_bound, global_bound + len) rel_align_value(sizeof(int)); // expected-error 2 {{use of undeclared member 'global_bound'}}

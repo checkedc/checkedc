@@ -1,4 +1,4 @@
-// UNSUPPORTED: system-windows
+// UNSUPPORTED: !linux
 //
 // Test include files for all combinations of Checked C enabled/disabled,
 // and implicit inclusion of checked headers enabled/disabled. By default, both
@@ -14,6 +14,13 @@
 // Checked headers are disabled because implicit inclusion is disabled.
 // RUN: %clang -DNO_IMPLICIT_INCLUDE_CHECKED_HDRS -E %s | FileCheck %s --check-prefix CHECK_DISABLED
 
+// C11 headers supported on Linux, but not on Windows
+#define _CHECKEDC_MOCKUP_THREADS 1
+#include <threads.h>
+// CHECK_ENABLED: threads_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: threads_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
 // Posix Headers
 // These header files are not present in the Windows compilation environment.
@@ -29,8 +36,50 @@
 // CHECK_DISABLED-NOT: socket_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
 
+#include <sys/stat.h>
+// CHECK_ENABLED: stat_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: stat_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
 #include <arpa/inet.h>
 // CHECK_ENABLED: inet_checked.h
 // CHECK_ENABLED: #pragma CHECKED_SCOPE on
 // CHECK_DISABLED-NOT: inet_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
+#include <grp.h>
+// CHECK_ENABLED: grp_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: grp_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
+#include <netdb.h>
+// CHECK_ENABLED: netdb_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: netdb_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
+#include <poll.h>
+// CHECK_ENABLED: poll_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: poll_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
+#include <pwd.h>
+// CHECK_ENABLED: pwd_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: pwd_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
+#include <syslog.h>
+// CHECK_ENABLED: syslog_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: syslog_checked.h
+// CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on
+
+#include <utime.h>
+// CHECK_ENABLED: utime_checked.h
+// CHECK_ENABLED: #pragma CHECKED_SCOPE on
+// CHECK_DISABLED-NOT: utime_checked.h
 // CHECK_DISABLED-NOT: #pragma CHECKED_SCOPE on

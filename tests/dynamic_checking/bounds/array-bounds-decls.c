@@ -1,6 +1,6 @@
 // Test bounds checking in checked scopes of uses of
 // arrays that have declared bounds.  The declared bounds
-// override bounds based on the size of the 1st 
+// override bounds based on the size of the 1st
 // dimension of the array.
 //
 // RUN: %clang %s -o %t1 -Werror -Wno-unused-value %checkedc_target_flags
@@ -62,9 +62,12 @@ int write_fail(int testnum, int pos, ptr<struct S1> s, ptr<struct S3> s3);
 int main(int argc, array_ptr<char*> argv : count(argc)) {
 
   // Set up the handler for a failing bounds check.  Currently the Checked C
-  // clang implementation raises a SIGILL when a bounds check fails.  This
-  // may change in the future.
+  // clang implementation raises a SIGILL or SIGTRIP when a bounds check fails,
+  // dpending on the target OS.  This may change in the future.
   signal(SIGILL, handle_error);
+#if defined(__APPLE__) && defined(__aarch64__)
+  signal(SIGTRAP, handle_error);
+#endif
 
   // This makes sure output is not buffered for when
   // we hit errors.
@@ -177,7 +180,7 @@ unexpected_success:
   return result;
 }
 
-int write_fail(int testnum, int pos, ptr<struct S1> s, 
+int write_fail(int testnum, int pos, ptr<struct S1> s,
                ptr<struct S3> s3) checked {
   int result = 0;
   switch (testnum) {
