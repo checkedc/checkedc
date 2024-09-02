@@ -8,12 +8,12 @@ sample code, and test code.
 - For a quick overview of Checked C and pointers to sample code,
   see our [Wiki](https://github.com/checkedc/checkedc/wiki).
 - You can download Checked C clang compiler releases for Windows, Mac, and Ubuntu
-  [here](https://github.com/checkedc/checkedc-llvm-project/releases).
+  [here](https://github.com/checkedc/checkedc-clang/releases).
 - The specification is available [here](https://github.com/checkedc/checkedc/releases).
 - The repo for the Checked C clang compiler is
-  [here](https://github.com/checkedc/checkedc-llvm-project).  The compiler is a fork of
+  [here](https://github.com/checkedc/checkedc-clang).  The compiler is a fork of
   LLVM/clang. Instructions for building the compiler from source code are on the
-  [Checked C clang wiki](https://github.com/checkedc/checkedc-llvm-project/wiki).
+  [Checked C clang wiki](https://github.com/checkedc/checkedc-clang/wiki).
 
 # Build Status
 
@@ -22,25 +22,6 @@ sample code, and test code.
 [![Checked C Clang CI [MacOS]](https://github.com/checkedc/workflows/actions/workflows/checkedc-clang-macos.yml/badge.svg)](https://github.com/checkedc/workflows/actions/workflows/checkedc-clang-macos.yml)
 
 [![Checked C Clang CI [WINDOWS]](https://github.com/checkedc/workflows/actions/workflows/check-clang-windows.yml/badge.svg)](https://github.com/checkedc/workflows/actions/workflows/check-clang-windows.yml)
-
-# History
-
-Checked C is an independent open-source project.   It started as a research project at Microsoft in 2015.
-similar to Checked C.  We were looking for a way to improve the security of existing systems software and
-eliminate classes of bugs.
-
-One approach is to rewrite the software in a newer language such as Rust.
-However, rewriting code is challenging for a number of reasons:  it is costly, there are subtle differences in even
-basic language features such as arithmetic across languages, and it can take a long time before you
-have a working system.  Combined, this makes a rewrite a high-risk software development project.  These kinds
-of rewrites are unlikely to be done just to improve security.  We decided to pursue an incremental approach that allows
-existing C code to be improved gradually and at much lower cost.
-
-Researchers from many universities and companies have contributed to Checked C.
-Researchers at the University of Maryland, the University of Rochester, the University of Washington, Samsung,
-Rutgers University, and the University of Pennsylvania have contributed to Checked C.
-Apple has proposed a C extension similar to Checked C that relies on more dynamic checking.
-
 
 # Publications and Presentations
 
@@ -90,7 +71,6 @@ checking of the soundness of bounds. The talk also briefly describes novel algor
 to automatically widen bounds for null-terminated arrays and for comparison of
 expressions for equivalence.
 
-
 # Participating
 We are happy to have the help. You can contribute by trying out Checked C,
 reporting bugs, and giving us feedback. There are other ways to [contribute](CONTRIBUTING.md) too.
@@ -100,7 +80,25 @@ The software in this repository is covered by the MIT license.  See the file LIC
 Checked C specification is made available by Microsoft under the [OpenWeb Foundation Final
 Specification Agreement, version 1.0](http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0).
 Contributions of code to the Checked LLVM/clang repos are
-subject to the [LLVM/clang licensing terms](https://github.com/checkedc/checkedc-llvm-project/blob/main/clang/LICENSE.TXT).
+subject to the [LLVM/clang licensing terms](https://github.com/checkedc/checkedc-clang/blob/main/clang/LICENSE.TXT).
+
+# History
+
+Checked C is an independent open-source project.   It started as a research project at Microsoft in 2015.
+similar to Checked C.  We were looking for a way to improve the security of existing systems software and
+eliminate classes of bugs.
+
+One approach is to rewrite the software in a newer language such as Rust.
+However, rewriting code is challenging for a number of reasons:  it is costly, there are subtle differences in even
+basic language features such as arithmetic across languages, and it can take a long time before you
+have a working system.  Combined, this makes a rewrite a high-risk software development project.  These kinds
+of rewrites are unlikely to be done just to improve security.  We decided to pursue an incremental approach that allows
+existing C code to be improved gradually and at much lower cost.
+
+Researchers from many universities and companies have contributed to Checked C.
+Researchers at the University of Maryland, the University of Rochester, the University of Washington, Samsung,
+Rutgers University, and the University of Pennsylvania have contributed to Checked C.
+Apple has proposed a C extension similar to Checked C that relies on more dynamic checking.
 
 # Code of conduct
 
