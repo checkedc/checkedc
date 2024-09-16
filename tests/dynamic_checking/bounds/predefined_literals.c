@@ -6,7 +6,6 @@
 // RUN: %checkedc_rununder %t1 100 | FileCheck %s --check-prefix FAIL1
 
 #include <signal.h>
-#include <stdchecked.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -39,7 +38,7 @@ void fail1(int x) {
 #pragma CHECKED_SCOPE OFF
 }
 
-int main(int argc, array_ptr<char*> argv : count(argc)) {
+int main(int argc, _Array_ptr<char*> argv : count(argc)) {
   // Set up the handler for a failing bounds check.  Currently the Checked C
   // clang implementation raises a SIGILL or SIGTRAP when a bounds check fails,
   // depending on the target platform.  This may change in the future.
