@@ -5,32 +5,31 @@
 //
 // RUN: %clang -fsyntax-only -Werror %s
 
-#include <stdchecked.h>
 #include <stdlib_checked.h>
 
 #pragma CHECKED_SCOPE ON
 
 // Test you can always `free` a `malloc`d unchecked pointer
-void f1(void) unchecked {
+void f1(void) _Unchecked {
     int *x = malloc(sizeof(int));
     free(x);
 }
 
 // Test you can always `free` a `calloc`d unchecked pointer
-void f2(void) unchecked {
+void f2(void) _Unchecked {
     int *x = calloc(1, sizeof(int));
     free(x);
 }
 
 // Test you can always `free` a `realloc`d unchecked pointer
-void f3(void) unchecked {
+void f3(void) _Unchecked {
     int *x = malloc(sizeof(int));
     int *y = realloc(x, 2 * sizeof(int));
     free(y);
 }
 
 // Test you can always `free` a `aligned_alloc`d unchecked pointer
-void f4(void) unchecked {
+void f4(void) _Unchecked {
     int *x = aligned_alloc(_Alignof(int), sizeof(int));
     free(x);
 }
@@ -42,37 +41,37 @@ void f11(void) {
 }
 
 // Test you can always `free` a `calloc`d ptr
-void f12(void) unchecked {
+void f12(void) _Unchecked {
     // Intentionally vary test from f11: type argument can be omitted
     // in an unchecked scope.
-    ptr<int> x = calloc(1, sizeof(int));
+    _Ptr<int> x = calloc(1, sizeof(int));
     free(x);
 }
 
 // Test you can always `free` a `realloc`d ptr
-void f13(void) unchecked {
+void f13(void) _Unchecked {
     // Intentionally vary test from f11: type argument can be omitted
     // in an unchecked scope.
-    ptr<int> x = malloc(sizeof(int));
-    ptr<int> y = realloc<int>(x, 2 * sizeof(int));
+    _Ptr<int> x = malloc(sizeof(int));
+    _Ptr<int> y = realloc<int>(x, 2 * sizeof(int));
     free(y);
 }
 
 // Test you can always `free` a `aligned_alloc`d ptr
 void f14(void) {
-    ptr<int> x = aligned_alloc(_Alignof(int), sizeof(int));
+    _Ptr<int> x = aligned_alloc(_Alignof(int), sizeof(int));
     free<int>(x);
 }
 
 // Test you can always `free` a `malloc`d array_ptr
 void f21(void) {
-    array_ptr<int> x : count(4) = malloc<int>(4 * sizeof(int));
+    _Array_ptr<int> x : count(4) = malloc<int>(4 * sizeof(int));
     free<int>(x);
 }
 
 // Test you can always `free` a `calloc`d array_ptr
 void f22(void) {
-    array_ptr<int> x : count(4) = calloc<int>(4, sizeof(int));
+    _Array_ptr<int> x : count(4) = calloc<int>(4, sizeof(int));
     free<int>(x);
 }
 
@@ -85,6 +84,6 @@ void f23(void) {
 
 // Test you can always `free` a `aligned_alloc`d array_ptr
 void f24(void) {
-    array_ptr<int> x : count(4) = aligned_alloc(_Alignof(int), 4 * sizeof(int));
+    _Array_ptr<int> x : count(4) = aligned_alloc(_Alignof(int), 4 * sizeof(int));
     free<int>(x);
 }
