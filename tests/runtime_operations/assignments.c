@@ -3,11 +3,10 @@
 // RUN: %clang -fcheckedc-extension %s -o %t -Werror
 // RUN: %t | FileCheck %s --check-prefixes=CHECK
 
-#include <stdchecked.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static char *test : itype(ptr<char>);
+static char *test : itype(_Ptr<char>);
 char p = 5;
 static char *init  _Itype(char* _Single) = &p;
 
